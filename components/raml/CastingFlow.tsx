@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { RotateCcw, Check, History } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { FigureGlyph } from './FigureGlyph';
-import { ResultTabs } from './ResultTabs';
+import { CastingResultView } from './CastingResultView';
+import { CastingListItem } from './CastingListItem';
 import { reduceCount, buildChart, type Chart } from '@/lib/raml/casting';
+import { saveCasting, listCastings, type SavedCasting } from '@/lib/raml/storage';
 import type { DotRow, Pattern } from '@/content/stars';
 
 type Step = 'ask' | 'casting' | 'result';
@@ -19,9 +22,14 @@ export function CastingFlow() {
   const [currentLines, setCurrentLines] = useState<DotRow[]>([]);
   const [taps, setTaps] = useState(0);
   const [chart, setChart] = useState<Chart | null>(null);
+  const [recent, setRecent] = useState<SavedCasting[] | null>(null);
 
   const motherIndex = mothers.length;
   const lineIndex = currentLines.length;
+
+  useEffect(() => {
+    if (step === 'ask') setRecent(listCastings().slice(0, 3));
+  }, [step]);
 
   function reset() {
     setStep('ask');
@@ -53,8 +61,10 @@ export function CastingFlow() {
       setCurrentLines([]);
 
       if (nextMothers.length === 4) {
-        const built = buildChart(nextMothers as [Pattern, Pattern, Pattern, Pattern]);
+        const finalMothers = nextMothers as [Pattern, Pattern, Pattern, Pattern];
+        const built = buildChart(finalMothers);
         setChart(built);
+        saveCasting({ question, mothers: finalMothers });
         setStep('result');
       }
     } else {
@@ -84,6 +94,22 @@ export function CastingFlow() {
         >
           Begin casting
         </button>
+
+        {recent && recent.length > 0 ? (
+          <div className="mt-8">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-widest text-sand/45">Recent castings</p>
+              <Link href="/raml/history" className="flex items-center gap-1 text-xs text-clay-light">
+                <History size={13} /> View all
+              </Link>
+            </div>
+            <div className="space-y-2.5">
+              {recent.map((c) => (
+                <CastingListItem key={c.id} casting={c} />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -133,21 +159,23 @@ export function CastingFlow() {
 
   if (step === 'result' && chart) {
     return (
-      <div>
-        {question ? (
-          <div className="mx-4 mb-4 rounded-xl border border-sand/10 bg-ink-card px-3 py-2">
-            <p className="text-[11px] uppercase tracking-widest text-sand/40">Your question</p>
-            <p className="text-sm text-sand-light">{question}</p>
-          </div>
-        ) : null}
-        <ResultTabs chart={chart} />
-        <button
-          onClick={reset}
-          className="mx-4 mt-6 mb-2 flex w-[calc(100%-2rem)] items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 text-sm text-sand/60"
-        >
-          <RotateCcw size={15} /> New casting
-        </button>
-      </div>
+      <CastingResultView
+        chart={chart}
+        question={question}
+        meta={
+          <p className="mt-1 flex items-center gap-1 text-[11px] text-sand/35">
+            <Check size={12} className="text-clay-light" /> Saved to Past Castings on this device
+          </p>
+        }
+        footer={
+          <button
+            onClick={reset}
+            className="mx-4 mt-6 mb-2 flex w-[calc(100%-2rem)] items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 text-sm text-sand/60"
+          >
+            <RotateCcw size={15} /> New casting
+          </button>
+        }
+      />
     );
   }
 

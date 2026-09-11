@@ -21,7 +21,13 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
   2 Witnesses, the Judge and the Reconciler — the full classical 16-house shield chart —
   and presents results across four tabs: Overview (Judge/Self/Wealth/Illness), Full Chart
   (all 16 houses), My Star (Buruji via 3 traditional methods, spiritual-strength check,
-  root-cause check), and Sadaqah (the offering indicated by the chart).
+  root-cause check), and Sadaqah (the offering indicated by the chart). Every completed
+  casting is saved automatically (see Persistence below).
+- **Past Castings (`/raml/history`)** — every chart ever cast on the device, newest first,
+  each showing its question, date, and Judge figure. Tap one to reopen the full result
+  view exactly as it was; delete individual castings from there or from the detail page.
+  A "Recent castings" preview also surfaces the last 3 right on the casting screen, and
+  the My Star tab links out to the full list.
 - **Library (`/books`)** — marketplace-style catalog. *The Master of Geomancy, Vol. 1* is
   fully readable in-app, chapter by chapter, transcribed from the source manuscript.
   *Kanzul Mikban* (the advanced companion volume) is listed as "coming soon" — its content
@@ -47,12 +53,23 @@ Reconciler are built by the book's own combination rule (same dot-count -> doubl
 different -> single). This was independently verified against on-screen results during
 testing (see conversation) — every derived house matched hand recomputation.
 
+## Persistence
+
+Castings are saved to the browser's `localStorage` (`lib/raml/storage.ts`) — there's no
+backend or account system yet, so "on this device" is the honest scope: nothing syncs
+across devices or browsers, and clearing site data clears the history. What's stored per
+casting is just the 4 Mother figures, the question text, and a timestamp; the full chart
+(Daughters through Reconciler) is recomputed from those on every view, so it always
+reflects the latest star data rather than a frozen snapshot. Verified end-to-end in a real
+browser: cast → saved confirmation → appears in Recent Castings and full History → reopens
+with identical results → survives a full page reload → deletes correctly.
+
 ## Not yet done
 
 - Single locale (English). The sibling app's `next-intl` FR/EN/AR setup wasn't ported —
   there's no French or Arabic content to translate yet, so it seemed premature.
-- No real payment integration, no accounts/auth, no persistence (each casting is
-  ephemeral — nothing is saved between sessions yet).
+- No real payment integration, no accounts/auth — persistence is local-device only (see
+  above), not synced to a server or across devices.
 - *Kanzul Mikban* has no content — only its catalog placeholder exists.
 - No PWA icons (manifest exists but points at an empty icon list).
 

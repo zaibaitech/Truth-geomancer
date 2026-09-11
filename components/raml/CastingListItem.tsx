@@ -6,6 +6,7 @@ import { FigureGlyph } from './FigureGlyph';
 import { Badge } from '@/components/ui/Badge';
 import { buildChart } from '@/lib/raml/casting';
 import { ELEMENT_LABEL } from '@/content/stars';
+import { getIntentionById } from '@/content/intentions';
 import type { SavedCasting } from '@/lib/raml/storage';
 
 function formatDate(iso: string) {
@@ -27,13 +28,15 @@ export function CastingListItem({
   onDelete?: (id: string) => void;
 }) {
   const judge = buildChart(casting.mothers).houses[14];
+  const intention = casting.intentionId ? getIntentionById(casting.intentionId) : undefined;
+  const label = casting.question || (intention && intention.id !== 'general' ? intention.label : 'General reading');
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-sand/10 bg-ink-card p-3">
       <Link href={`/raml/history/${casting.id}`} className="flex flex-1 items-center gap-3 overflow-hidden">
         <FigureGlyph pattern={judge.pattern} size="sm" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-sand-light">{casting.question || 'General reading'}</p>
+          <p className="truncate text-sm text-sand-light">{label}</p>
           <p className="text-[11px] text-sand/40">{formatDate(casting.createdAt)}</p>
           <div className="mt-1">
             <Badge tone={judge.star.element}>

@@ -14,15 +14,18 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
 
 - **Dashboard (`/`)** — hero card, three quick actions (Cast / Library / My Star), and a
   horizontally-scrolling manuscript strip.
-- **Cast a Chart (`/raml`)** — the core feature. A tap-to-cast ritual: the user taps a
-  "sand" button freely for each of the 4 lines of each of the 4 Mother figures (16 lines
-  total), exactly mirroring the book's own counting method, rather than a single
-  `Math.random()` button. From the 4 Mothers the app derives the 4 Daughters, 4 Nieces,
-  2 Witnesses, the Judge and the Reconciler — the full classical 16-house shield chart —
-  and presents results across four tabs: Overview (Judge/Self/Wealth/Illness), Full Chart
-  (all 16 houses), My Star (Buruji via 3 traditional methods, spiritual-strength check,
-  root-cause check), and Sadaqah (the offering indicated by the chart). Every completed
-  casting is saved automatically (see Persistence below).
+- **Cast a Chart (`/raml`)** — the core feature. All 16 lines are tapped on one screen: The
+  Four Draws, each broken into its Fire/Air/Water/Earth lines (the classical top-to-bottom
+  element order, which also matches how Kanzul Mikban's own methods isolate "the water
+  element of h7" etc.) — tap each line freely and independently, in any order, until it
+  feels right; a live figure preview appears on each Draw once its 4 lines are done, and
+  "Cast Reading" unlocks once all 16 are. From the 4 Draws (Mothers) the app derives the 4
+  Daughters, 4 Nieces, 2 Witnesses, the Judge and the Reconciler — the full classical
+  16-house shield chart — and presents results across tabs: Overview (Judge/Self/Wealth/
+  Illness), Full Chart (all 16 houses), My Star (Buruji via 3 traditional methods,
+  spiritual-strength check, root-cause check), Sadaqah (the offering indicated by the
+  chart), and Your Reading when a specific question was picked (see Casting types below).
+  Every completed casting is saved automatically (see Persistence below).
 - **Past Castings (`/raml/history`)** — every chart ever cast on the device, newest first,
   each showing its question, date, and Judge figure. Tap one to reopen the full result
   view exactly as it was; delete individual castings from there or from the detail page.
@@ -35,13 +38,18 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
   cases, dreams, and much more), transcribed in full with a filterable table of contents.
   No payment processor is wired up yet (Phase 1, matching the sibling app's
   manual-confirmation approach) — the "Start Reading" flow is fully live, purchase is not.
-- **Casting types (`/raml`, "What is this reading for?")** — before casting, the user picks
-  from ~24 real intention categories (Travel, Marriage, Sickness, Lost Things, Court &
-  Legal Trouble, Dreams, etc.), each backed by specific Kanzul Mikban chapter(s). After
-  casting, a "Your Reading" tab shows those chapters' exact method text, with every house
-  the method mentions (`h1`, `h7`, ...) resolved against the real figure the user's own
-  chart landed on there — see "On not inventing verdicts" below for why the app stops
-  short of resolving the method's own good/bad conclusion for them.
+- **Casting types (`/raml`, "What is this reading for?")** — before casting, the user
+  browses ten broad categories (Love & Couple, Money & Possessions, Work & Success, Health
+  & Hardships, Family & Loved Ones, Travel & Change, Legal & Conflict, Lost & Stolen
+  Things, Fate & Timing, Dreams) down to a specific question, or searches all 153 questions
+  directly via the "All (A-Z)" toggle; a "Recent" section resurfaces the last few picked
+  (`lib/raml/recentIntentions.ts`). Every one of Kanzul Mikban's 153 chapters is reachable
+  this way — `content/intentions.ts` maps each chapter to exactly one selectable question
+  under one category, generated from the book's own chapter titles rather than a hand-
+  picked subset. After casting, a "Your Reading" tab shows that chapter's exact method
+  text, with every house it mentions (`h1`, `h7`, ...) resolved against the real figure the
+  user's own chart landed on there — see "On not inventing verdicts" below for why the app
+  stops short of resolving the method's own good/bad conclusion for them.
 
 ## The geomancy system
 
@@ -95,9 +103,9 @@ with identical results → survives a full page reload → deletes correctly.
 - No real payment integration, no accounts/auth — persistence is local-device only (see
   above), not synced to a server or across devices.
 - No PWA icons (manifest exists but points at an empty icon list).
-- The ~24 intention categories are a curated subset of Kanzul Mikban's 153 chapters —
-  common, practical cases, not exhaustive. `content/intentions.ts` is a plain list to
-  extend as more of the book's specific methods prove worth surfacing directly.
+- The ten categories in `content/intentions.ts` were assigned by keyword classification
+  over the book's own chapter titles, not hand-curated one by one — a handful may sit in a
+  slightly better-fitting category than the one they landed in.
 - A handful of methods reference dot-figures that were embedded as hand-drawn images in
   the source and couldn't be transcribed as text; those spots are marked inline rather
   than guessed at (see "On not inventing verdicts").

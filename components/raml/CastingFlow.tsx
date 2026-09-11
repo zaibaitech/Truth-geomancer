@@ -4,31 +4,23 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { RotateCcw, Check, History } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { FigureGlyph } from './FigureGlyph';
 import { IntentionPicker } from './IntentionPicker';
+import { CastingBoard } from './CastingBoard';
 import { CastingResultView } from './CastingResultView';
 import { CastingListItem } from './CastingListItem';
-import { reduceCount, buildChart, type Chart } from '@/lib/raml/casting';
+import { buildChart, type Chart } from '@/lib/raml/casting';
 import { saveCasting, listCastings, type SavedCasting } from '@/lib/raml/storage';
 import { getIntentionById } from '@/content/intentions';
-import type { DotRow, Pattern } from '@/content/stars';
+import type { Pattern } from '@/content/stars';
 
 type Step = 'ask' | 'casting' | 'result';
-
-const MOTHER_NAMES = ['First', 'Second', 'Third', 'Fourth'];
 
 export function CastingFlow() {
   const [step, setStep] = useState<Step>('ask');
   const [intentionId, setIntentionId] = useState('general');
   const [question, setQuestion] = useState('');
-  const [mothers, setMothers] = useState<Pattern[]>([]);
-  const [currentLines, setCurrentLines] = useState<DotRow[]>([]);
-  const [taps, setTaps] = useState(0);
   const [chart, setChart] = useState<Chart | null>(null);
   const [recent, setRecent] = useState<SavedCasting[] | null>(null);
-
-  const motherIndex = mothers.length;
-  const lineIndex = currentLines.length;
 
   useEffect(() => {
     if (step === 'ask') setRecent(listCastings().slice(0, 3));
@@ -38,9 +30,6 @@ export function CastingFlow() {
     setStep('ask');
     setIntentionId('general');
     setQuestion('');
-    setMothers([]);
-    setCurrentLines([]);
-    setTaps(0);
     setChart(null);
   }
 
@@ -48,32 +37,11 @@ export function CastingFlow() {
     setStep('casting');
   }
 
-  function tapSand() {
-    setTaps((t) => t + 1);
-  }
-
-  function lockLine() {
-    if (taps === 0) return;
-    const row = reduceCount(taps);
-    const nextLines = [...currentLines, row];
-    setTaps(0);
-
-    if (nextLines.length === 4) {
-      const pattern = nextLines as Pattern;
-      const nextMothers = [...mothers, pattern];
-      setMothers(nextMothers);
-      setCurrentLines([]);
-
-      if (nextMothers.length === 4) {
-        const finalMothers = nextMothers as [Pattern, Pattern, Pattern, Pattern];
-        const built = buildChart(finalMothers);
-        setChart(built);
-        saveCasting({ question, mothers: finalMothers, intentionId });
-        setStep('result');
-      }
-    } else {
-      setCurrentLines(nextLines);
-    }
+  function handleCastComplete(mothers: [Pattern, Pattern, Pattern, Pattern]) {
+    const built = buildChart(mothers);
+    setChart(built);
+    saveCasting({ question, mothers, intentionId });
+    setStep('result');
   }
 
   if (step === 'ask') {
@@ -132,42 +100,7 @@ export function CastingFlow() {
         {intention && intention.id !== 'general' ? (
           <p className="mb-3 text-center text-[11px] text-clay-light">Casting for: {intention.label}</p>
         ) : null}
-        <p className="mb-1 text-center text-xs uppercase tracking-widest text-sand/40">
-          {MOTHER_NAMES[motherIndex]} Mother · Line {lineIndex + 1} of 4
-        </p>
-        <p className="mb-5 text-center text-xs text-sand/40">
-          Tap freely, without counting. Stop whenever it feels right, then lock the line.
-        </p>
-
-        <div className="mb-5 flex justify-center gap-3">
-          {mothers.map((m, i) => (
-            <div key={i} className="opacity-60">
-              <FigureGlyph pattern={m} size="sm" />
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={tapSand}
-          className="mx-auto flex h-44 w-44 flex-col items-center justify-center gap-2 rounded-full border-2 border-clay/40 bg-ink-card active:scale-95"
-        >
-          <span className="font-logo text-4xl text-sand-light">{taps}</span>
-          <span className="text-[11px] uppercase tracking-widest text-sand/40">tap the sand</span>
-        </button>
-
-        <div className="mt-5 flex flex-wrap justify-center gap-2" style={{ maxWidth: 260, margin: '20px auto 0' }}>
-          {Array.from({ length: Math.min(taps, 40) }).map((_, i) => (
-            <span key={i} className="dot-in h-2 w-2 rounded-full bg-sand/50" style={{ animationDelay: `${i * 15}ms` }} />
-          ))}
-        </div>
-
-        <button
-          onClick={lockLine}
-          disabled={taps === 0}
-          className="mx-auto mt-6 block w-full max-w-xs rounded-xl bg-clay py-3 text-sm font-semibold text-ink disabled:opacity-30"
-        >
-          Lock this line
-        </button>
+        <CastingBoard onComplete={handleCastComplete} />
       </div>
     );
   }

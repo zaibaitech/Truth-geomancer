@@ -3,12 +3,14 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import type { Chart } from '@/lib/raml/casting';
 import { extractHouseRefs } from '@/lib/raml/houseRefs';
-import { getIntentionById } from '@/content/intentions';
+import { getIntentionById, getCategoryById } from '@/content/intentions';
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 
 export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: string }) {
   const intention = getIntentionById(intentionId);
   if (!intention || intention.chapterIds.length === 0) return null;
+
+  const category = intention.categoryId ? getCategoryById(intention.categoryId) : undefined;
 
   const chapters = intention.chapterIds
     .map((id) => KM_CHAPTERS.find((c) => c.id === id))
@@ -17,9 +19,10 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
   return (
     <div className="space-y-4">
       <Card>
-        <p className="text-[11px] uppercase tracking-widest text-sand/40">Your intention</p>
+        <p className="text-[11px] uppercase tracking-widest text-sand/40">
+          {category ? category.label : 'Your question'}
+        </p>
         <p className="mt-1 text-sm font-semibold text-sand-light">{intention.label}</p>
-        <p className="mt-1 text-xs text-sand/50">{intention.description}</p>
         <p className="mt-3 text-[11px] leading-relaxed text-sand/40">
           From Kanzul Mikban. Each chip shows the real figure your chart landed on at that
           house — read the method’s own wording below to apply what it means.

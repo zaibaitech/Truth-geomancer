@@ -86,20 +86,30 @@ sourcing (Fortune per the classical Latin-named figures; Upward/Downward derived
 structurally from each figure's first vs. last line, with genuinely ambiguous patterns
 marked "level" rather than forced to a guess).
 
-For chapters whose methods are simple enough to compute outright (currently just the
-flagship "If She's Going to Stay in the Marriage or Not" chapter — see
-`lib/raml/methodVerdicts.ts`), the "Your Reading" tab now runs the method automatically:
-it reads the houses the method calls for straight off the user's own chart, combines them
-per the book's own addition rule, resolves the resulting figure's classical attributes, and
-shows the method's own final interpretation directly — no manual house-picking, with the
-classical-attribution caveat surfaced right in the card and a link to the full chapter for
-anyone who wants to check the method's own wording. Every other chapter still falls back to
-the plain house-chip display: `content/manuscripts/kanzul-mikban.ts` transcribes the
-qualities language verbatim, and the "Your Reading" tab resolves what's mechanically
-certain — which real figure the user's own chart put at each house the method names —
-leaving the good/bad call to the reader. Extending automatic verdicts to more of the 153
-chapters (most have simple two-house or grouped-house additions like this one) is the
-natural next step in `lib/raml/methodVerdicts.ts`.
+The flagship "If She's Going to Stay in the Marriage or Not" chapter is hand-authored
+(`lib/raml/methodVerdicts.ts`) to the book's exact wording. Beyond it, a general parser
+(`lib/raml/methodParser.ts`) reads every other chapter's own "Method N: ..." text and
+auto-computes a result wherever it can do so with real confidence: the instruction is a
+plain "pick/check these houses" (not an element-isolation or dot-counting technique, which
+use a different mechanic this parser doesn't attempt), and the outcome text resolves
+cleanly to one of a handful of recognized shapes — good/bad, upward/downward, both
+together, the resulting figure's own element, whether it turns up elsewhere in the chart,
+a specific line's single/double dot state, or a specific named figure at a specific house.
+Every branch a method's own wording describes has to be captured by the parser for it to
+run at all; if a computed result lands on a combination the text simply doesn't address
+(e.g. a "level" figure on an upward/downward-only method), the card still shows every
+mechanical fact plainly with an honest note that the book's own wording doesn't cover it,
+rather than forcing a guess. As of this writing that reaches roughly 54 of the book's 134
+method paragraphs across 33 of its 153 chapters; a chapter can mix computed cards with the
+plain house-chip fallback paragraph by paragraph, wherever only some of its methods parse
+safely. Everything else — embedded hand-drawn figures the source couldn't transcribe,
+whole-chart tallies ("count all the good stars..."), multi-house comparisons without one
+combined figure, incomplete source text — still falls back to the plain house-chip
+display: `content/manuscripts/kanzul-mikban.ts` transcribes the qualities language
+verbatim, and the "Your Reading" tab resolves what's mechanically certain — which real
+figure the user's own chart put at each house the method names — leaving the good/bad call
+to the reader. Widening the parser's recognized shapes (element-isolation and whole-chart
+tallies are the next-biggest categories left) is the natural next step.
 
 ## Persistence
 

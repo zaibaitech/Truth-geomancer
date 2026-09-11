@@ -33,6 +33,7 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
 
       {chapters.map((ch) => {
         const verdicts = getMethodVerdicts(ch.id, chart);
+        const hasAnyVerdict = !!verdicts && verdicts.some((v) => v !== null);
 
         return (
           <Card key={ch.id}>
@@ -41,44 +42,44 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
               {ch.title}
             </p>
 
-            {verdicts ? (
-              <>
-                <p className="mb-3 text-xs font-medium uppercase tracking-widest text-sand/40">
-                  Your reading result
-                </p>
-                <div className="space-y-3">
-                  {verdicts.map((v) => (
-                    <MethodVerdictCard key={v.label} verdict={v} />
-                  ))}
-                </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-sand/35">
-                  Good/bad and upward/downward here are read from classical geomancy attributions
-                  for each figure — not from this manuscript, which doesn’t tabulate them itself.
-                  Where a figure doesn’t lean clearly either way, that’s said plainly rather than
-                  forced to a guess.
-                </p>
-              </>
-            ) : (
-              <div className="space-y-3">
-                {ch.paragraphs.map((p, i) => {
-                  const houses = extractHouseRefs(p);
-                  return (
-                    <div key={i}>
-                      {houses.length > 0 ? (
-                        <div className="mb-1.5 flex flex-wrap gap-1">
-                          {houses.map((n) => (
-                            <Badge key={n} tone="sand">
-                              H{n} {chart.houses[n - 1].star.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : null}
-                      <p className="text-sm leading-relaxed text-sand/70">{p}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {hasAnyVerdict ? (
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-sand/40">
+                Your reading result
+              </p>
+            ) : null}
+
+            <div className="space-y-3">
+              {ch.paragraphs.map((p, i) => {
+                const verdict = verdicts?.[i];
+                if (verdict) {
+                  return <MethodVerdictCard key={i} verdict={verdict} />;
+                }
+                const houses = extractHouseRefs(p);
+                return (
+                  <div key={i}>
+                    {houses.length > 0 ? (
+                      <div className="mb-1.5 flex flex-wrap gap-1">
+                        {houses.map((n) => (
+                          <Badge key={n} tone="sand">
+                            H{n} {chart.houses[n - 1].star.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : null}
+                    <p className="text-sm leading-relaxed text-sand/70">{p}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {hasAnyVerdict ? (
+              <p className="mt-3 text-[11px] leading-relaxed text-sand/35">
+                Good/bad and upward/downward here are read from classical geomancy attributions
+                for each figure — not from this manuscript, which doesn’t tabulate them itself.
+                Where a figure or check doesn’t land cleanly, or the book’s own wording doesn’t
+                cover this exact result, that’s said plainly rather than forced to a guess.
+              </p>
+            ) : null}
 
             <Link href={`/books/kanzul-mikban/read/${ch.id}`} className="mt-3 inline-block text-xs text-clay-light">
               Open full chapter in the book →

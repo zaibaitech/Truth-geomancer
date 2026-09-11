@@ -46,10 +46,13 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
   (`lib/raml/recentIntentions.ts`). Every one of Kanzul Mikban's 153 chapters is reachable
   this way — `content/intentions.ts` maps each chapter to exactly one selectable question
   under one category, generated from the book's own chapter titles rather than a hand-
-  picked subset. After casting, a "Your Reading" tab shows that chapter's exact method
-  text, with every house it mentions (`h1`, `h7`, ...) resolved against the real figure the
-  user's own chart landed on there — see "On not inventing verdicts" below for why the app
-  stops short of resolving the method's own good/bad conclusion for them.
+  picked subset. After casting, a "Your Reading" tab shows that chapter's result: for a
+  growing set of chapters the method now runs automatically end-to-end (houses picked off
+  the chart, combined per the book's rule, and the resulting figure's verdict shown
+  directly); for the rest, the chapter's exact method text is shown with every house it
+  mentions (`h1`, `h7`, ...) resolved against the real figure the user's own chart landed
+  on there — see "On not inventing verdicts" below for the reasoning and the classical-
+  attribution caveat behind the automated verdicts.
 
 ## The geomancy system
 
@@ -75,15 +78,28 @@ Kanzul Mikban's methods constantly resolve to a verdict via qualities — "good,
 "middle-good," "upward," "downward," "opened/closed," "male/female" — that the book treats
 as a fixed property of each of the 16 named figures, the same way it treats each figure's
 element as fixed. Nothing in either manuscript actually tabulates which figure carries
-which of these qualities, and it isn't safe to reconstruct from memory of the (different)
-classical Western/Arabic attribution tables — a wrong guess would present a fabricated
-verdict as this book's own authority, in something people may use for real decisions. So
-`content/manuscripts/kanzul-mikban.ts` transcribes the qualities language verbatim, and
-the "Your Reading" tab resolves only what's mechanically certain — which real figure the
-user's own chart put at each house the method names — leaving the good/bad call to the
-reader (or the compiler of this edition, or whoever else can verify it against source). If
-that attribution table turns up, `lib/raml/interpret.ts` is the natural place to wire it in
-and let the app resolve verdicts outright.
+which of these qualities (confirmed by exhaustive search of both texts), so it can't be
+resolved as this book's own authority. What it *can* be resolved against, clearly labeled
+as such, is the standard classical Western/Arabic geomancy attribution table for the same
+16 binary patterns — see `content/classicalAttributes.ts` for the full mapping and its
+sourcing (Fortune per the classical Latin-named figures; Upward/Downward derived
+structurally from each figure's first vs. last line, with genuinely ambiguous patterns
+marked "level" rather than forced to a guess).
+
+For chapters whose methods are simple enough to compute outright (currently just the
+flagship "If She's Going to Stay in the Marriage or Not" chapter — see
+`lib/raml/methodVerdicts.ts`), the "Your Reading" tab now runs the method automatically:
+it reads the houses the method calls for straight off the user's own chart, combines them
+per the book's own addition rule, resolves the resulting figure's classical attributes, and
+shows the method's own final interpretation directly — no manual house-picking, with the
+classical-attribution caveat surfaced right in the card and a link to the full chapter for
+anyone who wants to check the method's own wording. Every other chapter still falls back to
+the plain house-chip display: `content/manuscripts/kanzul-mikban.ts` transcribes the
+qualities language verbatim, and the "Your Reading" tab resolves what's mechanically
+certain — which real figure the user's own chart put at each house the method names —
+leaving the good/bad call to the reader. Extending automatic verdicts to more of the 153
+chapters (most have simple two-house or grouped-house additions like this one) is the
+natural next step in `lib/raml/methodVerdicts.ts`.
 
 ## Persistence
 

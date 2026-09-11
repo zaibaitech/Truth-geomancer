@@ -1,7 +1,7 @@
 function renderInline(text: string, key: number) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <p key={key} className="mb-4 text-[15px] leading-relaxed text-sand/80 last:mb-0">
+    <p key={key} className="mb-5 text-justify text-[17px] leading-[1.7] text-sand/80 hyphens-auto last:mb-0">
       {parts.map((part, i) =>
         part.startsWith('**') && part.endsWith('**') ? (
           <strong key={i} className="text-sand-light">

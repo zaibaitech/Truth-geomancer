@@ -39,7 +39,7 @@ function ReaderShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between border-b border-sand/10 px-4 py-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-widest text-sand/40">{eyebrow}</p>

@@ -4,9 +4,13 @@
 
 html {
   color-scheme: dark;
+  height: 100%;
+  overflow-x: hidden;
 }
 
 body {
+  height: 100%;
+  overflow-x: hidden;
   background-color: #161009;
   color: #ecd6a4;
 }

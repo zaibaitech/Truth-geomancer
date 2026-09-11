@@ -5,8 +5,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { StarCard } from './StarCard';
 import { ChartGrid } from './ChartGrid';
+import { ReadingTab } from './ReadingTab';
 import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
+import { getIntentionById } from '@/content/intentions';
 import {
   findBuruji,
   spiritualStrength,
@@ -15,11 +17,13 @@ import {
   elementLabel,
 } from '@/lib/raml/interpret';
 
-const TABS = ['Overview', 'Full Chart', 'My Star', 'Sadaqah'] as const;
-type Tab = (typeof TABS)[number];
+const BASE_TABS = ['Overview', 'Full Chart', 'My Star', 'Sadaqah'] as const;
+type Tab = (typeof BASE_TABS)[number] | 'Your Reading';
 
-export function ResultTabs({ chart }: { chart: Chart }) {
-  const [tab, setTab] = useState<Tab>('Overview');
+export function ResultTabs({ chart, intentionId }: { chart: Chart; intentionId?: string }) {
+  const hasReading = !!intentionId && (getIntentionById(intentionId)?.chapterIds.length ?? 0) > 0;
+  const tabs: Tab[] = hasReading ? ['Your Reading', ...BASE_TABS] : [...BASE_TABS];
+  const [tab, setTab] = useState<Tab>(hasReading ? 'Your Reading' : 'Overview');
 
   const judge = chart.houses[14];
   const self = chart.houses[0];
@@ -34,7 +38,7 @@ export function ResultTabs({ chart }: { chart: Chart }) {
   return (
     <div>
       <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-4 pb-3">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -48,6 +52,8 @@ export function ResultTabs({ chart }: { chart: Chart }) {
       </div>
 
       <div className="space-y-4 px-4">
+        {tab === 'Your Reading' && intentionId ? <ReadingTab chart={chart} intentionId={intentionId} /> : null}
+
         {tab === 'Overview' ? (
           <>
             <StarCard star={judge.star} eyebrow="The Judge — the chart’s verdict">

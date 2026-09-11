@@ -35,13 +35,13 @@ export const BOOKS: Book[] = [
     subtitle: 'The Knowledge of Geomancy',
     author: 'Sheikh Abdul Basit Bayan',
     description:
-      'The advanced companion volume — further casting methods, deeper interpretive technique, and extended chart work. Coming soon.',
-    priceDisplay: 'Coming soon',
-    status: 'coming-soon',
+      'The advanced companion volume: a manuscript notebook of over 150 question-specific reading methods — travel, money, marriage, health, lost things, court cases, pregnancy, dreams, and much more — assuming you already know how to cast a chart and showing you exactly what each one means.',
+    priceDisplay: 'In your library',
+    status: 'readable',
     coverImage: '/covers/kanzul-mikban.jpg',
     coverFrom: '#4a2f1a',
     coverTo: '#1f1610',
-    chapterCount: 0,
+    chapterCount: 153,
   },
 ];
 

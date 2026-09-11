@@ -1,12 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { BookCover } from '@/components/books/BookCover';
+import { ChapterList } from '@/components/books/ChapterList';
 import { BOOKS, getBookById } from '@/content/books';
-import { CHAPTERS } from '@/content/manuscripts/master-of-geomancy-vol1';
+import { getChapterList } from '@/lib/books/chapters';
 
 export function generateStaticParams() {
   return BOOKS.map((b) => ({ id: b.id }));
@@ -16,7 +15,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
   const book = getBookById(params.id);
   if (!book) notFound();
 
-  const chapters = book.id === 'master-of-geomancy-vol-1' ? CHAPTERS : [];
+  const chapters = getChapterList(book.id);
 
   return (
     <div>
@@ -51,23 +50,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
         {chapters.length > 0 ? (
           <div className="mt-6">
             <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">Contents</p>
-            <Card padding="p-0">
-              {chapters.map((ch, i) => (
-                <Link
-                  key={ch.id}
-                  href={`/books/${book.id}/read/${ch.id}`}
-                  className={`flex items-center justify-between px-4 py-3 text-sm ${
-                    i !== chapters.length - 1 ? 'border-b border-sand/10' : ''
-                  }`}
-                >
-                  <span className="text-sand-light/90">
-                    <span className="mr-2 text-sand/40">{ch.number}.</span>
-                    {ch.title}
-                  </span>
-                  <ChevronRight size={16} className="text-sand/30" />
-                </Link>
-              ))}
-            </Card>
+            <ChapterList bookId={book.id} chapters={chapters} />
           </div>
         ) : null}
       </div>

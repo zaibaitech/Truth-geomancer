@@ -5,11 +5,13 @@ import type { Chart } from '@/lib/raml/casting';
 export function CastingResultView({
   chart,
   question,
+  intentionId,
   meta,
   footer,
 }: {
   chart: Chart;
   question?: string;
+  intentionId?: string;
   meta?: ReactNode;
   footer?: ReactNode;
 }) {
@@ -26,7 +28,7 @@ export function CastingResultView({
           {meta}
         </div>
       ) : null}
-      <ResultTabs chart={chart} />
+      <ResultTabs chart={chart} intentionId={intentionId} />
       {footer}
     </div>
   );

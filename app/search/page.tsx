@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { Search as SearchIcon, BookOpen, FileText, Sparkles } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { FigureGlyph } from '@/components/raml/FigureGlyph';
-import { BOOKS } from '@/content/books';
-import { CHAPTERS } from '@/content/manuscripts/master-of-geomancy-vol1';
+import { BOOKS, getBookById } from '@/content/books';
+import { getAllChapterRefs } from '@/lib/books/chapters';
 import { STARS, ELEMENT_LABEL } from '@/content/stars';
+
+const MAX_RESULTS = 30;
 
 type Result =
   | { kind: 'book'; key: string; href: string; title: string; subtitle: string }
@@ -17,21 +19,23 @@ type Result =
 export default function SearchPage() {
   const [query, setQuery] = useState('');
 
-  const results = useMemo<Result[]>(() => {
+  const { results, totalCount } = useMemo<{ results: Result[]; totalCount: number }>(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return [];
+    if (!q) return { results: [], totalCount: 0 };
 
     const bookResults: Result[] = BOOKS.filter(
       (b) => b.title.toLowerCase().includes(q) || b.subtitle.toLowerCase().includes(q),
     ).map((b) => ({ kind: 'book', key: b.id, href: `/books/${b.id}`, title: b.title, subtitle: b.subtitle }));
 
-    const chapterResults: Result[] = CHAPTERS.filter((c) => c.title.toLowerCase().includes(q)).map((c) => ({
-      kind: 'chapter',
-      key: c.id,
-      href: `/books/master-of-geomancy-vol-1/read/${c.id}`,
-      title: c.title,
-      subtitle: `Chapter ${c.number}`,
-    }));
+    const chapterResults: Result[] = getAllChapterRefs()
+      .filter((c) => c.title.toLowerCase().includes(q))
+      .map((c) => ({
+        kind: 'chapter',
+        key: `${c.bookId}-${c.id}`,
+        href: `/books/${c.bookId}/read/${c.id}`,
+        title: c.title,
+        subtitle: `${getBookById(c.bookId)?.title ?? ''}${c.number !== null ? ` · Chapter ${c.number}` : ''}`,
+      }));
 
     const starResults: Result[] = STARS.filter((s) => s.name.toLowerCase().includes(q)).map((s) => ({
       kind: 'star',
@@ -42,7 +46,8 @@ export default function SearchPage() {
       pattern: s.pattern,
     }));
 
-    return [...bookResults, ...chapterResults, ...starResults];
+    const all = [...bookResults, ...starResults, ...chapterResults];
+    return { results: all.slice(0, MAX_RESULTS), totalCount: all.length };
   }, [query]);
 
   return (
@@ -55,7 +60,7 @@ export default function SearchPage() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search “Yussif”, “sadaqah”, “buruji”…"
+            placeholder="Search “pregnancy”, “travel”, “Yussif”…"
             className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
           />
         </div>
@@ -86,10 +91,18 @@ export default function SearchPage() {
           ))}
         </div>
 
+        {totalCount > results.length ? (
+          <p className="mt-3 text-center text-[11px] text-sand/35">
+            Showing {results.length} of {totalCount} matches — refine your search to narrow it down.
+          </p>
+        ) : null}
+
         {!query.trim() ? (
           <div className="mt-8 flex flex-col items-center gap-2 text-center">
             <Sparkles size={18} className="text-sand/25" />
-            <p className="text-sm text-sand/40">Search the library, its chapters, and all 16 stars.</p>
+            <p className="text-sm text-sand/40">
+              Search both books — 160+ chapters and reading methods — plus all 16 stars.
+            </p>
           </div>
         ) : null}
       </div>

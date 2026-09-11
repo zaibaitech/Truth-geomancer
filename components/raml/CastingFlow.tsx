@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { RotateCcw, Check, History } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { FigureGlyph } from './FigureGlyph';
+import { IntentionPicker } from './IntentionPicker';
 import { CastingResultView } from './CastingResultView';
 import { CastingListItem } from './CastingListItem';
 import { reduceCount, buildChart, type Chart } from '@/lib/raml/casting';
 import { saveCasting, listCastings, type SavedCasting } from '@/lib/raml/storage';
+import { getIntentionById } from '@/content/intentions';
 import type { DotRow, Pattern } from '@/content/stars';
 
 type Step = 'ask' | 'casting' | 'result';
@@ -17,6 +19,7 @@ const MOTHER_NAMES = ['First', 'Second', 'Third', 'Fourth'];
 
 export function CastingFlow() {
   const [step, setStep] = useState<Step>('ask');
+  const [intentionId, setIntentionId] = useState('general');
   const [question, setQuestion] = useState('');
   const [mothers, setMothers] = useState<Pattern[]>([]);
   const [currentLines, setCurrentLines] = useState<DotRow[]>([]);
@@ -33,6 +36,7 @@ export function CastingFlow() {
 
   function reset() {
     setStep('ask');
+    setIntentionId('general');
     setQuestion('');
     setMothers([]);
     setCurrentLines([]);
@@ -64,7 +68,7 @@ export function CastingFlow() {
         const finalMothers = nextMothers as [Pattern, Pattern, Pattern, Pattern];
         const built = buildChart(finalMothers);
         setChart(built);
-        saveCasting({ question, mothers: finalMothers });
+        saveCasting({ question, mothers: finalMothers, intentionId });
         setStep('result');
       }
     } else {
@@ -75,7 +79,14 @@ export function CastingFlow() {
   if (step === 'ask') {
     return (
       <div className="px-4">
-        <Card>
+        <p className="mb-2 text-sm font-semibold text-sand-light">What is this reading for?</p>
+        <p className="mb-3 text-xs text-sand/50">
+          Pick the closest category and, once cast, you’ll get the exact method Kanzul Mikban
+          gives for it — read against your own chart.
+        </p>
+        <IntentionPicker value={intentionId} onChange={setIntentionId} />
+
+        <Card className="mt-4">
           <p className="mb-2 text-sm font-semibold text-sand-light">What are you asking?</p>
           <p className="mb-3 text-xs text-sand/50">
             Optional — hold it in mind as you cast, or simply cast for a general reading.
@@ -115,8 +126,12 @@ export function CastingFlow() {
   }
 
   if (step === 'casting') {
+    const intention = getIntentionById(intentionId);
     return (
       <div className="px-4">
+        {intention && intention.id !== 'general' ? (
+          <p className="mb-3 text-center text-[11px] text-clay-light">Casting for: {intention.label}</p>
+        ) : null}
         <p className="mb-1 text-center text-xs uppercase tracking-widest text-sand/40">
           {MOTHER_NAMES[motherIndex]} Mother · Line {lineIndex + 1} of 4
         </p>
@@ -162,6 +177,7 @@ export function CastingFlow() {
       <CastingResultView
         chart={chart}
         question={question}
+        intentionId={intentionId}
         meta={
           <p className="mt-1 flex items-center gap-1 text-[11px] text-sand/35">
             <Check size={12} className="text-clay-light" /> Saved to Past Castings on this device

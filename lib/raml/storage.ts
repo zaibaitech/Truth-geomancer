@@ -7,6 +7,9 @@ export interface SavedCasting {
   createdAt: string; // ISO timestamp
   question: string;
   mothers: [Pattern, Pattern, Pattern, Pattern];
+  /** content/intentions.ts id, if the user picked one. Absent on castings
+   * saved before this field existed, and for the "general" no-method option. */
+  intentionId?: string;
 }
 
 const STORAGE_KEY = 'truth-geomancer:castings';
@@ -56,12 +59,14 @@ export function getCasting(id: string): SavedCasting | undefined {
 export function saveCasting(input: {
   question: string;
   mothers: [Pattern, Pattern, Pattern, Pattern];
+  intentionId?: string;
 }): SavedCasting {
   const casting: SavedCasting = {
     id: makeId(),
     createdAt: new Date().toISOString(),
     question: input.question.trim(),
     mothers: input.mothers,
+    ...(input.intentionId ? { intentionId: input.intentionId } : {}),
   };
   const all = readAll();
   all.unshift(casting);

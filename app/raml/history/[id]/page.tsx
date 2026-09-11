@@ -66,6 +66,7 @@ export default function SavedCastingPage({ params }: { params: { id: string } })
         <CastingResultView
           chart={chart}
           question={casting.question}
+          intentionId={casting.intentionId}
           meta={<p className="mt-1 text-[11px] text-sand/35">{formatDate(casting.createdAt)}</p>}
           footer={
             <div className="mx-4 mb-2 mt-6 flex gap-2">

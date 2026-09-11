@@ -26,7 +26,8 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
           <BookCover book={book} className="w-28 shrink-0" />
           <div>
             <h1 className="font-logo text-xl text-sand-light">{book.title}</h1>
-            <p className="text-sm text-sand/50">{book.author}</p>
+            <p className="text-sm text-sand/50">{book.subtitle}</p>
+            <p className="mt-0.5 text-xs text-sand/35">{book.author}</p>
             <div className="mt-2">
               <Badge tone={book.status === 'readable' ? 'sand' : 'neutral'}>{book.priceDisplay}</Badge>
             </div>

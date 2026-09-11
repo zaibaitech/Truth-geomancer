@@ -72,3 +72,11 @@ export function saveCasting(input: {
 export function deleteCasting(id: string): void {
   writeAll(readAll().filter((c) => c.id !== id));
 }
+
+export function countCastings(): number {
+  return readAll().length;
+}
+
+export function clearAllCastings(): void {
+  writeAll([]);
+}

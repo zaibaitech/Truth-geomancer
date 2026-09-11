@@ -51,7 +51,7 @@ export default function ChapterPage({ params }: { params: { id: string; chapterI
         {chapter.id === 'stars-and-symbols' ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
             {STARS.map((star) => (
-              <Card key={star.id} className="flex items-center gap-3">
+              <Card key={star.id} id={star.id} className="flex scroll-mt-16 items-center gap-3">
                 <FigureGlyph pattern={star.pattern} size="sm" />
                 <div>
                   <p className="text-sm font-medium text-sand-light">{star.name}</p>
@@ -65,7 +65,7 @@ export default function ChapterPage({ params }: { params: { id: string; chapterI
         {chapter.id === 'stars-in-the-chart' ? (
           <div className="mt-4 space-y-4">
             {STARS.map((star) => (
-              <Card key={star.id}>
+              <Card key={star.id} id={star.id} className="scroll-mt-16">
                 <div className="flex items-center gap-3">
                   <FigureGlyph pattern={star.pattern} size="sm" />
                   <h3 className="font-logo text-base text-sand-light">{star.name}</h3>

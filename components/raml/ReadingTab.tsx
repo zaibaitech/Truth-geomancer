@@ -81,7 +81,7 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
               </p>
             ) : null}
 
-            <Link href={`/books/kanzul-mikban/read/${ch.id}`} className="mt-3 inline-block text-xs text-clay-light">
+            <Link href={`/books/kanzul-mikban/read#${ch.id}`} className="mt-3 inline-block text-xs text-clay-light">
               Open full chapter in the book →
             </Link>
           </Card>

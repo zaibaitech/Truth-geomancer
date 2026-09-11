@@ -36,8 +36,13 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
   Mikban* is the advanced companion — a manuscript notebook of **153 question-specific
   reading methods** (travel, money, marriage, pregnancy, sickness, lost things, court
   cases, dreams, and much more), transcribed in full with a filterable table of contents.
-  No payment processor is wired up yet (Phase 1, matching the sibling app's
-  manual-confirmation approach) — the "Start Reading" flow is fully live, purchase is not.
+  Each book reads as one continuous vertical document (`/books/[id]/read`) — chapters are
+  stacked `<section>`s in one scrollable page, not a page-per-chapter carousel, so reading
+  on is exactly "keep scrolling down"; the contents list, search results, and the casting
+  flow's "Open full chapter" links all jump straight to a chapter via a plain `#id` anchor
+  rather than a page navigation. No payment processor is wired up yet (Phase 1, matching
+  the sibling app's manual-confirmation approach) — the "Start Reading" flow is fully live,
+  purchase is not.
 - **Casting types (`/raml`, "What is this reading for?")** — before casting, the user
   browses ten broad categories (Love & Couple, Money & Possessions, Work & Success, Health
   & Hardships, Family & Loved Ones, Travel & Change, Legal & Conflict, Lost & Stolen

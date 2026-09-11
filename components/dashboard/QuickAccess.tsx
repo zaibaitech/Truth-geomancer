@@ -5,25 +5,25 @@ const BOOK = '/books/master-of-geomancy-vol-1/read';
 
 const ITEMS = [
   {
-    href: `${BOOK}/stars-and-symbols`,
+    href: `${BOOK}#stars-and-symbols`,
     icon: Sparkles,
     title: 'The 16 Stars',
     description: 'Every name & symbol',
   },
   {
-    href: `${BOOK}/star-sadaqah`,
+    href: `${BOOK}#star-sadaqah`,
     icon: Gift,
     title: 'Sadaqah Guide',
     description: 'Each star’s offering',
   },
   {
-    href: `${BOOK}/elements-and-occupations`,
+    href: `${BOOK}#elements-and-occupations`,
     icon: Flame,
     title: 'Elements & Work',
     description: 'Fire, Air, Water, Sand',
   },
   {
-    href: `${BOOK}/knowing-your-buruji`,
+    href: `${BOOK}#knowing-your-buruji`,
     icon: Compass,
     title: 'Knowing Your Buruji',
     description: 'Find your life star',

@@ -44,7 +44,7 @@ export function ChapterList({ bookId, chapters }: { bookId: string; chapters: Ch
           filtered.map((ch, i) => (
             <Link
               key={ch.id}
-              href={`/books/${bookId}/read/${ch.id}`}
+              href={`/books/${bookId}/read#${ch.id}`}
               className={`flex items-center justify-between gap-3 px-4 py-3 text-sm ${
                 i !== filtered.length - 1 ? 'border-b border-sand/10' : ''
               }`}

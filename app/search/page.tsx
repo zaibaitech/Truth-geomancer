@@ -32,7 +32,7 @@ export default function SearchPage() {
       .map((c) => ({
         kind: 'chapter',
         key: `${c.bookId}-${c.id}`,
-        href: `/books/${c.bookId}/read/${c.id}`,
+        href: `/books/${c.bookId}/read#${c.id}`,
         title: c.title,
         subtitle: `${getBookById(c.bookId)?.title ?? ''}${c.number !== null ? ` · Chapter ${c.number}` : ''}`,
       }));
@@ -40,7 +40,7 @@ export default function SearchPage() {
     const starResults: Result[] = STARS.filter((s) => s.name.toLowerCase().includes(q)).map((s) => ({
       kind: 'star',
       key: s.id,
-      href: `/books/master-of-geomancy-vol-1/read/stars-in-the-chart#${s.id}`,
+      href: `/books/master-of-geomancy-vol-1/read#${s.id}`,
       title: s.name,
       subtitle: ELEMENT_LABEL[s.element],
       pattern: s.pattern,

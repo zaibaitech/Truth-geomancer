@@ -36,7 +36,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
 
         {book.status === 'readable' ? (
           <Link
-            href={`/books/${book.id}/read/${chapters[0]?.id}`}
+            href={`/books/${book.id}/read`}
             className="mt-5 block rounded-xl bg-clay px-4 py-3 text-center text-sm font-semibold text-ink"
           >
             Start Reading

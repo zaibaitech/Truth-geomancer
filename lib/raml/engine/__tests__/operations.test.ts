@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildChartModel } from '../chartModel';
 import {
   ADD_FIGURE_TO_HOUSE,
+  ADD_FIGURES,
   ADD_MULTIPLE_HOUSES,
   CHECK_ELEMENT,
   CHECK_ELEMENT_ADJACENT_REPETITION,
@@ -15,6 +16,7 @@ import {
   COUNT_ELEMENTS,
   COUNT_FIGURE_OCCURRENCES,
   COUNT_FORTUNE,
+  COUNT_OPENED_LINES,
   COUNT_TOTAL_DOTS,
   EXTRACT_ELEMENT,
   EXTRACT_LINES,
@@ -154,6 +156,53 @@ describe('COUNT_ELEMENTS', () => {
   it('tallies elements across a specific house subset', () => {
     const tally = COUNT_ELEMENTS(chart, [1, 2, 3, 4]);
     expect(tally.fire + tally.air + tally.water + tally.sand).toBe(4);
+  });
+});
+
+describe('ADD_FIGURES (Prompt 7 — shared by chs. 62, 67, 74)', () => {
+  it('adds two already-computed figures, same math as ADD_MULTIPLE_HOUSES', () => {
+    const h1 = CHECK_HOUSE(chart, 1).figure; // Yussif 1121
+    const h2 = CHECK_HOUSE(chart, 2).figure; // Adam 1222
+    // same-parity -> double(2), different -> single(1): [2,1,2,1] = Usman
+    const { figure } = ADD_FIGURES([h1, h2]);
+    expect(figure.figureId).toBe('usman');
+  });
+
+  it('adds three or more figures left-to-right, same result as chaining ADD_MULTIPLE_HOUSES', () => {
+    const h1 = CHECK_HOUSE(chart, 1).figure;
+    const h2 = CHECK_HOUSE(chart, 2).figure;
+    const h3 = CHECK_HOUSE(chart, 3).figure; // Mahadi 2111
+    const { figure } = ADD_FIGURES([h1, h2, h3]);
+    const { figure: viaHouses } = ADD_MULTIPLE_HOUSES(chart, [1, 2, 3]);
+    expect(figure.dotPattern).toEqual(viaHouses.dotPattern);
+  });
+
+  it('unions every input figure\'s own sourceHouses, in order', () => {
+    const a = EXTRACT_ELEMENT(chart, [1, 5, 9, 13], 'fire').figure;
+    const b = EXTRACT_ELEMENT(chart, [2, 6, 10, 14], 'air').figure;
+    const { figure } = ADD_FIGURES([a, b]);
+    expect(figure.sourceHouses).toEqual([1, 5, 9, 13, 2, 6, 10, 14]);
+  });
+
+  it('throws with fewer than 2 figures', () => {
+    const h1 = CHECK_HOUSE(chart, 1).figure;
+    expect(() => ADD_FIGURES([h1])).toThrow();
+  });
+});
+
+describe('COUNT_OPENED_LINES (ch.78)', () => {
+  it('counts single-dot lines across the whole chart', () => {
+    // Cross-checked against COUNT_TOTAL_DOTS: 33 opened (x1) + 31 closed (x2) = 95.
+    expect(COUNT_OPENED_LINES(chart).count).toBe(33);
+  });
+
+  it('counts single-dot lines across a house subset (ch.78: h1-h6)', () => {
+    // H1=3, H2=1, H3=3, H4=1, H5=2, H6=2 -> 12
+    expect(COUNT_OPENED_LINES(chart, [1, 2, 3, 4, 5, 6]).count).toBe(12);
+  });
+
+  it('throws for an out-of-range house in the subset', () => {
+    expect(() => COUNT_OPENED_LINES(chart, [1, 17])).toThrow();
   });
 });
 

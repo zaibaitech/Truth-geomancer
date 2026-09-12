@@ -1,9 +1,9 @@
 // Prompt 4, section 19 (originally chapters 1-40), extended by Prompt 5,
-// section 15 to chapters 1-60: a full structural audit — registry
-// integrity, consensus/counting invariants, source traceability,
-// primary-indicator correctness, and (new this stage) descriptive-result
-// integrity — run against every registered question at once, not just the
-// ones added this stage.
+// section 15 to chapters 1-60, and by Prompt 7, section 11 to chapters
+// 1-80: a full structural audit — registry integrity, consensus/counting
+// invariants, source traceability, primary-indicator correctness, and
+// descriptive-result integrity — run against every registered question at
+// once, not just the ones added this stage.
 import { describe, expect, it } from 'vitest';
 import { QUESTION_REGISTRY } from '../questions';
 import { runEngine, runReading } from '../index';
@@ -44,8 +44,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 57 questions total (40 from chapters 1-40, plus 17 newly added for chapters 41-60)', () => {
-    expect(ids.length).toBe(57);
+  it('now covers 78 questions total (57 from chapters 1-60, plus 21 newly added for chapters 61-80)', () => {
+    expect(ids.length).toBe(78);
   });
 });
 
@@ -148,9 +148,9 @@ describe('Primary-indication correctness (every question, on the fixture chart)'
 
 // Prompt 6, section 2/10: "tests proving unsupported gender classifications
 // are not guessed". Checked structurally across the whole registry, not
-// just the 3 methods known today to carry the code — so this keeps working
+// just the methods known today to carry the code — so this keeps working
 // automatically if a future stage adds another gender-blocked method.
-describe('Unsourced gender classification is never guessed (Prompt 6)', () => {
+describe('Unsourced gender classification is never guessed (Prompt 6/7)', () => {
   const ids = Object.keys(QUESTION_REGISTRY);
   const genderBlocked: { questionId: string; methodId: string }[] = [];
   ids.forEach((id) => {
@@ -161,9 +161,9 @@ describe('Unsourced gender classification is never guessed (Prompt 6)', () => {
     });
   });
 
-  it('finds the 3 known gender-blocked methods (ch.41 M1, ch.48 M1/M2) — a sanity check on the audit itself', () => {
+  it('finds the 4 known gender-blocked methods (ch.41 M1, ch.48 M1/M2, ch.68 M1) — a sanity check on the audit itself', () => {
     expect(genderBlocked.map((g) => g.methodId).sort()).toEqual(
-      ['child-gender-method-1', 'child-gender-method-2', 'item-taker-method-1'].sort(),
+      ['child-gender-method-1', 'child-gender-method-2', 'item-taker-method-1', 'partner-cheating-method-1'].sort(),
     );
   });
 

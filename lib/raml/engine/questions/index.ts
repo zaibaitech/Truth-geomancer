@@ -78,6 +78,27 @@ import { thiefWhereaboutsQuestion } from './thiefWhereabouts';
 import { travelDaytimeOrNightQuestion } from './travelDaytimeOrNight';
 import { couplesHadSexQuestion } from './couplesHadSex';
 import { doesLoveYouQuestion } from './doesLoveYou';
+import { marriageGoodOrNotQuestion } from './marriageGoodOrNot';
+import { prayersAnsweredQuestion } from './prayersAnswered';
+import { relatedByFamilyQuestion } from './relatedByFamily';
+import { marriageLastForeverQuestion } from './marriageLastForever';
+import { partnerDiseaseQuestion } from './partnerDisease';
+import { marriedBeforeQuestion } from './marriedBefore';
+import { stillInMarriageQuestion } from './stillInMarriage';
+import { enjoyingMarriageQuestion } from './enjoyingMarriage';
+import { partnerCheatingQuestion } from './partnerCheating';
+import { exWillRemarryQuestion } from './exWillRemarry';
+import { childbirthProblemsQuestion } from './childbirthProblems';
+import { manhoodProblemsQuestion } from './manhoodProblems';
+import { feelingsForYouQuestion } from './feelingsForYou';
+import { polyandryQuestion } from './polyandry';
+import { bornOutOfWedlockQuestion } from './bornOutOfWedlock';
+import { womanizerQuestion } from './womanizer';
+import { exWillReturnQuestion } from './exWillReturn';
+import { pregnancyHealthyQuestion } from './pregnancyHealthy';
+import { pregnancyMonthsQuestion } from './pregnancyMonths';
+import { numberOfBabiesQuestion } from './numberOfBabies';
+import { pregnancyPaternityQuestion } from './pregnancyPaternity';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -151,6 +172,32 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   travelDaytimeOrNightQuestion,
   couplesHadSexQuestion,
   doesLoveYouQuestion,
+  // Chapters 61-80 (Prompt 7) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Not registered: the unnumbered "Someone's Behavior"
+  // fragment after ch.64 (an exact duplicate of futureSpouseCharacter.ts's
+  // own Method 1, chapter 43 — its own title cross-references chapter 43
+  // directly).
+  marriageGoodOrNotQuestion,
+  prayersAnsweredQuestion,
+  relatedByFamilyQuestion,
+  marriageLastForeverQuestion,
+  partnerDiseaseQuestion,
+  marriedBeforeQuestion,
+  stillInMarriageQuestion,
+  enjoyingMarriageQuestion,
+  partnerCheatingQuestion,
+  exWillRemarryQuestion,
+  childbirthProblemsQuestion,
+  manhoodProblemsQuestion,
+  feelingsForYouQuestion,
+  polyandryQuestion,
+  bornOutOfWedlockQuestion,
+  womanizerQuestion,
+  exWillReturnQuestion,
+  pregnancyHealthyQuestion,
+  pregnancyMonthsQuestion,
+  numberOfBabiesQuestion,
+  pregnancyPaternityQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -219,4 +266,25 @@ export {
   travelDaytimeOrNightQuestion,
   couplesHadSexQuestion,
   doesLoveYouQuestion,
+  marriageGoodOrNotQuestion,
+  prayersAnsweredQuestion,
+  relatedByFamilyQuestion,
+  marriageLastForeverQuestion,
+  partnerDiseaseQuestion,
+  marriedBeforeQuestion,
+  stillInMarriageQuestion,
+  enjoyingMarriageQuestion,
+  partnerCheatingQuestion,
+  exWillRemarryQuestion,
+  childbirthProblemsQuestion,
+  manhoodProblemsQuestion,
+  feelingsForYouQuestion,
+  polyandryQuestion,
+  bornOutOfWedlockQuestion,
+  womanizerQuestion,
+  exWillReturnQuestion,
+  pregnancyHealthyQuestion,
+  pregnancyMonthsQuestion,
+  numberOfBabiesQuestion,
+  pregnancyPaternityQuestion,
 };

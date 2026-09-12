@@ -188,7 +188,14 @@ export type ReviewReasonCode =
   | 'open_ended_by_design'
   | 'ritual_not_a_reading'
   | 'spatial_layout_unsupported'
-  | 'separate_casting_mechanism';
+  | 'separate_casting_mechanism'
+  // Prompt 7: the source states a method's calculation in full (houses,
+  // even the good/middle-good/bad classification to check) but the passage
+  // itself ends without ever stating what any branch MEANS — distinct from
+  // an omitted figure (the calculation is complete) and from an ambiguous
+  // split (there's no stated interpretation to be ambiguous about at all).
+  // First seen at chapter 64 Method 2.
+  | 'interpretation_not_stated';
 
 export interface MethodDefinition {
   id: string;

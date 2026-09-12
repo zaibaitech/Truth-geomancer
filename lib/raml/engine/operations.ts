@@ -92,6 +92,31 @@ export function ADD_FIGURE_TO_HOUSE(chart: ChartModel, figure: ComputedFigure, h
   };
 }
 
+/** Add two or more ALREADY-COMPUTED figures together (as opposed to
+ * ADD_MULTIPLE_HOUSES, which reads its inputs straight off the chart's own
+ * houses). New for Kanzul Mikban ch.62/67's "pick the water elements of the
+ * first 4 houses, second 4 houses, third 4 houses, and last 4 houses, then
+ * add all" shape — each quarter's own element is first extracted into its
+ * own synthetic figure (EXTRACT_ELEMENT), and only THEN are those 4 results
+ * added together; there is no single set of houses to feed
+ * ADD_MULTIPLE_HOUSES directly. (Chapter 1 Method 3, Prompt 2, needed the
+ * same capability and worked around its absence by importing `addPatterns`
+ * directly — this closes that gap for future chapters without touching
+ * that already-shipped file.) Same associative/commutative math as
+ * ADD_MULTIPLE_HOUSES, so `sourceHouses` is simply the union of every input
+ * figure's own sourceHouses, in order given. */
+export function ADD_FIGURES(figures: ComputedFigure[]): { figure: ComputedFigure; trace: OperationTrace } {
+  if (figures.length < 2) throw new Error('ADD_FIGURES needs at least 2 figures');
+  let pattern = figures[0].dotPattern;
+  for (let i = 1; i < figures.length; i++) pattern = addPatterns(pattern, figures[i].dotPattern);
+  const sourceHouses = figures.flatMap((f) => f.sourceHouses);
+  const result = describeFigure(pattern, sourceHouses);
+  return {
+    figure: result,
+    trace: { operation: 'ADD_FIGURES', description: `${figures.map((f) => f.figureName).join(' + ')} = ${result.figureName}` },
+  };
+}
+
 // --- CHECK_FIGURE_PRESENT_IN_CHART / COUNT_FIGURE_OCCURRENCES ----------
 
 /** Whether a figure's pattern matches any of the chart's own 16 houses right
@@ -338,6 +363,27 @@ export function COUNT_TOTAL_DOTS(chart: ChartModel, houseNumbers?: number[]): { 
     trace: {
       operation: 'COUNT_TOTAL_DOTS',
       description: `${houseNumbers ? houseNumbers.map((n) => `H${n}`).join(', ') : 'all 16 houses'} → ${total} dots total`,
+    },
+  };
+}
+
+// --- COUNT_OPENED_LINES ---------------------------------------------------
+// New for Kanzul Mikban ch.78 ("count all the single dots of the stars from
+// h1 to h6"): counts LINES specifically in the opened (single-dot) state
+// across the chart or a house subset — distinct from COUNT_TOTAL_DOTS
+// (which sums the raw dot VALUE, 1 or 2, of every line) and distinct from
+// COUNT_ELEMENTS/COUNT_FORTUNE/COUNT_DIRECTION (which tally whole-figure
+// qualities, not individual lines). A DotRow of 1 is exactly the
+// manuscript's own "opened/single dot" state (see LineState in types.ts).
+
+export function COUNT_OPENED_LINES(chart: ChartModel, houseNumbers?: number[]): { count: number; trace: OperationTrace } {
+  const houses = houseNumbers ? houseNumbers.map((n) => houseAt(chart, n)) : chart.houses;
+  const count = houses.reduce((sum, h) => sum + h.dotPattern.filter((v) => v === 1).length, 0);
+  return {
+    count,
+    trace: {
+      operation: 'COUNT_OPENED_LINES',
+      description: `${houseNumbers ? houseNumbers.map((n) => `H${n}`).join(', ') : 'all 16 houses'} → ${count} opened (single-dot) line(s)`,
     },
   };
 }

@@ -181,40 +181,78 @@ untouched casting engine itself.
 recalculates nothing. `composeReading(engineResult, question)` takes the rule engine's own
 output and re-arranges the SAME values into a `ReadingResult`: a friendly question category,
 a primary/supporting figure split (deduped, each with only the attributes that are actually
-`verified` — never a displayed "unknown"), a per-method check/cross row against the overall
-outcome (excluding, correctly, any method whose own outcome is itself `uncertain` — that's a
-real case: a verified rule can still land outside every branch it defines, and that method
-must never silently count toward agreement), a plain-language consensus breakdown and
-disagreement note built only from the existing consensus counts, and traceable source
-references resolved to their real chapter numbers. `runReading(chart, intentionId)` is the one
-call `ResultTabs.tsx` uses — `runEngine` is still exported for anything that only wants the
+`verified` — never a displayed "unknown"), a per-method row against the overall outcome
+(excluding, correctly, any method whose own outcome is itself `uncertain` — that's a real
+case: a verified rule can still land outside every branch it defines, and that method must
+never silently count toward agreement), a full-sentence consensus summary and disagreement
+note built only from the existing consensus counts, and traceable source references resolved
+to their real chapter numbers. `runReading(chart, intentionId)` is the one call
+`ResultTabs.tsx` uses — `runEngine` is still exported for anything that only wants the
 undecorated calculation.
+
+**A figure's traditional qualities are never the same thing as a method's outcome.** Every
+`ReadingIndicator` carries both, kept visibly separate: `fortune`/`direction`/`element` are
+the figure's own qualities (from the chart), while `methodOutcome`/`methodOutcomeLabel` are
+that SPECIFIC method's verdict. A "Bad" figure producing a "Favourable" outcome (the book's
+own chapter 2 money question, on the project's standard fixture chart) is real and stays
+visible as exactly that — the calculation rule decides the outcome, never the quality label.
+Each indicator also carries a `relevance` note — "Supports/Provides a conditional
+indication/Gives a differing indication: <the method's own interpretation text>", or "Not yet
+counted toward this result" for an uncounted method — built only by comparing already-known
+outcome values, never a new geomantic claim.
+
+Outcome language is traditional-consistency phrasing only, never an invented probability or
+confidence score: `"Favourable — the verified methods agree."`, `"Mostly favourable — most
+verified methods indicate a favourable outcome, with one conditional or differing
+indication."`, `"Mixed — the verified methods give materially different indications."` A
+`mixed` method outcome is a distinct, third state — shown as "Conditional / Mixed" with its
+own `~` mark in Method Consistency, never folded into "unfavourable" — and the consensus
+sentence spells out each type in full ("Two methods indicate a favourable outcome. One method
+gives a conditional indication."), never a bare "2 favourable, 1 unfavourable" fragment.
 
 Two states get exact, spec-required copy rather than any generated phrasing: a question with
 zero verified methods shows "Insufficient Verified Data" / "We could not produce a reliable
-automatic reading from the currently verified source rules." and nothing else (no fabricated
-outcome, no primary figure); a question with a MIX of verified and unverified methods shows
-its real result plus one line — "Some additional traditional methods could not be evaluated
-because their source material requires verification." — linking into the same calculation
-details already listing those methods' review notes. A genuine conflict (e.g. chapter 19's
-court-case methods on the fixture chart) is shown as a genuine conflict, never averaged into a
-fabricated middle ground.
+automatic reading from the currently verified source rules." plus a WHY list (each
+method's own review note) and a SOURCE STATUS tally — never a fabricated outcome or primary
+figure; a question with a MIX of verified and unverified methods shows its real result plus
+one line — "Some additional traditional methods could not be evaluated because their source
+material requires verification." A genuine conflict (e.g. chapter 19's court-case methods on
+the fixture chart) is shown as a genuine conflict, never averaged into a fabricated middle
+ground.
 
-`components/raml/reading/` holds the reusable component set this composes into, in the
-section-18 display order used across all 19 (and any future) questions: `ReadingHeader` →
-`OutcomeCard` (or the insufficient-data copy) → `FigureCard` (primary) → `InterpretationCard`
-(always visible, not gated behind a toggle) → `MethodConsistencyCard` → `SupportingIndicators`
-→ `CalculationDetails` (the one remaining expandable, showing every method's houses, steps,
-result figure, and exact source quote) → `SourceReference`. `EngineReadingView.tsx` is just
-the composition of these in order; `ResultTabs.tsx`'s integration point didn't need to change.
+`components/raml/reading/` holds the reusable component set this composes into: `ReadingHeader`
+→ `OutcomeCard` (or `InsufficientNotice`, with its WHY/SOURCE STATUS sections) → `FigureCard`
+(primary — quality block, then a divider, then that method's own outcome badge and quote) →
+`SupportingIndicators` (each with its relevance note) → `MethodConsistencyCard` →
+`CalculationDetails` (the one expandable — houses, steps, result figure AND its qualities,
+verdict, source quote, plus the full multi-method interpretation for advanced users) →
+`SourceReference`. The old always-visible "Interpretation" block was retired: its content is
+now the primary indication's own short quote up front, with the full per-method text moved
+into Calculation Details as secondary/advanced material — the first screen answers the
+question in a few seconds, per the recommended order, rather than surfacing every method's
+text (or a house-number formula) as prominently as the answer itself.
 
-Covered by 18 additional tests (`engine/__tests__/reading.test.ts`) — one hand-built
+Auditing all 19 questions against this new layer surfaced two real bugs, both fixed:
+`ruleEngine.ts`'s own outcome derivation could pick a side on an exact tie between favourable
+and mixed counts even though `COMPARE_RESULTS` had already classified that as a `mixed`
+consensus level (self-contradictory: a "Favourable" badge next to a "Mixed" summary sentence)
+— a one-line, minimal compatibility fix, the only touch this stage made to the calculation
+engine; and the reading layer's own primary-indicator selection could feature a verified
+method whose own outcome was `uncertain` ahead of a later, actually-counted method, purely
+because it was first in the list — fixed by preferring the first counted method for what gets
+featured as primary. Neither changes any method's calculation, verdict, or the consensus math
+itself.
+
+Covered by 32 additional tests (`engine/__tests__/reading.test.ts`) — one hand-built
 `EngineResult` per scenario (favourable, unfavourable, mostly favourable, conflicting,
 insufficient data, needs_review, uncertain, a verified-but-uncertain-outcome method, missing
-figure information, missing optional qualities, source traceability with both a real and an
-unrecognized chapter id, calculation details, and question-specific interpretation
-pass-through), plus a few end-to-end checks against the real registry on the same fixture
-chart. 121 tests pass in total; none of the original 103 needed to change.
+figure information, missing optional qualities, source traceability, calculation details,
+question-specific interpretation pass-through, the two Prompt-3.5 bugfixes above, and the
+lettered A-H regression set: bad figure + favourable outcome, good figure + unfavourable
+outcome, favourable + conditional + favourable, a genuine conflict, needs_review/uncertain
+exclusion from consensus, insufficient data, and supporting-indicator interpretation
+consistency), plus end-to-end checks against the real registry on the fixture chart. 135 tests
+pass in total; none of the original 103 needed to change.
 
 ## Content protection in the book reader
 

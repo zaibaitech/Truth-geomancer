@@ -1,10 +1,8 @@
 // LAYER 3 — reading composition (Prompt 3: "Advanced Geomantic Reading &
-// Results Layer"). Takes an already-computed EngineResult (Layers 1+2,
-// completely untouched by this file) plus the QuestionDefinition it came
-// from, and re-arranges that SAME data into the shape a results screen
-// needs: grouped figure indicators, per-method check/cross rows, one-line
-// source references, and the exact copy required for the fully/partially
-// unverified states.
+// Results Layer"; revised in Prompt 3.5 for semantic clarity). Takes an
+// already-computed EngineResult (Layers 1+2, completely untouched by this
+// file) plus the QuestionDefinition it came from, and re-arranges that SAME
+// data into the shape a results screen needs.
 //
 // Nothing in this file recalculates anything, averages contradictory
 // results, or invents an outcome that isn't already present on some
@@ -12,15 +10,23 @@
 // EngineResult or is a pure re-formatting of counts EngineResult already
 // computed (COMPARE_RESULTS in operations.ts remains the only place
 // consensus is decided).
+//
+// Prompt 3.5's core fix: a figure's traditional QUALITIES (Good/Bad,
+// Upward/Downward, element) are never the same thing as a METHOD's OUTCOME
+// (favourable/unfavourable/mixed) for that figure. A "Bad" figure can still
+// be the result of a "favourable" method — the calculation rule decides the
+// outcome, not the quality label. Every indicator below carries both,
+// clearly separated, plus the specific method's own interpretation and a
+// short, honestly-derived note on how it relates to the overall reading.
 
 import { CATEGORIES } from '@/content/intentions';
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import type { Element, Pattern } from '@/content/stars';
 import type {
-  ComputedFigure,
   EngineResult,
   MethodConsensus,
   MethodOutcome,
+  MethodResult,
   QuestionDefinition,
   RuleStatus,
   SourceRef,
@@ -36,6 +42,23 @@ export const OUTCOME_LABEL: Record<MethodOutcome | 'insufficient_data', string> 
   mixed: 'Mixed',
   uncertain: 'Uncertain',
   insufficient_data: 'Insufficient Verified Data',
+};
+
+/** A method's outcome ('mixed' in particular) is never rendered with the
+ * same visual weight as an unfavourable one — see MethodConsistencyCard. */
+export const OUTCOME_ROW_LABEL: Record<MethodOutcome, string> = {
+  favourable: 'Favourable',
+  unfavourable: 'Unfavourable',
+  mixed: 'Conditional / Mixed',
+  uncertain: 'Uncertain',
+};
+
+export const OUTCOME_TONE: Record<MethodOutcome | 'insufficient_data', 'sand' | 'fire' | 'neutral'> = {
+  favourable: 'sand',
+  unfavourable: 'fire',
+  mixed: 'neutral',
+  uncertain: 'neutral',
+  insufficient_data: 'neutral',
 };
 
 export const CONSENSUS_LABEL: Record<MethodConsensus['level'], string> = {
@@ -69,6 +92,14 @@ const BOOK_LABEL: Record<SourceRef['book'], string> = {
   'master-of-geomancy-vol-1': 'Master of Geomancy, Vol. 1',
 };
 
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+function numberWord(n: number): string {
+  return NUMBER_WORDS[n] ?? String(n);
+}
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 // ---------------------------------------------------------------------------
 // ReadingResult shape
 // ---------------------------------------------------------------------------
@@ -78,13 +109,28 @@ export interface ReadingIndicator {
   figureId: string;
   figureName: string;
   dotPattern: Pattern;
+  /** The figure's own traditional qualities — NEVER the method's outcome.
+   * Only ever set when the underlying quality's status is 'verified'. */
   element: string;
-  /** Only ever set when the underlying quality's status is 'verified' —
-   * never displayed as a guess (section 6). */
   fortune: string | null;
   direction: string | null;
   methodLabel: string;
+  methodStatus: RuleStatus;
   housesUsed: number[];
+  /** THIS method's own outcome for this figure. Null when the method
+   * produced no verdict at all (needs_review/uncertain status), which is
+   * distinct from a verified method whose outcome is itself 'uncertain'
+   * (falls outside every branch the rule defines) — that case still gets a
+   * real outcome value here, just one COMPARE_RESULTS excludes from the
+   * tally. Never to be read as agreeing with the figure's own quality. */
+  methodOutcome: MethodOutcome | null;
+  methodOutcomeLabel: string | null;
+  interpretation: string | null;
+  /** A short, honestly-derived note on how this indicator relates to the
+   * overall reading — built only from the outcome comparison and the
+   * method's own (already source-derived) interpretation text. Never a new
+   * geomantic claim. */
+  relevance: string | null;
 }
 
 export interface ReadingMethodRow {
@@ -109,6 +155,11 @@ export interface ReadingMethodRow {
   calculationSteps: string[];
   resultFigureName: string | null;
   resultPattern: Pattern | null;
+  /** The result figure's own qualities — shown in Calculation Details for
+   * advanced users, kept clearly separate from `outcome` above. */
+  resultElement: string | null;
+  resultFortune: string | null;
+  resultDirection: string | null;
   sourceQuote: string;
   sourceLabel: string;
 }
@@ -128,17 +179,23 @@ export interface ReadingResult {
   questionCategory: string | null;
   overallOutcome: MethodOutcome | 'insufficient_data';
   outcomeLabel: string;
+  /** The 1-2 sentence direct answer — traditional-consistency language only
+   * (no invented probabilities/percentages/confidence scores). */
   shortSummary: string;
+  /** The full, per-method concatenated interpretation text straight from
+   * the engine — kept for advanced users inside Calculation Details, never
+   * rendered as its own prominent block on the primary screen. */
   detailedInterpretation: string;
   primaryFigure: ReadingIndicator | null;
   supportingIndicators: ReadingIndicator[];
   methodResults: ReadingMethodRow[];
   consensusLabel: string;
-  /** A plain-language note built only from the already-computed counts,
-   * e.g. "2 favourable, 1 unfavourable." Never a new statistic. */
-  consensusBreakdown: string | null;
-  /** Present only when the methods don't unanimously agree — states which
-   * method(s) differ, without trying to resolve the disagreement. */
+  /** A full-sentence agreement summary built only from the existing
+   * consensus counts, e.g. "Two methods indicate a favourable outcome. One
+   * method gives a conditional indication." Never a bare "2 yes, 1 no". */
+  consensusSentence: string | null;
+  /** Present only for a genuine conflict (no dominant side at all) — states
+   * that the methods disagree without trying to resolve it. */
   disagreementNote: string | null;
   conflictingIndicators: boolean;
   relevantHouses: number[];
@@ -164,9 +221,36 @@ function sourceLabelFor(source: SourceRef): string {
   return book;
 }
 
-function buildIndicator(role: 'primary' | 'supporting', figure: ComputedFigure, methodLabel: string): ReadingIndicator {
+/** Relates one indicator's own outcome to the overall reading — comparison
+ * only, quoting the method's own existing interpretation text. Never
+ * fabricates a new claim about what the figure means. */
+function buildRelevance(
+  outcome: MethodOutcome | null,
+  overallOutcome: MethodOutcome | 'insufficient_data',
+  interpretation: string | null,
+): string | null {
+  if (outcome === null) {
+    return 'Not yet counted toward this result — see "How was this calculated?" for why.';
+  }
+  if (!interpretation) return null;
+  if (outcome === 'uncertain') {
+    return `Falls outside this rule's defined outcomes, so it isn't counted toward the result: ${interpretation}`;
+  }
+  if (outcome === 'mixed') {
+    return `Provides a conditional indication: ${interpretation}`;
+  }
+  if (overallOutcome !== 'insufficient_data' && outcome === overallOutcome) {
+    return `Supports the ${OUTCOME_LABEL[overallOutcome].toLowerCase()} indication: ${interpretation}`;
+  }
+  return `Gives a differing indication: ${interpretation}`;
+}
+
+function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overallOutcome: MethodOutcome | 'insufficient_data'): ReadingIndicator {
+  const figure = m.calculation!.resultFigure;
   const fortune = figure.qualities.fortune;
   const direction = figure.qualities.direction;
+  const outcome = m.verdict?.outcome ?? null;
+  const interpretation = m.verdict?.interpretation ?? null;
   return {
     role,
     figureId: figure.figureId,
@@ -175,40 +259,92 @@ function buildIndicator(role: 'primary' | 'supporting', figure: ComputedFigure, 
     element: ELEMENT_LABEL[figure.element],
     fortune: fortune.status === 'verified' && fortune.value ? FORTUNE_LABEL[fortune.value] : null,
     direction: direction.status === 'verified' && direction.value ? DIRECTION_LABEL[direction.value] : null,
-    methodLabel,
+    methodLabel: m.method.label,
+    methodStatus: m.method.status,
     housesUsed: figure.sourceHouses,
+    methodOutcome: outcome,
+    methodOutcomeLabel: outcome ? OUTCOME_LABEL[outcome] : null,
+    interpretation,
+    relevance: buildRelevance(outcome, overallOutcome, interpretation),
   };
 }
 
-function buildConsensusBreakdown(consensus: MethodConsensus): string | null {
-  const parts: string[] = [];
-  if (consensus.favourableCount > 0) parts.push(`${consensus.favourableCount} favourable`);
-  if (consensus.unfavourableCount > 0) parts.push(`${consensus.unfavourableCount} unfavourable`);
-  if (consensus.mixedCount > 0) parts.push(`${consensus.mixedCount} mixed`);
-  return parts.length > 0 ? parts.join(', ') : null;
+/** Section 3: traditional-consistency language, never invented probability.
+ * Switches on the ALREADY-DECIDED consensus level; only wording, no new
+ * math (consensus.level/overallOutcome both come straight from
+ * ruleEngine.ts / COMPARE_RESULTS). */
+function buildOverallSummary(overallOutcome: MethodOutcome | 'insufficient_data', consensus: MethodConsensus): string {
+  if (overallOutcome === 'insufficient_data') {
+    return 'We could not produce a reliable automatic reading from the currently verified source rules.';
+  }
+  const label = OUTCOME_LABEL[overallOutcome];
+  switch (consensus.level) {
+    case 'agree':
+      return `${label} — the verified methods agree.`;
+    case 'mostly_agree': {
+      const dominant = Math.max(consensus.favourableCount, consensus.unfavourableCount, consensus.mixedCount);
+      const minority = consensus.verifiableCount - dominant;
+      const minorityWord = minority === 1 ? 'one' : numberWord(minority);
+      return `Mostly ${label.toLowerCase()} — most verified methods indicate a ${label.toLowerCase()} outcome, with ${minorityWord} conditional or differing indication${minority === 1 ? '' : 's'}.`;
+    }
+    case 'mixed':
+    case 'conflict':
+      return 'Mixed — the verified methods give materially different indications.';
+    default:
+      return label;
+  }
 }
 
-function buildDisagreementNote(consensus: MethodConsensus): string | null {
-  if (consensus.level === 'agree' || consensus.level === 'insufficient_data') return null;
-  const dominant = Math.max(consensus.favourableCount, consensus.unfavourableCount, consensus.mixedCount);
-  const minority = consensus.verifiableCount - dominant;
-  if (consensus.level === 'conflict') {
-    return 'The traditional methods for this question genuinely disagree — this is preserved as-is, not resolved into a single answer.';
+/** Section 2: a full sentence per outcome type present, never a flat
+ * "2 favourable, 1 unfavourable" fragment or a "yes/no" framing. */
+function buildConsensusSentence(consensus: MethodConsensus): string | null {
+  if (consensus.verifiableCount === 0) return null;
+  const parts: string[] = [];
+  if (consensus.favourableCount > 0) {
+    const n = consensus.favourableCount;
+    parts.push(`${capitalize(numberWord(n))} method${n === 1 ? '' : 's'} indicate${n === 1 ? 's' : ''} a favourable outcome.`);
   }
-  if (minority === 1) return 'One method gives a different indication.';
-  if (minority > 1) return `${minority} methods give a different indication.`;
-  return null;
+  if (consensus.unfavourableCount > 0) {
+    const n = consensus.unfavourableCount;
+    parts.push(`${capitalize(numberWord(n))} method${n === 1 ? '' : 's'} indicate${n === 1 ? 's' : ''} an unfavourable outcome.`);
+  }
+  if (consensus.mixedCount > 0) {
+    const n = consensus.mixedCount;
+    parts.push(`${capitalize(numberWord(n))} method${n === 1 ? '' : 's'} give${n === 1 ? 's' : ''} a conditional indication.`);
+  }
+  return parts.join(' ');
+}
+
+/** Only fires for a genuine conflict (no dominant side) — a real
+ * disagreement is stated as one, never smoothed into "mostly agree"
+ * phrasing. Ordinary minority cases are already covered by the consensus
+ * sentence above. */
+function buildDisagreementNote(consensus: MethodConsensus): string | null {
+  if (consensus.level !== 'conflict') return null;
+  return 'The traditional methods for this question genuinely disagree — this is preserved as-is, not resolved into a single answer.';
 }
 
 export function composeReading(result: EngineResult, question: QuestionDefinition): ReadingResult {
   const consensus = result.calculationDetails.consensus;
   const category = CATEGORIES.find((c) => c.id === question.categoryId)?.label ?? null;
+  const isInsufficient = result.overallResult === 'insufficient_data';
 
-  const primaryMethodId = result.primaryFigure?.method.id ?? null;
-  const primaryFigure = result.primaryFigure?.calculation
-    ? buildIndicator('primary', result.primaryFigure.calculation.resultFigure, result.primaryFigure.method.label)
-    : null;
+  // Prompt 3.5 fix: EngineResult.primaryFigure is ruleEngine.ts's own
+  // convention — "the first method with ANY verdict" — which picks a
+  // VERIFIED method whose own outcome is itself 'uncertain' (falls outside
+  // every branch its rule defines, excluded from the tally) ahead of a
+  // later method that actually counted toward the reading. That produced a
+  // primary indication card reading "Uncertain" right next to an overall
+  // outcome that said "Favourable". This is a display-selection choice, not
+  // a calculation change: prefer the first COUNTED method for what the
+  // reading FEATURES as primary, falling back to the engine's own choice
+  // only when nothing was counted at all (the insufficient-data state,
+  // which never renders a primary figure anyway).
+  const firstCounted = result.methods.find((m) => m.verdict !== null && m.verdict.outcome !== 'uncertain');
+  const primaryMethod = firstCounted ?? result.primaryFigure;
+  const primaryFigure = !isInsufficient && primaryMethod?.calculation ? buildIndicator('primary', primaryMethod, result.overallResult) : null;
 
+  const primaryMethodId = primaryMethod?.method.id ?? null;
   const seenFigureIds = new Set(primaryFigure ? [primaryFigure.figureId] : []);
   const supportingIndicators: ReadingIndicator[] = [];
   result.methods.forEach((m) => {
@@ -216,12 +352,15 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
     const figureId = m.calculation.resultFigure.figureId;
     if (seenFigureIds.has(figureId)) return;
     seenFigureIds.add(figureId);
-    supportingIndicators.push(buildIndicator('supporting', m.calculation.resultFigure, m.method.label));
+    supportingIndicators.push(buildIndicator('supporting', m, result.overallResult));
   });
 
   const methodResults: ReadingMethodRow[] = result.methods.map((m) => {
     const counted = m.verdict !== null && m.verdict.outcome !== 'uncertain';
     const agreesWithOverall = counted && result.overallResult !== 'insufficient_data' ? m.verdict!.outcome === result.overallResult : null;
+    const resultFigure = m.calculation?.resultFigure ?? null;
+    const fortune = resultFigure?.qualities.fortune;
+    const direction = resultFigure?.qualities.direction;
     return {
       id: m.method.id,
       label: m.method.label,
@@ -234,8 +373,11 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
       reviewNote: m.method.reviewNote ?? null,
       housesUsed: m.calculation?.housesUsed ?? [],
       calculationSteps: m.calculation?.steps ?? [],
-      resultFigureName: m.calculation?.resultFigure.figureName ?? null,
-      resultPattern: m.calculation?.resultFigure.dotPattern ?? null,
+      resultFigureName: resultFigure?.figureName ?? null,
+      resultPattern: resultFigure?.dotPattern ?? null,
+      resultElement: resultFigure ? ELEMENT_LABEL[resultFigure.element] : null,
+      resultFortune: fortune?.status === 'verified' && fortune.value ? FORTUNE_LABEL[fortune.value] : null,
+      resultDirection: direction?.status === 'verified' && direction.value ? DIRECTION_LABEL[direction.value] : null,
       sourceQuote: m.method.source.quote,
       sourceLabel: sourceLabelFor(m.method.source),
     };
@@ -256,7 +398,6 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
     });
   });
 
-  const isInsufficient = result.overallResult === 'insufficient_data';
   const hasUnverified = result.methods.some((m) => m.method.status !== 'verified');
   const sourceStatus: SourceStatus = isInsufficient ? 'none_verified' : hasUnverified ? 'partially_verified' : 'all_verified';
 
@@ -266,15 +407,13 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
     questionCategory: category,
     overallOutcome: result.overallResult,
     outcomeLabel: OUTCOME_LABEL[result.overallResult],
-    shortSummary: isInsufficient
-      ? 'We could not produce a reliable automatic reading from the currently verified source rules.'
-      : result.summary,
+    shortSummary: buildOverallSummary(result.overallResult, consensus),
     detailedInterpretation: result.interpretation,
     primaryFigure,
     supportingIndicators,
     methodResults,
     consensusLabel: CONSENSUS_LABEL[consensus.level],
-    consensusBreakdown: buildConsensusBreakdown(consensus),
+    consensusSentence: buildConsensusSentence(consensus),
     disagreementNote: buildDisagreementNote(consensus),
     conflictingIndicators: consensus.level === 'conflict',
     relevantHouses: result.supportingHouses,

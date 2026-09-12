@@ -248,6 +248,10 @@ describe('Overcome enemy (ch.16)', () => {
   it('reports "mixed" consensus (one favourable, one mixed — not a hard conflict)', () => {
     expect(result.calculationDetails.consensus.level).toBe('mixed');
   });
+
+  it('reports overallResult as "mixed" too, matching the consensus level (Prompt 3.5 fix: a tied favourable/mixed count must not silently pick a side)', () => {
+    expect(result.overallResult).toBe('mixed');
+  });
 });
 
 describe('Timing of an event (ch.17) — fully blocked', () => {

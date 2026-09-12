@@ -4,55 +4,50 @@ import { useState } from 'react';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
 import { ReadingHeader } from './reading/ReadingHeader';
 import { OutcomeCard } from './reading/OutcomeCard';
+import { InsufficientNotice } from './reading/InsufficientNotice';
 import { FigureCard } from './reading/FigureCard';
-import { InterpretationCard } from './reading/InterpretationCard';
 import { MethodConsistencyCard } from './reading/MethodConsistencyCard';
 import { SupportingIndicators } from './reading/SupportingIndicators';
 import { CalculationDetails } from './reading/CalculationDetails';
 import { SourceReference } from './reading/SourceReference';
 import { VerificationNotice } from './reading/VerificationNotice';
 
-// Display order follows section 12's priority list exactly, as made
-// concrete by section 18's mock: header -> direct answer -> primary
-// indicator -> question-specific interpretation (always visible, not
-// gated) -> cross-method consistency -> supporting indicators -> optional
-// calculation details -> source. Every value here comes straight off the
-// ReadingResult built in lib/raml/engine/reading.ts — this component only
-// arranges it, never recalculates anything.
+// Display order follows Prompt 3.5 section 4's recommended order exactly:
+// header -> overall outcome + 1-2 sentence answer -> primary indication
+// (figure, qualities, THIS method's own outcome, short interpretation) ->
+// supporting indicators (each with its own relevance note) -> method
+// consistency -> calculation details (collapsed by default) -> source. The
+// old always-visible, multi-method "Interpretation" block was retired here:
+// its content is now either the primary indication's own short quote, or
+// (for advanced users) the "Full computed interpretation" note inside
+// Calculation Details — never a wall of concatenated method text on the
+// first screen. Every value still comes straight off the ReadingResult
+// built in lib/raml/engine/reading.ts — this component only arranges it.
 export function EngineReadingView({ result }: { result: ReadingResult }) {
   const [showCalculation, setShowCalculation] = useState(false);
-
-  const primaryMethod = result.methodResults.find((m) => m.label === result.primaryFigure?.methodLabel);
 
   return (
     <div className="space-y-4">
       <ReadingHeader question={result.question} questionCategory={result.questionCategory} />
 
-      <OutcomeCard
-        outcomeLabel={result.outcomeLabel}
-        overallOutcome={result.overallOutcome}
-        shortSummary={result.shortSummary}
-        isInsufficient={result.isInsufficient}
-      />
-
-      {!result.isInsufficient ? (
+      {result.isInsufficient ? (
+        <InsufficientNotice shortSummary={result.shortSummary} methods={result.methodResults} />
+      ) : (
         <>
-          {result.primaryFigure ? (
-            <FigureCard indicator={result.primaryFigure} contextualNote={primaryMethod?.interpretation} />
-          ) : null}
+          <OutcomeCard outcomeLabel={result.outcomeLabel} overallOutcome={result.overallOutcome} shortSummary={result.shortSummary} />
 
-          <InterpretationCard text={result.detailedInterpretation} />
+          {result.primaryFigure ? <FigureCard indicator={result.primaryFigure} /> : null}
+
+          <SupportingIndicators indicators={result.supportingIndicators} />
 
           <MethodConsistencyCard
             consensusLabel={result.consensusLabel}
-            consensusBreakdown={result.consensusBreakdown}
+            consensusSentence={result.consensusSentence}
             disagreementNote={result.disagreementNote}
             methods={result.methodResults}
           />
-
-          <SupportingIndicators indicators={result.supportingIndicators} methods={result.methodResults} />
         </>
-      ) : null}
+      )}
 
       {result.verificationNotice ? (
         <VerificationNotice text={result.verificationNotice} onExpand={() => setShowCalculation(true)} />
@@ -65,7 +60,9 @@ export function EngineReadingView({ result }: { result: ReadingResult }) {
         {showCalculation ? 'Hide calculation details' : 'How was this calculated?'}
       </button>
 
-      {showCalculation ? <CalculationDetails methods={result.methodResults} /> : null}
+      {showCalculation ? (
+        <CalculationDetails methods={result.methodResults} detailedInterpretation={result.detailedInterpretation} />
+      ) : null}
 
       <SourceReference sources={result.sourceReferences} />
     </div>

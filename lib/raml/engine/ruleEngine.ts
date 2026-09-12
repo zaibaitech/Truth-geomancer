@@ -9,9 +9,20 @@ import { COMPARE_RESULTS } from './operations';
 import { buildInterpretation, buildSummary } from './interpretation';
 import type { EngineResult, MethodCalculation, MethodConsensus, MethodOutcome, MethodResult, QuestionDefinition } from './types';
 
+// Prompt 3.5 compatibility fix (minimal, presentation-consistency only —
+// no calculation/consensus math changed): COMPARE_RESULTS' own 'mixed'
+// level already means "no dominant type" (see operations.ts — it's assigned
+// exactly when nothing reaches a >50% majority). The >= comparisons below
+// are only safe once a level of 'agree' or 'mostly_agree' has already
+// established genuine, unique dominance; applied to a 'mixed' level they
+// can silently pick a side on an exact tie (e.g. 1 favourable vs. 1 mixed,
+// 0 unfavourable — favourableCount >= mixedCount is true on a tie), which
+// produced a self-contradictory display (an outcome badge reading
+// "Favourable" next to a Method Consistency summary reading "Mixed").
+// 'mixed' is now handled the same way 'conflict' already was.
 function deriveOverallResult(consensus: MethodConsensus): MethodOutcome | 'insufficient_data' {
   if (consensus.level === 'insufficient_data') return 'insufficient_data';
-  if (consensus.level === 'conflict') return 'mixed';
+  if (consensus.level === 'conflict' || consensus.level === 'mixed') return 'mixed';
   const { favourableCount, unfavourableCount, mixedCount } = consensus;
   if (favourableCount >= unfavourableCount && favourableCount >= mixedCount && favourableCount > 0) return 'favourable';
   if (unfavourableCount >= favourableCount && unfavourableCount >= mixedCount && unfavourableCount > 0) return 'unfavourable';

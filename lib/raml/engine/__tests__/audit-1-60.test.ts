@@ -1,7 +1,9 @@
-// Prompt 4, section 19: a full structural audit across chapters 1-40 —
-// registry integrity, consensus/counting invariants, source traceability,
-// and primary-indicator correctness — run against every registered
-// question at once, not just the ones added this stage.
+// Prompt 4, section 19 (originally chapters 1-40), extended by Prompt 5,
+// section 15 to chapters 1-60: a full structural audit — registry
+// integrity, consensus/counting invariants, source traceability,
+// primary-indicator correctness, and (new this stage) descriptive-result
+// integrity — run against every registered question at once, not just the
+// ones added this stage.
 import { describe, expect, it } from 'vitest';
 import { QUESTION_REGISTRY } from '../questions';
 import { runEngine, runReading } from '../index';
@@ -42,8 +44,51 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 40 questions total (19 from chapters 1-19, plus 21 newly added for chapters 20-40)', () => {
-    expect(ids.length).toBe(40);
+  it('now covers 57 questions total (40 from chapters 1-40, plus 17 newly added for chapters 41-60)', () => {
+    expect(ids.length).toBe(57);
+  });
+});
+
+// Prompt 5, section 13/15: "descriptive answers accidentally treated as
+// outcomes" and "descriptive questions never produce fabricated
+// favourable/unfavourable verdicts" — checked explicitly across every
+// registered question, not just the new ones, since a regression here
+// could just as easily land on a chapters-1-40 descriptive question.
+describe('Descriptive-result integrity (every question, on the fixture chart)', () => {
+  ids.forEach((id) => {
+    it(`${id}: a descriptive-kind question's counted methods never carry a favourable/unfavourable/mixed outcome`, () => {
+      const question = QUESTION_REGISTRY[id];
+      if ((question.resultKind ?? 'outcome') !== 'descriptive') return;
+      const result = runEngine(chart, id)!;
+      result.methods.forEach((m) => {
+        if (!m.verdict) return;
+        expect(['descriptive', 'uncertain']).toContain(m.verdict.outcome);
+      });
+    });
+
+    it(`${id}: an outcome-kind question's counted methods never carry a 'descriptive' outcome`, () => {
+      const question = QUESTION_REGISTRY[id];
+      if ((question.resultKind ?? 'outcome') === 'descriptive') return;
+      const result = runEngine(chart, id)!;
+      result.methods.forEach((m) => {
+        if (!m.verdict) return;
+        expect(m.verdict.outcome).not.toBe('descriptive');
+      });
+    });
+
+    it(`${id}: ReadingResult.resultKind always matches the QuestionDefinition's own declared resultKind`, () => {
+      const question = QUESTION_REGISTRY[id];
+      const reading = runReading(chart, id)!;
+      expect(reading.resultKind).toBe(question.resultKind ?? 'outcome');
+    });
+
+    it(`${id}: overallOutcome is never 'descriptive' unless the question itself is descriptive-kind`, () => {
+      const question = QUESTION_REGISTRY[id];
+      const result = runEngine(chart, id)!;
+      if ((question.resultKind ?? 'outcome') !== 'descriptive') {
+        expect(result.overallResult).not.toBe('descriptive');
+      }
+    });
   });
 });
 

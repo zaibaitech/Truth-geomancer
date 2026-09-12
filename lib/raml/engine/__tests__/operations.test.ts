@@ -10,10 +10,12 @@ import {
   CHECK_HOUSE,
   CHECK_LINE_STATE,
   COMPARE_RESULTS,
+  CAST_OUT_BY,
   COUNT_DIRECTION,
   COUNT_ELEMENTS,
   COUNT_FIGURE_OCCURRENCES,
   COUNT_FORTUNE,
+  COUNT_TOTAL_DOTS,
   EXTRACT_ELEMENT,
   EXTRACT_LINES,
   MATCH_FIGURE,
@@ -151,6 +153,41 @@ describe('COUNT_ELEMENTS', () => {
   it('tallies elements across a specific house subset', () => {
     const tally = COUNT_ELEMENTS(chart, [1, 2, 3, 4]);
     expect(tally.fire + tally.air + tally.water + tally.sand).toBe(4);
+  });
+});
+
+describe('COUNT_TOTAL_DOTS / CAST_OUT_BY (ch.56)', () => {
+  it('sums every line of every house in the whole chart (hand-verified against the fixture patterns)', () => {
+    // H1 1121=5, H2 1222=7, H3 2111=5, H4 2212=7, H5 1122=6, H6 1212=6,
+    // H7 2211=6, H8 1212=6, H9 2121=6, H10 2121=6, H11 2112=6, H12 1221=6,
+    // H13 2222=8, H14 1111=4, H15 1111=4, H16 2212=7 → 95
+    expect(COUNT_TOTAL_DOTS(chart).total).toBe(95);
+  });
+
+  it('sums only the given house subset when provided', () => {
+    // H1..H4 = 5+7+5+7 = 24
+    expect(COUNT_TOTAL_DOTS(chart, [1, 2, 3, 4]).total).toBe(24);
+  });
+
+  it('throws for an out-of-range house in the subset', () => {
+    expect(() => COUNT_TOTAL_DOTS(chart, [1, 17])).toThrow();
+  });
+
+  it('"casts out by 3s": maps any positive total into 1..3, remainder 0 -> 3', () => {
+    expect(CAST_OUT_BY(95, 3)).toBe(2); // 95 = 31*3 + 2
+    expect(CAST_OUT_BY(9, 3)).toBe(3); // exact multiple -> n, never 0
+    expect(CAST_OUT_BY(1, 3)).toBe(1);
+    expect(CAST_OUT_BY(4, 3)).toBe(1);
+  });
+
+  it('also works for other moduli, e.g. casting out by 4s', () => {
+    expect(CAST_OUT_BY(8, 4)).toBe(4);
+    expect(CAST_OUT_BY(10, 4)).toBe(2);
+  });
+
+  it('rejects a non-positive total or modulus', () => {
+    expect(() => CAST_OUT_BY(0, 3)).toThrow();
+    expect(() => CAST_OUT_BY(5, 0)).toThrow();
   });
 });
 

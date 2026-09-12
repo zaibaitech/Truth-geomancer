@@ -283,6 +283,41 @@ export function CHECK_ELEMENT_ADJACENT_REPETITION(chart: ChartModel, element: El
   };
 }
 
+// --- COUNT_TOTAL_DOTS ----------------------------------------------------
+// New for Kanzul Mikban ch.56 ("count all the dots in the chart, and start
+// subtracting 3, 3, 3"): the raw total dot count across the chart (or a
+// house subset, same optional-houseNumbers shape as COUNT_ELEMENTS/
+// COUNT_FORTUNE/COUNT_DIRECTION) — a DotRow is always 1 or 2 dots, so this
+// is just summing every line of every included house's pattern. Distinct
+// from every existing COUNT_* primitive, which all tally house/figure
+// OCCURRENCES, never the raw dot value itself.
+
+export function COUNT_TOTAL_DOTS(chart: ChartModel, houseNumbers?: number[]): { total: number; trace: OperationTrace } {
+  const houses = houseNumbers ? houseNumbers.map((n) => houseAt(chart, n)) : chart.houses;
+  const total = houses.reduce((sum, h) => sum + h.dotPattern.reduce((s, v) => s + v, 0), 0);
+  return {
+    total,
+    trace: {
+      operation: 'COUNT_TOTAL_DOTS',
+      description: `${houseNumbers ? houseNumbers.map((n) => `H${n}`).join(', ') : 'all 16 houses'} → ${total} dots total`,
+    },
+  };
+}
+
+/** Reduce a positive count to the range 1..n by repeated subtraction of n
+ * ("cast out by n's") — a remainder of 0 maps to n itself, not 0, matching
+ * the manuscript's own worked convention (ch.56: "subtract 3, 3, 3... if
+ * your result is 1 or 3... but if it's 2", i.e. never a 0). Pure arithmetic,
+ * no chart access — kept here as a small reusable helper rather than
+ * inlined per-question, since "cast out by N" is a named, reusable
+ * classical technique, not specific to any one chapter's wording. */
+export function CAST_OUT_BY(total: number, n: number): number {
+  if (n < 1) throw new Error('CAST_OUT_BY needs n >= 1');
+  if (total < 1) throw new Error('CAST_OUT_BY needs a positive total');
+  const remainder = total % n;
+  return remainder === 0 ? n : remainder;
+}
+
 // --- RECAST_FROM_HOUSES --------------------------------------------------
 
 /** New for Kanzul Mikban ch.34 Method 1: "pick h3, h7, h11 and h15 and use

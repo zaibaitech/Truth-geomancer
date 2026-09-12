@@ -51,20 +51,97 @@ before. See `lib/raml/engine/__tests__/reading.test.ts` ("Prompt 4.5 —
 descriptive result kind") and `operations.test.ts`
 ("COMPARE_RESULTS — descriptive questions") for the new coverage.
 
-## Totals (as of this stage — Stage 3 / Prompt 4 + 4.5, chapters 20-40)
+## Prompt 5 — Kanzul Mikban chapters 41-60 (Stage 4)
+
+Source-first expansion, same discipline as Prompt 4: read every chapter's
+actual text (not the table of contents), preserve every method
+independently, never merge distinct traditional methods into one
+algorithm, never guess an omitted figure, never force a descriptive answer
+into favourable/unfavourable. 17 new questions registered, reusing the
+`resultKind: 'descriptive'` model Prompt 4.5 built rather than inventing
+another result shape — nothing new was needed there.
+
+Two consolidation decisions, both source-driven rather than convenience
+merges:
+
+- **Chapter 47 + the unnumbered "Additional Methods — If You Want to Know
+  If She's Pregnant" fragment** (which follows chapter 56 in the source and
+  is explicitly titled as extending chapter 47's own question): that
+  fragment's first two methods are registered as `lady-pregnant-method-3`
+  and `-4` on chapter 47's question, since they answer the exact same
+  question, more completely (full upward/downward and good/bad branch
+  coverage) than chapter 47's own two positive-trigger-only methods. Its
+  third method (predicting the baby's *sex*, not whether she's pregnant) is
+  a different question — see below.
+- **Chapter 48 + Chapter 56**: both ask "will the child be male or female"
+  — content/intentions.ts already carries a separate intention id for each,
+  but per instruction #10 ("check for duplicate/overlapping questions, reuse
+  an existing id") they are registered as ONE question, under chapter 48's
+  id. Chapter 48's own two methods both hinge on classifying a figure
+  directly as a "male star"/"female star" — a classification neither this
+  chapter nor any other in the source (so far) defines, and which this
+  project's general `FigureQualities.gender` axis is intentionally left
+  `needs_review` for, project-wide (see types.ts — this is not new to
+  Prompt 5). Chapter 56's method needs no such classification at all — it's
+  pure whole-chart dot arithmetic (`COUNT_TOTAL_DOTS` + `CAST_OUT_BY`, both
+  new, generic, reusable primitives) — and is the only verified method
+  here. Chapter 56's own intention id therefore has no `QUESTION_REGISTRY`
+  entry (it falls back to the general parser, same as any other
+  not-yet-structured chapter — this is normal, not a gap).
+
+Two chapters and one unnumbered fragment were read in full and found to
+have **no computable shape at all**, so nothing was registered for them —
+see "Architectural gaps" below for the full reasoning: chapter 46 (a
+talismanic/ritual practice, not a chart-verdict method, with its own
+diagram omitted from the transcription), chapter 59 (every method is
+either open-ended/non-deterministic — "use whatever star you get to talk
+to the person" — or not chart-derived at all), and the unnumbered
+"Consequence of Friendship Between Two People" fragment after chapter 52
+(fully computable, but carries no chapter number and so falls outside this
+stage's numbered scope).
+
+One new architecture-level finding, not a source-rule change: this
+stage's descriptive questions are joined by several genuinely **yes/no
+factual** ones (is she pregnant, is it a male/female child, have they had
+sex) that don't carry any favourable/unfavourable value judgment in the
+source — `resultKind: 'descriptive'` was used for these too, consistent
+with Prompt 4.5's own principle ("do not force every question into the
+outcome-voting model"). This is a considered extension of that principle,
+not a new mechanism — no types.ts change was needed. Chapter 21's
+pre-existing, structurally identical question (wife/sister had sex) still
+uses the older favourable=yes/unfavourable=no treatment from before the
+descriptive kind existed; that inconsistency is flagged in the
+source-verification queue below rather than silently left unremarked, but
+fixing it is out of this stage's scope (Prompt 5 scopes chapters 41-60
+only).
+
+Real, hand-computed data on the shared fixture chart produced two genuine
+cross-method disagreements this stage — both preserved honestly, neither
+averaged nor silently resolved: chapter 58 ("if couples have had sex")
+disagrees ("yes" vs. "no" — `ConsensusLevel: 'disagree'`), and chapter 60
+("if she/he loves you") conflicts (`favourable` vs. `unfavourable` —
+`ConsensusLevel: 'conflict'`, `overallResult: 'mixed'`).
+
+See `lib/raml/engine/__tests__/questions-stage4.test.ts` for the full
+per-method, hand-verified test coverage, and `__tests__/audit-1-60.test.ts`
+(renamed from `audit-1-40.test.ts`, generalized to run its structural/
+consensus/descriptive-integrity checks against every registered question,
+chapters 1-60 together) for the full regression audit.
+
+## Totals (as of this stage — Stage 4 / Prompt 5, chapters 41-60)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
-| Numbered chapters reviewed and entered into this engine | 40 (chapters 1-19, 20-32, 34-40 — chapter 33 reviewed but out of scope, see below) |
-| Numbered chapters not yet reviewed | 113 (chapters 41-153) |
-| Unnumbered sub-chapters/continuations reviewed this stage | 3 ("If It's Good to Stay in a Particular House" — registered; two Ch.28 continuation fragments — not registered, no computable shape at all) |
-| Questions registered in `QUESTION_REGISTRY` | **40** |
-| Total methods across all registered questions | 85 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **66** |
-| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **3** |
+| Numbered chapters reviewed and entered into this engine | 60 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60 — chapters 33, 46, 59 reviewed but out of scope/not computable, see below) |
+| Numbered chapters not yet reviewed | 93 (chapters 61-153) |
+| Unnumbered sub-chapters/continuations reviewed this stage | 2 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope) |
+| Questions registered in `QUESTION_REGISTRY` | **57** |
+| Total methods across all registered questions | 111 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **89** |
+| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **6** |
 | **Uncertain** (not computable — almost always omitted source figures) | **16** |
-| Automated tests covering this engine | 461 (all passing) |
+| Automated tests covering this engine | 819 (all passing) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — unchanged since Prompt 2
 
@@ -87,6 +164,18 @@ descriptive result kind") and `operations.test.ts`
 | Needs review | 1 |
 | Uncertain | 5 |
 | Not registered at all (no computable shape, or architecturally out of scope) | 3 (chapter 33; both Ch.28 continuation fragments) |
+
+### Stage 4 (chapters 41-60) subtotal — Prompt 5
+
+| | Count |
+|---|---|
+| Numbered/unnumbered items reviewed | 22 (41-60, plus the two unnumbered fragments after ch.52 and ch.56) |
+| Questions registered | 17 |
+| Methods (registered only) | 26 |
+| Verified (includes 8 descriptive verdicts: chs. 47(x2 counted methods)/49/53/54/55/57/58(x2)/48 — see per-chapter table) | 23 |
+| Needs review (all 3: the unsourced figure-gender classification — ch.41 M1, ch.48 M1/M2) | 3 |
+| Uncertain (method status) | 0 |
+| Not registered at all (no computable shape, or out of this stage's numbered scope) | ch.46 (1 method — talismanic ritual, diagram omitted), ch.59 (3 methods — open-ended/non-deterministic or not chart-derived), unnumbered "Consequence of Friendship" fragment (1 method — fully computable, no chapter number), unnumbered fragment's Method 3 (1 method — baby-sex-by-star-gender, same unsourced-gender gap as ch.48) |
 
 ## Implemented, by chapter
 
@@ -138,7 +227,29 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 39 | `if-your-visitor-or-the-person-that-comes` | 2 | 2 | 0 | 0 |
 | 40 | `if-spiritual-work-you-want-to-do-for` | 2 | 2 | 0 | 0 |
 | **Subtotal (20-40)** | | **37** | **31** | **1** | **5** |
-| **Grand total (1-40)** | | **85** | **66** | **3** | **16** |
+| 41 | `the-person-that-took-an-item-stole-something` | 2 | 1 | 1 | 0 |
+| 42 | `if-you-will-get-what-you-want-from` | 2 | 2 | 0 | 0 |
+| 43 | `the-real-behavior-character-or-life-of-someone` | 1 | 1 | 0 | 0 |
+| 44 | `if-a-lady-or-man-will-accept-your` | 1 | 1 | 0 | 0 |
+| 45 | `if-you-will-get-the-lost-thing-back` | 1 | 1 | 0 | 0 |
+| 46 | *(talismanic ritual — diagram omitted, not a chart-verdict method)* | — | not registered | — | — |
+| 47 | `if-a-lady-is-pregnant-or-not` (descriptive; incl. 2 methods from the unnumbered "pregnant" fragment) | 4 | 4 | 0 | 0 |
+| 48 | `if-it-s-a-male-or-female-child` (descriptive; incl. 1 method from ch.56) | 3 | 1 | 2 | 0 |
+| 49 | `if-something-is-closer-to-you-or-far` (descriptive) | 1 | 1 | 0 | 0 |
+| 50 | `if-you-will-get-gold-in-a-place` | 1 | 1 | 0 | 0 |
+| 51 | `if-things-are-going-to-be-well-this` | 1 | 1 | 0 | 0 |
+| 52 | `the-friendship-between-two-people-if-it-s` | 1 | 1 | 0 | 0 |
+| 52→ | "Consequence of Friendship" (unnumbered fragment) | — | not registered | — | — |
+| 53 | `if-a-querent-is-asking-about-someone-or` (descriptive) | 1 | 1 | 0 | 0 |
+| 54 | `where-your-success-is-or-where-you-will` (descriptive) | 1 | 1 | 0 | 0 |
+| 55 | `the-whereabouts-of-a-thief-or-robbers` (descriptive) | 1 | 1 | 0 | 0 |
+| 56 | *(own intention not registered — its 1 verified method is `child-gender-method-3`, folded into ch.48 above)* | — | see ch.48 | — | — |
+| 57 | `when-to-travel-daytime-or-night-time` (descriptive) | 1 | 1 | 0 | 0 |
+| 58 | `if-couples-have-had-sex-or-not` (descriptive) | 2 | 2 | 0 | 0 |
+| 59 | *(open-ended/non-deterministic or not chart-derived — see "Architectural gaps")* | — | not registered | — | — |
+| 60 | `if-she-he-loves-you-or-not` | 2 | 2 | 0 | 0 |
+| **Subtotal (41-60)** | | **26** | **23** | **3** | **0** |
+| **Grand total (1-60)** | | **111** | **89** | **6** | **16** |
 
 ## Architectural gaps (Stage 3)
 
@@ -231,6 +342,41 @@ extended with an optional house-subset parameter (backward compatible,
 mirrors `COUNT_ELEMENTS`'s existing shape). No other new primitives were
 required — everything else composes from what Prompts 1-2 already built.
 
+## Architectural gaps (Stage 4 — Prompt 5, chapters 41-60)
+
+Reviewed under the same A-E taxonomy as Stage 3 above. Nothing here was
+implemented, guessed, or forced into the existing model.
+
+| Chapter | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 41 Method 1, 48 Methods 1-2 | Hinges on classifying a figure directly as a "male star"/"female star" | No — `ChartModel`/`FigureQualities` carries no verified gender axis (`gender` is always `needs_review`, project-wide, since types.ts was first written — not new to this stage) | No — a new result kind doesn't create the missing classification | No — a primitive can't invent a table that doesn't exist | **Yes** — need the source (this chapter or elsewhere in the manuscript) to actually define which of the 16 figures are male vs. female | No |
+| 46 (talismanic ritual) | Not a chart-*reading* method at all — "mix h12 inside h11 on paper, fold it, put a stone on it," referencing a named talismanic diagram the transcription dropped | No — nothing here produces a verdict to compute; it's a physical-practice instruction, not a rule with branches | No — there is no answer shape to represent, descriptive or otherwise | No | **Yes** — the diagram itself is omitted (`[talismanic diagram in the original — not reproduced here]`) | **Yes** — even with the diagram, this is a "make and place a talisman" practice, not a `ChartModel` → verdict computation; it would need its own non-reading UI, not a `QuestionDefinition` |
+| 59 (secret of the querent) | Methods 1 and 3 say "use whatever star you get to talk to the person" / "add Yusuf to any star found in a house" with no defined branch structure; Method 2 has the querent freely pick a star with no chart computation at all | No — none of the three methods define a determinate verdict a rule engine can evaluate | **Partially** — even a descriptive result needs a *defined* answer shape; "whatever you get, interpret freely" isn't one | No — a primitive computes a fixed operation, not open-ended human interpretation | No — nothing is omitted; the ambiguity is in the method's own open-ended design, not a transcription gap | No — Method 1's calculation (H1+H5+H9+H13) is a normal `ChartModel` operation; it's the *verdict* step that has no fixed shape, not the input mechanism |
+| Unnumbered "Consequence of Friendship" fragment (after ch.52) | Not a blocker at all — fully computable (H1+H3, good/bad) | **Yes** | — | — | — | — |
+
+The friendship fragment is the one item in this table that is *architecturally* ready to register — it was left out only because it carries no chapter number and Prompt 5 scoped this stage to numbered chapters 41-60. It is a natural candidate for a future stage once its numbering (or lack of it) is resolved against the source.
+
+The male/female-star gender gap (chapter 41 Method 1, chapter 48 Methods
+1-2, and the pregnancy fragment's own Method 3 — predicting the baby's sex
+the same way) is the single largest recurring blocker this stage, appearing
+independently in 3 different chapters/fragments. It is not a per-chapter
+oversight: this project's `FigureQualities.gender` axis has been
+architecturally `needs_review` since Prompt 1 (see types.ts), because no
+chapter reviewed so far (1-60) ever tabulates which of the 16 figures are
+traditionally male vs. female — every occurrence where a chapter's own text
+needed "male/female" was only computable when that SAME chapter redefined
+it via an already-verified axis (chapter 31's fire/air=male, water/sand=
+female, stated explicitly in its own source text). Chapters 41/48/56's
+fragment never redefine it that way — they just say "male star"/"female
+star" as if the classification is already known. Resolving this for good
+would need either (a) a later chapter in the source that tabulates it
+directly, or (b) an explicit product decision to adopt classical geomancy's
+general male/female figure convention as a labeled, sourced-from-tradition
+axis (the same pattern this project already uses for Fortune/Direction via
+`content/classicalAttributes.ts`) — which Prompt 5 explicitly did not
+authorize ("do NOT use general geomancy knowledge to fill gaps"), so it
+was not done here.
+
 ## Needs review (calculable, rule ambiguous)
 
 - **Chapter 1, Method 3** (travel) — the deciding rule classifies the final
@@ -248,6 +394,16 @@ required — everything else composes from what Prompts 1-2 already built.
   project only has a verified opened/closed definition per individual line,
   not for a whole 4-line figure — same unresolved gap as Chapter 1, Method 3
   above.
+- **Chapter 41, Method 1** (who took the item) — classifies H1 directly as
+  a "male star" or "female star"; this specific chapter never defines which
+  figures are male/female, and this project's general figure-gender axis is
+  intentionally unsourced project-wide. See "Architectural gaps (Stage 4)"
+  above for the full reasoning shared with the next entry.
+- **Chapter 48, Methods 1-2** (male or female child) — same unsourced
+  figure-gender gap as Chapter 41, Method 1, applied to H1 alone and to
+  H10+H11 needing to match each other. The question still resolves via
+  Chapter 56's independently-computable dot-arithmetic method (see
+  `childGender.ts`).
 ## Uncertain (not computable — source passages needing manual verification)
 
 Every one of these depends on named or hand-drawn figures the PDF
@@ -308,10 +464,13 @@ section 17):
 | Ch.30 | Two named-figure branches ("profit but not stable"; "profit but very sick") omitted — not implemented, only the direction-based primary rule is |
 | Ch.33 | Uses a separate dot-line "cast out by 4s" mechanic, not the 16-house chart — architectural, needs a product decision (new input UI) rather than a source fix |
 | Ch.37, Method 2 | Needs a defined left/right spatial convention for the chart — architectural, needs a product/source decision |
+| Ch.41 Method 1, Ch.48 Methods 1-2, "pregnant" fragment Method 3 | All hinge on a "male star"/"female star" figure classification no chapter reviewed so far (1-60) actually tabulates — architectural (this project's general figure-gender axis is intentionally unsourced), needs either a later chapter that defines it or an explicit product decision to adopt a sourced classical-tradition table (see "Architectural gaps (Stage 4)") |
+| Ch.46 | Talismanic diagram omitted ("[talismanic diagram in the original — not reproduced here]"); also architectural — even with the diagram, this is a ritual-practice chapter, not a chart-verdict method |
+| Ch.58 vs. Ch.21 consistency | Ch.58 ("couples had sex") uses the new `resultKind: 'descriptive'` treatment; Ch.21's structurally identical question (wife/sister had sex) still uses the older favourable=yes/unfavourable=no treatment from before Prompt 4.5 existed — not a source issue, a product decision on whether to migrate Ch.21 for consistency in a future stage |
 
 ## Not yet implemented
 
-Chapters 41-153 (113 numbered chapters) have not been read for this
+Chapters 61-153 (93 numbered chapters) have not been read for this
 structured engine yet. `lib/raml/methodVerdicts.ts`'s general parser
 already covers some of that material with lighter-weight automatic
 verdicts (no audit trail, no cross-method consensus) — see its own file
@@ -358,3 +517,31 @@ the old `needs_review` status was itself the bug being fixed (a
 mislabeling of a real, unambiguous, verified computation as "unverified").
 No new source rule was invented anywhere in this stage, and no chapter
 outside 20-40 was touched.
+
+**Prompt 5, honestly:** `casting.ts`, `chartModel.ts`, `ruleEngine.ts`,
+`types.ts`, `reading.ts`, `interpretation.ts`, and every chapter 1-40
+question file are all completely untouched this stage — the entire
+`resultKind: 'descriptive'` machinery Prompt 4.5 built was reused exactly
+as-is, with zero changes needed to support chapters 41-60. `operations.ts`
+gained exactly two new, genuinely generic primitives: `COUNT_TOTAL_DOTS`
+(whole-chart or house-subset raw dot sum) and `CAST_OUT_BY` (reduce a
+positive count into 1..n by repeated subtraction — the manuscript's own
+named "cast out by N" technique, kept reusable rather than inlined once
+into chapter 56's file). Both are pure, deterministic, unit-tested, and
+used by exactly one question this stage (`childGender.ts`) — no other
+chapter 41-60 method needed a new primitive; everything else composed from
+`ADD_MULTIPLE_HOUSES`, `ADD_FIGURE_TO_HOUSE`, `CHECK_HOUSE`,
+`CHECK_ELEMENT`, `CHECK_DIRECTION`, `CHECK_LINE_STATE`,
+`CHECK_FIGURE_PRESENT_IN_CHART`, `COUNT_ELEMENTS`, and `MATCH_FIGURE` —
+all pre-existing. `__tests__/audit-1-40.test.ts` was renamed to
+`audit-1-60.test.ts` and its per-question structural/consensus checks now
+run against all 57 registered questions (not just 40), plus two new
+describe blocks checking descriptive/outcome result-kind integrity
+end-to-end. Every pre-existing question (chapters 1-40) produces
+byte-identical results on the same fixture chart as before this stage;
+their own test files are unchanged in their original assertions and all
+still pass. No new source rule was invented anywhere in this stage, and no
+chapter outside 41-60 was implemented (chapters 33/46/59 and the two
+unnumbered fragments were reviewed, per Prompt 5's own instruction to
+document rather than implement architectural gaps, but nothing was coded
+for them).

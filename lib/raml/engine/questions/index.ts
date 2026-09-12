@@ -61,6 +61,23 @@ import { predictGameWinnerQuestion } from './predictGameWinner';
 import { loversCompatibleQuestion } from './loversCompatible';
 import { visitorGoodOrBadQuestion } from './visitorGoodOrBad';
 import { spiritualWorkWillItWorkQuestion } from './spiritualWorkWillItWork';
+import { thePersonThatTookAnItemQuestion } from './thePersonThatTookAnItem';
+import { getWhatYouWantWhereGoingQuestion } from './getWhatYouWantWhereGoing';
+import { futureSpouseCharacterQuestion } from './futureSpouseCharacter';
+import { loveProposalAcceptedQuestion } from './loveProposalAccepted';
+import { getLostThingBackQuestion } from './getLostThingBack';
+import { ladyPregnantQuestion } from './ladyPregnant';
+import { childGenderQuestion } from './childGender';
+import { closerOrFarAwayQuestion } from './closerOrFarAway';
+import { getGoldWhereWorkingQuestion } from './getGoldWhereWorking';
+import { yearlyNewsQuestion } from './yearlyNews';
+import { friendshipGoodQuestion } from './friendshipGood';
+import { askingAboutSelfOrOtherQuestion } from './askingAboutSelfOrOther';
+import { whereSuccessIsQuestion } from './whereSuccessIs';
+import { thiefWhereaboutsQuestion } from './thiefWhereabouts';
+import { travelDaytimeOrNightQuestion } from './travelDaytimeOrNight';
+import { couplesHadSexQuestion } from './couplesHadSex';
+import { doesLoveYouQuestion } from './doesLoveYou';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -108,6 +125,32 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   loversCompatibleQuestion,
   visitorGoodOrBadQuestion,
   spiritualWorkWillItWorkQuestion,
+  // Chapters 41-60 (Prompt 5) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Not registered: chapter 46 (a talismanic/ritual
+  // practice with an omitted diagram, not a chart-verdict method), chapter
+  // 59 (every method is either open-ended/non-deterministic or not
+  // chart-derived at all), the unnumbered "Consequence of Friendship"
+  // fragment after ch.52 (fully computable but carries no chapter number,
+  // out of this stage's numbered scope), and chapter 56's own intention id
+  // (its one verified method is registered as childGender.ts's Method 3,
+  // under chapter 48's id — see that file's header for why).
+  thePersonThatTookAnItemQuestion,
+  getWhatYouWantWhereGoingQuestion,
+  futureSpouseCharacterQuestion,
+  loveProposalAcceptedQuestion,
+  getLostThingBackQuestion,
+  ladyPregnantQuestion,
+  childGenderQuestion,
+  closerOrFarAwayQuestion,
+  getGoldWhereWorkingQuestion,
+  yearlyNewsQuestion,
+  friendshipGoodQuestion,
+  askingAboutSelfOrOtherQuestion,
+  whereSuccessIsQuestion,
+  thiefWhereaboutsQuestion,
+  travelDaytimeOrNightQuestion,
+  couplesHadSexQuestion,
+  doesLoveYouQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -159,4 +202,21 @@ export {
   loversCompatibleQuestion,
   visitorGoodOrBadQuestion,
   spiritualWorkWillItWorkQuestion,
+  thePersonThatTookAnItemQuestion,
+  getWhatYouWantWhereGoingQuestion,
+  futureSpouseCharacterQuestion,
+  loveProposalAcceptedQuestion,
+  getLostThingBackQuestion,
+  ladyPregnantQuestion,
+  childGenderQuestion,
+  closerOrFarAwayQuestion,
+  getGoldWhereWorkingQuestion,
+  yearlyNewsQuestion,
+  friendshipGoodQuestion,
+  askingAboutSelfOrOtherQuestion,
+  whereSuccessIsQuestion,
+  thiefWhereaboutsQuestion,
+  travelDaytimeOrNightQuestion,
+  couplesHadSexQuestion,
+  doesLoveYouQuestion,
 };

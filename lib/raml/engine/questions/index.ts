@@ -129,6 +129,26 @@ import { conversationWillHappenQuestion } from './conversationWillHappen';
 import { getWhatSearchingForInPlaceQuestion } from './getWhatSearchingForInPlace';
 import { whatBlocksYouQuestion } from './whatBlocksYou';
 import { enemiesHowManyQuestion } from './enemiesHowMany';
+import { getKnowledgeInLifeQuestion } from './getKnowledgeInLife';
+import { getWhatYouWantVeryCloseQuestion } from './getWhatYouWantVeryClose';
+import { somethingWillBurnQuestion } from './somethingWillBurn';
+import { somethingReallyStolenQuestion } from './somethingReallyStolen';
+import { stolenThingReturnedQuestion } from './stolenThingReturned';
+import { numberOfThievesQuestion } from './numberOfThieves';
+import { thiefDescriptionQuestion } from './thiefDescription';
+import { thiefInTownOrOutQuestion } from './thiefInTownOrOut';
+import { accusedPersonGuiltyQuestion } from './accusedPersonGuilty';
+import { thiefAmongAccusedQuestion } from './thiefAmongAccused';
+import { somethingBuriedQuestion } from './somethingBuried';
+import { hiddenTreasureQuestion } from './hiddenTreasure';
+import { howDeepBuriedQuestion } from './howDeepBuried';
+import { travellerDestinationQuestion } from './travellerDestination';
+import { travellerModeQuestion } from './travellerMode';
+import { travellerReachedDestinationQuestion } from './travellerReachedDestination';
+import { truthfulOrNotQuestion } from './truthfulOrNot';
+import { prisonerComeOutQuestion } from './prisonerComeOut';
+import { prisonerRemovedPeacefullyQuestion } from './prisonerRemovedPeacefully';
+import { howLongPrisonerStayQuestion } from './howLongPrisonerStay';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -275,6 +295,34 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   getWhatSearchingForInPlaceQuestion,
   whatBlocksYouQuestion,
   enemiesHowManyQuestion,
+  // Chapters 121-140 (Prompt 11) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Chapter 127 ("The Description of the Thief") was
+  // specifically re-checked for a male/female-star definition per the
+  // Prompt 8/9 audit flag — it only USES the terminology, never defines it,
+  // so `gender_classification_unsourced` is retained and chapters 41/48/68
+  // are unchanged. Chapters 139 and 140 share one calculation (h1+h3) split
+  // by direction (upward vs. downward) into two separate questions, matching
+  // the source's own two chapter titles.
+  getKnowledgeInLifeQuestion,
+  getWhatYouWantVeryCloseQuestion,
+  somethingWillBurnQuestion,
+  somethingReallyStolenQuestion,
+  stolenThingReturnedQuestion,
+  numberOfThievesQuestion,
+  thiefDescriptionQuestion,
+  thiefInTownOrOutQuestion,
+  accusedPersonGuiltyQuestion,
+  thiefAmongAccusedQuestion,
+  somethingBuriedQuestion,
+  hiddenTreasureQuestion,
+  howDeepBuriedQuestion,
+  travellerDestinationQuestion,
+  travellerModeQuestion,
+  travellerReachedDestinationQuestion,
+  truthfulOrNotQuestion,
+  prisonerComeOutQuestion,
+  prisonerRemovedPeacefullyQuestion,
+  howLongPrisonerStayQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -394,4 +442,24 @@ export {
   getWhatSearchingForInPlaceQuestion,
   whatBlocksYouQuestion,
   enemiesHowManyQuestion,
+  getKnowledgeInLifeQuestion,
+  getWhatYouWantVeryCloseQuestion,
+  somethingWillBurnQuestion,
+  somethingReallyStolenQuestion,
+  stolenThingReturnedQuestion,
+  numberOfThievesQuestion,
+  thiefDescriptionQuestion,
+  thiefInTownOrOutQuestion,
+  accusedPersonGuiltyQuestion,
+  thiefAmongAccusedQuestion,
+  somethingBuriedQuestion,
+  hiddenTreasureQuestion,
+  howDeepBuriedQuestion,
+  travellerDestinationQuestion,
+  travellerModeQuestion,
+  travellerReachedDestinationQuestion,
+  truthfulOrNotQuestion,
+  prisonerComeOutQuestion,
+  prisonerRemovedPeacefullyQuestion,
+  howLongPrisonerStayQuestion,
 };

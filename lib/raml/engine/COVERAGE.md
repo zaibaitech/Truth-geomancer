@@ -977,20 +977,154 @@ consensus/descriptive-integrity/gender-classification checks against
 every registered question, chapters 1-120 together — still exactly 4
 confirmed gender-blocked methods) for the full regression audit.
 
-## Totals (as of this stage — Prompt 10 extraction, chapters 1-120)
+## Prompt 11 — Kanzul Mikban chapters 121-140 (Stage 8)
+
+Source-first expansion, same discipline as Prompts 4/5/7/9/10: read every
+chapter's actual text in full, preserve every method independently, never
+guess an omitted figure or invent a classification or a constant figure's
+value. 20 new questions registered — every one of chapters 121-140 has a
+computable shape (no reference tables, no ritual-only material, no
+unnumbered fragments needing consolidation this time).
+
+**Chapter 127 gender-classification investigation (instruction section
+2) — does NOT resolve the classification.** Chapter 127 ("The Description
+of the Thief") is the specific chapter the Prompt 8/9 audit flagged as a
+later occurrence of "male star"/"female star" terminology, alongside
+chapter 141 (out of this stage's own scope). Read in full, together with
+its surrounding text: the chapter states "a male star or a female star
+found [at H1] indicates a male or female thief" — using the terminology
+exactly as chapters 41/48/68 already do, but never supplying a mapping,
+table, or rule from which one could be derived. Per the critical
+distinction the instructions themselves draw ("a mere use of the terms is
+NOT a definition"), this is not a resolution. `gender_classification_unsourced`
+is retained; chapters 41, 48, and 68 were re-checked and are unchanged —
+nothing to revisit, since nothing new was found. This is the 5th and 6th
+confirmed occurrence of this gap (chapter 127 Methods 1 and 2), bringing
+the running total to 6 blocked methods across 4 chapters.
+
+**Cross-chapter dependency scan: nothing else resolved either.** Chapters
+121-140 were checked against every previously-known unresolved axis
+(male/female star, day/night, stability, present/past/future, undefined
+constant figures, missing interpretations, querent-gender) before writing
+a single method. None of day/night, present/past/future, or the four
+undefined constant figures (Nazir/Nutik/Itisal/Ifusal) appear anywhere in
+this range. **Stability**, however, recurs heavily — six separate methods
+across five chapters (122 M1/M2, 129 M1, 130 M1, 132 M3) use the familiar
+"downward or stable star" idiom, each split into a direction sub-method
+(verified) and a stability sub-method (blocked), matching the chapter
+85/86 precedent exactly. No new axis was invented to handle this — it is
+the same `stability_classification_unsourced` gap first hit at chapter 85,
+recurring at a higher rate than in any previous stage.
+
+**A genuinely useful discovery while implementing the "downward or stable
+star" idiom: it is usually fully resolvable via direction alone.** Where
+the source states BOTH branches explicitly ("downward or stable -> X; but
+upward or unstable -> Y" — chapters 129, 130 M1, 132 M3), each branch's
+own OR is independently satisfied by its direction leg alone, regardless
+of stability: a downward figure always satisfies the positive branch, and
+an upward figure always satisfies the negative branch, since "upward"
+alone already satisfies "upward OR unstable." Only a level (neither
+upward nor downward) figure genuinely needs the unsourced stability axis
+to decide. This let the direction sub-methods for these three chapters
+resolve BOTH outcomes, not just the positive trigger — confirmed against
+the chapter 86 precedent (`businessOrHandwork.ts`), which already does
+exactly this. Where the source states only ONE branch (chapter 122 M1/M2,
+"if downward or stable -> X," with no stated opposite), the direction
+sub-method stays positive-trigger-only, else uncertain — the source
+simply gives less to work with there.
+
+**A new descriptive-vs-outcome policy made explicit this stage: "confirm
+or deny a specific claimed fact" is descriptive, not outcome, even when
+the fact is bad news.** Chapters 124 (is it really stolen), 129 (is the
+accused guilty), 131 (was something buried), 132 (is there treasure), and
+137 (is this person truthful) all ask the querent to confirm or deny a
+specific external claim — the source's own language is truth-value framed
+("it is true" / "it's a lie," "it is him/her" / "not the one") rather than
+good/bad framed. These are classified `descriptive` with a `'yes'`/`'no'`-
+style `descriptiveAnswer`, distinct from chapters like 121 (getting
+knowledge), 125 (getting a stolen thing back), 138-140 (prison outcomes),
+where the source explicitly frames the two branches in terms of personal
+benefit or harm and stays `outcome`. This mirrors the established test
+("is the source neutrally describing a fact, or asking for an evaluative
+outcome") already used for chapters 98/104 (causes/sources, descriptive)
+versus chapters 103/125 (outcome) in earlier stages — made explicit here
+because this stage hit five such cases in a row.
+
+**Two calculations independently duplicated across different questions,
+kept separate.** Chapter 124 Method 2 (is something really stolen) and
+chapter 137 Method 2 (is someone truthful) both use the IDENTICAL
+calculation (H1+H5, found anywhere in the chart -> yes/no) — but answer
+genuinely distinct questions, so both are registered separately rather
+than merged, per instruction section 5 ("answers a distinct question ->
+register it separately"). Both independently compute the same result on
+the fixture chart, confirmed as a cross-check in
+`questions-stage8.test.ts`. Chapters 139 and 140 similarly share one
+calculation (H1+H3) but partition it by direction — chapter 139 covers
+only the upward branches, chapter 140 only the downward branches — kept
+as two questions since the source itself gives them two separate chapter
+titles and neither chapter's own text ever addresses the other's
+direction.
+
+**One genuinely unresolved internal ambiguity, left unresolved rather
+than arbitrarily resolved.** Chapter 136 (has the traveller reached their
+destination) states four conditions in sequence — H1 downward (reached
+home safely), H1 not downward (not reached), H1 repeating at H3/H9 (on
+the way), H1 repeating at H7 (reached town, not home) — with no stated
+priority when more than one triggers at once (a chart's direction and its
+repeat-position are logically independent, so overlap is possible).
+Rather than picking an arbitrary winner, any chart tripping more than one
+of the three specific conditions is left `uncertain`, matching the
+chapter 103 Method 2 precedent for stated-but-overlapping branches. The
+fixture chart happens to trigger none of them (a clean default-negative
+case), so this specific overlap branch isn't exercised by the hand-
+verified test either — documented here instead.
+
+**Two "figures omitted" gaps, same shape as prior stages, same
+convention.** Chapter 124 Method 1 and chapter 132 Methods 1-2 each name
+a trigger-figure list that was never transcribed — left `uncertain` with
+a plain `reviewNote`, matching the chapter 102/124(sic, this stage's own
+precedent)/132 convention already established (status `'uncertain'`, no
+`reviewReasonCode`, since that field has consistently been reserved for
+categories that recur 3+ times as their own distinct machine-readable
+tag, and "omitted figure list" already has enough distinct prior
+occurrences without needing this one tagged too).
+
+**External-assignment methods (chapter 130) computed at the chart level,
+not treated as a new contextual-input gap.** Chapter 130 ("The Thief from
+Among the Accused People") asks the querent to physically assign named
+people to a position (right/left, or East/West) before casting — the
+same shape as every other Kanzul Mikban method that asks the geomancer to
+correlate a classical answer with a real person or object placed there
+outside the casting itself. The app computes the classical side (H4's
+direction, or the Umuhat/Banat dot-count comparison) exactly as it
+already does for compass directions (chapter 134) — per instruction
+section 10 ("determine ... whether it exists elsewhere in the
+application"), this does not need a new contextual/product input, since
+the app was never going to know which specific named person the querent
+assigned to which side regardless of what fields it collected. The
+chapter 68 querent-gender boundary is unchanged.
+
+See `lib/raml/engine/__tests__/questions-stage8.test.ts` for the full
+per-method, hand-verified test coverage (including the ch.124/ch.137 and
+ch.139/ch.140 cross-consistency checks), and
+`__tests__/audit-1-140.test.ts` (renamed from `audit-1-120.test.ts`,
+generalized to chapters 1-140 together — now 6 confirmed gender-blocked
+methods) for the full regression audit.
+
+## Totals (as of this stage — Prompt 11 extraction, chapters 1-140)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
-| Numbered chapters reviewed and entered into this engine | 106 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-120 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question, see below) |
-| Numbered chapters not yet reviewed | 33 (chapters 121-153; chapters 109-117 do not exist in the source's own hand-numbering — confirmed intentional by the manuscript's own front matter) |
+| Numbered chapters reviewed and entered into this engine | 126 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-140 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question, see below) |
+| Numbered chapters not yet reviewed | 13 (chapters 141-153; chapters 109-117 do not exist in the source's own hand-numbering — confirmed intentional by the manuscript's own front matter) |
 | Unnumbered sub-chapters/continuations reviewed | 7 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — registered as its own Method 2, not separately; the "repeated again" sick-person-long-life fragment after ch.104 — not registered, confirmed a third, word-for-word duplicate of ch.96 Method 1) |
-| Questions registered in `QUESTION_REGISTRY` | **108** |
-| Total methods across all registered questions | 182 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **145** |
-| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **11** |
-| **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **26** |
-| Automated tests covering this engine | 1415 (all passing — Prompt 10 added 22 hand-verified tests, the audit suite's per-question checks now running against 108 questions instead of 98, and fixed one pre-existing, unrelated test-flakiness bug in `operations.test.ts`) |
+| Questions registered in `QUESTION_REGISTRY` | **128** |
+| Total methods across all registered questions | 217 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **170** |
+| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **18** |
+| **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **29** |
+| Automated tests covering this engine | 1645 (all passing — Prompt 11 added 50 hand-verified tests, the audit suite's per-question checks now running against 128 questions instead of 108) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -1061,6 +1195,18 @@ confirmed gender-blocked methods) for the full regression audit.
 | Needs review | 0 |
 | Uncertain (method status — 1 figures-omitted chapter (102), 4 constant-figure-undefined chapters (107/108/118/119, a brand-new gap category — Nazir/Nutik/Itisal/Ifusal)) | 5 |
 | Not registered at all (a full reference table, not a chart-verdict question; a confirmed 3rd-occurrence duplicate) | ch.106 (0 methods — embedded in bodyPartInPain.ts instead); the "repeated again" fragment after ch.104 (1 method — confirmed duplicate of ch.96 M1) |
+
+### Stage 8 (chapters 121-140) subtotal — Prompt 11
+
+| | Count |
+|---|---|
+| Numbered items reviewed | 20 (121-140 — no unnumbered fragments this stage) |
+| Questions registered | 20 |
+| Methods (registered only) | 35 |
+| Verified (16 of the 25 are descriptive-kind: chs. 124/126/128/129/130(x2)/131(x3)/132/133/134/135/136/137(x2); the other 9 are outcome-kind: chs. 121/122(x2)/123/125/138(x2)/139/140 — see per-chapter table) | 25 |
+| Needs review (5 stability-split sub-methods: chs. 122(x2)/129/130/132, plus 2 gender-blocked methods: ch.127 M1/M2) | 7 |
+| Uncertain (method status — 3 figures-omitted methods: ch.124 M1, ch.132 M1/M2) | 3 |
+| Not registered at all | none this stage |
 
 ## Implemented, by chapter
 
@@ -1196,7 +1342,29 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 119 | `if-you-won-t-get-what-you-are` (Ifusal, descriptive) | 1 | 0 | 0 | 1 |
 | 120 | `if-you-have-enemies-and-how-many` (descriptive) | 2 | 2 | 0 | 0 |
 | **Subtotal (101-120)** | | **12** | **7** | **0** | **5** |
-| **Grand total (1-120)** | | **182** | **145** | **11** | **26** |
+| **Subtotal (1-120)** | | **182** | **145** | **11** | **26** |
+| 121 | `if-you-will-get-knowledge-or-not-in` | 1 | 1 | 0 | 0 |
+| 122 | `if-you-will-get-what-you-want-or` | 4 | 2 | 2 | 0 |
+| 123 | `if-something-will-burn` | 1 | 1 | 0 | 0 |
+| 124 | `if-something-has-really-been-stolen-or-not` (descriptive) | 2 | 1 | 0 | 1 |
+| 125 | `if-they-will-return-a-stolen-thing-back` | 1 | 1 | 0 | 0 |
+| 126 | `the-number-of-thieves` (descriptive) | 1 | 1 | 0 | 0 |
+| 127 | `the-description-of-the-thief` (descriptive; gender-classification re-investigated, not resolved) | 2 | 0 | 2 | 0 |
+| 128 | `if-the-thief-or-the-stolen-thing-is` (descriptive) | 1 | 1 | 0 | 0 |
+| 129 | `if-it-is-the-accused-person-that-stole` (descriptive) | 2 | 1 | 1 | 0 |
+| 130 | `the-thief-from-among-the-accused-people` (descriptive) | 3 | 2 | 1 | 0 |
+| 131 | `if-something-was-buried-or-has-been-buried` (descriptive) | 3 | 3 | 0 | 0 |
+| 132 | `if-there-s-a-hidden-treasure-gold-money` (descriptive) | 4 | 1 | 1 | 2 |
+| 133 | `how-deep-something-is-buried` (descriptive) | 1 | 1 | 0 | 0 |
+| 134 | `where-a-traveller-has-travelled-to` (descriptive) | 1 | 1 | 0 | 0 |
+| 135 | `if-the-traveller-has-travelled-by-air-water` (descriptive) | 1 | 1 | 0 | 0 |
+| 136 | `if-the-traveller-has-reached-where-he-she` (descriptive) | 1 | 1 | 0 | 0 |
+| 137 | `if-someone-is-truthful-or-not` (descriptive) | 2 | 2 | 0 | 0 |
+| 138 | `if-a-prisoner-will-come-out-of-prison` | 2 | 2 | 0 | 0 |
+| 139 | `if-the-prisoner-will-be-removed-peacefully` | 1 | 1 | 0 | 0 |
+| 140 | `how-long-the-prisoner-will-stay-in-prison` | 1 | 1 | 0 | 0 |
+| **Subtotal (121-140)** | | **35** | **25** | **7** | **3** |
+| **Grand total (1-140)** | | **217** | **170** | **18** | **29** |
 
 ## Architectural gaps (Stage 3)
 
@@ -1385,6 +1553,22 @@ stage confirms none of the other three fares any better than Sirri
 Sa'ael's own, already-documented gap. A future stage reaching any further
 "constant figure" reference should expect the identical wall.
 
+## Architectural gaps (Stage 8 — Prompt 11, chapters 121-140)
+
+Reviewed under the same A-E taxonomy as Stages 3-7 above. No chapter this
+stage was blocked at the whole-chapter level — every gap found was scoped
+to a single method or sub-method within an otherwise-computable chapter.
+
+| Method | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 122 M1/M2 (stability), 129 M1 (stability), 130 M1 (stability), 132 M3 (stability) | Each is the stability-reading half of a "downward or stable star" idiom | No — `ChartModel` has a `stability` field, it's simply `needs_review` project-wide | No | No | No — this project has never sourced a stability table anywhere | **Yes** — same `stability_classification_unsourced` gap first hit at chapter 85, recurring here at its highest rate yet |
+| 127 M1 (H1), 127 M2 (H7) | Classifies a figure as a "male star"/"female star" without ever defining which figures are which | No | No | No | No | **Yes** — same `gender_classification_unsourced` gap as chapters 41/48/68; chapter 127 was the chapter specifically flagged for re-investigation and confirmed not to resolve it |
+| 124 M1, 132 M1/M2 | Each names a trigger-figure list never transcribed | No — the rest of each calculation computes correctly | No | No — a primitive can't invent a list that isn't in the source | **Yes** — need the original manuscript's figure list | No |
+
+No new architectural category (A-E) was needed this stage — every gap
+found fits a category this project has already named and resolved to
+"needs a source, not a product change" in a prior stage.
+
 ## Needs review (calculable, rule ambiguous)
 
 - **Chapter 1, Method 3** (travel) — the deciding rule classifies the final
@@ -1431,6 +1615,16 @@ Sa'ael's own, already-documented gap. A future stage reaching any further
   project has never even declared a `FigureQualities` field for, confirmed
   by a full re-grep to occur exactly once in either manuscript.
   `reviewReasonCode: 'temporal_classification_unsourced'`.
+- **Chapter 122, Methods 1-2 (stability sub-methods) / Chapter 129, Method 1
+  (stability) / Chapter 130, Method 1 (stability) / Chapter 132, Method 3
+  (stability)** — five more occurrences of the "downward or stable star"
+  idiom's stability leg, same `stability_classification_unsourced` gap as
+  chapters 85/86, hit at a higher rate this stage than in any previous one.
+- **Chapter 127, Methods 1-2** (description of the thief) — classifies H1
+  (or, alternately, H7) directly as a "male star" or "female star"; this is
+  the chapter the Prompt 8/9 audit specifically flagged for re-investigation,
+  and it confirms the same unsourced gap as chapters 41/48/68 — using the
+  terminology is not the same as defining it.
 
 ## Uncertain (not computable — source passages needing manual verification)
 
@@ -1492,6 +1686,12 @@ where noted:
   reference, now with its own `reviewReasonCode: 'constant_figure_
   undefined'` (a new code, first added this stage) so it's distinguishable
   from an omitted branch-trigger list.
+- Chapter 124, Method 1 (is something really stolen) — names a trigger-
+  figure list never transcribed. Method 2 (a different, independently
+  computable calculation on the same question) is verified.
+- Chapter 132, Methods 1-2 (hidden treasure) — each names a trigger-figure
+  list never transcribed; Method 2's own calculation basis is even less
+  specified than Method 1's. Method 3's direction sub-method is verified.
 
 None of these were guessed at. If the original manuscript pages ever surface
 with these figures legible, each one becomes a small, mechanical change —
@@ -1548,10 +1748,15 @@ section 17):
 | Ch.109-117 | **Confirmed non-existent (Prompt 10)** — the manuscript's own front matter states this numbering gap is intentional on the author's part, not a transcription loss. Nothing to resolve; recorded here so a future stage doesn't mistake it for an omission |
 | `RECAST_FROM_HOUSES` "is deterministic" test | **RESOLVED (Prompt 10)** — pre-existing test flakiness (comparing two calls' full chart JSON, including each call's own fresh `createdAt` wall-clock timestamp) fixed to compare `.houses` only. Not a chapter 101-120 regression; `RECAST_FROM_HOUSES`/`buildChart` themselves were not touched |
 | `bodyPartInPain.ts` (ch.105) `sourceHouses` display | **RESOLVED (Prompt 10)** — `ADD_FIGURES`'s own union-without-dedup of its inputs' `sourceHouses` produced a 4x-repeated house list when all four inputs legitimately share the same 4 houses (unlike every earlier "quartet" chapter, whose 4 inputs are always disjoint house sets). Fixed locally, inside this one file only, by overriding the result figure's `sourceHouses` to the true, deduplicated set; `ADD_FIGURES` itself is unchanged and remains correct for its other callers |
+| Ch.127, Methods 1-2 | **New this stage (Prompt 11)** — the chapter specifically flagged by the Prompt 8/9 audit for re-investigation. Confirmed: uses "male star"/"female star" terminology without ever defining a mapping — same gap as chapters 41/48/68, not resolved. Chapter 141 (the other flagged occurrence) is out of this stage's scope, for a future stage |
+| Ch.122 M1/M2, Ch.129 M1, Ch.130 M1, Ch.132 M3 (stability sub-methods) | **New this stage (Prompt 11)** — five more occurrences of the `stability_classification_unsourced` gap first hit at chapter 85, this stage's single most common blocker. Needs a source table for the `stability` axis, or an explicit product decision |
+| Ch.124 M1, Ch.132 M1/M2 | **New this stage (Prompt 11)** — three more "figures omitted" gaps, same shape as chapters 4-27/94/97/102 above; need the original manuscript's figure lists |
+| Ch.124 M2 / Ch.137 M2 shared calculation | **Confirmed independent duplication, not a gap (Prompt 11)** — the identical H1+H5 "found in chart" calculation answers two genuinely distinct questions (theft confirmation vs. truthfulness); both registered separately per instruction section 5, and both independently compute the same result on the fixture chart (cross-checked in `questions-stage8.test.ts`) |
+| Ch.136 M1 overlap case | **New this stage (Prompt 11)** — states 3 specific conditions (reached home safely / on the way / reached town not home) with no priority when more than one triggers; left `uncertain` for that combination, matching the chapter 103 M2 precedent. Needs the source's own stated priority, if one exists elsewhere in the manuscript |
 
 ## Not yet implemented
 
-Chapters 121-153 (33 numbered chapters; chapters 109-117 do not exist in
+Chapters 141-153 (13 numbered chapters; chapters 109-117 do not exist in
 the source's own hand-numbering) have not been read for this structured
 engine yet. `lib/raml/methodVerdicts.ts`'s general parser
 already covers some of that material with lighter-weight automatic
@@ -1560,7 +1765,9 @@ header for current numbers. Extending this engine further means repeating
 the same process: read the chapter's actual text, write one file in
 `lib/raml/engine/questions/`, register it in `questions/index.ts`, add
 tests, run the full suite, and update this table — the same shape as every
-chapter above, chapter by chapter, in order.
+chapter above, chapter by chapter, in order. Chapter 141 ("If the Prisoner
+Is Male or Female") in particular should expect to hit the same unsourced
+male/female-star wall chapters 41/48/68/127 already confirmed.
 
 ## Confirmation
 
@@ -1770,3 +1977,36 @@ confirmed, not assumed, to not exist in the source's own numbering. No
 chapter 121+ work was started, and no chapter 1-120 source rule, figure
 classification, constant-figure value, or user input was invented
 anywhere in this stage.
+
+**Prompt 11, honestly:** `casting.ts`, `chartModel.ts`, and `ruleEngine.ts`
+remain completely untouched. No chapter 1-120 calculation was corrected
+this stage. `types.ts` gained **zero** changes — every chapter 121-140
+gap fit an existing `ReviewReasonCode` (`stability_classification_unsourced`,
+`gender_classification_unsourced`, or plain `uncertain` with a `reviewNote`
+for the omitted-figure-list methods), so no new code was needed.
+`operations.ts` gained **zero** new primitives — every chapter 121-140
+method composed entirely from the primitives Prompts 1-9 already built,
+including `FIND_FIGURE_QUARTER` (chapter 134) and `COUNT_OPENED_LINES`
+(chapter 130 Method 2) reused exactly as-is. Chapter 127 — the chapter
+specifically named by this prompt's own instructions for the gender-
+classification investigation — was read in full, together with its
+surrounding text and the manuscript's front matter, and confirmed NOT to
+supply a male/female-star mapping; `gender_classification_unsourced` was
+retained rather than assumed resolved, and chapters 41/48/68 were checked
+and left unchanged, since nothing about them was affected. No stability
+table was invented either, despite this stage hitting that gap five
+times — the highest rate of any stage so far; each occurrence was split
+into a direction sub-method (verified, and in three cases fully
+resolvable via direction alone once the OR-logic was worked through
+literally) and a stability sub-method (left blocked). `reading.ts`,
+`interpretation.ts`, and every UI component were read but not modified —
+every result shape chapters 121-140 produced (favourable/unfavourable,
+descriptive/agree, insufficient-data-with-full-explanation) was confirmed,
+via live rendering against the fixture chart, to already be rendered
+honestly by the existing components; no UI bug was found this stage
+(unlike Prompt 10's `sourceHouses` display fix). No new source rule was
+invented anywhere: chapter 124 Method 1's and chapter 132 Methods 1-2's
+omitted trigger-figure lists, and chapter 136's three-way overlap case,
+were all left without a verdict rather than guessed one. No chapter 141+
+work was started, and no chapter 1-140 source rule, figure classification,
+constant-figure value, or user input was invented anywhere in this stage.

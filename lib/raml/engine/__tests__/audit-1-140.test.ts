@@ -1,10 +1,11 @@
 // Prompt 4, section 19 (originally chapters 1-40), extended by Prompt 5,
 // section 15 to chapters 1-60, by Prompt 7, section 11 to chapters 1-80,
-// by Prompt 9 to chapters 1-100, and by Prompt 10 to chapters 1-120: a
-// full structural audit — registry integrity, consensus/counting
-// invariants, source traceability, primary-indicator correctness, and
-// descriptive-result integrity — run against every registered question at
-// once, not just the ones added this stage.
+// by Prompt 9 to chapters 1-100, by Prompt 10 to chapters 1-120, and by
+// Prompt 11 to chapters 1-140: a full structural audit — registry
+// integrity, consensus/counting invariants, source traceability,
+// primary-indicator correctness, and descriptive-result integrity — run
+// against every registered question at once, not just the ones added this
+// stage.
 import { describe, expect, it } from 'vitest';
 import { QUESTION_REGISTRY } from '../questions';
 import { runEngine, runReading } from '../index';
@@ -45,8 +46,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 108 questions total (98 from chapters 1-100, plus 10 newly added for chapters 101-120)', () => {
-    expect(ids.length).toBe(108);
+  it('now covers 128 questions total (108 from chapters 1-120, plus 20 newly added for chapters 121-140)', () => {
+    expect(ids.length).toBe(128);
   });
 });
 
@@ -162,9 +163,16 @@ describe('Unsourced gender classification is never guessed (Prompt 6/7)', () => 
     });
   });
 
-  it('finds the 4 known gender-blocked methods (ch.41 M1, ch.48 M1/M2, ch.68 M1) — a sanity check on the audit itself', () => {
+  it('finds the 6 known gender-blocked methods (ch.41 M1, ch.48 M1/M2, ch.68 M1, ch.127 M1/M2) — a sanity check on the audit itself', () => {
     expect(genderBlocked.map((g) => g.methodId).sort()).toEqual(
-      ['child-gender-method-1', 'child-gender-method-2', 'item-taker-method-1', 'partner-cheating-method-1'].sort(),
+      [
+        'child-gender-method-1',
+        'child-gender-method-2',
+        'item-taker-method-1',
+        'partner-cheating-method-1',
+        'thief-description-method-1',
+        'thief-description-method-2',
+      ].sort(),
     );
   });
 

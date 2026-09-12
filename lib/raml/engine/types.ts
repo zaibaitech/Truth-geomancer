@@ -211,7 +211,22 @@ export type ReviewReasonCode =
   // either manuscript.
   | 'day_night_classification_unsourced'
   | 'stability_classification_unsourced'
-  | 'temporal_classification_unsourced';
+  | 'temporal_classification_unsourced'
+  // Prompt 10: the source names several recurring "constant figure"
+  // techniques (Sirri Sa'ael/Damir, Nazir, Nutik, Itisal, Ifusal — all
+  // named together in the book's own front matter, KM_EDITION_NOTE) that
+  // a method adds to a house's own figure — but never states any of
+  // their actual dot-patterns anywhere in either manuscript. Distinct
+  // from figures_omitted_by_transcription (a BRANCH's trigger list is
+  // missing from an otherwise-computable rule): here the very FIRST step
+  // of the calculation has no value to start from. Sirri Sa'ael's own
+  // occurrences (ch.2 M4, ch.26) predate this code and were left as
+  // plain `uncertain` with no code, per the project's practice of only
+  // adding a new code when a category recurs enough to be worth
+  // distinguishing precisely — first added here since it recurs 4 times
+  // in chapters 101-120 alone (Nazir ch.107, Nutik ch.108, Itisal ch.118,
+  // Ifusal ch.119).
+  | 'constant_figure_undefined';
 
 export interface MethodDefinition {
   id: string;

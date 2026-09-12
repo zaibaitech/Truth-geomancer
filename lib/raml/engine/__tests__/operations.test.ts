@@ -373,9 +373,13 @@ describe('RECAST_FROM_HOUSES (ch.34 method 1)', () => {
   });
 
   it('is deterministic: the same 4 houses, called twice, produce a structurally identical secondary chart', () => {
+    // Compared on .houses only, not the whole chart object — buildChart
+    // stamps a fresh createdAt (real wall-clock time) on every call, so two
+    // back-to-back calls can legitimately land on different milliseconds;
+    // that's not a determinism bug, it's just not "structural."
     const first = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
     const second = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
-    expect(JSON.stringify(first.chart)).toBe(JSON.stringify(second.chart));
+    expect(JSON.stringify(first.chart.houses)).toBe(JSON.stringify(second.chart.houses));
   });
 
   it('is order-SENSITIVE (unlike ADD_MULTIPLE_HOUSES): the 4 houses become Mothers 1-4 in the exact order given, so reordering them changes the resulting chart', () => {

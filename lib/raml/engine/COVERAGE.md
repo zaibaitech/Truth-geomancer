@@ -873,20 +873,124 @@ every registered question, chapters 1-100 together — still exactly 4
 confirmed gender-blocked methods, since none of this stage's 3 new
 unsourced axes use the gender code) for the full regression audit.
 
-## Totals (as of this stage — Prompt 9 extraction, chapters 1-100)
+## Prompt 10 — Kanzul Mikban chapters 101-120 (Stage 7)
+
+Source-first expansion, same discipline as Prompts 4/5/7/9: read every
+chapter's actual text plus 2 unnumbered fragments, preserve every method
+independently, never guess an omitted figure, never invent a
+classification or a constant figure's value. 10 new questions registered.
+Chapters 109-117 **do not exist** in the source's own hand-numbering — the
+manuscript's own front matter says so explicitly ("hence gaps like
+109-117... these are preserved exactly as in the source, not transcription
+errors"), so this is not a gap to fill, just a fact about the author's own
+numbering to record. Chapter 106 (a full, un-omitted body-part reference
+table) is not registered as its own question — it has no calculation of
+its own, just a house-number lookup — and is instead embedded directly in
+`bodyPartInPain.ts`, the one chapter (105) that actually cross-references
+it. The "repeated again in the notebook" fragment after chapter 104 is a
+confirmed, word-for-word THIRD occurrence of chapter 96 Method 1's own
+rule (after the "repeated" fragment already consolidated there in Prompt
+9) — its own title says so, and it is not registered separately.
+
+**Cross-chapter dependency scan, per instruction: nothing resolved.**
+Chapters 101-120 were checked against every previously-known unresolved
+axis (male/female star, day/night, stability, present/past/future,
+missing interpretations, querent-gender) before writing a single method.
+None of them appears anywhere in this range. What chapters 101-120 *do*
+introduce is a **new category of the same underlying problem**: four
+methods (chs. 107, 108, 118, 119) each open by adding a named "constant
+figure" — Nazir, Nutik, Itisal, and Ifusal respectively — to whatever
+figure is sitting in house 1, exactly the way chapter 2 Method 4 already
+adds "Sirri Sa'ael (Damir)" to a house's figure. The book's own front
+matter (`KM_EDITION_NOTE`) names all of these together as real, recurring
+techniques the book uses — but, exactly like male/female/day-night/
+stability, never once states what any of their own dot-patterns actually
+are, in either manuscript. This is the FIRST time this specific shape of
+gap (an undefined *constant*, not an undefined *classification* of an
+already-known figure) has recurred enough — 4 times in this stage alone —
+to warrant its own code: a new `ReviewReasonCode`,
+`constant_figure_undefined`, added to `types.ts`, matching the established
+one-code-per-distinct-gap precedent. Chapter 2 Method 4's own,
+already-shipped Sirri Sa'ael gap was left as-is (plain `uncertain`, no
+code) rather than retroactively edited — Prompt 10 scopes changes to
+chapters 101-120, and adding a label to a method's documentation isn't a
+calculation change, but touching a chapters-1-40 file outside this stage's
+own scope wasn't judged necessary either; the connection is recorded here
+instead.
+
+**Male/female-star search continued into 101-120, per instruction — still
+nothing found.** No occurrence of "male star"/"female star" or equivalent
+appears anywhere in chapters 101-120. The gap stands exactly as Prompt 9
+left it (4 confirmed occurrences through ch.100, plus ch.127/ch.141 beyond
+this stage's own scope).
+
+**One genuine new pattern: house-number as a raw index, not a figure
+lookup.** Chapters 101 and 105 both resolve their verdict by searching
+*which house* a computed figure matches (extending chapter 98's own
+"causes of death" house-repeat mechanic), and chapter 105 specifically
+cross-references a body-part table by house number 1-16 — including
+houses 15/16 mapping to "Manhood"/"Womanhood." This does NOT require
+knowing the querent's own gender (unlike chapter 68): it's simply one of
+16 possible, source-given answers in a lookup table, reported as-is
+regardless of who is asking, so no contextual-input gap was created here.
+
+**A genuine internal ambiguity, left unresolved rather than arbitrarily
+resolved.** Chapter 103 Method 2 states two independent conditions on the
+SAME house's two different lines ("fire closed -> not sick; but if air
+closed -> not well") without saying which wins if both lines are closed
+at once. Rather than picking one condition as a silent priority order,
+that specific combination is left `uncertain`; the fixture chart doesn't
+exercise it (only air is closed), so a hand-verified test could not
+directly exercise the ambiguous branch either — documented here instead.
+
+**One data-quality fix in a brand-new method, not a pre-existing
+regression.** Chapter 105's own calculation legitimately reads the SAME 4
+houses (h3, h7, h10, h15) four times over — once per element — before
+summing, unlike every earlier "quartet" chapter (62/67/74/91/96), which
+each reads a DIFFERENT 4-house group per element. `ADD_FIGURES`'s own
+`sourceHouses` union (a flatMap, no deduping — correct and harmless when
+the four inputs' house sets are already disjoint) therefore produced a
+16-entry list repeating the same 4 houses four times, which the Primary
+Indication card would have displayed as "H3 + H7 + H10 + H15" four times
+over. Caught during this stage's own browser verification and fixed
+locally, inside `bodyPartInPain.ts` only (overriding the result figure's
+`sourceHouses` to the true, deduplicated set) — no change to
+`ADD_FIGURES` itself, which remains correct for every existing caller.
+
+**One pre-existing, unrelated test-flakiness bug fixed.** While running
+the full suite before this stage's own changes, `operations.test.ts`'s
+RECAST_FROM_HOUSES "is deterministic" test failed — not due to any
+chapter 101-120 change, but because it compared two `RECAST_FROM_HOUSES`
+calls' entire chart objects (via `JSON.stringify`) including each chart's
+own `createdAt` wall-clock timestamp, which can legitimately differ by a
+millisecond between two back-to-back calls. Fixed to compare `.houses`
+only — what "structurally identical" actually means — leaving the
+underlying `RECAST_FROM_HOUSES`/`buildChart` behavior completely
+untouched. Confirmed this was pre-existing flakiness, not a chapter
+101-120 regression: nothing in this stage touches `casting.ts`,
+`RECAST_FROM_HOUSES`, or chart construction at all.
+
+See `lib/raml/engine/__tests__/questions-stage7.test.ts` for the full
+per-method, hand-verified test coverage, and `__tests__/audit-1-120.test.ts`
+(renamed from `audit-1-100.test.ts`, generalized to run its structural/
+consensus/descriptive-integrity/gender-classification checks against
+every registered question, chapters 1-120 together — still exactly 4
+confirmed gender-blocked methods) for the full regression audit.
+
+## Totals (as of this stage — Prompt 10 extraction, chapters 1-120)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
-| Numbered chapters reviewed and entered into this engine | 99 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-100 — chapters 33, 46, 59, 95 reviewed but out of scope/not computable, see below) |
-| Numbered chapters not yet reviewed | 53 (chapters 101-153) |
-| Unnumbered sub-chapters/continuations reviewed | 6 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — not registered separately, confirmed exact duplicate of ch.96, registered as its own Method 2) |
-| Questions registered in `QUESTION_REGISTRY` | **98** |
-| Total methods across all registered questions | 170 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **138** |
+| Numbered chapters reviewed and entered into this engine | 106 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-120 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question, see below) |
+| Numbered chapters not yet reviewed | 33 (chapters 121-153; chapters 109-117 do not exist in the source's own hand-numbering — confirmed intentional by the manuscript's own front matter) |
+| Unnumbered sub-chapters/continuations reviewed | 7 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — registered as its own Method 2, not separately; the "repeated again" sick-person-long-life fragment after ch.104 — not registered, confirmed a third, word-for-word duplicate of ch.96 Method 1) |
+| Questions registered in `QUESTION_REGISTRY` | **108** |
+| Total methods across all registered questions | 182 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **145** |
 | **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **11** |
-| **Uncertain** (not computable — omitted source figures, or a stated calculation whose verdict-mapping sentence is itself missing) | **21** |
-| Automated tests covering this engine | 1303 (all passing — Prompt 9 added 45 hand-verified tests plus the audit suite's per-question checks now running against 98 questions instead of 78) |
+| **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **26** |
+| Automated tests covering this engine | 1415 (all passing — Prompt 10 added 22 hand-verified tests, the audit suite's per-question checks now running against 108 questions instead of 98, and fixed one pre-existing, unrelated test-flakiness bug in `operations.test.ts`) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -945,6 +1049,18 @@ unsourced axes use the gender code) for the full regression audit.
 | Needs review (3 brand-new unsourced axes — day/night ch.83, stability ch.85 M2/86 M2, temporal ch.91 — plus the male/female-star search continued into 81-100 with no new occurrence found) | 4 |
 | Uncertain (method status — 2 figures-omitted chapters (94, 97), 1 interpretation_not_stated (ch.90 M1), 1 truncated mid-sentence (ch.82 M2)) | 4 |
 | Not registered at all (a reference table, entirely omitted, never phrased as a chart-verdict question) | ch.95 (0 computable methods) |
+
+### Stage 7 (chapters 101-120) subtotal — Prompt 10
+
+| | Count |
+|---|---|
+| Numbered/unnumbered items reviewed | 22 (101-108, 118-120, plus the "repeated again" fragment after ch.104 — chapters 109-117 do not exist in the source's own numbering) |
+| Questions registered | 10 |
+| Methods (registered only) | 12 |
+| Verified (includes 5 descriptive verdicts: chs. 101/103(partially — see method table)/104/105/120(x2) — see per-chapter table) | 7 |
+| Needs review | 0 |
+| Uncertain (method status — 1 figures-omitted chapter (102), 4 constant-figure-undefined chapters (107/108/118/119, a brand-new gap category — Nazir/Nutik/Itisal/Ifusal)) | 5 |
+| Not registered at all (a full reference table, not a chart-verdict question; a confirmed 3rd-occurrence duplicate) | ch.106 (0 methods — embedded in bodyPartInPain.ts instead); the "repeated again" fragment after ch.104 (1 method — confirmed duplicate of ch.96 M1) |
 
 ## Implemented, by chapter
 
@@ -1065,7 +1181,22 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 99 | `if-someone-or-something-good-will-come-to` | 1 | 1 | 0 | 0 |
 | 100 | `if-today-is-a-good-day-or-not` | 1 | 1 | 0 | 0 |
 | **Subtotal (81-100)** | | **27** | **19** | **4** | **4** |
-| **Grand total (1-100)** | | **170** | **138** | **11** | **21** |
+| **Subtotal (1-100)** | | **170** | **138** | **11** | **21** |
+| 101 | `as-a-stranger-if-the-food-you-want` (descriptive) | 1 | 1 | 0 | 0 |
+| 102 | `if-this-money-the-work-or-the-lady` (descriptive) | 1 | 0 | 0 | 1 |
+| 103 | `if-the-querent-is-sick-or-not` | 2 | 2 | 0 | 0 |
+| 104 | `if-the-sickness-is-from-human-jinn-or` (descriptive) | 1 | 1 | 0 | 0 |
+| 104→ | "repeated again" sick-person-long-life (unnumbered fragment) | — | not registered (confirmed 3rd-occurrence duplicate of ch.96 M1) | — | — |
+| 105 | `which-part-of-the-body-is-paining-the` (descriptive) | 1 | 1 | 0 | 0 |
+| 106 | *(reference table, embedded in `bodyPartInPain.ts` — not a chart-verdict question)* | — | not registered | — | — |
+| 107 | `if-you-will-see-what-you-are-searching` (Nazir, descriptive) | 1 | 0 | 0 | 1 |
+| 108 | `if-you-will-get-to-talk-to-someone` (Nutik, descriptive) | 1 | 0 | 0 | 1 |
+| 109-117 | *(do not exist in the source's own hand-numbering — confirmed intentional by the manuscript's own front matter)* | — | — | — | — |
+| 118 | `if-you-will-get-what-you-are-searching` (Itisal, descriptive) | 1 | 0 | 0 | 1 |
+| 119 | `if-you-won-t-get-what-you-are` (Ifusal, descriptive) | 1 | 0 | 0 | 1 |
+| 120 | `if-you-have-enemies-and-how-many` (descriptive) | 2 | 2 | 0 | 0 |
+| **Subtotal (101-120)** | | **12** | **7** | **0** | **5** |
+| **Grand total (1-120)** | | **182** | **145** | **11** | **26** |
 
 ## Architectural gaps (Stage 3)
 
@@ -1233,6 +1364,27 @@ each got its own `ReviewReasonCode`, matching `gender_classification_
 unsourced`'s own precedent (one code per distinct axis, reused across
 every method that axis blocks).
 
+## Architectural gaps (Stage 7 — Prompt 10, chapters 101-120)
+
+Reviewed under the same A-E taxonomy as Stages 3-6 above. Like Stage 6, no
+chapter this stage was blocked at the whole-chapter level except ch.106
+(never a computable shape at all, being a reference table) — every other
+gap found was scoped to a single method within an otherwise-computable
+chapter.
+
+| Method | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 107 Method 1 (Nazir), 108 Method 1 (Nutik), 118 Method 1 (Itisal), 119 Method 1 (Ifusal) | Each opens by adding a named "constant figure" — never itself defined — to H1's own figure | No — `ChartModel` has no notion of these constants at all, and there's no verified pattern to add | No — a new result kind doesn't create the missing value | No — a primitive can't invent a dot-pattern that isn't in the source | **Yes** — need a later chapter, or either manuscript's own appendix, to actually state each constant's pattern (same shape as chapter 2's Sirri Sa'ael gap) | No |
+| 102 Method 1 | The trigger-figure list for the recast chart's first 4 houses was never transcribed | No — the recast itself computes correctly | No | No — a primitive can't invent a list that isn't in the source | **Yes** — need the original manuscript's figure list | No |
+
+The four "constant figure" gaps are new evidence for exactly the kind of
+pattern chapter 2's Sirri Sa'ael gap already showed: the book names
+several such recurring techniques together in its own front matter
+(Sirri Sa'ael/Damir, Itisal, Ifusal, Nazir — `KM_EDITION_NOTE`), and this
+stage confirms none of the other three fares any better than Sirri
+Sa'ael's own, already-documented gap. A future stage reaching any further
+"constant figure" reference should expect the identical wall.
+
 ## Needs review (calculable, rule ambiguous)
 
 - **Chapter 1, Method 3** (travel) — the deciding rule classifies the final
@@ -1330,6 +1482,16 @@ where noted:
   full; same Group A shape as chapters 2/4/5/6/7/9/13/17/19/21/26/27.
 - Chapter 97 — identical shape to chapter 94, ~13 branches, figures
   omitted throughout.
+- Chapter 102, Method 1 — the trigger-figure list for the recast chart's
+  first 4 houses was never transcribed; the recast operation itself is
+  shown, the list is not.
+- Chapters 107 (Nazir), 108 (Nutik), 118 (Itisal), 119 (Ifusal) — each
+  opens by adding a named "constant figure" to H1's own figure, but none
+  of the four is ever defined with an actual dot-pattern anywhere in
+  either manuscript — the same shape of gap as chapter 2's Sirri Sa'ael
+  reference, now with its own `reviewReasonCode: 'constant_figure_
+  undefined'` (a new code, first added this stage) so it's distinguishable
+  from an omitted branch-trigger list.
 
 None of these were guessed at. If the original manuscript pages ever surface
 with these figures legible, each one becomes a small, mechanical change —
@@ -1380,11 +1542,18 @@ section 17):
 | Ch.90 M1 | **New this stage (Prompt 9)** — reuses `interpretation_not_stated`; calculation complete (dots of bad-fortune houses, cast out by 12s), but the source's own worked examples never state what any result means |
 | Ch.94, Ch.97 | **New this stage (Prompt 9)** — same "figures omitted, meanings survive" shape as the chapters 2-27 Group A entries above; need the original manuscript scan |
 | Ch.95 (reference table) | **New this stage (Prompt 9)** — a life-stage lookup table, entirely omitted from the transcription, and never phrased as a chart-verdict question in the first place (unlike every other gap in this queue, restoring the original text would still leave this as a `content/`-style reference table, not a `QuestionDefinition`) |
+| Ch.107 (Nazir), Ch.108 (Nutik), Ch.118 (Itisal), Ch.119 (Ifusal) | **New this stage (Prompt 10)** — each opens by adding a named "constant figure" to H1's own figure, but none of the four is ever defined with a dot-pattern anywhere in either manuscript. `reviewReasonCode: 'constant_figure_undefined'` (a new code). Needs a later chapter, or either manuscript's own appendix, to actually state each constant's pattern. Chapter 2's own Sirri Sa'ael reference is the same shape of gap, confirmed by this stage, though left unedited (out of this stage's own scope) |
+| Ch.102 M1 | **New this stage (Prompt 10)** — the recast chart's own first-4-houses trigger-figure list was never transcribed; the recast itself is shown, the list is not |
+| Ch.103 M2 | **New this stage (Prompt 10)** — states two independent line-conditions on the same house (fire closed / air closed) without saying which wins if both are true at once; left `uncertain` for that specific combination rather than picking a silent priority order |
+| Ch.109-117 | **Confirmed non-existent (Prompt 10)** — the manuscript's own front matter states this numbering gap is intentional on the author's part, not a transcription loss. Nothing to resolve; recorded here so a future stage doesn't mistake it for an omission |
+| `RECAST_FROM_HOUSES` "is deterministic" test | **RESOLVED (Prompt 10)** — pre-existing test flakiness (comparing two calls' full chart JSON, including each call's own fresh `createdAt` wall-clock timestamp) fixed to compare `.houses` only. Not a chapter 101-120 regression; `RECAST_FROM_HOUSES`/`buildChart` themselves were not touched |
+| `bodyPartInPain.ts` (ch.105) `sourceHouses` display | **RESOLVED (Prompt 10)** — `ADD_FIGURES`'s own union-without-dedup of its inputs' `sourceHouses` produced a 4x-repeated house list when all four inputs legitimately share the same 4 houses (unlike every earlier "quartet" chapter, whose 4 inputs are always disjoint house sets). Fixed locally, inside this one file only, by overriding the result figure's `sourceHouses` to the true, deduplicated set; `ADD_FIGURES` itself is unchanged and remains correct for its other callers |
 
 ## Not yet implemented
 
-Chapters 101-153 (53 numbered chapters) have not been read for this
-structured engine yet. `lib/raml/methodVerdicts.ts`'s general parser
+Chapters 121-153 (33 numbered chapters; chapters 109-117 do not exist in
+the source's own hand-numbering) have not been read for this structured
+engine yet. `lib/raml/methodVerdicts.ts`'s general parser
 already covers some of that material with lighter-weight automatic
 verdicts (no audit trail, no cross-method consensus) — see its own file
 header for current numbers. Extending this engine further means repeating
@@ -1572,3 +1741,32 @@ chapters 81-100 as instructed and found nothing new — the gap stands
 exactly as Prompt 8 left it. No chapter 101+ work was started, and no
 chapter 1-100 source rule, figure classification, or user input was
 invented anywhere in this stage.
+
+**Prompt 10, honestly:** `casting.ts` and `chartModel.ts` remain
+completely untouched. `ruleEngine.ts` was not touched either. No chapter
+1-100 calculation was corrected this stage. `types.ts` gained exactly one
+additive change: one new `ReviewReasonCode` union member
+(`constant_figure_undefined`), no existing value's meaning changed.
+`operations.ts` gained **zero** new primitives — every chapter 101-120
+method composed entirely from the 20+ primitives Prompts 1-9 already
+built. Two small, well-scoped fixes were made outside the new question
+files: a pre-existing, unrelated test-flakiness bug in
+`operations.test.ts` (comparing volatile timestamps that were never
+meant to be compared), and a `sourceHouses` display artifact confined to
+`bodyPartInPain.ts` alone (a genuinely new house-reuse pattern this
+specific chapter introduces, not a bug in the shared `ADD_FIGURES`
+primitive, which needed no change). `reading.ts`, `interpretation.ts`,
+and every UI component were read but not modified — every result shape
+chapters 101-120 produced (favourable/unfavourable/conflict/mixed,
+descriptive/agree, insufficient-data-with-full-explanation) was confirmed,
+via live rendering, to already be rendered honestly by the existing
+components. No new source rule was invented anywhere: chapter 102's
+omitted trigger list, chapters 107/108/118/119's four undefined constant
+figures, and chapter 103 Method 2's fire/air overlap were all left
+without a verdict rather than guessed one. The male/female-star search
+was continued into chapters 101-120 as instructed and found nothing new —
+the gap stands exactly as Prompt 9 left it. Chapters 109-117 were
+confirmed, not assumed, to not exist in the source's own numbering. No
+chapter 121+ work was started, and no chapter 1-120 source rule, figure
+classification, constant-figure value, or user input was invented
+anywhere in this stage.

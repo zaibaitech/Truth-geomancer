@@ -119,6 +119,16 @@ import { placeOfDeathQuestion } from './placeOfDeath';
 import { causesOfDeathQuestion } from './causesOfDeath';
 import { somethingGoodTodayQuestion } from './somethingGoodToday';
 import { todayGoodDayQuestion } from './todayGoodDay';
+import { foodMarketOrHomeQuestion } from './foodMarketOrHome';
+import { moneyWorkLadyStableQuestion } from './moneyWorkLadyStable';
+import { querentSickQuestion } from './querentSick';
+import { sicknessFromHumanJinnOrGodQuestion } from './sicknessFromHumanJinnOrGod';
+import { bodyPartInPainQuestion } from './bodyPartInPain';
+import { seeWhatSearchingForQuestion } from './seeWhatSearchingFor';
+import { conversationWillHappenQuestion } from './conversationWillHappen';
+import { getWhatSearchingForInPlaceQuestion } from './getWhatSearchingForInPlace';
+import { whatBlocksYouQuestion } from './whatBlocksYou';
+import { enemiesHowManyQuestion } from './enemiesHowMany';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -246,6 +256,25 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   causesOfDeathQuestion,
   somethingGoodTodayQuestion,
   todayGoodDayQuestion,
+  // Chapters 101-120 (Prompt 10) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Chapters 109-117 do not exist in the source's own
+  // hand-numbering (confirmed intentional by the manuscript's own front
+  // matter, not a transcription gap). Not registered: chapter 106
+  // ("Parts of the Human Body and the Stars Representing Them") — a plain
+  // reference table, not a chart-verdict question, embedded inline in
+  // bodyPartInPain.ts instead; the "repeated again" sick-person-long-life
+  // fragment after ch.104 — a confirmed word-for-word duplicate of ch.96
+  // Method 1 (its own title says so).
+  foodMarketOrHomeQuestion,
+  moneyWorkLadyStableQuestion,
+  querentSickQuestion,
+  sicknessFromHumanJinnOrGodQuestion,
+  bodyPartInPainQuestion,
+  seeWhatSearchingForQuestion,
+  conversationWillHappenQuestion,
+  getWhatSearchingForInPlaceQuestion,
+  whatBlocksYouQuestion,
+  enemiesHowManyQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -355,4 +384,14 @@ export {
   causesOfDeathQuestion,
   somethingGoodTodayQuestion,
   todayGoodDayQuestion,
+  foodMarketOrHomeQuestion,
+  moneyWorkLadyStableQuestion,
+  querentSickQuestion,
+  sicknessFromHumanJinnOrGodQuestion,
+  bodyPartInPainQuestion,
+  seeWhatSearchingForQuestion,
+  conversationWillHappenQuestion,
+  getWhatSearchingForInPlaceQuestion,
+  whatBlocksYouQuestion,
+  enemiesHowManyQuestion,
 };

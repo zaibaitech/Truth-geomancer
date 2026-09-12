@@ -116,6 +116,37 @@ figure the user's own chart put at each house the method names — leaving the g
 to the reader. Widening the parser's recognized shapes (element-isolation and whole-chart
 tallies are the next-biggest categories left) is the natural next step.
 
+## Content protection in the book reader
+
+`components/books/ContentGuard.tsx` wraps both books' reading content with copy/leak
+*deterrents* — deliberately not called "prevention," because none of this can be: no
+website can block the OS screenshot function (power+volume, or any screen-recording API),
+on any device, in any browser. Anything claiming otherwise is not being honest about how
+browsers work. What it does instead, in line with what real reading platforms in this
+position (Kindle's web reader, O'Reilly, etc.) actually do:
+
+- **Selection and clipboard friction** — `user-select: none` on the reading column, plus
+  blocked `copy`/`cut`/`contextmenu`/`dragstart` events, with a small toast explaining why
+  when someone tries. This stops casual copy-paste; it does not and cannot stop someone
+  using browser dev tools, view-source, or a camera pointed at the screen.
+- **A tiled watermark** across the entire scrollable chapter column (an inline SVG
+  background, low-opacity, `pointer-events-none`) — invisible enough not to interfere with
+  reading, present enough that a screenshot carries a visible mark back to this app rather
+  than passing as a clean, source-free copy. There's no account system yet (see
+  Persistence below), so it currently stamps the app and book name rather than a specific
+  reader's identity — the natural upgrade once accounts exist is to stamp *who* read it,
+  which is the actually-effective version of this technique.
+- **Obscure-on-background** — the moment the tab/app leaves the foreground
+  (`visibilitychange`), the reading content blurs out, so it can't show up readable in an
+  OS app-switcher/recents thumbnail. This is a real, verifiable privacy win; it's also the
+  full extent of what a website can do about screenshots — it does nothing for one taken
+  while the page is in the foreground and focused.
+
+Verified in a real mobile browser: text selection disabled, `copy`/`cut`/`contextmenu`
+events prevented, content blurs within one frame of the tab going to background and
+un-blurs on return, watermark renders across the full chapter length without introducing
+horizontal overflow or breaking chapter-anchor navigation.
+
 ## Persistence
 
 Castings are saved to the browser's `localStorage` (`lib/raml/storage.ts`) — there's no

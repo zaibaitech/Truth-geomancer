@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { ContentGuard } from '@/components/books/ContentGuard';
 import { Prose } from '@/components/books/Prose';
 import { FigureGlyph } from '@/components/raml/FigureGlyph';
 import { BOOKS, getBookById } from '@/content/books';
@@ -51,119 +52,121 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
         </Link>
       </div>
 
-      <div className="px-4 py-5">
-        {book.id === 'kanzul-mikban'
-          ? KM_CHAPTERS.map((chapter, i) => (
-              <section key={chapter.id} id={chapter.id} className="scroll-mt-16">
-                <ChapterHeading
-                  eyebrow={chapter.number !== null ? `Chapter ${chapter.number}` : 'Continued'}
-                  title={chapter.title}
-                  first={i === 0}
-                />
-                <div className="mt-4">
-                  <Prose paragraphs={chapter.paragraphs} />
-                </div>
-              </section>
-            ))
-          : CHAPTERS.map((chapter, i) => (
-              <section key={chapter.id} id={chapter.id} className="scroll-mt-16">
-                <ChapterHeading eyebrow={`Chapter ${chapter.number}`} title={chapter.title} first={i === 0} />
-                <div className="mt-4">
-                  {chapter.id === 'drawing-a-chart' ? <Prose paragraphs={INTRODUCTION} /> : null}
-                  {chapter.body ? <Prose paragraphs={chapter.body} /> : null}
+      <ContentGuard watermarkText={`TRUTH GEOMANCER · ${book.title.toUpperCase()}`}>
+        <div className="px-4 py-5">
+          {book.id === 'kanzul-mikban'
+            ? KM_CHAPTERS.map((chapter, i) => (
+                <section key={chapter.id} id={chapter.id} className="scroll-mt-16">
+                  <ChapterHeading
+                    eyebrow={chapter.number !== null ? `Chapter ${chapter.number}` : 'Continued'}
+                    title={chapter.title}
+                    first={i === 0}
+                  />
+                  <div className="mt-4">
+                    <Prose paragraphs={chapter.paragraphs} />
+                  </div>
+                </section>
+              ))
+            : CHAPTERS.map((chapter, i) => (
+                <section key={chapter.id} id={chapter.id} className="scroll-mt-16">
+                  <ChapterHeading eyebrow={`Chapter ${chapter.number}`} title={chapter.title} first={i === 0} />
+                  <div className="mt-4">
+                    {chapter.id === 'drawing-a-chart' ? <Prose paragraphs={INTRODUCTION} /> : null}
+                    {chapter.body ? <Prose paragraphs={chapter.body} /> : null}
 
-                  {chapter.id === 'stars-and-symbols' ? (
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      {STARS.map((star) => (
-                        <Card key={star.id} className="flex items-center gap-3">
-                          <FigureGlyph pattern={star.pattern} size="sm" />
-                          <div>
-                            <p className="text-sm font-medium text-sand-light">{star.name}</p>
-                            <p className="text-[11px] text-sand/45">{ELEMENT_LABEL[star.element]}</p>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {chapter.id === 'stars-in-the-chart' ? (
-                    <div className="mt-4 space-y-4">
-                      {STARS.map((star) => (
-                        <Card key={star.id} id={star.id} className="scroll-mt-16">
-                          <div className="flex items-center gap-3">
+                    {chapter.id === 'stars-and-symbols' ? (
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        {STARS.map((star) => (
+                          <Card key={star.id} className="flex items-center gap-3">
                             <FigureGlyph pattern={star.pattern} size="sm" />
-                            <h3 className="font-logo text-base text-sand-light">{star.name}</h3>
-                          </div>
-                          <div className="mt-3 space-y-2">
                             <div>
-                              <Badge tone="fire">House 6 · Illness</Badge>
-                              <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house6.meaning}</p>
+                              <p className="text-sm font-medium text-sand-light">{star.name}</p>
+                              <p className="text-[11px] text-sand/45">{ELEMENT_LABEL[star.element]}</p>
                             </div>
-                            <div>
-                              <Badge tone="sand">House 2 · Wealth</Badge>
-                              <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house2.meaning}</p>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : null}
+                          </Card>
+                        ))}
+                      </div>
+                    ) : null}
 
-                  {chapter.id === 'element-arrangement' ? (
-                    <div className="mt-4 space-y-5">
-                      {ELEMENTS.map((el) => (
-                        <div key={el}>
-                          <Badge tone={el}>{ELEMENT_LABEL[el]}</Badge>
-                          <div className="mt-2 grid grid-cols-4 gap-2">
-                            {STARS.filter((s) => s.element === el).map((s) => (
-                              <div
-                                key={s.id}
-                                className="flex flex-col items-center gap-1 rounded-xl border border-sand/10 py-3"
-                              >
-                                <FigureGlyph pattern={s.pattern} size="sm" />
-                                <span className="text-[11px] text-sand/60">{s.name}</span>
+                    {chapter.id === 'stars-in-the-chart' ? (
+                      <div className="mt-4 space-y-4">
+                        {STARS.map((star) => (
+                          <Card key={star.id} id={star.id} className="scroll-mt-16">
+                            <div className="flex items-center gap-3">
+                              <FigureGlyph pattern={star.pattern} size="sm" />
+                              <h3 className="font-logo text-base text-sand-light">{star.name}</h3>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              <div>
+                                <Badge tone="fire">House 6 · Illness</Badge>
+                                <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house6.meaning}</p>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
+                              <div>
+                                <Badge tone="sand">House 2 · Wealth</Badge>
+                                <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house2.meaning}</p>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : null}
 
-                  {chapter.id === 'elements-and-occupations' ? (
-                    <div className="mt-4 space-y-4">
-                      {ELEMENTS.map((el) => (
-                        <Card key={el}>
-                          <Badge tone={el}>{ELEMENT_LABEL[el]}</Badge>
-                          <p className="mt-2 text-sm font-medium text-sand-light">
-                            {STARS.filter((s) => s.element === el)
-                              .map((s) => s.name)
-                              .join(', ')}
-                          </p>
-                          <p className="mt-2 text-sm leading-relaxed text-sand/70">{ELEMENT_OCCUPATIONS[el]}</p>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {chapter.id === 'star-sadaqah' ? (
-                    <div className="mt-4 space-y-3">
-                      {STARS.map((star) => (
-                        <Card key={star.id} className="flex items-center gap-3">
-                          <FigureGlyph pattern={star.pattern} size="sm" />
-                          <div>
-                            <p className="text-sm font-medium text-sand-light">{star.name}</p>
-                            <p className="text-sm text-sand/70">{star.sadaqah.offering}</p>
-                            <p className="text-[11px] text-sand/45">{star.sadaqah.day}</p>
+                    {chapter.id === 'element-arrangement' ? (
+                      <div className="mt-4 space-y-5">
+                        {ELEMENTS.map((el) => (
+                          <div key={el}>
+                            <Badge tone={el}>{ELEMENT_LABEL[el]}</Badge>
+                            <div className="mt-2 grid grid-cols-4 gap-2">
+                              {STARS.filter((s) => s.element === el).map((s) => (
+                                <div
+                                  key={s.id}
+                                  className="flex flex-col items-center gap-1 rounded-xl border border-sand/10 py-3"
+                                >
+                                  <FigureGlyph pattern={s.pattern} size="sm" />
+                                  <span className="text-[11px] text-sand/60">{s.name}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </section>
-            ))}
-      </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {chapter.id === 'elements-and-occupations' ? (
+                      <div className="mt-4 space-y-4">
+                        {ELEMENTS.map((el) => (
+                          <Card key={el}>
+                            <Badge tone={el}>{ELEMENT_LABEL[el]}</Badge>
+                            <p className="mt-2 text-sm font-medium text-sand-light">
+                              {STARS.filter((s) => s.element === el)
+                                .map((s) => s.name)
+                                .join(', ')}
+                            </p>
+                            <p className="mt-2 text-sm leading-relaxed text-sand/70">{ELEMENT_OCCUPATIONS[el]}</p>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {chapter.id === 'star-sadaqah' ? (
+                      <div className="mt-4 space-y-3">
+                        {STARS.map((star) => (
+                          <Card key={star.id} className="flex items-center gap-3">
+                            <FigureGlyph pattern={star.pattern} size="sm" />
+                            <div>
+                              <p className="text-sm font-medium text-sand-light">{star.name}</p>
+                              <p className="text-sm text-sand/70">{star.sadaqah.offering}</p>
+                              <p className="text-[11px] text-sand/45">{star.sadaqah.day}</p>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+              ))}
+        </div>
+      </ContentGuard>
     </div>
   );
 }

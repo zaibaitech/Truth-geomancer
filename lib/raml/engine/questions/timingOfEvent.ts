@@ -16,6 +16,7 @@ const method1: MethodDefinition = {
   id: 'timing-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote: 'Every branch depends on named figures for H1+H6 and H4+H16 that the transcription marked "[figures omitted — symbols not preserved]".',
   source: {
     book: 'kanzul-mikban',
@@ -34,6 +35,7 @@ const method2: MethodDefinition = {
   id: 'timing-method-2',
   label: 'Method 2',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch depends on named figures the transcription marked "[figures omitted]"; a later sentence about the result being "found in the chart" refers back to that same omitted material, so it can\'t be isolated as an independent rule.',
   source: {

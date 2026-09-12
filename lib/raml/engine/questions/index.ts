@@ -159,6 +159,8 @@ import { apartmentSafeForYouQuestion } from './apartmentSafeForYou';
 import { receiveExpectedMessageQuestion } from './receiveExpectedMessage';
 import { pregnantWomanPutToBedDayQuestion } from './pregnantWomanPutToBedDay';
 import { backToWorkAfterProblemQuestion } from './backToWorkAfterProblem';
+import { stayInMarriageQuestion } from './stayInMarriage';
+import { friendshipConsequenceQuestion } from './friendshipConsequence';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -356,6 +358,15 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   receiveExpectedMessageQuestion,
   pregnantWomanPutToBedDayQuestion,
   backToWorkAfterProblemQuestion,
+  // Prompt 13 (final coverage audit) — two UNNUMBERED fragments that are
+  // fully computable and already have their own selectable entries in
+  // content/intentions.ts, but were never registered: every earlier stage
+  // scoped itself to a numbered chapter range, and these carry no chapter
+  // number, so they fell between stages rather than being excluded on their
+  // merits. No new source material; both implement their fragment's own
+  // text exactly. See COVERAGE.md's "Prompt 13" section.
+  stayInMarriageQuestion,
+  friendshipConsequenceQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -505,4 +516,6 @@ export {
   receiveExpectedMessageQuestion,
   pregnantWomanPutToBedDayQuestion,
   backToWorkAfterProblemQuestion,
+  stayInMarriageQuestion,
+  friendshipConsequenceQuestion,
 };

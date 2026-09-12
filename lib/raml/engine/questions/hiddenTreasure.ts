@@ -27,6 +27,7 @@ const method1: MethodDefinition = {
   id: 'hidden-treasure-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'The chapter names a trigger-figure list to check the H4+H6 sum against, but the list itself ("[figures omitted — symbols not preserved in this transcription]") was never transcribed.',
   source: {
@@ -46,6 +47,7 @@ const method2: MethodDefinition = {
   id: 'hidden-treasure-method-2',
   label: 'Method 2',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Names a second trigger-figure list ("[figures omitted...]") to check for anywhere "in your chart" — even the calculation\'s own basis (which houses, if any, feed it) is unclear beyond that, compounding the omission.',
   source: {

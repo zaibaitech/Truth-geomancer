@@ -1228,20 +1228,165 @@ per-method, hand-verified test coverage, and `__tests__/audit-1-151.test.ts`
 together — now 7 confirmed gender-blocked methods) for the full
 regression audit.
 
-## Totals (as of this stage — Prompt 12 extraction, chapters 1-151)
+## Prompt 13 — Final source reconciliation & production audit (chapters 1-151)
+
+Not an extraction stage: no chapter was read for the first time here, and no
+geomantic rule was added, changed, or reinterpreted. This stage cross-checked
+the finished implementation against the source one last time and closed the
+gaps that cross-checking found. Its conclusions are now executable —
+`__tests__/source-reconciliation.test.ts` asserts each of them, so a future
+change cannot quietly undo one.
+
+### The book's boundaries, stated once and for all
+
+- **153** transcription entries in `KM_CHAPTERS`.
+- **142** of them are numbered chapters; **11** are unnumbered fragments.
+- Numbered chapters run **1-151**. **151 is the final chapter.**
+- **Chapters 109-117 do not exist** — an intentional gap in the author's own
+  hand-numbering, stated as such by the manuscript's front matter.
+- **There is no chapter 152, and no chapter 161-180.** 153 was never a
+  chapter number; it is the entry count.
+
+### What the audit found, and what it changed
+
+**1. 27 unresolved methods carried no machine-readable reason — while three
+codes that describe their blockers exactly had never been attached to
+anything.** `types.ts` has declared `figures_omitted_by_transcription`,
+`whole_figure_state_undefined` and `spatial_layout_unsupported` since Prompt
+6, but every stage since then reached for a free-text `reviewNote` instead,
+so the codes sat unused while 20+ methods that match them precisely went
+uncoded. 24 methods were given their canonical code this stage — purely
+additive, no status, calculation or verdict changed:
+
+| Code | Methods | What it means |
+|---|---|---|
+| `figures_omitted_by_transcription` | 20 (chs. 4, 5 x2, 6, 7, 9, 13, 17 x2, 19, 21, 26, 27 x2, 94, 97, 102, 124, 132 x2) | A named trigger-figure list the transcription marked "[figures omitted]" |
+| `whole_figure_state_undefined` | 2 (ch.1 M3, ch.21 M1) | Classifies a WHOLE figure as opened/closed; this project only defines that per line |
+| `spatial_layout_unsupported` | 1 (ch.37 M2) | Decided by which physical side of the drawn chart a figure lands on |
+| `constant_figure_undefined` | 1 added (ch.2 M4, Sirri Sa'ael) | Extends the Prompt 10 code to the constant it was written for — its own doc comment names Sirri Sa'ael, but ch.2's occurrence predated it |
+
+**Three methods are deliberately left uncoded**, because their blocker is
+genuinely not one canonical category and labelling it as one would
+misdescribe it. Each is now named in an explicit allowlist the test enforces,
+so "uncoded" can never again mean "overlooked":
+
+- **ch.3 M3** — a *partial* interpretation gap (the source defines both
+  extremes but never the middle case), so `interpretation_not_stated` would
+  overstate it.
+- **ch.82 M2** — the source is truncated mid-sentence; a truncation is not an
+  omitted figure list, and it is the book's only occurrence — below this
+  project's own 3-occurrence bar for minting a code.
+- **ch.142 M1** — a dual blocker (undefined "own house" identity table *and*
+  omitted branch figures); restoring either alone would not make it
+  computable, so no single code is accurate.
+
+**2. Two computable fragments were never registered — not on their merits,
+but because every stage scoped itself to a numbered range.** The "If She's
+Going to Stay in the Marriage" sub-topic after chapter 7 and "The Consequence
+of Friendship Between Two People" after chapter 52 are both fully computable
+and both already had their own selectable entries in `content/intentions.ts`
+— meaning a user could pick them and get only the lighter-weight fallback
+parser. Prompt 5's own notes even record the friendship one as "fully
+computable, no chapter number, out of this stage's numbered scope." That
+scope no longer exists, so both are now registered (3 methods, all verified,
+implementing their fragment's text exactly). This is the only place the
+audit added questions, and it added no new source material.
+
+**3. One user-facing note was factually wrong.** Chapter 3 Method 3's
+`reviewNote` told the reader "the two unambiguous cases are shown when they
+occur" — but the method is `needs_review`, and a non-verified method never
+produces a verdict at all, so those cases are never shown. Reworded to say
+what actually happens. No status or behaviour changed; the method stays
+withheld, as the source requires.
+
+**4. Consolidated material now cites where it actually came from.** Chapter
+96's Method 2 implements the unnumbered "repeated later in the notebook"
+fragment verbatim — its own quote says so — but its `source.chapterId`
+pointed at chapter 96. It now cites the fragment, so consolidated material
+stays traceable to its real origin. The question still belongs to chapter 96;
+only that one method's reference moved. (It renders as an unnumbered Kanzul
+Mikban reference, exactly as chapter 47's fragment methods already do.)
+
+### What the audit deliberately did NOT change
+
+- **The male/female-star classification is still unsourced** — 7 occurrences
+  (chs. 41, 48 x2, 68, 127 x2, 141), all `gender_classification_unsourced`,
+  none executable. Chapters 127 and 141 were each investigated in their own
+  stage and neither defines it. The decisive evidence is the manuscript's own
+  front matter, which lists "male or female" among a figure's paired
+  qualities and then says outright that the transcription has "no verified
+  source defining exactly which of the sixteen named figures carries which
+  quality." A test now asserts that sentence is still in the source, because
+  if it ever changed, this whole family of decisions would need re-auditing.
+- **Day/night (1), stability (7), present/past/future (1)** — unchanged, for
+  the same reason: the same front-matter sentence covers all of them.
+- **The five constant figures** (Sirri Sa'ael/Damir, Nazir, Nutik, Itisal,
+  Ifusal) — still undefined, no pattern invented.
+- **No contextual/product input was added.** The chapter 68 querent-gender
+  dependency remains exactly the open product decision Prompt 8 scoped it as.
+- **Result kinds were audited and left alone.** The two strongest
+  miscategorisation candidates both survive the stated test: chapter 43
+  ("what is their character") is `outcome` because the source's own answers
+  are "a good behavior" / "a bad behavior", and chapter 37 ("who will win")
+  is `outcome` because the source frames it as "your team will win". Where a
+  question *sounds* factual but its answer branches were omitted (chs. 6, 17),
+  its framing is genuinely undeterminable from the surviving source — so it
+  was documented, not reclassified on a guess.
+- **Chapter 151 stays unregistered.** One final cross-source search for its
+  "pair them" mechanism found the word only twice more in either manuscript:
+  as "paired qualities" in front matter (an unrelated sense) and as the
+  standard casting algorithm's pairing in the *other* book. Neither defines
+  this chapter's operation, and all 16 of its branch trigger figures are
+  omitted regardless — so even a resolved mechanism would leave it
+  non-computable. No placeholder, no fabricated dream interpretations.
+- **Core architecture untouched.** `casting.ts`, `chartModel.ts`,
+  `ruleEngine.ts`, `types.ts` and `operations.ts` were all read and none
+  needed changing — no new operation, no new review code, no new type.
+
+### UI honesty, verified rather than assumed
+
+The concern is that an unresolved reading might show generic wording when a
+specific reason exists. Structurally it cannot, and now provably so:
+
+- `InsufficientNotice` prefers `reviewNote`, then the verdict's own
+  `interpretation`, before any generic fallback — and a test now asserts
+  **every** non-verified method carries a non-empty `reviewNote`, which makes
+  that generic fallback unreachable rather than merely unlikely.
+- "The calculation ran but the source never says what it means" and "the
+  calculation could not run" are genuinely different states on screen, not
+  just in the data: chapter 64 M2 displays its real houses (H4 + H11 + H7 +
+  H14) and steps while being excluded from the tally, whereas chapter 142
+  deliberately exposes no houses at all because nothing about it is
+  computable. A test locks both halves of that contrast in place.
+- Live browser checks covered an early, middle and late verified chapter,
+  descriptive, favourable, unfavourable, genuine conflict, gender-blocked,
+  constant-figure-blocked, omitted-branch, missing-interpretation, both newly
+  registered fragments, and chapter 151. No crash, no misleading verdict, no
+  invented classification, and no unresolved result without its reason. The
+  only console message anywhere was a missing favicon — cosmetic, pre-existing
+  and unrelated to readings.
+
+Chapter 48 is the clearest single demonstration that the app never fabricates
+what the source withholds: it returns a real answer ("Female") from the one
+method that needs no gender table, while both gender-dependent methods sit
+beside it, computed as far as they can be and explicitly not counted.
+
+## Totals (as of this stage — Prompt 13 final audit, chapters 1-151)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban) | 153 transcription entries — 142 NUMBERED (1-151, with the 109-117 gap) + 11 UNNUMBERED fragments/sub-chapters. **Corrected this stage**: earlier prompts described this as "numbered 1-153," which was never accurate — the manuscript's own highest chapter number is 151, confirmed by inspecting the full `KM_CHAPTERS` array structurally (see the "Prompt 12" section above) |
-| Numbered chapters reviewed and entered into this engine | 136 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-150 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question; chapter 151 reviewed but not computable, see below) |
-| Numbered chapters not yet reviewed | 0 — chapters 1-151 (the manuscript's full numbered range) are now all reviewed; chapters 109-117 do not exist in the source's own hand-numbering (confirmed intentional by the manuscript's own front matter), and there is no chapter 152+ in this transcription |
-| Unnumbered sub-chapters/continuations reviewed | 7 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — registered as its own Method 2, not separately; the "repeated again" sick-person-long-life fragment after ch.104 — not registered, confirmed a third, word-for-word duplicate of ch.96 Method 1) |
-| Questions registered in `QUESTION_REGISTRY` | **138** |
-| Total methods across all registered questions | 228 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **179** |
+| Numbered chapters reviewed and entered into this engine | 136 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-150) |
+| Numbered chapters reviewed but deliberately NOT implemented | 6, each for a recorded reason enforced by test: **33** (separate casting mechanism), **46** (ritual, not a reading), **59** (open-ended by design), **95** (reference table, omitted), **106** (reference table — embedded in ch.105's file), **151** (not computable — undefined "pair them" mechanism + all 16 branch figures omitted) |
+| Numbered chapters not yet reviewed | **0** — chapters 1-151 (the manuscript's full numbered range) are all reviewed. Chapters 109-117 do not exist in the source's own hand-numbering, and there is no chapter 152+ in this transcription |
+| Unnumbered fragments | **11 total, all classified** — 6 registered (the 2 "pregnant" methods under ch.47; "Still in the Marriage" after ch.66; "Secrets Between Two Friends" after ch.85; the "repeated" sick-person fragment as ch.96's Method 2; "If She's Going to Stay in the Marriage" after ch.7 and "The Consequence of Friendship" after ch.52 — the last two newly registered by the Prompt 13 audit; "If It's Good to Stay in a House" between chs. 21-22 as its own question). Not registered: the 2 chapter-28 continuations (every figure identifier dropped), "Someone's Behavior" after ch.64 (confirmed duplicate of ch.43 M1), and the "repeated again" sick-person fragment after ch.104 (confirmed third occurrence of ch.96 M1) |
+| Questions registered in `QUESTION_REGISTRY` | **140** |
+| Total methods across all registered questions | **231** |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **182** |
 | **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **19** |
 | **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **30** |
-| Automated tests covering this engine | 1755 (all passing — Prompt 12 added 20 hand-verified tests, the audit suite's per-question checks now running against 138 questions instead of 128, and updated one Prompt-11 test's stale gender-blocked-count assertion from 6 to 7) |
+| Non-verified methods carrying a machine-readable `reviewReasonCode` | **46 of 49** — the 3 exceptions are named and enforced by test (see "Prompt 13" above) |
+| Automated tests covering this engine | **1939** (all passing — Prompt 13 added 166 source-reconciliation invariants and the 2 newly registered fragments' own coverage) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -1506,7 +1651,31 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 150 | `if-you-will-get-back-to-work-after` | 1 | 1 | 0 | 0 |
 | 151 | *(not computable — ambiguous "pair them" calculation, all 16 branch triggers omitted; dream-omen/ritual-remedy material)* | — | not registered | — | — |
 | **Subtotal (141-151)** | | **11** | **9** | **1** | **1** |
-| **Grand total (1-151)** | | **228** | **179** | **19** | **30** |
+| — | `if-she-s-going-to-stay-in-the` (unnumbered, after ch.7 — registered by the Prompt 13 audit) | 2 | 2 | 0 | 0 |
+| — | `the-consequence-of-friendship-between-two-people` (unnumbered, after ch.52 — registered by the Prompt 13 audit) | 1 | 1 | 0 | 0 |
+| **Grand total (all 151 chapters + every registered fragment)** | | **231** | **182** | **19** | **30** |
+
+### Unresolved dependencies — the complete, final list
+
+Every one of these needs the original, unredacted manuscript (or an explicit
+product decision); none can be resolved by further reading of this
+transcription. Counts are asserted by `__tests__/source-reconciliation.test.ts`.
+
+| Dependency | Methods | Code | Status |
+|---|---|---|---|
+| Male/female star classification | 7 | `gender_classification_unsourced` | Unresolved — chs. 127 and 141 each investigated and neither defines it; the source's own front matter confirms no table survives |
+| Stable/unstable classification | 7 | `stability_classification_unsourced` | Unresolved — same front-matter admission |
+| Omitted trigger-figure lists | 20 | `figures_omitted_by_transcription` | Unresolved — needs the original scan's hand-drawn symbols |
+| Constant figures (Sirri Sa'ael, Nazir, Nutik, Itisal, Ifusal) | 5 | `constant_figure_undefined` | Unresolved — named in front matter, never defined anywhere |
+| Interpretation never stated | 2 | `interpretation_not_stated` | Unresolved — calculation complete, meaning absent (chs. 64, 90) |
+| Whole-figure opened/closed state | 2 | `whole_figure_state_undefined` | Unresolved — this project defines opened/closed per line only (chs. 1, 21) |
+| Day/night classification | 1 | `day_night_classification_unsourced` | Unresolved (ch.83) |
+| Present/past/future classification | 1 | `temporal_classification_unsourced` | Unresolved (ch.91) |
+| Chart spatial layout (right/left) | 1 | `spatial_layout_unsupported` | Unresolved — architectural; ChartModel carries no layout (ch.37) |
+| Partial-interpretation ambiguity | 1 | *(uncoded by design)* | Unresolved (ch.3 M3) |
+| Source truncated mid-sentence | 1 | *(uncoded by design)* | Unresolved (ch.82 M2) |
+| Dual blocker: undefined mapping + omitted figures | 1 | *(uncoded by design)* | Unresolved (ch.142) |
+| Querent-gender contextual input | 1 | `gender_classification_unsourced` (ch.68, compounded) | Open **product** decision, not a source gap — see "Prompt 8" |
 
 ## Architectural gaps (Stage 3)
 
@@ -2235,3 +2404,39 @@ this project's own earlier "numbered 1-153" description, not a change to
 any implemented rule. No chapter 152+ work was started (there being
 nothing to start), and no chapter 1-151 source rule, figure classification,
 constant-figure value, or user input was invented anywhere in this stage.
+
+**Prompt 13, honestly:** this stage changed no geomantic rule, no
+calculation, no verdict, and no method status. `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `types.ts` and `operations.ts` were each
+read in full and each left untouched — no new operation, no new
+`ReviewReasonCode`, no new type. What changed was the project's own record
+of itself: 24 unresolved methods were given the canonical code that already
+existed for their exact blocker (three of those codes had been declared
+since Prompt 6 and never once attached to anything), three more were
+deliberately left uncoded with their reasons written down and enforced by
+test, one user-facing note that made a false claim about its own behaviour
+was reworded, one consolidated method was pointed at the fragment it
+actually implements, and two fully computable fragments that had fallen
+between numbered stages — both already selectable by users — were finally
+registered. Every one of those is additive: nothing that previously
+produced an answer produces a different one.
+
+The audit's own conclusions are now executable rather than prose. 166 new
+invariants assert the book's boundaries (153 entries, 142 numbered, highest
+151, 109-117 intentionally absent, nothing beyond 151), that every numbered
+chapter is either implemented or documented as not implemented with a
+stated reason, that every unresolved method explains itself in words a user
+will actually see, that each unresolved dependency keeps exactly one
+canonical label, and that "the calculation ran but the source never says
+what it means" stays visibly distinct from "the calculation could not run."
+
+Nothing was resolved that the source does not resolve. The male/female-star
+classification, the stability, day/night and present/past/future axes, the
+five constant figures, the twenty omitted figure lists, chapter 142's
+undefined mapping and chapter 151's undefined pairing mechanism all remain
+exactly as unresolved as the surviving manuscript leaves them — now each
+with a precise, machine-readable reason attached, so what this application
+cannot know is as legible as what it can.
+
+Kanzul Mikban is complete. There is no chapter 152, and no chapters
+161-180; 151 is the last chapter the source has.

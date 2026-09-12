@@ -79,6 +79,7 @@ const method3: MethodDefinition = {
   id: 'travel-method-3',
   label: 'Method 3',
   status: 'needs_review',
+  reviewReasonCode: 'whole_figure_state_undefined',
   reviewNote:
     'The deciding rule classifies the final figure as a whole "single-dot star" or "double-dot star" — a whole-figure label with no verified definition in this project (dot state is otherwise tracked per line, not per figure). The calculation itself (four element-extractions, summed) is shown for transparency; the verdict is not.',
   source: {

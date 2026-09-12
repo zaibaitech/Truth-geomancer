@@ -16,6 +16,7 @@ const method1: MethodDefinition = {
   id: 'lifespan-when-death-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch follows "If it is, it means X" with the trigger figure itself omitted from the transcription (the meanings X survive in full, but never which named figure triggers which) — H8 is shown, but which of its ~15 branches applies cannot be determined.',
   source: {

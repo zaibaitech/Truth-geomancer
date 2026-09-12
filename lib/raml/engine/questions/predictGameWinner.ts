@@ -52,6 +52,7 @@ const method2: MethodDefinition = {
   id: 'game-winner-method-2',
   label: 'Method 2',
   status: 'uncertain',
+  reviewReasonCode: 'spatial_layout_unsupported',
   reviewNote:
     'This method decides the verdict by which physical side ("right" or "left") of the drawn chart a synthesized figure lands on. This project\'s ChartModel has no left/right spatial layout concept for its 16 houses — implementing this would mean inventing a spatial convention the codebase and source transcription do not define, rather than reading one that already exists. Not implemented rather than guessed.',
   source: {

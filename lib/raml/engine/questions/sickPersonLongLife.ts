@@ -14,6 +14,7 @@ import { ADD_FIGURES, ADD_MULTIPLE_HOUSES, CHECK_LINE_STATE, EXTRACT_ELEMENT } f
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'if-a-sick-person-has-long-life-or';
+const FRAGMENT_CHAPTER_ID = 'if-a-sick-person-has-long-life-repeated';
 
 const method1: MethodDefinition = {
   id: 'sick-person-long-life-method-1',
@@ -43,7 +44,16 @@ const method2: MethodDefinition = {
   status: 'verified',
   source: {
     book: 'kanzul-mikban',
-    chapterId: CHAPTER_ID,
+    // Prompt 13 traceability fix: this method implements the unnumbered
+    // "repeated later in the notebook" fragment verbatim, not chapter 96's
+    // own paragraph — so it now cites the fragment's own entry rather than
+    // chapter 96's, keeping consolidated material traceable to where it
+    // actually came from. The QUESTION still belongs to chapter 96; only
+    // this one method's source reference changed. (The fragment carries no
+    // chapter number of its own, so it renders as an unnumbered Kanzul
+    // Mikban reference — the same way chapter 47's own fragment methods
+    // already do.)
+    chapterId: FRAGMENT_CHAPTER_ID,
     quote:
       "Additional Method (repeated later in the notebook): Pick all of the first 4 houses' water elements, the second 4 houses' water elements, the third 4 houses' water elements, and the last 4 houses' water elements, and add them. If the water element is closed, he/she has long life, and the vice versa.",
   },

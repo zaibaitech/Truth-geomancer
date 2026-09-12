@@ -70,6 +70,7 @@ const method3: MethodDefinition = {
   id: 'children-method-3',
   label: 'Method 3',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote: 'Every branch depends on specific named figures at H5 that the transcription marked "[figures omitted — symbols not preserved]".',
   source: {
     book: 'kanzul-mikban',

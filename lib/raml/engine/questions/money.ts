@@ -83,6 +83,7 @@ const method4: MethodDefinition = {
   id: 'money-method-4',
   label: 'Method 4',
   status: 'uncertain',
+  reviewReasonCode: 'constant_figure_undefined',
   reviewNote:
     "The chapter references checking one's \"Sirri Sa'ael (Damir)\" against a list of named figures, but that figure list was transcribed as \"[figures omitted — symbols not preserved]\" — the source PDF's hand-drawn symbols could not be read. There is also no defined computation elsewhere in this project for what \"Sirri Sa'ael\" itself is derived from. Not implemented rather than guessed.",
   source: {

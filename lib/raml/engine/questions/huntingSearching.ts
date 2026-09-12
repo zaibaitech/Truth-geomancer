@@ -17,6 +17,7 @@ const method1: MethodDefinition = {
   id: 'hunting-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'This method decides the verdict by which named figures show up in H10 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
   source: {

@@ -14,6 +14,7 @@ const method1: MethodDefinition = {
   id: 'fight-argument-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch of this chapter (h1/h2, Sirri Sa\'ael, h8, h12, h9, h14) is decided by named figures the source transcription omitted or dropped entirely — including the h9 "peace" branch, whose figure token was lost along with the others. Nothing here is computable without those symbols.',
   source: {

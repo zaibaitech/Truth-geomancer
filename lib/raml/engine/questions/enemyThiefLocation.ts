@@ -12,6 +12,7 @@ const method1: MethodDefinition = {
   id: 'enemy-location-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Decides the verdict by named figures appearing in H4 or H10 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
   source: {

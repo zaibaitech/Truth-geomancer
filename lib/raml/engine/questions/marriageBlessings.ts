@@ -86,6 +86,7 @@ const method4: MethodDefinition = {
   id: 'marriage-method-4',
   label: 'Method 4',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote: 'Every branch depends on a specific named figure at H7 that the transcription never captured (repeated "If it\'s," with no figure named).',
   source: {
     book: 'kanzul-mikban',

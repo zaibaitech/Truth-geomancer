@@ -14,6 +14,7 @@ const method1: MethodDefinition = {
   id: 'place-of-death-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch follows "If it is [figure omitted], one will die in..." — the meanings (hometown/mosque, village, farm, etc.) survive in full, but the transcription never preserved which named figure(s) trigger which branch.',
   source: {

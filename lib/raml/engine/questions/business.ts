@@ -81,7 +81,7 @@ const method3: MethodDefinition = {
   label: 'Method 3',
   status: 'needs_review',
   reviewNote:
-    "The chapter only spells out the two extremes — both h2 and h6 bad, or (implicitly) both good — and never says what a mixed or middle-good pair means. Rather than invent a rule for those cases, this method is left unverified; the two unambiguous cases are shown when they occur, everything else is not.",
+    "The chapter only spells out the two extremes — both h2 and h6 bad, or (implicitly) both good — and never says what a mixed or middle-good pair means. Rather than invent a rule for those cases, the whole method is left unverified, so it never contributes a verdict: H2 and H6 are shown, but no outcome is read from them even on the two charts the source does address.",
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

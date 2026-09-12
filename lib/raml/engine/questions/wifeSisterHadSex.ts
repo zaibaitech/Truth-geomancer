@@ -28,6 +28,7 @@ const method1: MethodDefinition = {
   id: 'wife-sex-method-1',
   label: 'Method 1',
   status: 'needs_review',
+  reviewReasonCode: 'whole_figure_state_undefined',
   reviewNote:
     "The verdict hinges on classifying the WHOLE resulting figure as \"opened\" or \"closed\" — this project only has a verified opened/closed definition per individual LINE (fire/air/water/sand), not for a whole 4-line figure, same unresolved gap as chapter 1's Method 3. The houses and resulting figure are shown; the verdict is withheld rather than guessed at a whole-figure classification this codebase doesn't define.",
   source: {
@@ -74,6 +75,7 @@ const method3: MethodDefinition = {
   id: 'wife-sex-method-3',
   label: 'Method 3',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'The verdict depends on checking H7 against two lists of named figures, both transcribed as "[figures omitted — symbols not preserved]". Not implemented rather than guessed.',
   source: {

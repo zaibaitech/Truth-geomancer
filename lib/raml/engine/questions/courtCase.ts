@@ -71,6 +71,7 @@ const method3: MethodDefinition = {
   id: 'court-method-3',
   label: 'Method 3',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'This method decides the verdict by which of two named figures shows up in h4/h10 versus h5/h11 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
   source: {

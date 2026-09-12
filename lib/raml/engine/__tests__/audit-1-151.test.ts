@@ -47,8 +47,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 138 questions total (128 from chapters 1-140, plus 10 newly added for chapters 141-150)', () => {
-    expect(ids.length).toBe(138);
+  it('now covers 140 questions total (138 by chapter 151, plus the 2 computable unnumbered fragments the Prompt 13 audit found unregistered)', () => {
+    expect(ids.length).toBe(140);
   });
 });
 

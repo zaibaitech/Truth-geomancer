@@ -12,6 +12,7 @@ const method1: MethodDefinition = {
   id: 'farming-method-1',
   label: 'Method 1 (harvest by direction)',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch (stars of the East/West/North/South) depends on named figures the source transcription omitted. Nothing here is computable.',
   source: {
@@ -30,6 +31,7 @@ const method2: MethodDefinition = {
   id: 'farming-method-2',
   label: 'Method 2 (general harvest/calamity)',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Every branch (fire/air/water/sand "stars") depends on named figures the source transcription omitted. Nothing here is computable.',
   source: {

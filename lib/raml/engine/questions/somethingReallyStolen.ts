@@ -20,6 +20,7 @@ const method1: MethodDefinition = {
   id: 'something-really-stolen-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'The chapter names a trigger-figure list to check against the whole chart, but the list itself ("[figures omitted — symbols not preserved in this transcription]") was never transcribed.',
   source: {

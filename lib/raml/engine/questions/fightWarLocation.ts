@@ -16,6 +16,7 @@ const method1: MethodDefinition = {
   id: 'fight-war-location-method-1',
   label: 'Method 1',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Decides the verdict by which named figures land in H6 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
   source: {
@@ -34,6 +35,7 @@ const method2: MethodDefinition = {
   id: 'fight-war-location-method-2',
   label: 'Method 2',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote:
     'Decides the verdict by which named figures land in H1 and H8 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
   source: {

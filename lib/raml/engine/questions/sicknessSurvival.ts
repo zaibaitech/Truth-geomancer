@@ -57,6 +57,7 @@ const method3: MethodDefinition = {
   id: 'sickness-method-3',
   label: 'Method 3',
   status: 'uncertain',
+  reviewReasonCode: 'figures_omitted_by_transcription',
   reviewNote: 'Both the healing and the difficult-to-survive figure lists for H6 were transcribed as "[figures omitted — symbols not preserved]".',
   source: {
     book: 'kanzul-mikban',

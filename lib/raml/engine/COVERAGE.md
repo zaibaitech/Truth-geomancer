@@ -1111,20 +1111,137 @@ ch.139/ch.140 cross-consistency checks), and
 generalized to chapters 1-140 together — now 6 confirmed gender-blocked
 methods) for the full regression audit.
 
-## Totals (as of this stage — Prompt 11 extraction, chapters 1-140)
+## Prompt 12 — Kanzul Mikban chapters 141-151 (Stage 9)
+
+Source-first expansion, same discipline as Prompts 4/5/7/9/10/11: read
+every chapter's actual text in full, preserve every method independently,
+never guess an omitted figure or invent a classification. 10 new
+questions registered.
+
+**The manuscript ends at chapter 151 — chapters 152-160 do not exist in
+this transcription.** Before writing any method, the full `KM_CHAPTERS`
+array was inspected structurally: it contains exactly 153 entries total
+(matching `content/books.ts`'s `chapterCount: 153`), but that count is 142
+NUMBERED entries (1-151, with the already-known 109-117 gap) PLUS 11
+UNNUMBERED fragment/sub-chapter entries scattered throughout — not a
+numbering ceiling of 153. The array's own last entry is chapter 151
+("Dreams and Their Interpretations"); nothing follows it. This matches the
+file's own header comment ("a compiled notebook of ~150 question-specific
+geomantic reading methods"). This stage therefore covers chapters 141-151
+— the entire remainder of the book — rather than the full 141-160 the
+prompt's own title anticipated, and confirms (not assumes) that nothing
+is left to extract from Kanzul Mikban after this stage.
+
+**Chapter 141 gender-classification investigation (instruction section 2)
+— does NOT resolve the classification, and the source itself now
+confirms why.** Chapter 141 ("If the Prisoner Is Male or Female") is the
+specific chapter the Prompt 8 manuscript-wide audit flagged. Read in full:
+it uses "male star" exactly as chapters 41/48/68/127 already do, with no
+mapping supplied. This stage goes one step further than a re-search,
+though: the book's own front matter (`KM_EDITION_NOTE`) explicitly lists
+"male or female" among the paired qualities a figure is "described" by,
+then states outright — "this transcription has no verified source
+defining exactly which of the sixteen named figures carries which
+quality." That sentence has been part of this project's data since Prompt
+1, but this is the first stage to cite it directly as dispositive evidence
+for the gender gap specifically: the SOURCE's own editorial note admits
+the mapping never survived, independent of how many chapters use the
+term. `gender_classification_unsourced` is retained; chapters 41, 48, 68,
+and 127 were re-checked and are unchanged — nothing to revisit, since
+nothing new was found. This is the 7th confirmed occurrence.
+
+**Cross-chapter dependency scan: nothing else resolved either.** Chapters
+141-151 were checked against every previously-known unresolved axis
+(male/female star, day/night, stability, present/past/future, undefined
+constant figures, missing interpretations, querent-gender) before writing
+a single method. None of day/night, present/past/future, stability, or
+the four undefined constant figures (Nazir/Nutik/Itisal/Ifusal) appear
+anywhere in this range — this is the first stage since chapter 85 with
+zero stability occurrences.
+
+**A genuinely new omitted-branch shape: the source's own hedge about its
+own legibility.** Chapter 149 ("Which Day a Pregnant Woman Will Put to
+Bed") states a dot-count-cast-out-by-7 result maps to days of the week —
+"1 is Sunday; 2 is Monday; 3 is Tuesday; and so on through the week to
+Saturday" — but carries its own bracketed transcription note: "[The full
+day-by-day list runs off the edge of the scanned page — only the first
+three days are legible; please check the original for days 4-7.]" The
+"and so on" phrase reads as an obvious, inferable sequence (the ordinary
+calendar week), but the bracketed note is the TRANSCRIBER's own admission
+that they could not confirm the original text for results 4-7 — meaning
+"and so on" may be the transcriber's own smoothing-over of that exact
+gap, not verified source wording. Per this project's discipline (never
+infer a missing branch, not even one that looks obvious, and the
+instructions' explicit "do not infer... from traditional practice or an
+apparently similar chapter"), only results 1-3 are implemented; 4-7 are
+left `uncertain`. This is a new twist on "omitted branch" — not a missing
+figure or a cut-off sentence, but a source-flagged doubt about its OWN
+completeness — documented here rather than silently trusting the "and so
+on" gloss.
+
+**A dual-blocker chapter, not just a figures-omitted one.** Chapter 142
+("Where Kidnappers Are Keeping a Person Hostage") names a calculation —
+"check which star is found in its own house" — that presumes a
+figure-to-house "own house" identity table never given anywhere in either
+manuscript, ON TOP OF every one of its ~11 branches having an omitted
+trigger figure (the same "If it's:, ..." pattern as chapters 94/97).
+Unlike those chapters, where the calculation itself (a single house
+check) was fully clear and only the branch meanings were missing, chapter
+142's own first step has no verifiable basis — left `uncertain` with both
+reasons documented in one `reviewNote`.
+
+**One chapter judged not computable at all, not registered.** Chapter 151
+("Dreams and Their Interpretations") compounds two blockers beyond even
+chapter 142's: its own calculation — "make only the first 4 stars (Umuhat)
+and pair them" — names an operation ("pair them") with no established,
+unambiguous meaning anywhere in this project (unlike "add," which is
+crystal clear), AND every one of its 16 branches has an omitted trigger
+figure. Structurally this chapter also reads as a dream-omen/ritual-remedy
+guide (each of the 16 outcomes prescribes a specific sadaka/charitable
+offering) rather than a chart-verdict question in the usual sense — closer
+in flavor to chapter 46's talismanic material (already classified
+ritual-adjacent, not registered) than to any verified chapter. Given
+neither the calculation nor any branch meaning is recoverable, this
+chapter is NOT_IMPLEMENTED and not registered, matching the chapter
+46/95/28-fragments precedent for "no computable shape recoverable" — not
+left as a blocked `QuestionDefinition` with zero working methods, since
+there is no verifiable calculation to attach even a blocked method to.
+
+**Six ordinary sum-and-fortune methods, mostly full coverage.** Chapters
+143-148 and 150 each reduce to a straightforward multi-house sum
+(reusing `ADD_MULTIPLE_HOUSES` with 3 or 4 houses at once — see that
+operation's own doc comment on why "pick A and B, then C, then add them
+all" is the same as summing every named house together) followed by a
+good/middle-good/bad check. Five of these six state all three fortune
+branches explicitly (chapters 145-148, 150) — full coverage, no gap.
+Chapter 143 only states good/bad for both its methods, leaving
+middle-good genuinely unaddressed in each — left `uncertain` for that
+specific case rather than assumed. Chapter 144 additionally requires its
+"good" branch to ALSO repeat somewhere in the chart (an explicit AND, not
+just fortune alone) — a good-but-non-repeating result is left `uncertain`
+since the source never addresses it, while bad and middle-good resolve
+cleanly on fortune alone.
+
+See `lib/raml/engine/__tests__/questions-stage9.test.ts` for the full
+per-method, hand-verified test coverage, and `__tests__/audit-1-151.test.ts`
+(renamed from `audit-1-140.test.ts`, generalized to chapters 1-151
+together — now 7 confirmed gender-blocked methods) for the full
+regression audit.
+
+## Totals (as of this stage — Prompt 12 extraction, chapters 1-151)
 
 | | Count |
 |---|---|
-| Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
-| Numbered chapters reviewed and entered into this engine | 126 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-140 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question, see below) |
-| Numbered chapters not yet reviewed | 13 (chapters 141-153; chapters 109-117 do not exist in the source's own hand-numbering — confirmed intentional by the manuscript's own front matter) |
+| Total source chapters (Kanzul Mikban) | 153 transcription entries — 142 NUMBERED (1-151, with the 109-117 gap) + 11 UNNUMBERED fragments/sub-chapters. **Corrected this stage**: earlier prompts described this as "numbered 1-153," which was never accurate — the manuscript's own highest chapter number is 151, confirmed by inspecting the full `KM_CHAPTERS` array structurally (see the "Prompt 12" section above) |
+| Numbered chapters reviewed and entered into this engine | 136 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-105, 107-108, 118-150 — chapters 33, 46, 59, 95, 106 reviewed but out of scope/not computable or not a question; chapter 151 reviewed but not computable, see below) |
+| Numbered chapters not yet reviewed | 0 — chapters 1-151 (the manuscript's full numbered range) are now all reviewed; chapters 109-117 do not exist in the source's own hand-numbering (confirmed intentional by the manuscript's own front matter), and there is no chapter 152+ in this transcription |
 | Unnumbered sub-chapters/continuations reviewed | 7 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — registered as its own Method 2, not separately; the "repeated again" sick-person-long-life fragment after ch.104 — not registered, confirmed a third, word-for-word duplicate of ch.96 Method 1) |
-| Questions registered in `QUESTION_REGISTRY` | **128** |
-| Total methods across all registered questions | 217 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **170** |
-| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **18** |
-| **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **29** |
-| Automated tests covering this engine | 1645 (all passing — Prompt 11 added 50 hand-verified tests, the audit suite's per-question checks now running against 128 questions instead of 108) |
+| Questions registered in `QUESTION_REGISTRY` | **138** |
+| Total methods across all registered questions | 228 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **179** |
+| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **19** |
+| **Uncertain** (not computable — omitted source figures, an undefined constant figure, or a stated calculation whose verdict-mapping sentence is itself missing) | **30** |
+| Automated tests covering this engine | 1755 (all passing — Prompt 12 added 20 hand-verified tests, the audit suite's per-question checks now running against 138 questions instead of 128, and updated one Prompt-11 test's stale gender-blocked-count assertion from 6 to 7) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -1207,6 +1324,18 @@ methods) for the full regression audit.
 | Needs review (5 stability-split sub-methods: chs. 122(x2)/129/130/132, plus 2 gender-blocked methods: ch.127 M1/M2) | 7 |
 | Uncertain (method status — 3 figures-omitted methods: ch.124 M1, ch.132 M1/M2) | 3 |
 | Not registered at all | none this stage |
+
+### Stage 9 (chapters 141-151) subtotal — Prompt 12
+
+| | Count |
+|---|---|
+| Numbered items reviewed | 11 (141-151 — the manuscript's own final chapter; no unnumbered fragments this stage) |
+| Questions registered | 10 |
+| Methods (registered only) | 11 |
+| Verified (2 of the 9 are descriptive-kind: ch.149; the other 7 are outcome-kind: chs. 143(x2)/144/145/146/147/148/150 — see per-chapter table) | 9 |
+| Needs review (1 gender-blocked method: ch.141 M1) | 1 |
+| Uncertain (method status — 1 dual-blocker chapter: ch.142) | 1 |
+| Not registered at all (no verifiable calculation or branch meaning recoverable) | ch.151 (0 methods — ambiguous "pair them" calculation plus all 16 branch triggers omitted) |
 
 ## Implemented, by chapter
 
@@ -1364,7 +1493,20 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 139 | `if-the-prisoner-will-be-removed-peacefully` | 1 | 1 | 0 | 0 |
 | 140 | `how-long-the-prisoner-will-stay-in-prison` | 1 | 1 | 0 | 0 |
 | **Subtotal (121-140)** | | **35** | **25** | **7** | **3** |
-| **Grand total (1-140)** | | **217** | **170** | **18** | **29** |
+| **Subtotal (1-140)** | | **217** | **170** | **18** | **29** |
+| 141 | `if-the-prisoner-is-male-or-female` (descriptive; gender-classification re-investigated, not resolved) | 1 | 0 | 1 | 0 |
+| 142 | `where-kidnappers-are-keeping-a-person-hostage` (descriptive; dual blocker — undefined mechanism + omitted figures) | 1 | 0 | 0 | 1 |
+| 143 | `the-consequence-of-a-prisoner` | 2 | 2 | 0 | 0 |
+| 144 | `if-you-will-get-your-debts-deposit-or` | 1 | 1 | 0 | 0 |
+| 145 | `if-someone-will-get-a-particular-position-or` | 1 | 1 | 0 | 0 |
+| 146 | `if-you-will-own-a-house-in-your` | 1 | 1 | 0 | 0 |
+| 147 | `if-this-apartment-you-are-going-to-is` | 1 | 1 | 0 | 0 |
+| 148 | `if-you-will-receive-the-expected-message` | 1 | 1 | 0 | 0 |
+| 149 | `which-day-a-pregnant-woman-will-put-to` (descriptive; only days 1-3 legible) | 1 | 1 | 0 | 0 |
+| 150 | `if-you-will-get-back-to-work-after` | 1 | 1 | 0 | 0 |
+| 151 | *(not computable — ambiguous "pair them" calculation, all 16 branch triggers omitted; dream-omen/ritual-remedy material)* | — | not registered | — | — |
+| **Subtotal (141-151)** | | **11** | **9** | **1** | **1** |
+| **Grand total (1-151)** | | **228** | **179** | **19** | **30** |
 
 ## Architectural gaps (Stage 3)
 
@@ -1569,6 +1711,23 @@ No new architectural category (A-E) was needed this stage — every gap
 found fits a category this project has already named and resolved to
 "needs a source, not a product change" in a prior stage.
 
+## Architectural gaps (Stage 9 — Prompt 12, chapters 141-151)
+
+Reviewed under the same A-E taxonomy as Stages 3-8 above.
+
+| Chapter/Method | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 141 M1 | Classifies the H1+H7 sum as a "male star"/"female star" without ever defining which figures are which | No | No | No | **Yes** — same `gender_classification_unsourced` gap as chapters 41/48/68/127; the source's own front matter now cited directly as confirming evidence | No |
+| 142 | Names a calculation ("found in its own house") presuming an undefined figure-to-house identity table, AND every branch's trigger figure is omitted | No | No | No | **Yes** — needs BOTH the identity table and the branch figure list, neither of which survives | No |
+| 151 | Names an unverified operation ("pair" the 4 Mothers) with no established meaning in this project, AND every one of 16 branches has its trigger figure omitted | No | No | Possibly, once "pair them" is understood from the original manuscript (same shape as chapter 33's own unresolved mechanic) | **Yes** — needs the original manuscript's own description of "pairing" plus all 16 branch figures | No |
+
+Chapter 151's own blocker is structurally closest to chapter 33's
+"separate dot-line mechanic" gap (Prompt 4) — a named operation this
+project has never had cause to define — rather than to a simple omitted-
+figure gap; documented here rather than forcing it into either the
+"figures omitted" or "constant figure undefined" categories, neither of
+which quite fits.
+
 ## Needs review (calculable, rule ambiguous)
 
 - **Chapter 1, Method 3** (travel) — the deciding rule classifies the final
@@ -1625,6 +1784,12 @@ found fits a category this project has already named and resolved to
   the chapter the Prompt 8/9 audit specifically flagged for re-investigation,
   and it confirms the same unsourced gap as chapters 41/48/68 — using the
   terminology is not the same as defining it.
+- **Chapter 141, Method 1** (is the prisoner male or female) — classifies
+  the H1+H7 sum as a "male star" or "female star"; this is the chapter the
+  Prompt 8 audit specifically flagged for re-investigation. Confirms the
+  same unsourced gap, now further corroborated by the manuscript's own
+  front matter explicitly admitting no gender table survives anywhere in
+  the transcription.
 
 ## Uncertain (not computable — source passages needing manual verification)
 
@@ -1692,6 +1857,17 @@ where noted:
 - Chapter 132, Methods 1-2 (hidden treasure) — each names a trigger-figure
   list never transcribed; Method 2's own calculation basis is even less
   specified than Method 1's. Method 3's direction sub-method is verified.
+- Chapter 142 (kidnapper location) — a dual blocker: the calculation itself
+  ("found in its own house") presumes an undefined figure-to-house identity
+  table, and every one of its ~11 branches also has its trigger figure
+  omitted. Neither issue alone would be new; together, there is no
+  verifiable calculation to compute at all, not even a partial one.
+- Chapter 149, Method 1, results 4-7 (day of week) — the calculation itself
+  (dot count of 5 named houses, cast out by 7s) is fully verified and
+  computes results 1-7; only the day-name mapping for results 4-7 is
+  withheld, since the source's own bracketed transcription note admits
+  those specific days are not legible in the scanned original. Results 1-3
+  (Sunday/Monday/Tuesday) are implemented normally.
 
 None of these were guessed at. If the original manuscript pages ever surface
 with these figures legible, each one becomes a small, mechanical change —
@@ -1753,21 +1929,30 @@ section 17):
 | Ch.124 M1, Ch.132 M1/M2 | **New this stage (Prompt 11)** — three more "figures omitted" gaps, same shape as chapters 4-27/94/97/102 above; need the original manuscript's figure lists |
 | Ch.124 M2 / Ch.137 M2 shared calculation | **Confirmed independent duplication, not a gap (Prompt 11)** — the identical H1+H5 "found in chart" calculation answers two genuinely distinct questions (theft confirmation vs. truthfulness); both registered separately per instruction section 5, and both independently compute the same result on the fixture chart (cross-checked in `questions-stage8.test.ts`) |
 | Ch.136 M1 overlap case | **New this stage (Prompt 11)** — states 3 specific conditions (reached home safely / on the way / reached town not home) with no priority when more than one triggers; left `uncertain` for that combination, matching the chapter 103 M2 precedent. Needs the source's own stated priority, if one exists elsewhere in the manuscript |
+| Ch.141 M1 | **New this stage (Prompt 12), and the chapter specifically flagged by the Prompt 8 audit** — confirmed: uses "male star" terminology without ever defining a mapping, same gap as chapters 41/48/68/127. Further corroborated by the manuscript's own front matter (`KM_EDITION_NOTE`), which explicitly states no verified gender source exists anywhere in the transcription — the strongest evidence yet that this gap cannot be resolved from this source material at all |
+| Chapter total corrected (153 -> 142 numbered + 11 unnumbered) | **New finding this stage (Prompt 12)** — earlier prompts described the source as "numbered 1-153"; inspecting the full `KM_CHAPTERS` array structurally shows its highest chapter number is 151, and the total of 153 entries is 142 numbered + 11 unnumbered fragments, not a numbering ceiling. This transcription's own header comment ("~150 question-specific methods") corroborates 151 as the real upper bound. Nothing to resolve — a documentation correction, not a source gap |
+| Ch.142 | **New this stage (Prompt 12)** — a dual blocker: an undefined figure-to-house "own house" identity table, plus every branch's trigger figure omitted. Needs the original manuscript's own description of the identity mapping, and its branch figure list |
+| Ch.149 M1, results 4-7 | **New this stage (Prompt 12)** — the calculation (dot count of 5 houses, cast out by 7s) is fully verified; only the day-4-7 mapping is withheld, since the source's own bracketed note admits those days are illegible in the scanned original. Needs the original manuscript's next page/edge |
+| Ch.151 | **New this stage (Prompt 12)** — not registered at all: its own calculation ("pair" the 4 Mothers) has no established meaning in this project (closest precedent: chapter 33's own unresolved "cast out by 4s" mechanic), and all 16 branch trigger figures are omitted. Needs the original manuscript's own description of "pairing" plus its branch figure list |
 
 ## Not yet implemented
 
-Chapters 141-153 (13 numbered chapters; chapters 109-117 do not exist in
-the source's own hand-numbering) have not been read for this structured
-engine yet. `lib/raml/methodVerdicts.ts`'s general parser
-already covers some of that material with lighter-weight automatic
-verdicts (no audit trail, no cross-method consensus) — see its own file
-header for current numbers. Extending this engine further means repeating
-the same process: read the chapter's actual text, write one file in
-`lib/raml/engine/questions/`, register it in `questions/index.ts`, add
-tests, run the full suite, and update this table — the same shape as every
-chapter above, chapter by chapter, in order. Chapter 141 ("If the Prisoner
-Is Male or Female") in particular should expect to hit the same unsourced
-male/female-star wall chapters 41/48/68/127 already confirmed.
+Nothing remains unread. Chapters 1-151 — the manuscript's own complete
+numbered range (chapters 109-117 do not exist in the source's own
+hand-numbering, confirmed intentional by the manuscript's own front
+matter) — have now all been reviewed for this structured engine, across
+Prompts 1-12. `lib/raml/methodVerdicts.ts`'s general parser remains
+available as a lighter-weight fallback (no audit trail, no cross-method
+consensus) for any intention this engine doesn't cover — see its own file
+header for current numbers. What remains unresolved from here on is not
+unread material but the genuinely unsourced gaps documented throughout
+this file: the male/female-star classification (7 occurrences), the
+stability axis (7 occurrences across chapters 85/86/122/129/130/132), the
+day/night and present/past/future axes (1 occurrence each), the four
+undefined constant figures (Nazir/Nutik/Itisal/Ifusal), and the handful of
+omitted-figure/omitted-mechanism chapters (142, 151, and the others listed
+above) — each would need the original, unredacted manuscript pages to
+resolve, not further reading of this transcription.
 
 ## Confirmation
 
@@ -2009,4 +2194,44 @@ invented anywhere: chapter 124 Method 1's and chapter 132 Methods 1-2's
 omitted trigger-figure lists, and chapter 136's three-way overlap case,
 were all left without a verdict rather than guessed one. No chapter 141+
 work was started, and no chapter 1-140 source rule, figure classification,
+constant-figure value, or user input was invented anywhere in this stage.
+
+**Prompt 12, honestly:** `casting.ts`, `chartModel.ts`, and `ruleEngine.ts`
+remain completely untouched. No chapter 1-140 calculation was corrected
+this stage. `types.ts` gained **zero** changes — chapter 141's gap fit the
+existing `gender_classification_unsourced` code, and chapters 142/149/151's
+gaps all used plain `uncertain` status with a `reviewNote`, matching the
+established convention for omitted-figure/omitted-mechanism chapters
+throughout this project. `operations.ts` gained **zero** new primitives —
+every chapter 141-150 method composed entirely from primitives Prompts 1-9
+already built (`ADD_MULTIPLE_HOUSES`, `COUNT_TOTAL_DOTS`, `CAST_OUT_BY`,
+`CHECK_FIGURE_PRESENT_IN_CHART`). Chapter 141 — the chapter specifically
+named by this prompt's own instructions for the gender-classification
+investigation — was read in full, together with its surrounding text and
+(this time) the manuscript's own front matter cited directly, and
+confirmed NOT to supply a male/female-star mapping; `gender_classification_unsourced`
+was retained rather than assumed resolved, and chapters 41/48/68/127 were
+checked and left unchanged, since nothing about them was affected. One
+existing test (`questions-stage8.test.ts`'s gender-blocked-count sanity
+check, written in Prompt 11 when 6 was the true total) needed its
+hardcoded expectation updated to 7 once chapter 141 added a genuine new
+occurrence — a stale assertion fix, not a rule change; the method it
+was checking was not touched. `reading.ts`, `interpretation.ts`, and every
+UI component were read but not modified — every result shape chapters
+141-150 produced (favourable/unfavourable/mixed, descriptive/agree,
+insufficient-data-with-full-explanation) was confirmed, via live rendering
+against the fixture chart including chapter 141 itself, to already be
+rendered honestly by the existing components; no UI bug was found this
+stage. No new source rule was invented anywhere: chapter 142's dual
+blocker, chapter 149's day-4-7 gap, chapter 143's middle-good gap, and
+chapter 144's good-but-non-repeating gap were all left without a verdict
+rather than guessed one; chapter 151 was judged not computable at all and
+was not registered, rather than being forced into a blocked
+`QuestionDefinition` with no real calculation behind it. The manuscript's
+own chapter-count structure was inspected directly this stage rather than
+assumed — confirming chapter 151 is the highest chapter number in this
+transcription and that chapters 152+ do not exist here, a correction to
+this project's own earlier "numbered 1-153" description, not a change to
+any implemented rule. No chapter 152+ work was started (there being
+nothing to start), and no chapter 1-151 source rule, figure classification,
 constant-figure value, or user input was invented anywhere in this stage.

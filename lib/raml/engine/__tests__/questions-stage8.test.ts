@@ -128,14 +128,16 @@ describe('The description of the thief (ch.127) — gender classification invest
 
   it('Chapter 127 uses "male/female star" terminology but supplies no mapping — the classification stays unsourced', () => {
     // Sanity check on the audit itself: chapters 41/48/68 remain the only
-    // other known gender-blocked methods; chapter 127 adds two more to the
-    // same unresolved axis, not a fifth distinct one.
+    // other known gender-blocked methods as of Prompt 11; chapter 127 adds
+    // two more to the same unresolved axis, not a fifth distinct one.
+    // (Prompt 12 later adds a 7th occurrence at chapter 141 — see
+    // audit-1-151.test.ts for the up-to-date running total.)
     const audit = QUESTION_REGISTRY;
     const genderBlockedCount = Object.values(audit).reduce(
       (sum, q) => sum + q.methods.filter((m) => m.reviewReasonCode === 'gender_classification_unsourced').length,
       0,
     );
-    expect(genderBlockedCount).toBe(6); // ch.41 M1, ch.48 M1/M2, ch.68 M1, ch.127 M1/M2
+    expect(genderBlockedCount).toBe(7); // ch.41 M1, ch.48 M1/M2, ch.68 M1, ch.127 M1/M2, ch.141 M1
   });
 
   it('no method counts -> insufficient data', () => {

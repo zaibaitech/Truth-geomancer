@@ -1,7 +1,8 @@
 // Prompt 4, section 19 (originally chapters 1-40), extended by Prompt 5,
 // section 15 to chapters 1-60, by Prompt 7, section 11 to chapters 1-80,
-// by Prompt 9 to chapters 1-100, by Prompt 10 to chapters 1-120, and by
-// Prompt 11 to chapters 1-140: a full structural audit — registry
+// by Prompt 9 to chapters 1-100, by Prompt 10 to chapters 1-120, by
+// Prompt 11 to chapters 1-140, and by Prompt 12 to chapters 1-151 (the
+// manuscript's own final chapter): a full structural audit — registry
 // integrity, consensus/counting invariants, source traceability,
 // primary-indicator correctness, and descriptive-result integrity — run
 // against every registered question at once, not just the ones added this
@@ -46,8 +47,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 128 questions total (108 from chapters 1-120, plus 20 newly added for chapters 121-140)', () => {
-    expect(ids.length).toBe(128);
+  it('now covers 138 questions total (128 from chapters 1-140, plus 10 newly added for chapters 141-150)', () => {
+    expect(ids.length).toBe(138);
   });
 });
 
@@ -163,7 +164,7 @@ describe('Unsourced gender classification is never guessed (Prompt 6/7)', () => 
     });
   });
 
-  it('finds the 6 known gender-blocked methods (ch.41 M1, ch.48 M1/M2, ch.68 M1, ch.127 M1/M2) — a sanity check on the audit itself', () => {
+  it('finds the 7 known gender-blocked methods (ch.41 M1, ch.48 M1/M2, ch.68 M1, ch.127 M1/M2, ch.141 M1) — a sanity check on the audit itself', () => {
     expect(genderBlocked.map((g) => g.methodId).sort()).toEqual(
       [
         'child-gender-method-1',
@@ -172,6 +173,7 @@ describe('Unsourced gender classification is never guessed (Prompt 6/7)', () => 
         'partner-cheating-method-1',
         'thief-description-method-1',
         'thief-description-method-2',
+        'prisoner-male-or-female-method-1',
       ].sort(),
     );
   });

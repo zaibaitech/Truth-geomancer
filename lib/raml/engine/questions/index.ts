@@ -149,6 +149,16 @@ import { truthfulOrNotQuestion } from './truthfulOrNot';
 import { prisonerComeOutQuestion } from './prisonerComeOut';
 import { prisonerRemovedPeacefullyQuestion } from './prisonerRemovedPeacefully';
 import { howLongPrisonerStayQuestion } from './howLongPrisonerStay';
+import { prisonerMaleOrFemaleQuestion } from './prisonerMaleOrFemale';
+import { kidnapperLocationQuestion } from './kidnapperLocation';
+import { prisonerConsequenceQuestion } from './prisonerConsequence';
+import { debtsDepositBackQuestion } from './debtsDepositBack';
+import { getPositionOrChieftaincyQuestion } from './getPositionOrChieftaincy';
+import { ownHouseInLifeQuestion } from './ownHouseInLife';
+import { apartmentSafeForYouQuestion } from './apartmentSafeForYou';
+import { receiveExpectedMessageQuestion } from './receiveExpectedMessage';
+import { pregnantWomanPutToBedDayQuestion } from './pregnantWomanPutToBedDay';
+import { backToWorkAfterProblemQuestion } from './backToWorkAfterProblem';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -323,6 +333,29 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   prisonerComeOutQuestion,
   prisonerRemovedPeacefullyQuestion,
   howLongPrisonerStayQuestion,
+  // Chapters 141-151 (Prompt 12) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Chapter 141 was specifically re-checked for a
+  // male/female-star definition per the Prompt 8 audit flag — it uses the
+  // terminology without ever defining it (confirmed further by the
+  // manuscript's own front matter, which explicitly admits no gender table
+  // survives anywhere in the transcription), so
+  // `gender_classification_unsourced` is retained. The manuscript's own
+  // highest chapter number is 151 — chapters 152+ do not exist in this
+  // transcription (content/books.ts's chapterCount: 153 counts 142 numbered
+  // entries + 11 unnumbered fragments, not a numbering ceiling). Chapter
+  // 151 ("Dreams and Their Interpretations") is not registered: its own
+  // calculation ("pair" the 4 Mothers) is never disambiguated, and all 16
+  // of its branch trigger figures are omitted besides.
+  prisonerMaleOrFemaleQuestion,
+  kidnapperLocationQuestion,
+  prisonerConsequenceQuestion,
+  debtsDepositBackQuestion,
+  getPositionOrChieftaincyQuestion,
+  ownHouseInLifeQuestion,
+  apartmentSafeForYouQuestion,
+  receiveExpectedMessageQuestion,
+  pregnantWomanPutToBedDayQuestion,
+  backToWorkAfterProblemQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -462,4 +495,14 @@ export {
   prisonerComeOutQuestion,
   prisonerRemovedPeacefullyQuestion,
   howLongPrisonerStayQuestion,
+  prisonerMaleOrFemaleQuestion,
+  kidnapperLocationQuestion,
+  prisonerConsequenceQuestion,
+  debtsDepositBackQuestion,
+  getPositionOrChieftaincyQuestion,
+  ownHouseInLifeQuestion,
+  apartmentSafeForYouQuestion,
+  receiveExpectedMessageQuestion,
+  pregnantWomanPutToBedDayQuestion,
+  backToWorkAfterProblemQuestion,
 };

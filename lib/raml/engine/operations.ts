@@ -117,27 +117,49 @@ export function CHECK_ELEMENT(figure: ComputedFigure): { element: Element; trace
 
 const ELEMENT_INDEX: Record<Element, number> = { fire: 0, air: 1, water: 2, sand: 3 };
 
+/** Build a NEW synthetic figure by reading one named line off each of 4
+ * houses, in order, and stacking those values as a fresh 4-line pattern —
+ * the exact mechanic lib/raml/casting.ts already uses to derive Daughters
+ * from Mothers (read across a line position across several source
+ * figures), generalized to an arbitrary (house, element) pairing per line.
+ * This is the general form; EXTRACT_ELEMENT below is the common special
+ * case of reading the SAME element from every house. Kanzul Mikban ch.13
+ * Method 1 needs the general form directly: "pick h1 fire element, h5 air
+ * element, h4 water element, h10 sand element, and form a star" — a
+ * different element from each house, not one element repeated. */
+export function EXTRACT_LINES(chart: ChartModel, picks: { house: number; element: Element }[]): { figure: ComputedFigure; trace: OperationTrace } {
+  if (picks.length !== 4) {
+    throw new Error('EXTRACT_LINES needs exactly 4 (house, element) picks to form a new 4-line figure');
+  }
+  const values = picks.map(({ house, element }) => houseAt(chart, house).dotPattern[ELEMENT_INDEX[element]]);
+  const pattern = values as Pattern;
+  const houseList = picks.map(({ house }) => houseAt(chart, house));
+  const figure = describeFigure(pattern, houseList.map((h) => h.houseNumber));
+  return {
+    figure,
+    trace: {
+      operation: 'EXTRACT_LINES',
+      description: `${picks.map(({ house, element }) => `${element} of H${house}`).join(', ')} → ${figure.figureName}`,
+    },
+  };
+}
+
 /** Build a NEW synthetic figure by reading one element's line off each of N
- * houses in order and stacking those values as a fresh 4-line pattern — the
- * exact mechanic lib/raml/casting.ts already uses to derive Daughters from
- * Mothers (read across a line position across several source figures),
- * generalized to an arbitrary house list and a single chosen element. This
- * is the "pick hA, hB, hC, hD's fire elements and form one star" method
- * shape (e.g. Kanzul Mikban ch.1 Method 3). Requires exactly 4 houses, since
- * a figure always has exactly 4 lines. */
+ * houses in order and stacking those values as a fresh 4-line pattern —
+ * the common case of EXTRACT_LINES where the same element is read from
+ * every house. This is the "pick hA, hB, hC, hD's fire elements and form
+ * one star" method shape (e.g. Kanzul Mikban ch.1 Method 3). Requires
+ * exactly 4 houses, since a figure always has exactly 4 lines. */
 export function EXTRACT_ELEMENT(chart: ChartModel, houseNumbers: number[], element: Element): { figure: ComputedFigure; trace: OperationTrace } {
   if (houseNumbers.length !== 4) {
     throw new Error('EXTRACT_ELEMENT needs exactly 4 houses to form a new 4-line figure');
   }
-  const idx = ELEMENT_INDEX[element];
-  const houses = houseNumbers.map((n) => houseAt(chart, n));
-  const pattern = houses.map((h) => h.dotPattern[idx]) as Pattern;
-  const figure = describeFigure(pattern, houseNumbers);
+  const { figure } = EXTRACT_LINES(chart, houseNumbers.map((house) => ({ house, element })));
   return {
     figure,
     trace: {
       operation: 'EXTRACT_ELEMENT',
-      description: `${element} line of ${houses.map((h) => `H${h.houseNumber}`).join(', ')} → ${figure.figureName}`,
+      description: `${element} line of ${houseNumbers.map((n) => `H${n}`).join(', ')} → ${figure.figureName}`,
     },
   };
 }

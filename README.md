@@ -119,11 +119,12 @@ tallies are the next-biggest categories left) is the natural next step.
 ## The automatic interpretation engine
 
 `lib/raml/engine/` is a second, more structured automation layer sitting alongside the
-general parser above — built for five hand-verified pilot questions rather than parsed in
-bulk from raw text, so each one can carry a full audit trail and multi-method comparison
+general parser above — built question by question from the manuscript text directly rather
+than parsed in bulk, so each one can carry a full audit trail and multi-method comparison
 without waiting on a fully general rule language. It never touches chart generation
 (`lib/raml/casting.ts`) or the figure data (`content/stars.ts`,
-`content/classicalAttributes.ts`) — it only reads them.
+`content/classicalAttributes.ts`) — it only reads them. See `lib/raml/engine/COVERAGE.md`
+for the full per-chapter table; the summary:
 
 - **Chart model** (`engine/chartModel.ts`) adapts the existing `Chart` into a richer
   `ChartModel` where every house carries its full traditional quality set — fortune,
@@ -134,23 +135,28 @@ without waiting on a fully general rule language. It never touches chart generat
   which, so the engine represents the *slot* for that data without inventing what goes in
   it.
 - **Operations** (`engine/operations.ts`) are the reusable primitives every method is built
-  from — add houses, check a single house, check whether a figure recurs elsewhere in the
-  chart, extract one element's line across four houses into a new synthetic figure (the
-  same mechanic the casting algorithm already uses to derive Daughters from Mothers,
+  from — add houses, check a single house, check whether a figure recurs (or how many times
+  it recurs) elsewhere in the chart, extract lines into a new synthetic figure (either one
+  element across several houses, or a different named line from each house — the same
+  mechanic the casting algorithm already uses to derive Daughters from Mothers,
   generalized), compare several methods' verdicts into one consensus. Methods never call
   `addPatterns` or `getStarByPattern` directly — only through these, so there's exactly one
   place the actual geomantic math lives.
-- **Question registry** (`engine/questions/`) has five pilot questions transcribed from
-  Kanzul Mikban and cross-checked against the manuscript text directly, not paraphrased:
-  money today (ch. 2), business profit and loss (ch. 3), court case/fight/war (ch. 19),
-  stolen/lost things (ch. 18), and safe return from travel (ch. 1). Of their 17 combined
-  methods, 12 are `verified` and computed automatically; 5 are marked `needs_review` or
-  `uncertain` and excluded from the result — mostly because the deciding figures were
-  transcribed as "[figures omitted]" in the source PDFs, or because a method's own wording
-  never says what happens for a result it didn't anticipate (e.g. a 3-way good/bad/
-  middle-good method that only ever spells out the two extremes). A method marked
-  `needs_review` whose facts ARE still computable (e.g. "check H2 and H6") shows those facts
-  in the audit trail regardless — only the verdict is withheld, never the calculation.
+- **Question registry** (`engine/questions/`) currently covers Kanzul Mikban chapters 1-19
+  in full, each transcribed and cross-checked against the manuscript text directly, not
+  paraphrased — travel, money, business, hunting/searching, fight-war-court (two separate
+  chapters), enemy/thief location, marriage, staying in a place, sickness survival, two
+  distinct lost/stolen-item questions, home-vs-travel success, wealth, having children,
+  pregnancy stability, life improving, overcoming an enemy, and timing. Of their 48 combined
+  methods, 35 are `verified` and computed automatically; 2 are `needs_review` (the
+  calculation is computable but the rule itself is ambiguous — e.g. a "single-dot star"
+  label the source never defines at the whole-figure level); 11 are `uncertain`, almost all
+  because their deciding figures were transcribed as "[figures omitted]" in the source
+  PDFs. A `needs_review`/`uncertain` method whose facts ARE still computable (e.g. "check H2
+  and H6") shows those facts in the audit trail regardless — only the verdict is withheld,
+  never the calculation. A question with zero verified methods still gets a registry entry
+  rather than silently falling back, so picking it produces an honest
+  "not enough to go on" reading with the source quotes, not no acknowledgment at all.
 - **Rule engine** (`engine/ruleEngine.ts`) runs every method for a question automatically —
   no house is ever asked of the user — and computes a consensus across whichever methods
   came back verified: `agree`, `mostly_agree`, `mixed`, `conflict`, or `insufficient_data`
@@ -163,17 +169,19 @@ without waiting on a fully general rule language. It never touches chart generat
 method's figure, every house touched, method consistency, and two expandable sections ("Read
 full interpretation" / "How was this calculated?", the latter showing every method's exact
 source quote, calculation steps, and verdict, `needs_review`/`uncertain` ones included).
-`ResultTabs.tsx` uses it automatically whenever the cast chart's question is one of the five
-pilot questions; every other question still falls back to the general-parser flow above,
+`ResultTabs.tsx` uses it automatically whenever the cast chart's question is one of these 19;
+every other question (chapters 20-153) still falls back to the general-parser flow above,
 unaffected.
 
-Covered by an automated test suite (`npm test`, Vitest) — 66 tests as of this writing,
+Covered by an automated test suite (`npm test`, Vitest) — 103 tests as of this writing,
 against a hand-verified fixture chart whose every house was checked by hand against the
 addition rule before being relied on in an assertion: correct house selection, figure
 addition (including that it's order/grouping-independent, since the addition rule is
-associative and commutative), element extraction, quality identification, multi-method
-consensus in all five levels (including two questions that genuinely conflict on this
-fixture chart), and a regression pass over the untouched casting engine itself.
+associative and commutative), element extraction (both forms), quality identification,
+multi-method consensus in all five levels (including several questions that genuinely
+conflict or split on this fixture chart — encoded faithfully rather than "corrected," since
+two of chapter 10's own methods disagree with each other in the source itself), and a
+regression pass over the untouched casting engine itself.
 
 ## Content protection in the book reader
 

@@ -11,6 +11,7 @@ import {
   COUNT_ELEMENTS,
   COUNT_FIGURE_OCCURRENCES,
   EXTRACT_ELEMENT,
+  EXTRACT_LINES,
   MATCH_FIGURE,
   MATCH_QUALITIES,
 } from '../operations';
@@ -93,6 +94,31 @@ describe('EXTRACT_ELEMENT', () => {
   it('rejects a house list that is not exactly 4 long', () => {
     expect(() => EXTRACT_ELEMENT(chart, [3, 7, 11], 'fire')).toThrow();
     expect(() => EXTRACT_ELEMENT(chart, [3, 7, 11, 15, 1], 'fire')).toThrow();
+  });
+});
+
+describe('EXTRACT_LINES (general form: a different element per house)', () => {
+  it('reads a different named line from each of 4 houses (hand-verified, Kanzul Mikban ch.13 shape)', () => {
+    // fire@H1(Yussif=[1,1,2,1])=1, air@H5(Kalla Allahu=[1,1,2,2])=1,
+    // water@H4(Iddris=[2,2,1,2])=1, sand@H10(Usman=[2,1,2,1])=1 -> [1,1,1,1] = Ibrahim
+    const { figure } = EXTRACT_LINES(chart, [
+      { house: 1, element: 'fire' },
+      { house: 5, element: 'air' },
+      { house: 4, element: 'water' },
+      { house: 10, element: 'sand' },
+    ]);
+    expect(figure.dotPattern).toEqual([1, 1, 1, 1]);
+    expect(figure.figureId).toBe('ibrahim');
+  });
+
+  it('is what EXTRACT_ELEMENT delegates to (same element per house reproduces EXTRACT_ELEMENT exactly)', () => {
+    const viaExtractElement = EXTRACT_ELEMENT(chart, [3, 7, 11, 15], 'fire').figure;
+    const viaExtractLines = EXTRACT_LINES(chart, [3, 7, 11, 15].map((house) => ({ house, element: 'fire' as const }))).figure;
+    expect(viaExtractLines.dotPattern).toEqual(viaExtractElement.dotPattern);
+  });
+
+  it('rejects anything other than exactly 4 picks', () => {
+    expect(() => EXTRACT_LINES(chart, [{ house: 1, element: 'fire' }])).toThrow();
   });
 });
 

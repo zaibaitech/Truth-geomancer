@@ -9,8 +9,8 @@ import { FigureCard } from './reading/FigureCard';
 import { MethodConsistencyCard } from './reading/MethodConsistencyCard';
 import { SupportingIndicators } from './reading/SupportingIndicators';
 import { CalculationDetails } from './reading/CalculationDetails';
-import { SourceReference } from './reading/SourceReference';
 import { VerificationNotice } from './reading/VerificationNotice';
+import { ResultSummaryCard } from './reading/ResultSummaryCard';
 
 // Display order follows Prompt 3.5 section 4's recommended order exactly:
 // header -> overall outcome + 1-2 sentence answer -> primary indication
@@ -23,7 +23,7 @@ import { VerificationNotice } from './reading/VerificationNotice';
 // Calculation Details — never a wall of concatenated method text on the
 // first screen. Every value still comes straight off the ReadingResult
 // built in lib/raml/engine/reading.ts — this component only arranges it.
-export function EngineReadingView({ result }: { result: ReadingResult }) {
+export function EngineReadingView({ result, userQuestion }: { result: ReadingResult; userQuestion?: string }) {
   const [showCalculation, setShowCalculation] = useState(false);
 
   return (
@@ -42,6 +42,14 @@ export function EngineReadingView({ result }: { result: ReadingResult }) {
             descriptiveAnswer={result.descriptiveAnswer}
           />
 
+          {/* Prompt 15, section 10: the qualification belongs directly under
+              the answer it qualifies — a reader should learn that some
+              methods could not be read BEFORE working through the
+              indicators, not after. */}
+          {result.verificationNotice ? (
+            <VerificationNotice text={result.verificationNotice} onExpand={() => setShowCalculation(true)} />
+          ) : null}
+
           {result.primaryFigure ? <FigureCard indicator={result.primaryFigure} /> : null}
 
           <SupportingIndicators indicators={result.supportingIndicators} />
@@ -56,22 +64,27 @@ export function EngineReadingView({ result }: { result: ReadingResult }) {
         </>
       )}
 
-      {result.verificationNotice ? (
-        <VerificationNotice text={result.verificationNotice} onExpand={() => setShowCalculation(true)} />
-      ) : null}
-
+      {/* A real disclosure control, not a styled div: screen readers need to
+          know it expands the section below it (Prompt 15, section 17). */}
       <button
         onClick={() => setShowCalculation((v) => !v)}
+        aria-expanded={showCalculation}
+        aria-controls="reading-working"
         className="w-full rounded-xl border border-sand/15 px-3 py-2 text-xs font-medium text-sand-light"
       >
-        {showCalculation ? 'Hide calculation details' : 'How was this calculated?'}
+        {showCalculation ? 'Hide the working' : 'How this was determined'}
       </button>
 
-      {showCalculation ? (
-        <CalculationDetails methods={result.methodResults} detailedInterpretation={result.detailedInterpretation} />
-      ) : null}
+      <div id="reading-working" hidden={!showCalculation}>
+        {showCalculation ? (
+          <CalculationDetails methods={result.methodResults} detailedInterpretation={result.detailedInterpretation} />
+        ) : null}
+      </div>
 
-      <SourceReference sources={result.sourceReferences} />
+      {/* The summary card ends with the chapter, so the old standalone
+          source line directly beneath it repeated the same words twice in a
+          row. Attribution is still always visible and never collapsed. */}
+      <ResultSummaryCard result={result} userQuestion={userQuestion} />
     </div>
   );
 }

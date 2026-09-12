@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ResultTabs } from './ResultTabs';
-import { getIntentionById } from '@/content/intentions';
+import { catalogEntry } from '@/lib/raml/questionCatalog';
 import type { Chart } from '@/lib/raml/casting';
 
 export function CastingResultView({
@@ -16,8 +16,10 @@ export function CastingResultView({
   meta?: ReactNode;
   footer?: ReactNode;
 }) {
-  const intention = intentionId ? getIntentionById(intentionId) : undefined;
-  const fallbackLabel = intention && intention.id !== 'general' ? intention.label : undefined;
+  // The plain-language question leads here too, the way it does everywhere
+  // else since Prompt 15 — the manuscript's own heading is supporting text.
+  const entry = intentionId ? catalogEntry(intentionId) : undefined;
+  const fallbackLabel = entry?.title;
 
   return (
     <div>
@@ -37,7 +39,7 @@ export function CastingResultView({
           {meta}
         </div>
       ) : null}
-      <ResultTabs chart={chart} intentionId={intentionId} />
+      <ResultTabs chart={chart} intentionId={intentionId} userQuestion={question} />
       {footer}
     </div>
   );

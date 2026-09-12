@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { RotateCcw, Check, History } from 'lucide-react';
+import { RotateCcw, Check, History, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { IntentionPicker } from './IntentionPicker';
 import { CastingBoard } from './CastingBoard';
@@ -10,10 +10,10 @@ import { CastingResultView } from './CastingResultView';
 import { CastingListItem } from './CastingListItem';
 import { buildChart, type Chart } from '@/lib/raml/casting';
 import { saveCasting, listCastings, type SavedCasting } from '@/lib/raml/storage';
-import { getIntentionById } from '@/content/intentions';
+import { catalogEntry, readingBrief } from '@/lib/raml/questionCatalog';
 import type { Pattern } from '@/content/stars';
 
-type Step = 'ask' | 'casting' | 'result';
+type Step = 'ask' | 'confirm' | 'casting' | 'result';
 
 export function CastingFlow() {
   const [step, setStep] = useState<Step>('ask');
@@ -44,8 +44,12 @@ export function CastingFlow() {
     setChart(null);
   }
 
-  function startCasting() {
-    setStep('casting');
+  // Choosing a question moves straight to the confirmation screen: it says
+  // what the reading will actually do before any sand is cast, which is also
+  // what stops an accidental tap from starting a casting.
+  function chooseQuestion(id: string) {
+    setIntentionId(id);
+    setStep('confirm');
   }
 
   function handleCastComplete(mothers: [Pattern, Pattern, Pattern, Pattern]) {
@@ -60,31 +64,10 @@ export function CastingFlow() {
       <div className="px-4">
         <p className="mb-2 text-sm font-semibold text-sand-light">What is this reading for?</p>
         <p className="mb-3 text-xs text-sand/50">
-          Pick the closest category and, once cast, you’ll get the exact method Kanzul Mikban
-          gives for it — read against your own chart.
+          Pick a question and you’ll get the exact method Kanzul Mikban gives for it — read against your
+          own chart.
         </p>
-        <IntentionPicker value={intentionId} onChange={setIntentionId} />
-
-        <Card className="mt-4">
-          <p className="mb-2 text-sm font-semibold text-sand-light">What are you asking?</p>
-          <p className="mb-3 text-xs text-sand/50">
-            Optional — hold it in mind as you cast, or simply cast for a general reading.
-          </p>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            rows={3}
-            aria-label="What are you asking? (optional)"
-            placeholder="e.g. Will this move forward this month?"
-            className="w-full resize-none rounded-xl border border-sand/15 bg-ink px-3 py-2 text-sm text-sand-light placeholder:text-sand/30 focus:border-clay/50 focus:outline-none"
-          />
-        </Card>
-        <button
-          onClick={startCasting}
-          className="mt-4 w-full rounded-xl bg-clay py-3 text-sm font-semibold text-ink"
-        >
-          Begin casting
-        </button>
+        <IntentionPicker value={intentionId} onChange={chooseQuestion} />
 
         {recent && recent.length > 0 ? (
           <div className="mt-8">
@@ -105,13 +88,80 @@ export function CastingFlow() {
     );
   }
 
-  if (step === 'casting') {
-    const intention = getIntentionById(intentionId);
+  if (step === 'confirm') {
+    const entry = catalogEntry(intentionId);
     return (
       <div className="px-4">
-        {intention && intention.id !== 'general' ? (
-          <p className="mb-3 text-center text-[11px] text-clay-light">Casting for: {intention.label}</p>
-        ) : null}
+        <button
+          type="button"
+          onClick={() => setStep('ask')}
+          className="mb-3 flex items-center gap-1.5 text-xs text-sand/60"
+        >
+          <ArrowLeft size={14} /> Choose a different question
+        </button>
+
+        <Card>
+          <p className="text-[11px] uppercase tracking-widest text-sand/40">Question</p>
+          <h2 className="mt-1 text-base font-semibold text-sand-light">
+            {entry ? entry.title : 'General reading'}
+          </h2>
+          {entry?.hasShortTitle ? <p className="mt-1 text-[11px] text-sand/40">{entry.sourceTitle}</p> : null}
+
+          <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">What this reading does</p>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-sand/65">
+            {entry
+              ? readingBrief(entry)
+              : 'You cast the sixteen houses and read the chart itself — the Judge, your own house, and the figures around them — without a set question.'}
+          </p>
+
+          <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">Source</p>
+          <p className="mt-1 text-[12.5px] text-sand/65">
+            {entry
+              ? entry.chapterNumber !== null
+                ? `Kanzul Mikban — Chapter ${entry.chapterNumber}`
+                : 'Kanzul Mikban — an additional passage with no chapter number'
+              : 'The Master of Geomancy — the general chart reading'}
+          </p>
+        </Card>
+
+        <Card className="mt-3">
+          <label htmlFor="intention-text" className="block text-sm font-semibold text-sand-light">
+            Your question or intention (optional)
+          </label>
+          {/* Honesty, not decoration: the engine reads the chart and nothing
+              else, so this text must never be presented as an input to the
+              calculation. See lib/raml/productUx.test.ts, which asserts the
+              reading is a pure function of the chart. */}
+          <p className="mt-1 text-xs leading-relaxed text-sand/50">
+            Hold it in mind as you cast. This does not change the geomancy calculation — it is saved with
+            the casting on this device so you can remember what you asked.
+          </p>
+          <textarea
+            id="intention-text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            rows={3}
+            aria-label="Your question or intention (optional)"
+            placeholder="e.g. Will this move forward this month?"
+            className="mt-2 w-full resize-none rounded-xl border border-sand/15 bg-ink px-3 py-2 text-sm text-sand-light placeholder:text-sand/30 focus:border-clay/50 focus:outline-none"
+          />
+        </Card>
+
+        <button
+          onClick={() => setStep('casting')}
+          className="mt-4 w-full rounded-xl bg-clay py-3 text-sm font-semibold text-ink"
+        >
+          Start Reading
+        </button>
+      </div>
+    );
+  }
+
+  if (step === 'casting') {
+    const entry = catalogEntry(intentionId);
+    return (
+      <div className="px-4">
+        {entry ? <p className="mb-3 text-center text-[11px] text-clay-light">Casting for: {entry.title}</p> : null}
         <CastingBoard onComplete={handleCastComplete} />
       </div>
     );

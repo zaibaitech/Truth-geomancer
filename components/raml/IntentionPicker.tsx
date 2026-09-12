@@ -1,52 +1,31 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, Clock, Search, Sparkles, Check } from 'lucide-react';
-import { CATEGORIES, INTENTIONS, getIntentionById, intentionsInCategory, type CategoryId } from '@/content/intentions';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Clock, Search, Sparkles } from 'lucide-react';
+import { CATEGORIES, type CategoryId } from '@/content/intentions';
 import { INTENTION_ICONS } from './intentionIcons';
+import { QuestionCard } from './QuestionCard';
 import { recordRecentIntention, listRecentIntentionIds } from '@/lib/raml/recentIntentions';
-import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
+import {
+  QUESTION_CATALOG,
+  SUGGESTED_QUESTIONS,
+  catalogEntry,
+  catalogInCategory,
+  categoryCounts,
+  searchCatalog,
+} from '@/lib/raml/questionCatalog';
 
-type View = 'categories' | 'all';
+type View = { kind: 'home' } | { kind: 'category'; id: CategoryId } | { kind: 'all' };
 
-function QuestionRow({ id, label, selected, onClick }: { id: string; label: string; selected: boolean; onClick: () => void }) {
-  // A handful of entries are real source material the app cannot read from a
-  // chart (a reference table, a ritual, an open-ended technique, a passage
-  // whose figures were lost). Say so here rather than letting the user pick it
-  // and find out afterwards. See lib/raml/questionAvailability.ts.
-  const availability = getQuestionAvailability(id);
-  const badge = availability.kind === 'no-automatic-reading' ? availability.badge : null;
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex w-full items-center justify-between gap-2 border-b border-sand/8 px-3 py-2.5 text-left last:border-b-0 ${
-        selected ? 'bg-clay/10' : ''
-      }`}
-    >
-      <span className="min-w-0 flex-1">
-        <span className={`block text-[13px] leading-snug ${selected ? 'text-sand-light' : 'text-sand/75'}`}>{label}</span>
-        {badge ? (
-          <span className="mt-1 inline-block rounded-full border border-sand/15 px-2 py-0.5 text-[10px] text-sand/45">
-            {badge}
-          </span>
-        ) : null}
-      </span>
-      {selected ? <Check size={14} className="shrink-0 text-clay-light" /> : null}
-    </button>
-  );
-}
-
-export function IntentionPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  const [view, setView] = useState<View>('categories');
-  const [expanded, setExpanded] = useState<CategoryId | 'recent' | null>(null);
+/** The question picker, organised around what a person wants to know rather
+ * than around the manuscript's chapter order (Prompt 15, sections 3-7).
+ *
+ * Three ways in, all over the SAME 153 catalogue entries: search, a category,
+ * or the full A-Z list. Nothing here can surface a question that is not
+ * already registered — `searchCatalog` filters the existing catalogue and
+ * never generates anything. */
+export function IntentionPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const [view, setView] = useState<View>({ kind: 'home' });
   const [query, setQuery] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
 
@@ -54,141 +33,173 @@ export function IntentionPicker({
     setRecentIds(listRecentIntentionIds());
   }, []);
 
+  // Opening a category from a tile far down the landing page used to leave the
+  // list scrolled to wherever that tile happened to be (measured: 535px in at
+  // 360px wide). The step-level reset in CastingFlow does not fire for a view
+  // change inside the picker, so the picker resets its own container. Search
+  // results deliberately do NOT reset — the field must stay under the cursor
+  // while typing.
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    document.querySelector('[data-app-scroll]')?.scrollTo({ top: 0 });
+  }, [view]);
+
   function select(id: string) {
-    onChange(id);
     recordRecentIntention(id);
     setRecentIds(listRecentIntentionIds());
-    setExpanded(null);
+    onChange(id);
   }
 
-  const selected = getIntentionById(value);
-  const recentIntentions = recentIds.map((id) => getIntentionById(id)).filter((i): i is NonNullable<typeof i> => !!i);
+  const counts = useMemo(() => categoryCounts(), []);
+  const results = useMemo(() => (query.trim() ? searchCatalog(query) : null), [query]);
+  const recentEntries = useMemo(
+    () => recentIds.map((id) => catalogEntry(id)).filter((e): e is NonNullable<typeof e> => !!e),
+    [recentIds],
+  );
 
-  const filteredAll = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = INTENTIONS.filter((i) => i.id !== 'general').slice().sort((a, b) => a.label.localeCompare(b.label));
-    if (!q) return list;
-    return list.filter((i) => i.label.toLowerCase().includes(q));
-  }, [query]);
+  const alphabetical = useMemo(() => [...QUESTION_CATALOG].sort((a, b) => a.title.localeCompare(b.title)), []);
+
+  function renderList(entries: typeof QUESTION_CATALOG) {
+    return (
+      <div className="grid gap-2 sm:grid-cols-2">
+        {entries.map((entry) => (
+          <QuestionCard key={entry.id} entry={entry} selected={value === entry.id} onClick={() => select(entry.id)} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div>
-      {/* Current selection + General Reading shortcut */}
-      <div className="mb-3 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => select('general')}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
-            value === 'general' ? 'border-clay/60 bg-clay/10 text-sand-light' : 'border-sand/15 text-sand/60'
-          }`}
-        >
-          <Sparkles size={13} /> General Reading
-        </button>
-        {selected && selected.id !== 'general' ? (
-          <span className="min-w-0 flex-1 truncate rounded-full border border-clay/30 bg-clay/10 px-3 py-1.5 text-xs text-sand-light">
-            {selected.label}
-          </span>
+      {/* Search is always the fastest route, so it stays at the top of every
+          view rather than hiding inside an "All questions" tab. */}
+      <div className="mb-3 flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2">
+        <Search size={14} className="shrink-0 text-sand/40" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search questions"
+          placeholder="Search: money, marriage, enemy, lost…"
+          className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
+        />
+        {query ? (
+          <button type="button" onClick={() => setQuery('')} className="shrink-0 text-[11px] text-sand/45">
+            Clear
+          </button>
         ) : null}
       </div>
 
-      {/* View toggle */}
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => setView('categories')}
-          className={`rounded-xl py-2 text-xs font-semibold ${
-            view === 'categories' ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/60'
-          }`}
-        >
-          Categories
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('all')}
-          className={`rounded-xl py-2 text-xs font-semibold ${
-            view === 'all' ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/60'
-          }`}
-        >
-          All (A-Z)
-        </button>
-      </div>
+      {results ? (
+        <div>
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/45" role="status">
+            {results.length} question{results.length === 1 ? '' : 's'} match “{query.trim()}”
+          </p>
+          {results.length === 0 ? (
+            <p className="rounded-xl border border-sand/12 bg-ink-card px-3 py-6 text-center text-sm text-sand/45">
+              Nothing in the book matches that word. Try “money”, “marriage”, “enemy”, “travel” or “lost”.
+            </p>
+          ) : (
+            renderList(results)
+          )}
+        </div>
+      ) : view.kind === 'home' ? (
+        <div className="space-y-5">
+          <button
+            type="button"
+            onClick={() => select('general')}
+            className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left ${
+              value === 'general' ? 'border-clay/60 bg-clay/10' : 'border-sand/15 bg-ink-card'
+            }`}
+          >
+            <Sparkles size={15} className="shrink-0 text-clay-light" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-sand-light">General reading</span>
+              <span className="block text-[11px] text-sand/45">Cast without a set question and read the chart itself</span>
+            </span>
+          </button>
 
-      {view === 'categories' ? (
-        <div className="overflow-hidden rounded-xl border border-sand/12">
-          {recentIntentions.length > 0 ? (
-            <div className="border-b border-sand/12 last:border-b-0">
-              <button
-                type="button"
-                onClick={() => setExpanded(expanded === 'recent' ? null : 'recent')}
-                className="flex w-full items-center gap-2.5 bg-ink-card px-3 py-3"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/15 text-clay-light">
-                  <Clock size={15} />
-                </div>
-                <span className="flex-1 text-left text-[13px] font-medium text-sand-light">Recent</span>
-                <span className="text-xs text-sand/40">{recentIntentions.length}</span>
-                {expanded === 'recent' ? (
-                  <ChevronDown size={15} className="text-sand/40" />
-                ) : (
-                  <ChevronRight size={15} className="text-sand/40" />
-                )}
-              </button>
-              {expanded === 'recent'
-                ? recentIntentions.map((i) => (
-                    <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
-                  ))
-                : null}
-            </div>
+          {recentEntries.length > 0 ? (
+            <section>
+              <h3 className="mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-sand/45">
+                <Clock size={12} /> Recent
+              </h3>
+              {renderList(recentEntries)}
+            </section>
           ) : null}
 
-          {CATEGORIES.map((cat) => {
-            const Icon = INTENTION_ICONS[cat.icon];
-            const items = intentionsInCategory(cat.id);
-            const isOpen = expanded === cat.id;
-            return (
-              <div key={cat.id} className="border-b border-sand/12 last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => setExpanded(isOpen ? null : cat.id)}
-                  className="flex w-full items-center gap-2.5 bg-ink-card px-3 py-3"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/15 text-clay-light">
-                    <Icon size={15} />
-                  </div>
-                  <span className="flex-1 text-left text-[13px] font-medium text-sand-light">{cat.label}</span>
-                  <span className="text-xs text-sand/40">{items.length}</span>
-                  {isOpen ? (
-                    <ChevronDown size={15} className="text-sand/40" />
-                  ) : (
-                    <ChevronRight size={15} className="text-sand/40" />
-                  )}
-                </button>
-                {isOpen ? items.map((i) => <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />) : null}
-              </div>
-            );
-          })}
+          <section>
+            <h3 className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">What would you like to know?</h3>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {CATEGORIES.map((category) => {
+                const Icon = INTENTION_ICONS[category.icon];
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setView({ kind: 'category', id: category.id })}
+                    className="flex flex-col items-start gap-1.5 rounded-xl border border-sand/12 bg-ink-card p-3 text-left hover:border-sand/25"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-sand/15 text-clay-light">
+                      <Icon size={14} />
+                    </span>
+                    <span className="text-[12.5px] font-medium leading-tight text-sand-light">{category.label}</span>
+                    <span className="text-[10.5px] text-sand/40">
+                      {counts[category.id]} question{counts[category.id] === 1 ? '' : 's'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section>
+            {/* "Suggested", never "Popular": the app records no usage, so any
+                popularity claim would be invented. */}
+            <h3 className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">Suggested questions</h3>
+            {renderList(SUGGESTED_QUESTIONS)}
+          </section>
+
+          <button
+            type="button"
+            onClick={() => setView({ kind: 'all' })}
+            className="w-full rounded-xl border border-sand/15 py-2.5 text-xs font-medium text-sand/70"
+          >
+            Browse all {QUESTION_CATALOG.length} questions
+          </button>
         </div>
       ) : (
         <div>
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2">
-            <Search size={14} className="text-sand/40" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Filter questions"
-              placeholder="Filter questions…"
-              className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
-            />
-          </div>
-          <div className="max-h-80 overflow-y-auto rounded-xl border border-sand/12">
-            {filteredAll.length === 0 ? (
-              <p className="px-3 py-6 text-center text-sm text-sand/40">No questions match “{query}”.</p>
-            ) : (
-              filteredAll.map((i) => (
-                <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
-              ))
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setView({ kind: 'home' })}
+            className="mb-3 flex items-center gap-1.5 text-xs text-sand/60"
+          >
+            <ArrowLeft size={14} /> All categories
+          </button>
+          {view.kind === 'category' ? (
+            <>
+              <h3 className="text-sm font-semibold text-sand-light">
+                {CATEGORIES.find((c) => c.id === view.id)?.label}
+              </h3>
+              <p className="mb-3 text-[11px] text-sand/45">
+                {CATEGORIES.find((c) => c.id === view.id)?.description} · {counts[view.id]} question
+                {counts[view.id] === 1 ? '' : 's'}
+              </p>
+              {renderList(catalogInCategory(view.id))}
+            </>
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold text-sand-light">All questions</h3>
+              <p className="mb-3 text-[11px] text-sand/45">
+                Every passage in Kanzul Mikban the app can take a question from, A-Z.
+              </p>
+              {renderList(alphabetical)}
+            </>
+          )}
         </div>
       )}
     </div>

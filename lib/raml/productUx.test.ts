@@ -19,6 +19,7 @@ import { OUTCOME_LABEL } from './engine/reading';
 import type { ReadingResult } from './engine/reading';
 import { fixtureChart } from './engine/__tests__/fixtures';
 import { getQuestionAvailability, resolveEngineQuestionId } from './questionAvailability';
+import { NO_AUTOMATIC_READING_HEADING } from './statusLanguage';
 
 const chart = fixtureChart();
 const SELECTABLE = INTENTIONS.filter((i) => i.id !== 'general');
@@ -352,18 +353,24 @@ describe('interface contracts', () => {
   it('never claims a chart was read for material that has no automatic reading', () => {
     const tab = repoFile('components/raml/ReadingTab.tsx');
     expect(tab).toContain('getQuestionAvailability');
-    expect(tab).toContain('No automatic reading for this one');
+    // The heading now comes from the shared product wording (Prompt 15,
+    // section 14) rather than being typed inline here.
+    expect(tab).toContain('NO_AUTOMATIC_READING_HEADING');
+    expect(NO_AUTOMATIC_READING_HEADING).toBe('No automatic reading for this one');
     // The old copy asserted the houses "have already been read off your own
     // chart" for every entry, including reference tables and rituals. It must
     // now sit on the readable branch only.
     const claim = 'have already been read off your';
-    expect(tab.indexOf(claim)).toBeGreaterThan(tab.indexOf('No automatic reading for this one'));
+    expect(tab.indexOf(claim)).toBeGreaterThan(tab.indexOf('NO_AUTOMATIC_READING_HEADING'));
   });
 
   it('labels the picker’s non-question entries before they are chosen', () => {
-    const picker = repoFile('components/raml/IntentionPicker.tsx');
-    expect(picker).toContain('getQuestionAvailability');
-    expect(picker).toContain('availability.badge');
+    // The badge moved onto the question card when the picker was rebuilt
+    // around categories and search (Prompt 15, section 4).
+    const card = repoFile('components/raml/QuestionCard.tsx');
+    expect(card).toContain('availability.kind');
+    expect(card).toContain('availability.badge');
+    expect(card).toContain('Uses the canonical method');
   });
 
   it('gives the result screen a heading and announces it to assistive tech', () => {
@@ -373,7 +380,11 @@ describe('interface contracts', () => {
   });
 
   it('labels the two free-text inputs a user can reach before casting', () => {
-    expect(repoFile('components/raml/CastingFlow.tsx')).toMatch(/aria-label="What are you asking/);
-    expect(repoFile('components/raml/IntentionPicker.tsx')).toMatch(/aria-label="Filter questions"/);
+    // Both inputs kept their labels through the Prompt 15 rebuild; the
+    // wording changed with them (the intention field now says plainly that
+    // it does not affect the calculation, and the picker filter became a
+    // search field).
+    expect(repoFile('components/raml/CastingFlow.tsx')).toMatch(/aria-label="Your question or intention \(optional\)"/);
+    expect(repoFile('components/raml/IntentionPicker.tsx')).toMatch(/aria-label="Search questions"/);
   });
 });

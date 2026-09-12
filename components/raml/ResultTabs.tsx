@@ -23,7 +23,7 @@ import {
 const BASE_TABS = ['Overview', 'Full Chart', 'My Star', 'Sadaqah'] as const;
 type Tab = (typeof BASE_TABS)[number] | 'Your Reading';
 
-export function ResultTabs({ chart, intentionId }: { chart: Chart; intentionId?: string }) {
+export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart; intentionId?: string; userQuestion?: string }) {
   const hasReading = !!intentionId && (getIntentionById(intentionId)?.chapterIds.length ?? 0) > 0;
   const tabs: Tab[] = hasReading ? ['Your Reading', ...BASE_TABS] : [...BASE_TABS];
   const [tab, setTab] = useState<Tab>(hasReading ? 'Your Reading' : 'Overview');
@@ -70,7 +70,7 @@ export function ResultTabs({ chart, intentionId }: { chart: Chart; intentionId?:
                     {availability.note}
                   </p>
                 ) : null}
-                <EngineReadingView result={reading} />
+                <EngineReadingView result={reading} userQuestion={userQuestion} />
               </>
             ) : (
               <ReadingTab chart={chart} intentionId={intentionId} />

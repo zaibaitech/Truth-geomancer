@@ -98,7 +98,7 @@ const NO_AUTOMATIC_READING: Record<string, ReferenceAvailability> = {
   },
   'dreams-and-their-interpretations': {
     kind: 'no-automatic-reading',
-    badge: 'Not computable',
+    badge: 'Figures missing',
     note: 'The book never explains how to combine the four Mothers for this chapter, and the figure that identifies each of its sixteen meanings was not preserved in the transcription — so no dream meaning can be selected honestly. The chapter text is shown in full below.',
   },
   'continued-from-chapter-twenty-eight': {

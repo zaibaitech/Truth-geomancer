@@ -2503,3 +2503,68 @@ presented as itself, every unresolved state explaining its own reason, every
 counted method showing its houses or its working, every reading attributed
 to a named chapter, and every reading a pure function of the chart — no
 clock, no randomness, nothing the user cannot reproduce.
+
+---
+
+## Prompt 15 — information architecture & user experience (no source changes)
+
+The engine and its result screens were finished and audited; this stage was
+about turning 153 catalogue entries into something a person can navigate.
+Again nothing in the engine moved: no question file, no rule status, no
+calculation, no classification.
+
+**The catalogue layer.** `lib/raml/questionCatalog.ts` derives, at module
+load, everything the browsing UI needs from what already existed — the
+intention list, the engine's registered questions, the manuscript's chapter
+numbers, and Prompt 14's availability layer. Its one substantive addition is
+a *plain-language title*: the engine has always carried a short question for
+each chapter ("Will I get money today?") while the picker showed only the
+manuscript's heading ("If You Want to Know If You Will Get Money Today or
+Not"). 145 of the 153 entries now lead with the short question and keep the
+heading as supporting text; the other 8 have no engine question and keep the
+heading alone.
+
+**Taxonomy.** The ten existing categories are unchanged as primary homes. On
+top of them, each entry carries product *tags*: a further category is added
+only when a token in the question's OWN wording supports it (a trip that
+returns "with money" is travel and money both). Tags drive browsing and
+search only. Counts after tagging: Love & Couple 28, Money & Possessions 11,
+Work & Success 15, Health & Hardships 15, Family & Loved Ones 23, Travel &
+Change 13, Legal & Conflict 28, Lost & Stolen Things 20, Fate & Timing 40,
+Dreams 1. No category is empty, and every entry is reachable from at least
+one of them.
+
+**Search** is a plain client-side filter over title, manuscript heading,
+category, chapter number and availability badge, with a small synonym map
+(jail→prison, cash→money, spouse→wife/husband…). Every word typed must match,
+so words narrow rather than widen. It can only ever return entries that are
+already in the catalogue — no dependency was added, and nothing is generated.
+
+**Flow.** Choosing a question now opens a confirmation screen — QUESTION /
+WHAT THIS READING DOES / SOURCE / Start Reading — whose brief is built from
+the real method counts, so a question whose methods cannot be read says so
+*before* the sand is cast rather than after. The optional free-text field now
+states plainly that it does not change the geomancy calculation and is kept
+with the casting on the device.
+
+**Result.** The qualification about unreadable methods moved directly under
+the answer it qualifies; the working is a proper disclosure control
+("How this was determined", `aria-expanded`); and a compact summary card ends
+every reading with question, state, one-line interpretation and chapter, plus
+a plain-text "Copy reading". Conflicts read "Mixed / Conflicting indications"
+and blocked readings "Insufficient information" — never a softened verdict.
+
+**Status language.** `lib/raml/statusLanguage.ts` translates the engine's own
+vocabulary for the screen: `needs_review` → "Source detail missing",
+`uncertain` → "Not defined in the source", `insufficient_data` → "Not enough
+source information" with "There is not enough source-defined information to
+determine the answer." The engine keeps its exact terms; only the wording a
+reader sees changed.
+
+**Analytics.** There are none — no tag, no SDK, no beacon. Castings and
+recent questions live in `localStorage` on the device. Any future statement
+about which questions are popular would therefore be fabricated, which is why
+the landing section is called "Suggested questions". Metrics worth adding
+later, if the owner wants them: questions selected, confirmations that went
+on to a casting, castings completed, category vs. search entry, and how often
+a reading lands on the insufficient state.

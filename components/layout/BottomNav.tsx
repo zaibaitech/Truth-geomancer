@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav className="shrink-0 border-t border-sand/10 bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-      <div className="mx-auto flex max-w-md items-stretch justify-between px-1">
+      <div className="mx-auto flex max-w-md items-stretch justify-between px-1 lg:max-w-3xl">
         {items.map(({ href, label, icon: Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
           return (

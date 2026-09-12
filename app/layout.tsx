@@ -15,7 +15,10 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-// App-shell layout: the outer wrapper is pinned to exactly one viewport-height
+// App-shell layout: mobile-first, and on a large screen the shell widens to
+// max-w-3xl rather than stretching a phone-width column across a desktop —
+// the question grid and the reading both use the extra width (Prompt 15,
+// section 16). The outer wrapper is pinned to exactly one viewport-height
 // tall and never scrolls itself; the inner div is the ONE intended vertical
 // scroll container for page content; BottomNav is a plain flex sibling below
 // it, so it's never part of the scrollable height and needs no sticky/fixed
@@ -26,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
       <body className="overflow-x-hidden bg-ink font-body text-sand-light">
-        <div className="mx-auto flex h-[100dvh] max-w-md flex-col overflow-x-hidden bg-ink">
+        <div className="mx-auto flex h-[100dvh] max-w-md flex-col overflow-x-hidden bg-ink lg:max-w-3xl">
           {/* data-app-scroll: the app scrolls this container, not the window,
               so anything that needs to reset scroll position must target it. */}
           <div data-app-scroll className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-4">

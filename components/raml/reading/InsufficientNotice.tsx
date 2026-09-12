@@ -1,13 +1,7 @@
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import type { ReadingMethodRow } from '@/lib/raml/engine/reading';
-import type { RuleStatus } from '@/lib/raml/engine/types';
-
-const STATUS_LABEL: Record<RuleStatus, string> = {
-  verified: 'Verified',
-  needs_review: 'Needs review',
-  uncertain: 'Uncertain',
-};
+import { INSUFFICIENT_EXPLANATION, INSUFFICIENT_HEADING, METHOD_STATUS_LABEL, methodTally } from '@/lib/raml/statusLanguage';
 
 /** Section 8: the exact required heading/copy, plus a plain-language WHY
  * (each method's own review note — never a guess) and a SOURCE STATUS tally,
@@ -19,8 +13,12 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
 
   return (
     <Card>
-      <p className="text-sm font-semibold uppercase tracking-wide text-clay-light">Insufficient Verified Data</p>
-      <p className="mt-2 text-sm leading-relaxed text-sand/70">{shortSummary}</p>
+      {/* Prompt 15, section 14: the same state the engine calls
+          `insufficient_data`, said in words that make clear the limit is the
+          manuscript's rather than a failure of the app. */}
+      <p className="text-sm font-semibold text-clay-light">{INSUFFICIENT_HEADING}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{INSUFFICIENT_EXPLANATION}</p>
+      <p className="mt-1.5 text-[12px] leading-relaxed text-sand/50">{shortSummary}</p>
 
       <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">Why</p>
       <div className="mt-1.5 space-y-1.5">
@@ -40,12 +38,12 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
         ))}
       </div>
 
-      <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">Source status</p>
+      <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">What the source gives</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        <span className="text-[12px] text-sand/55">{verifiedCount} of {methods.length} method(s) verified —</span>
+        <span className="text-[12px] text-sand/55">{methodTally(verifiedCount, methods.length)}</span>
         {methods.map((m) => (
           <Badge key={m.id} tone="neutral">
-            {m.label}: {STATUS_LABEL[m.status]}
+            {m.label}: {METHOD_STATUS_LABEL[m.status]}
           </Badge>
         ))}
       </div>

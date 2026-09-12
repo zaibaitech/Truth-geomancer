@@ -8,6 +8,7 @@ import { getIntentionById, getCategoryById } from '@/content/intentions';
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import { getMethodVerdicts } from '@/lib/raml/methodVerdicts';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
+import { NO_AUTOMATIC_READING_EXPLANATION, NO_AUTOMATIC_READING_HEADING } from '@/lib/raml/statusLanguage';
 
 export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: string }) {
   const intention = getIntentionById(intentionId);
@@ -35,11 +36,11 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
         <p className="mt-1 text-sm font-semibold text-sand-light">{intention.label}</p>
         {unreadable ? (
           <>
-            <p className="mt-3 text-sm font-semibold text-clay-light">No automatic reading for this one</p>
+            <p className="mt-3 text-sm font-semibold text-clay-light">{NO_AUTOMATIC_READING_HEADING}</p>
             <p className="mt-1 text-[12px] leading-relaxed text-sand/55">{unreadable.note}</p>
             <p className="mt-2 text-[11px] leading-relaxed text-sand/35">
-              This is a limit of the surviving manuscript, not an error — your chart itself is
-              complete and can be read against any other question.
+              {NO_AUTOMATIC_READING_EXPLANATION} This is a limit of the surviving manuscript, not an
+              error — your chart itself is complete and can be read against any other question.
             </p>
           </>
         ) : (

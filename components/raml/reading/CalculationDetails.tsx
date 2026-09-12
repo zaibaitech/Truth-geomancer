@@ -2,13 +2,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { OUTCOME_TONE } from '@/lib/raml/engine/reading';
 import type { ReadingMethodRow } from '@/lib/raml/engine/reading';
-import type { RuleStatus } from '@/lib/raml/engine/types';
-
-const STATUS_LABEL: Record<RuleStatus, string> = {
-  verified: 'Verified',
-  needs_review: 'Needs review',
-  uncertain: 'Uncertain',
-};
+import { METHOD_STATUS_LABEL } from '@/lib/raml/statusLanguage';
 
 /** The "advanced view" (section 5, 8, 17): per method, exactly the houses
  * used, the operation trace, the resulting figure's identity AND its
@@ -22,7 +16,7 @@ const STATUS_LABEL: Record<RuleStatus, string> = {
 export function CalculationDetails({ methods, detailedInterpretation }: { methods: ReadingMethodRow[]; detailedInterpretation?: string }) {
   return (
     <Card>
-      <p className="mb-3 text-[11px] uppercase tracking-widest text-sand/40">How was this calculated?</p>
+      <p className="mb-3 text-[11px] uppercase tracking-widest text-sand/40">How this was determined</p>
       <div className="space-y-3">
         {methods.map((m) => {
           const qualities = [m.resultFortune, m.resultDirection, m.resultElement].filter(Boolean) as string[];
@@ -30,7 +24,7 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
             <div key={m.id} className="rounded-xl border border-sand/10 bg-ink px-3 py-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-clay-light">{m.label}</p>
-                <Badge tone={m.status === 'verified' ? 'sand' : 'neutral'}>{STATUS_LABEL[m.status]}</Badge>
+                <Badge tone={m.status === 'verified' ? 'sand' : 'neutral'}>{METHOD_STATUS_LABEL[m.status]}</Badge>
               </div>
               <p className="mt-1.5 text-[11px] italic text-sand/40">“{m.sourceQuote}”</p>
               <p className="mt-1 text-[11px] text-sand/35">{m.sourceLabel}</p>

@@ -99,6 +99,26 @@ import { pregnancyHealthyQuestion } from './pregnancyHealthy';
 import { pregnancyMonthsQuestion } from './pregnancyMonths';
 import { numberOfBabiesQuestion } from './numberOfBabies';
 import { pregnancyPaternityQuestion } from './pregnancyPaternity';
+import { putToBedPeacefullyQuestion } from './putToBedPeacefully';
+import { timeToPutToBedQuestion } from './timeToPutToBed';
+import { dayOrNightBirthQuestion } from './dayOrNightBirth';
+import { enemyFamilyOriginQuestion } from './enemyFamilyOrigin';
+import { friendshipFutureQuestion } from './friendshipFuture';
+import { friendshipSecretsQuestion } from './friendshipSecrets';
+import { businessOrHandworkQuestion } from './businessOrHandwork';
+import { sufferingWillEndQuestion } from './sufferingWillEnd';
+import { positionOrRankQuestion } from './positionOrRank';
+import { wealthPermanenceQuestion } from './wealthPermanence';
+import { miseryTakenAwayQuestion } from './miseryTakenAway';
+import { presentPastFutureQuestion } from './presentPastFuture';
+import { endingOfAnythingQuestion } from './endingOfAnything';
+import { longLifeQuestion } from './longLife';
+import { lifespanWhenDeathQuestion } from './lifespanWhenDeath';
+import { sickPersonLongLifeQuestion } from './sickPersonLongLife';
+import { placeOfDeathQuestion } from './placeOfDeath';
+import { causesOfDeathQuestion } from './causesOfDeath';
+import { somethingGoodTodayQuestion } from './somethingGoodToday';
+import { todayGoodDayQuestion } from './todayGoodDay';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -198,6 +218,34 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   pregnancyMonthsQuestion,
   numberOfBabiesQuestion,
   pregnancyPaternityQuestion,
+  // Chapters 81-100 (Prompt 9) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table. Not registered: chapter 95 ("The Stars That Talk
+  // About Your Youthful Time...") — a reference table, not a chart-verdict
+  // question, and entirely omitted from the transcription besides. The
+  // "if-a-sick-person-has-long-life-repeated" fragment after ch.96 is a
+  // confirmed duplicate of chapter 96's own question (its title says so
+  // directly) and is registered as sickPersonLongLife.ts's Method 2, not
+  // under its own separate intentions.ts id.
+  putToBedPeacefullyQuestion,
+  timeToPutToBedQuestion,
+  dayOrNightBirthQuestion,
+  enemyFamilyOriginQuestion,
+  friendshipFutureQuestion,
+  friendshipSecretsQuestion,
+  businessOrHandworkQuestion,
+  sufferingWillEndQuestion,
+  positionOrRankQuestion,
+  wealthPermanenceQuestion,
+  miseryTakenAwayQuestion,
+  presentPastFutureQuestion,
+  endingOfAnythingQuestion,
+  longLifeQuestion,
+  lifespanWhenDeathQuestion,
+  sickPersonLongLifeQuestion,
+  placeOfDeathQuestion,
+  causesOfDeathQuestion,
+  somethingGoodTodayQuestion,
+  todayGoodDayQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -287,4 +335,24 @@ export {
   pregnancyMonthsQuestion,
   numberOfBabiesQuestion,
   pregnancyPaternityQuestion,
+  putToBedPeacefullyQuestion,
+  timeToPutToBedQuestion,
+  dayOrNightBirthQuestion,
+  enemyFamilyOriginQuestion,
+  friendshipFutureQuestion,
+  friendshipSecretsQuestion,
+  businessOrHandworkQuestion,
+  sufferingWillEndQuestion,
+  positionOrRankQuestion,
+  wealthPermanenceQuestion,
+  miseryTakenAwayQuestion,
+  presentPastFutureQuestion,
+  endingOfAnythingQuestion,
+  longLifeQuestion,
+  lifespanWhenDeathQuestion,
+  sickPersonLongLifeQuestion,
+  placeOfDeathQuestion,
+  causesOfDeathQuestion,
+  somethingGoodTodayQuestion,
+  todayGoodDayQuestion,
 };

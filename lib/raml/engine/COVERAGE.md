@@ -771,20 +771,122 @@ withheld verdict honestly, and fabricated nothing. No UI change was made
 beyond the section 8 accuracy fix — every result shape this stage
 exercised was already representable by the existing renderers.
 
-## Totals (as of this stage — Prompt 8 dependency-resolution audit, chapters 1-80)
+## Prompt 9 — Kanzul Mikban chapters 81-100 (Stage 6)
+
+Source-first expansion, same discipline as Prompts 4/5/7: read every
+chapter's actual text plus 2 unnumbered fragments, preserve every method
+independently, never guess an omitted figure or invent what an incomplete
+passage means. 20 new questions registered (19 numbered chapters plus the
+"Secrets Between Two Friends" fragment after ch.85; chapter 95 is a
+reference table, entirely omitted from the transcription and never phrased
+as a chart-verdict question, so it is not registered; the "repeated"
+fragment after ch.96 is a confirmed duplicate of ch.96's own question, per
+its own title, and is registered as ch.96's Method 2 rather than under its
+own separate intentions.ts id).
+
+**Three brand-new unsourced-classification axes, hit for the first time.**
+Chapters 1-80 never happened to need the `dayNight` or `stability`
+FigureQualities axes — both have been `needs_review`, project-wide, since
+Prompt 1 (the source's own edition note names them as real qualities the
+book uses, alongside gender, but this project has never had a table for
+any of the three). Chapter 83 needs day/night; chapters 85 Method 2, the
+"secrets" fragment's unreachable else-branch, and 86 Method 2 need
+stability. Chapter 91 needs a classification this project has *never*
+declared a field for at all — "present, past, or future star" — confirmed
+via a full re-grep of both manuscripts to be used exactly once, nowhere
+defined. None of the three was invented. Three new `ReviewReasonCode`
+values were added, one per axis (`day_night_classification_unsourced`,
+`stability_classification_unsourced`, `temporal_classification_unsourced`),
+matching `gender_classification_unsourced`'s own precedent exactly — one
+code per distinct axis, reused across every method that axis blocks.
+
+**Male/female-star search continued into 81-100, per instruction — still
+nothing found.** No occurrence of "male star"/"female star" or equivalent
+appears anywhere in chapters 81-100. The male/female-star gap therefore
+stands exactly as Prompt 8 left it (4 confirmed occurrences through ch.80,
+plus ch.127 and ch.141 beyond it, none defining the classification).
+
+**Two "OR across two different axes, pointing to opposite conclusions"
+cases, split into separate methods rather than merged.** Chapters 85 and
+86 each state their verdict as an OR between a verified axis (direction)
+and an unsourced one (stability) — and, unlike the "secrets" fragment two
+paragraphs later (where both halves of its own OR agree on the same
+verdict, so a true direction/fortune check is still decisive), chapters 85
+and 86's two axes point to *opposite* conclusions, meaning a
+direction-only reading could not honestly rule out the unverifiable
+stability half silently disagreeing on a given chart. Both are split into
+a direction-based Method 1 (verified) and a stability-based Method 2
+(blocked), matching the chapter 18 "some scholars also say" precedent
+(Prompt 6): preserve two genuinely different readings as two methods,
+never collapse one into the other's cosmetic elaboration.
+
+**A deliberately preserved textual difference: chapters 88 and 89.** Both
+use the identical 7-house opened-line count (h1, h2, h4, h5, h10, h11,
+h15), but chapter 88 says "subtract 12 from it" (a single subtraction)
+while chapter 89, two paragraphs later, says "start subtracting 12, 12"
+(the repeated `CAST_OUT_BY` reduction). These were implemented literally
+as two different techniques rather than smoothed into the same mechanic —
+on the shared fixture chart they happen to produce the same result (both
+reduce 15 to 3), which is a coincidence of this particular chart, not
+evidence the two techniques are secretly the same.
+
+**Chapter 90 Method 1 reuses the `interpretation_not_stated` code from
+Prompt 7** rather than needing a new one: its calculation is fully defined
+(sum the dot-values of every bad-fortune house, cast out by 12s, check
+that house's own fortune) but its own worked examples ("if your result is
+9, it means; if it's 12, it means...") never say what any result number
+means for whether misery ends — the same shape of gap as chapter 64
+Method 2, not a new category.
+
+**Chapter 79's own discipline (exactly-one case never assumed) reapplied
+twice more.** Chapter 84's three positive-trigger methods leave a
+good/middle-good result at h3/h4/h5 `uncertain` rather than assuming "not
+bad" means anything; chapter 98's house-repeat lookup leaves both a
+zero-match and a multiple-match case `uncertain` rather than picking one
+cause arbitrarily.
+
+**One new operation-audit finding: none extracted.** Every chapter 81-100
+method composed entirely from existing primitives —
+`ADD_MULTIPLE_HOUSES`, `ADD_FIGURES`, `EXTRACT_ELEMENT`, `CHECK_HOUSE`,
+`CHECK_ELEMENT`, `CHECK_LINE_STATE`, `COUNT_OPENED_LINES`, `CAST_OUT_BY`,
+`COUNT_FORTUNE`, `FIND_FIGURE_QUARTER`, `RECAST_FROM_HOUSES` — with two
+calculations composed inline rather than extracted: chapter 90 Method 1's
+"sum the dot-values of every bad-fortune house" (used by exactly one,
+already-blocked method — not evidenced as reusable) and chapter 98's
+house-repeat lookup (a 12-branch table specific to this one chapter's own
+cause list, not a generic operation). Neither meets this project's
+established extraction bar (three or more genuine, independent
+occurrences).
+
+**One genuine, naturally-occurring method conflict.** Chapter 96 ("if a
+sick person has long life") — Method 1 (air line, unfavourable) vs.
+Method 2 (the "repeated" fragment's quartet water-elements, favourable),
+`ConsensusLevel: 'conflict'`, `overallResult: 'mixed'`, verified live in
+the browser, same "preserved, not averaged" pattern as every earlier
+conflict this project has found (chs. 60, 61).
+
+See `lib/raml/engine/__tests__/questions-stage6.test.ts` for the full
+per-method, hand-verified test coverage, and `__tests__/audit-1-100.test.ts`
+(renamed from `audit-1-80.test.ts`, generalized to run its structural/
+consensus/descriptive-integrity/gender-classification checks against
+every registered question, chapters 1-100 together — still exactly 4
+confirmed gender-blocked methods, since none of this stage's 3 new
+unsourced axes use the gender code) for the full regression audit.
+
+## Totals (as of this stage — Prompt 9 extraction, chapters 1-100)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
-| Numbered chapters reviewed and entered into this engine | 80 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-80 — chapters 33, 46, 59 reviewed but out of scope/not computable, see below) |
-| Numbered chapters not yet reviewed | 73 (chapters 81-153) |
-| Unnumbered sub-chapters/continuations reviewed | 4 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question) |
-| Questions registered in `QUESTION_REGISTRY` | **78** |
-| Total methods across all registered questions | 143 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **119** |
-| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **7** |
-| **Uncertain** (not computable — omitted source figures, or, new this stage, a stated calculation whose verdict-mapping sentence is itself missing) | **17** |
-| Automated tests covering this engine | 1078 (all passing — Prompt 8 added 1 regression test proving ch.79 M2 never invents "1 = one baby") |
+| Numbered chapters reviewed and entered into this engine | 99 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60-94, 96-100 — chapters 33, 46, 59, 95 reviewed but out of scope/not computable, see below) |
+| Numbered chapters not yet reviewed | 53 (chapters 101-153) |
+| Unnumbered sub-chapters/continuations reviewed | 6 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope; the "Someone's Behavior" fragment after ch.64 — not registered, confirmed exact duplicate of ch.43 M1; the "If She/He Is Still in the Marriage" fragment after ch.66 — registered as its own question; the "Secrets Between Two Friends" fragment after ch.85 — registered as its own question; the "repeated" sick-person-long-life fragment after ch.96 — not registered separately, confirmed exact duplicate of ch.96, registered as its own Method 2) |
+| Questions registered in `QUESTION_REGISTRY` | **98** |
+| Total methods across all registered questions | 170 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **138** |
+| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **11** |
+| **Uncertain** (not computable — omitted source figures, or a stated calculation whose verdict-mapping sentence is itself missing) | **21** |
+| Automated tests covering this engine | 1303 (all passing — Prompt 9 added 45 hand-verified tests plus the audit suite's per-question checks now running against 98 questions instead of 78) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -831,6 +933,18 @@ exercised was already representable by the existing renderers.
 | Needs review (the unsourced figure-gender classification, plus a second, independent querent-gender-input gap — ch.68 M1) | 1 |
 | Uncertain (method status — a stated calculation whose verdict-mapping sentence is missing, `interpretation_not_stated` — ch.64 M2) | 1 |
 | Not registered at all (confirmed exact duplicate of an already-implemented method, not a new rule) | "Someone's Behavior" fragment after ch.64 (1 method — byte-for-byte identical to ch.43 M1) |
+
+### Stage 6 (chapters 81-100) subtotal — Prompt 9
+
+| | Count |
+|---|---|
+| Numbered/unnumbered items reviewed | 22 (81-100, plus the "Secrets Between Two Friends" fragment after ch.85 and the "repeated" fragment after ch.96) |
+| Questions registered | 20 |
+| Methods (registered only) | 27 |
+| Verified (includes 5 descriptive verdicts: chs. 82/84(x3)/98 — see per-chapter table) | 19 |
+| Needs review (3 brand-new unsourced axes — day/night ch.83, stability ch.85 M2/86 M2, temporal ch.91 — plus the male/female-star search continued into 81-100 with no new occurrence found) | 4 |
+| Uncertain (method status — 2 figures-omitted chapters (94, 97), 1 interpretation_not_stated (ch.90 M1), 1 truncated mid-sentence (ch.82 M2)) | 4 |
+| Not registered at all (a reference table, entirely omitted, never phrased as a chart-verdict question) | ch.95 (0 computable methods) |
 
 ## Implemented, by chapter
 
@@ -928,7 +1042,30 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 79 | `the-number-of-babies-in-a-pregnancy` (descriptive) | 2 | 2 | 0 | 0 |
 | 80 | `if-a-pregnancy-is-yours-or-not-d` (descriptive) | 2 | 2 | 0 | 0 |
 | **Subtotal (61-80)** | | **31** | **29** | **1** | **1** |
-| **Grand total (1-80)** | | **143** | **119** | **7** | **17** |
+| **Subtotal (1-80)** | | **143** | **119** | **7** | **17** |
+| 81 | `if-she-will-put-to-bed-peacefully-or` | 1 | 1 | 0 | 0 |
+| 82 | `the-time-she-will-put-to-bed` (descriptive) | 2 | 1 | 0 | 1 |
+| 83 | `if-it-s-day-or-night-that-she` (descriptive) | 1 | 0 | 1 | 0 |
+| 84 | `if-your-enemy-is-from-your-father-s` (descriptive) | 3 | 3 | 0 | 0 |
+| 85 | `how-the-future-of-two-people-s-friendship` | 2 | 1 | 1 | 0 |
+| 85→ | `secrets-between-two-friends-who-follow-each-other` (unnumbered fragment, descriptive) | 1 | 1 | 0 | 0 |
+| 86 | `if-it-s-business-or-handwork-that-will` (descriptive) | 2 | 1 | 1 | 0 |
+| 87 | `when-your-suffering-and-pain-or-sadness-will` | 1 | 1 | 0 | 0 |
+| 88 | `if-you-will-get-a-position-rank-or` | 1 | 1 | 0 | 0 |
+| 89 | `if-your-success-or-wealth-will-remain-forever` | 1 | 1 | 0 | 0 |
+| 90 | `if-someone-s-misery-will-be-taken-away` | 2 | 1 | 0 | 1 |
+| 91 | `if-something-is-present-past-or-future` (descriptive) | 1 | 0 | 1 | 0 |
+| 92 | `the-ending-part-of-anything-you-want-to` | 1 | 1 | 0 | 0 |
+| 93 | `if-someone-has-long-life-or-not` | 1 | 1 | 0 | 0 |
+| 94 | `the-lifespan-and-when-someone-will-die` (descriptive) | 1 | 0 | 0 | 1 |
+| 95 | *(reference table, entirely omitted — not a chart-verdict question)* | — | not registered | — | — |
+| 96 | `if-a-sick-person-has-long-life-or` (incl. 1 method from the "repeated" fragment) | 2 | 2 | 0 | 0 |
+| 97 | `where-one-will-die-place-of-death` (descriptive) | 1 | 0 | 0 | 1 |
+| 98 | `the-causes-of-someone-s-death` (descriptive) | 1 | 1 | 0 | 0 |
+| 99 | `if-someone-or-something-good-will-come-to` | 1 | 1 | 0 | 0 |
+| 100 | `if-today-is-a-good-day-or-not` | 1 | 1 | 0 | 0 |
+| **Subtotal (81-100)** | | **27** | **19** | **4** | **4** |
+| **Grand total (1-100)** | | **170** | **138** | **11** | **21** |
 
 ## Architectural gaps (Stage 3)
 
@@ -1071,6 +1208,31 @@ existing model.
 
 The chapter 68 finding is new evidence for a point Prompt 6 already flagged as unresolved (section 11): the male/female-star gap keeps recurring (now a 4th confirmed occurrence — ch.41 M1, ch.48 M1/M2, ch.68 M1) with no defining table anywhere in either manuscript within chapters 1-80. It also surfaces a genuinely new, second kind of gap this project hasn't hit before: the source needs to know *who is asking*, not just what the chart shows — the casting flow only ever collects the 4 Mother patterns, with no concept of querent identity at all. Resolving (b) would be an architectural/product decision (add a querent-gender field to the casting flow), not a source-reading fix, and was not made here — consistent with Prompt 7's own "do not alter core casting unless a source-supported architectural need is documented and the smallest possible change is made" instruction; since no chapter 1-80 method can be computed even with that field added except this one, adding it was judged not yet warranted.
 
+## Architectural gaps (Stage 6 — Prompt 9, chapters 81-100)
+
+Reviewed under the same A-E taxonomy as Stages 3-5 above. Like Stage 5, no
+chapter this stage was blocked at the whole-chapter level except ch.95
+(never a computable shape at all) — every other gap found was scoped to a
+single method within an otherwise-computable chapter.
+
+| Method | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 83 Method 1 | Hinges on classifying the resulting figure as a "day star" or "night star" | No — `FigureQualities.dayNight` has been `needs_review`, project-wide, since Prompt 1 | No — a new result kind doesn't create the missing classification | No — a primitive can't invent a table that doesn't exist | **Yes** — need a later chapter (or either manuscript) to actually define which figures are day/night | No |
+| 85 Method 2, "secrets" fragment's else-branch, 86 Method 2 | Hinges on classifying a figure as "stable" or "unstable" | No — `FigureQualities.stability` has been `needs_review`, project-wide, since Prompt 1 | No | No | **Yes** — same shape as day/night: need a source table | No |
+| 91 Method 1 | Hinges on classifying a figure as "present," "past," or "future" | No — this project has never declared a FigureQualities field for this axis at all, let alone sourced one | No — a new result kind doesn't create the missing classification | No — a primitive can't invent a table, and there's no field to attach one to yet even if it existed | **Yes** — need any source (either manuscript) to define this classification; a full re-grep found the phrase used exactly once, nowhere defined | No |
+| 82 Method 2 | The source's own text is cut off mid-sentence, continuing onto a page never transcribed | No — nothing to compute past the recast step; the very next check is unknown | No | No — a primitive can't invent what the missing sentence says | **Yes** — need the original manuscript's next page | No |
+| 90 Method 1 | The calculation is fully defined, but the source's own worked examples never state what any result number means for this question | No — `ChartModel` computes the figure correctly | No — this is the exact shape `interpretation_not_stated` already exists for (Prompt 7) | No — a primitive can't invent a verdict mapping that isn't in the source | **Yes** — need the source's own missing sentence(s) | No |
+| 94, 97 | Every branch's trigger figure(s) omitted from the transcription (the branch *meanings* survive in full) | No — `CHECK_HOUSE(chart, 8)` computes correctly | No | No | **Yes** — need the original manuscript scan | No |
+| 95 (not registered) | A reference table (which figures belong to which life stage), not phrased as a question at all, and entirely omitted besides | No — no houses, no calculation, nothing a `ChartModel` operation could compute even in principle | No — there is no answer shape to represent | No | **Yes** — need the original manuscript scan, though even then this would be a lookup table like `content/classicalAttributes.ts`, not a `QuestionDefinition` | No |
+
+Three of these (day/night, stability, temporal) are the SAME shape of gap
+as the male/female-star classification (Prompt 6) — an axis the source
+tradition clearly uses but this project has no table for — just three
+different axes, each hit here for the first time. None was invented;
+each got its own `ReviewReasonCode`, matching `gender_classification_
+unsourced`'s own precedent (one code per distinct axis, reused across
+every method that axis blocks).
+
 ## Needs review (calculable, rule ambiguous)
 
 - **Chapter 1, Method 3** (travel) — the deciding rule classifies the final
@@ -1104,6 +1266,19 @@ The chapter 68 finding is new evidence for a point Prompt 6 already flagged as u
   depends on the *querent's* own gender, which the app's casting flow has
   no input for at all. See "Architectural gaps (Stage 5)" above for the
   full reasoning.
+- **Chapter 83, Method 1** (day or night birth) — classifies the result as
+  a "day star" or "night star"; the `dayNight` axis has been `needs_review`
+  project-wide since Prompt 1, and this is the first method to actually
+  need it. `reviewReasonCode: 'day_night_classification_unsourced'`.
+- **Chapter 85, Method 2 / Chapter 86, Method 2** (friendship future /
+  business-or-handwork, stability-based readings) — classify the result as
+  "stable" or "unstable"; same shape of gap, `reviewReasonCode:
+  'stability_classification_unsourced'`.
+- **Chapter 91, Method 1** (present, past, or future) — classifies the
+  result as a "present," "past," or "future" star; a classification this
+  project has never even declared a `FigureQualities` field for, confirmed
+  by a full re-grep to occur exactly once in either manuscript.
+  `reviewReasonCode: 'temporal_classification_unsourced'`.
 
 ## Uncertain (not computable — source passages needing manual verification)
 
@@ -1142,6 +1317,19 @@ where noted:
   codes used elsewhere) so this specific kind of gap stays distinguishable
   from an omitted figure or an ambiguous split. See "Architectural gaps
   (Stage 5)" above.
+- Chapter 82, Method 2 — the source is cut off mid-sentence ("...and...
+  [text continues onto the next page, not yet transcribed]") immediately
+  after naming which 4 houses to recast — the same shape of gap as the
+  "continued from Chapter Twenty-Eight" fragment (Prompt 4), just within a
+  registered chapter this time.
+- Chapter 90, Method 1 — reuses `interpretation_not_stated` (see chapter
+  64 Method 2 above): the calculation is fully defined, but the source's
+  own worked examples never say what any result number means.
+- Chapter 94 — "check h8" is well-defined, but every one of its ~15
+  branches has its trigger figure omitted while the meaning survives in
+  full; same Group A shape as chapters 2/4/5/6/7/9/13/17/19/21/26/27.
+- Chapter 97 — identical shape to chapter 94, ~13 branches, figures
+  omitted throughout.
 
 None of these were guessed at. If the original manuscript pages ever surface
 with these figures legible, each one becomes a small, mechanical change —
@@ -1186,10 +1374,16 @@ section 17):
 | Ch.79, Method 2 — exactly-one case | **Reconfirmed non-invention (Prompt 8)** — the source enumerates only 2/3/>3; no implicit rule covers a count of 1. Left `uncertain`, now with a dedicated regression test proving the app doesn't fabricate "one baby" for the one fixture chart that actually produces this exact case |
 | Ch.32 ("will it rain") | **Re-checked, still not changed (Prompt 8)** — same conclusion as Prompt 6: no new source evidence surfaced to justify moving it to `descriptive`. Documented again as an open, deliberately-unresolved tension rather than silently dropped |
 | `InsufficientNotice.tsx` WHY text | **RESOLVED (Prompt 8)** — a verified method whose per-chart outcome is `'uncertain'` was showing the generic, factually wrong "Not yet verified against the source manuscript" instead of its own accurate, already-computed verdict interpretation. Fixed to prefer the method's `reviewNote` (when the whole method is blocked) then its verdict's own `interpretation` (when the method is verified but this chart falls outside its defined branches), before ever falling back to the generic string. Presentation-layer only; no calculation or verdict changed |
+| Ch.83 M1, Ch.85 M2, "secrets" fragment else-branch, Ch.86 M2 (day/night, stability) | **New this stage (Prompt 9)** — two more of the project's known-since-Prompt-1 unsourced axes, hit for the first time. `reviewReasonCode: 'day_night_classification_unsourced'` / `'stability_classification_unsourced'`. Needs a source table for either axis, in a later chapter or an explicit product decision |
+| Ch.91 M1 (present/past/future) | **New this stage (Prompt 9)** — a classification this project has never even declared a field for; confirmed via a full re-grep to occur exactly once in either manuscript, nowhere defined. `reviewReasonCode: 'temporal_classification_unsourced'` |
+| Ch.82 M2 | **New this stage (Prompt 9)** — source cut off mid-sentence before naming what to check after recasting h1/h4/h5/h7; needs the original manuscript's next page |
+| Ch.90 M1 | **New this stage (Prompt 9)** — reuses `interpretation_not_stated`; calculation complete (dots of bad-fortune houses, cast out by 12s), but the source's own worked examples never state what any result means |
+| Ch.94, Ch.97 | **New this stage (Prompt 9)** — same "figures omitted, meanings survive" shape as the chapters 2-27 Group A entries above; need the original manuscript scan |
+| Ch.95 (reference table) | **New this stage (Prompt 9)** — a life-stage lookup table, entirely omitted from the transcription, and never phrased as a chart-verdict question in the first place (unlike every other gap in this queue, restoring the original text would still leave this as a `content/`-style reference table, not a `QuestionDefinition`) |
 
 ## Not yet implemented
 
-Chapters 81-153 (73 numbered chapters) have not been read for this
+Chapters 101-153 (53 numbered chapters) have not been read for this
 structured engine yet. `lib/raml/methodVerdicts.ts`'s general parser
 already covers some of that material with lighter-weight automatic
 verdicts (no audit trail, no cross-method consensus) — see its own file
@@ -1350,3 +1544,31 @@ the end of Prompt 7 — reconfirmed, not newly discovered, and neither was
 filled in with a plausible-sounding guess. No chapter 81+ work was
 started, and no chapter 1-80 source rule, figure classification, or user
 input was invented anywhere in this stage.
+
+**Prompt 9, honestly:** `casting.ts`, `chartModel.ts`, and `ruleEngine.ts`
+remain completely untouched — confirmed by re-reading all three in full,
+and no chapter 81-100 finding ever came close to needing a change to
+them. No chapter 1-80 calculation was corrected this stage either.
+`types.ts` gained exactly three additive changes: three new
+`ReviewReasonCode` union members (`day_night_classification_unsourced`,
+`stability_classification_unsourced`, `temporal_classification_
+unsourced`), no existing value's meaning changed. `operations.ts` gained
+**zero** new primitives — every chapter 81-100 method composed entirely
+from the 20+ primitives Prompts 1-7 already built; the two candidate
+inline calculations (ch.90 M1's bad-fortune dot sum, ch.98's house-repeat
+cause lookup) were each judged, and documented, as not meeting this
+project's own three-or-more-occurrence extraction bar. `reading.ts`,
+`interpretation.ts`, and every UI component were read but not modified —
+every result shape chapters 81-100 produced (favourable/unfavourable/
+mixed/conflict, descriptive/agree, insufficient-data-with-full-
+explanation) was confirmed, via live rendering, to already be rendered
+honestly by the existing components. No new source rule was invented
+anywhere: chapter 82 Method 2, chapter 90 Method 1, chapters 94/97, and
+chapters 83/85/86/91's newly-hit unsourced axes were all left without a
+verdict rather than guessed one; chapter 84's good/middle-good branches
+and chapter 98's zero-match/multiple-match cases were left `uncertain`
+rather than assumed. The male/female-star search was continued into
+chapters 81-100 as instructed and found nothing new — the gap stands
+exactly as Prompt 8 left it. No chapter 101+ work was started, and no
+chapter 1-100 source rule, figure classification, or user input was
+invented anywhere in this stage.

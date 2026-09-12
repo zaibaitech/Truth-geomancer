@@ -195,7 +195,23 @@ export type ReviewReasonCode =
   // an omitted figure (the calculation is complete) and from an ambiguous
   // split (there's no stated interpretation to be ambiguous about at all).
   // First seen at chapter 64 Method 2.
-  | 'interpretation_not_stated';
+  | 'interpretation_not_stated'
+  // Prompt 9: three more of the project's known-since-Prompt-1 unsourced
+  // FigureQualities axes (see the RuleStatus doc comment above — "day/
+  // night, stable/unstable" were named as real book qualities from the
+  // very start, but chapters 1-80 never happened to need them) are hit for
+  // the first time by chapters 81-100. Each gets its own code, matching
+  // gender_classification_unsourced's own precedent, so future audits can
+  // tell at a glance which specific unsourced axis blocks a given method.
+  // day/night: chapter 83. stability: chapter 85 Method 2, the "secrets
+  // between two friends" fragment's unreachable else-branch, and chapter
+  // 86 Method 2. temporal (present/past/future star — a classification
+  // this project has never even declared a FigureQualities field for,
+  // let alone sourced): chapter 91, its only occurrence anywhere in
+  // either manuscript.
+  | 'day_night_classification_unsourced'
+  | 'stability_classification_unsourced'
+  | 'temporal_classification_unsourced';
 
 export interface MethodDefinition {
   id: string;

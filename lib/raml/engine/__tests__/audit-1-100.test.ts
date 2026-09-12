@@ -1,9 +1,10 @@
 // Prompt 4, section 19 (originally chapters 1-40), extended by Prompt 5,
-// section 15 to chapters 1-60, and by Prompt 7, section 11 to chapters
-// 1-80: a full structural audit — registry integrity, consensus/counting
-// invariants, source traceability, primary-indicator correctness, and
-// descriptive-result integrity — run against every registered question at
-// once, not just the ones added this stage.
+// section 15 to chapters 1-60, by Prompt 7, section 11 to chapters 1-80,
+// and by Prompt 9 to chapters 1-100: a full structural audit — registry
+// integrity, consensus/counting invariants, source traceability,
+// primary-indicator correctness, and descriptive-result integrity — run
+// against every registered question at once, not just the ones added
+// this stage.
 import { describe, expect, it } from 'vitest';
 import { QUESTION_REGISTRY } from '../questions';
 import { runEngine, runReading } from '../index';
@@ -44,8 +45,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 78 questions total (57 from chapters 1-60, plus 21 newly added for chapters 61-80)', () => {
-    expect(ids.length).toBe(78);
+  it('now covers 98 questions total (78 from chapters 1-80, plus 20 newly added for chapters 81-100)', () => {
+    expect(ids.length).toBe(98);
   });
 });
 

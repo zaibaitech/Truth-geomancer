@@ -56,8 +56,8 @@ everything is hand-rolled React + Tailwind, matching the sibling app's approach.
   the chart, combined per the book's rule, and the resulting figure's verdict shown
   directly); for the rest, the chapter's exact method text is shown with every house it
   mentions (`h1`, `h7`, ...) resolved against the real figure the user's own chart landed
-  on there — see "On not inventing verdicts" below for the reasoning and the classical-
-  attribution caveat behind the automated verdicts.
+  on there — see "On not inventing verdicts" and "The automatic interpretation engine"
+  below for how much of that is now fully automatic and why the rest isn't yet.
 
 ## The geomancy system
 
@@ -115,6 +115,65 @@ verbatim, and the "Your Reading" tab resolves what's mechanically certain — wh
 figure the user's own chart put at each house the method names — leaving the good/bad call
 to the reader. Widening the parser's recognized shapes (element-isolation and whole-chart
 tallies are the next-biggest categories left) is the natural next step.
+
+## The automatic interpretation engine
+
+`lib/raml/engine/` is a second, more structured automation layer sitting alongside the
+general parser above — built for five hand-verified pilot questions rather than parsed in
+bulk from raw text, so each one can carry a full audit trail and multi-method comparison
+without waiting on a fully general rule language. It never touches chart generation
+(`lib/raml/casting.ts`) or the figure data (`content/stars.ts`,
+`content/classicalAttributes.ts`) — it only reads them.
+
+- **Chart model** (`engine/chartModel.ts`) adapts the existing `Chart` into a richer
+  `ChartModel` where every house carries its full traditional quality set — fortune,
+  direction, per-line opened/closed, and also stability, gender, and day/night — with each
+  one honestly labeled `verified`, `needs_review`, or `uncertain` per where its value
+  actually comes from. Stability, gender, and day/night are always `needs_review`: the
+  source manuscripts name these as real qualities but never tabulate which figure carries
+  which, so the engine represents the *slot* for that data without inventing what goes in
+  it.
+- **Operations** (`engine/operations.ts`) are the reusable primitives every method is built
+  from — add houses, check a single house, check whether a figure recurs elsewhere in the
+  chart, extract one element's line across four houses into a new synthetic figure (the
+  same mechanic the casting algorithm already uses to derive Daughters from Mothers,
+  generalized), compare several methods' verdicts into one consensus. Methods never call
+  `addPatterns` or `getStarByPattern` directly — only through these, so there's exactly one
+  place the actual geomantic math lives.
+- **Question registry** (`engine/questions/`) has five pilot questions transcribed from
+  Kanzul Mikban and cross-checked against the manuscript text directly, not paraphrased:
+  money today (ch. 2), business profit and loss (ch. 3), court case/fight/war (ch. 19),
+  stolen/lost things (ch. 18), and safe return from travel (ch. 1). Of their 17 combined
+  methods, 12 are `verified` and computed automatically; 5 are marked `needs_review` or
+  `uncertain` and excluded from the result — mostly because the deciding figures were
+  transcribed as "[figures omitted]" in the source PDFs, or because a method's own wording
+  never says what happens for a result it didn't anticipate (e.g. a 3-way good/bad/
+  middle-good method that only ever spells out the two extremes). A method marked
+  `needs_review` whose facts ARE still computable (e.g. "check H2 and H6") shows those facts
+  in the audit trail regardless — only the verdict is withheld, never the calculation.
+- **Rule engine** (`engine/ruleEngine.ts`) runs every method for a question automatically —
+  no house is ever asked of the user — and computes a consensus across whichever methods
+  came back verified: `agree`, `mostly_agree`, `mixed`, `conflict`, or `insufficient_data`
+  if nothing was computable at all.
+- **Interpretation** (`engine/interpretation.ts`) turns that already-decided calculation
+  into sentences. It never decides anything itself — no model call, no free-text reading of
+  the chart — it only phrases a result Layer 1 already computed deterministically.
+
+`components/raml/EngineReadingView.tsx` renders the result — overall outcome, the primary
+method's figure, every house touched, method consistency, and two expandable sections ("Read
+full interpretation" / "How was this calculated?", the latter showing every method's exact
+source quote, calculation steps, and verdict, `needs_review`/`uncertain` ones included).
+`ResultTabs.tsx` uses it automatically whenever the cast chart's question is one of the five
+pilot questions; every other question still falls back to the general-parser flow above,
+unaffected.
+
+Covered by an automated test suite (`npm test`, Vitest) — 66 tests as of this writing,
+against a hand-verified fixture chart whose every house was checked by hand against the
+addition rule before being relied on in an assertion: correct house selection, figure
+addition (including that it's order/grouping-independent, since the addition rule is
+associative and commutative), element extraction, quality identification, multi-method
+consensus in all five levels (including two questions that genuinely conflict on this
+fixture chart), and a regression pass over the untouched casting engine itself.
 
 ## Content protection in the book reader
 
@@ -179,4 +238,5 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build       # production build
 npm run typecheck
+npm test            # engine + casting-regression test suite (Vitest)
 ```

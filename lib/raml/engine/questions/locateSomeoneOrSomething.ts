@@ -1,10 +1,11 @@
 // Source: Kanzul Mikban, Chapter 36 — "If You Want to Locate Someone or
 // Something" (id "if-you-want-to-locate-someone-or-something"). One
-// method — descriptive (a compass direction), not favourable/unfavourable,
-// same architectural gap as chapters 23/31. Method 2 ("make just one star
-// and use it") is too vague to implement as its own distinct rule — it
-// never says which single star, or how — so it is not registered rather
-// than guessed.
+// method — a real, verified answer (a compass direction), descriptive
+// rather than favourable/unfavourable. See terrainType.ts: `status:
+// 'verified'` with `outcome: 'descriptive'` (Prompt 4.5). Method 2 ("make
+// just one star and use it") is still too vague to implement as its own
+// distinct rule — it never says which single star, or how — so it remains
+// unregistered rather than guessed.
 
 import { EXTRACT_LINES, CHECK_ELEMENT } from '../operations';
 import type { Element } from '@/content/stars';
@@ -13,18 +14,16 @@ import type { MethodDefinition, QuestionDefinition } from '../types';
 const CHAPTER_ID = 'if-you-want-to-locate-someone-or-something';
 
 const DIRECTION_LABEL: Record<Element, string> = {
-  fire: 'the eastern part of the place',
-  air: 'the western part of the place',
-  water: 'the northern part of the place',
-  sand: 'the southern part of the place',
+  fire: 'Eastern',
+  air: 'Western',
+  water: 'Northern',
+  sand: 'Southern',
 };
 
 const method1: MethodDefinition = {
   id: 'locate-method-1',
   label: 'Method 1',
-  status: 'needs_review',
-  reviewNote:
-    'This method answers a descriptive question (a compass direction) rather than a favourable/unfavourable one. The current engine has no MethodOutcome for a purely descriptive result, so no verdict is asserted — the calculation itself is fully computed and shown below.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
@@ -42,7 +41,12 @@ const method1: MethodDefinition = {
   },
   evaluate: (calc) => {
     const { element } = CHECK_ELEMENT(calc.resultFigure);
-    return { outcome: 'uncertain', label: `${element} figure`, interpretation: `It's in ${DIRECTION_LABEL[element]}.` };
+    return {
+      outcome: 'descriptive',
+      label: `${DIRECTION_LABEL[element]} direction`,
+      interpretation: `It's in the ${DIRECTION_LABEL[element].toLowerCase()} part of the place you are.`,
+      descriptiveAnswer: element,
+    };
   },
 };
 
@@ -51,5 +55,6 @@ export const locateSomeoneOrSomethingQuestion: QuestionDefinition = {
   title: 'Where can I locate this person or thing?',
   categoryId: 'lost-stolen',
   chapterId: CHAPTER_ID,
+  resultKind: 'descriptive',
   methods: [method1],
 };

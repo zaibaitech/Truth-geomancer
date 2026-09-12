@@ -41,6 +41,7 @@ export const OUTCOME_LABEL: Record<MethodOutcome | 'insufficient_data', string> 
   unfavourable: 'Unfavourable',
   mixed: 'Mixed',
   uncertain: 'Uncertain',
+  descriptive: 'Descriptive',
   insufficient_data: 'Insufficient Verified Data',
 };
 
@@ -51,6 +52,7 @@ export const OUTCOME_ROW_LABEL: Record<MethodOutcome, string> = {
   unfavourable: 'Unfavourable',
   mixed: 'Conditional / Mixed',
   uncertain: 'Uncertain',
+  descriptive: 'Descriptive',
 };
 
 export const OUTCOME_TONE: Record<MethodOutcome | 'insufficient_data', 'sand' | 'fire' | 'neutral'> = {
@@ -58,6 +60,7 @@ export const OUTCOME_TONE: Record<MethodOutcome | 'insufficient_data', 'sand' | 
   unfavourable: 'fire',
   mixed: 'neutral',
   uncertain: 'neutral',
+  descriptive: 'neutral',
   insufficient_data: 'neutral',
 };
 
@@ -66,6 +69,7 @@ export const CONSENSUS_LABEL: Record<MethodConsensus['level'], string> = {
   mostly_agree: 'Methods mostly agree',
   mixed: 'Mixed indications',
   conflict: 'Methods conflict',
+  disagree: 'Methods disagree',
   insufficient_data: 'Not enough computable methods',
 };
 
@@ -177,8 +181,18 @@ export interface ReadingResult {
   questionId: string;
   question: string;
   questionCategory: string | null;
+  /** 'descriptive' when this question's methods answer a categorical fact
+   * (terrain, direction, location) rather than a favourable/unfavourable
+   * verdict — drives which OutcomeCard variant and Method Consistency
+   * wording is used. Never both at once. */
+  resultKind: 'outcome' | 'descriptive';
   overallOutcome: MethodOutcome | 'insufficient_data';
   outcomeLabel: string;
+  /** Only set when resultKind === 'descriptive' and the counted methods
+   * agree: the shared categorical answer itself (e.g. "much water"), shown
+   * in place of a favourable/unfavourable badge. Null on disagreement or
+   * insufficient data — never a fabricated single answer. */
+  descriptiveAnswer: string | null;
   /** The 1-2 sentence direct answer — traditional-consistency language only
    * (no invented probabilities/percentages/confidence scores). */
   shortSummary: string;
@@ -236,6 +250,10 @@ function buildRelevance(
   if (outcome === 'uncertain') {
     return `Falls outside this rule's defined outcomes, so it isn't counted toward the result: ${interpretation}`;
   }
+  // A descriptive answer doesn't "support" or "differ from" anything the
+  // way a favourable/unfavourable one does — the answer itself, already
+  // shown on the card, IS the relevant fact. No extra claim to make here.
+  if (outcome === 'descriptive') return null;
   if (outcome === 'mixed') {
     return `Provides a conditional indication: ${interpretation}`;
   }
@@ -251,6 +269,10 @@ function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overall
   const direction = figure.qualities.direction;
   const outcome = m.verdict?.outcome ?? null;
   const interpretation = m.verdict?.interpretation ?? null;
+  // For a descriptive verdict, the generic OUTCOME_LABEL word ("Descriptive")
+  // would say nothing useful — the method's own verdict.label already IS
+  // the category ("Water", "Eastern"), so that's what gets shown in its place.
+  const methodOutcomeLabel = outcome === 'descriptive' ? m.verdict!.label : outcome ? OUTCOME_LABEL[outcome] : null;
   return {
     role,
     figureId: figure.figureId,
@@ -263,7 +285,7 @@ function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overall
     methodStatus: m.method.status,
     housesUsed: figure.sourceHouses,
     methodOutcome: outcome,
-    methodOutcomeLabel: outcome ? OUTCOME_LABEL[outcome] : null,
+    methodOutcomeLabel,
     interpretation,
     relevance: buildRelevance(outcome, overallOutcome, interpretation),
   };
@@ -276,6 +298,11 @@ function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overall
 function buildOverallSummary(overallOutcome: MethodOutcome | 'insufficient_data', consensus: MethodConsensus): string {
   if (overallOutcome === 'insufficient_data') {
     return 'We could not produce a reliable automatic reading from the currently verified source rules.';
+  }
+  if (overallOutcome === 'descriptive') {
+    return consensus.level === 'agree' && consensus.descriptiveAnswer
+      ? `The verified methods indicate: ${consensus.descriptiveAnswer}.`
+      : 'The verified methods give different answers for this question — see the individual methods below.';
   }
   const label = OUTCOME_LABEL[overallOutcome];
   switch (consensus.level) {
@@ -357,7 +384,16 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
 
   const methodResults: ReadingMethodRow[] = result.methods.map((m) => {
     const counted = m.verdict !== null && m.verdict.outcome !== 'uncertain';
-    const agreesWithOverall = counted && result.overallResult !== 'insufficient_data' ? m.verdict!.outcome === result.overallResult : null;
+    // Descriptive methods are compared by ANSWER VALUE, not by outcome-type
+    // equality (every descriptive verdict has outcome === 'descriptive', so
+    // that comparison would trivially always say "agrees"). Method
+    // Consistency renders descriptive rows without a check/cross mark at
+    // all (see MethodConsistencyCard), so this is left null there — it's
+    // only meaningful for the favourable/unfavourable/mixed model.
+    const agreesWithOverall =
+      counted && result.overallResult !== 'insufficient_data' && m.verdict!.outcome !== 'descriptive'
+        ? m.verdict!.outcome === result.overallResult
+        : null;
     const resultFigure = m.calculation?.resultFigure ?? null;
     const fortune = resultFigure?.qualities.fortune;
     const direction = resultFigure?.qualities.direction;
@@ -368,7 +404,7 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
       counted,
       agreesWithOverall,
       outcome: m.verdict?.outcome ?? null,
-      outcomeLabel: m.verdict ? OUTCOME_LABEL[m.verdict.outcome] : null,
+      outcomeLabel: m.verdict ? (m.verdict.outcome === 'descriptive' ? m.verdict.label : OUTCOME_LABEL[m.verdict.outcome]) : null,
       interpretation: m.verdict?.interpretation ?? null,
       reviewNote: m.method.reviewNote ?? null,
       housesUsed: m.calculation?.housesUsed ?? [],
@@ -405,8 +441,10 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
     questionId: result.questionId,
     question: result.question,
     questionCategory: category,
+    resultKind: consensus.kind,
     overallOutcome: result.overallResult,
     outcomeLabel: OUTCOME_LABEL[result.overallResult],
+    descriptiveAnswer: consensus.kind === 'descriptive' ? consensus.descriptiveAnswer : null,
     shortSummary: buildOverallSummary(result.overallResult, consensus),
     detailedInterpretation: result.interpretation,
     primaryFigure,

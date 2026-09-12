@@ -14,7 +14,44 @@ Regenerate this table by hand whenever a chapter is added or a method's
 status changes — it is not generated from code, so treat it as documentation
 that can drift, not a live report.
 
-## Totals (as of this stage — Stage 3 / Prompt 4, chapters 20-40)
+## Prompt 4.5 — descriptive result kind (architecture audit, no new chapters)
+
+Before Prompt 4.5, chapters 23/31/36's fully-computable methods were marked
+`needs_review` purely because the engine had no `MethodOutcome` for a
+categorical answer ("the terrain is water") — an architectural workaround,
+not a real source-verification gap. The audit added a genuine third result
+shape rather than continuing to misuse `needs_review` for it:
+
+- `MethodOutcome` gained `'descriptive'`, and `MethodVerdict` gained an
+  optional `descriptiveAnswer` field (a normalized value used ONLY to
+  compare methods for agreement — never displayed raw, never a favourable/
+  unfavourable judgment).
+- `QuestionDefinition` gained an optional `resultKind: 'outcome' |
+  'descriptive'` field (default `'outcome'` — every pre-existing question
+  needed zero changes).
+- `COMPARE_RESULTS` (`operations.ts`) now takes that `resultKind` and, for
+  descriptive questions, compares counted methods by ANSWER EQUALITY
+  ("Methods agree" / "Methods disagree" — new `ConsensusLevel: 'disagree'`)
+  instead of voting them into a favourable/unfavourable/mixed tally that was
+  never the right shape for a categorical fact.
+- Chapters 23, 31, and 36 were migrated from `status: 'needs_review'` to
+  `status: 'verified'` with a real `outcome: 'descriptive'` verdict — the
+  calculation didn't change at all, only how honestly its result type is
+  represented. **No source rule was invented or altered by this change.**
+- `EngineReadingView`'s existing generic components (`OutcomeCard`,
+  `MethodConsistencyCard`, `FigureCard`) gained small, data-driven
+  adaptations (a "Reading" eyebrow + the actual answer text in place of a
+  favourable/unfavourable badge; per-method rows without a check/cross icon)
+  rather than a second, hard-coded UI — see "Files changed" in the session
+  report for the full list.
+
+This is a presentation/result-model change only; every existing outcome
+question's calculation, consensus, and display are byte-identical to
+before. See `lib/raml/engine/__tests__/reading.test.ts` ("Prompt 4.5 —
+descriptive result kind") and `operations.test.ts`
+("COMPARE_RESULTS — descriptive questions") for the new coverage.
+
+## Totals (as of this stage — Stage 3 / Prompt 4 + 4.5, chapters 20-40)
 
 | | Count |
 |---|---|
@@ -24,10 +61,10 @@ that can drift, not a live report.
 | Unnumbered sub-chapters/continuations reviewed this stage | 3 ("If It's Good to Stay in a Particular House" — registered; two Ch.28 continuation fragments — not registered, no computable shape at all) |
 | Questions registered in `QUESTION_REGISTRY` | **40** |
 | Total methods across all registered questions | 85 |
-| **Verified** (computed automatically, count toward the result) | **63** |
-| **Needs review** (calculable, but the rule itself is ambiguous or descriptive) | **6** |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **66** |
+| **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **3** |
 | **Uncertain** (not computable — almost always omitted source figures) | **16** |
-| Automated tests covering this engine | 438 (all passing) |
+| Automated tests covering this engine | 461 (all passing) |
 
 ### Stage 1+2 (chapters 1-19) subtotal — unchanged since Prompt 2
 
@@ -39,19 +76,21 @@ that can drift, not a live report.
 | Needs review | 2 |
 | Uncertain | 11 |
 
-### Stage 3 (chapters 20-40) subtotal — this stage
+### Stage 3 (chapters 20-40) subtotal — Prompt 4 + 4.5
 
 | | Count |
 |---|---|
 | Numbered/sub- chapters reviewed | 23 (20, 21, the unnumbered "good to stay in a house", 22-32, 33, 34-40, plus 2 unnumbered Ch.28 continuation fragments) |
 | Questions registered | 21 |
 | Methods | 37 |
-| Verified | 28 |
-| Needs review | 4 |
+| Verified (includes 3 descriptive verdicts: chs. 23, 31, 36 — see Prompt 4.5 above) | 31 |
+| Needs review | 1 |
 | Uncertain | 5 |
 | Not registered at all (no computable shape, or architecturally out of scope) | 3 (chapter 33; both Ch.28 continuation fragments) |
 
 ## Implemented, by chapter
+
+_A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see "Prompt 4.5" above)._
 
 | Ch. | Question (intention id) | Methods | Verified | Needs review | Uncertain |
 |---|---|---|---|---|---|
@@ -79,7 +118,7 @@ that can drift, not a live report.
 | 21 | `if-your-wife-or-sister-has-had-sex` | 3 | 1 | 1 | 1 |
 | — | `if-it-s-good-to-stay-in-a` (unnumbered, between 21-22) | 3 | 3 | 0 | 0 |
 | 22 | `if-it-s-good-to-stay-in-a-2` | 2 | 2 | 0 | 0 |
-| 23 | `is-there-much-trees-water-sand-or-stones` | 1 | 0 | 1 | 0 |
+| 23 | `is-there-much-trees-water-sand-or-stones` (descriptive) | 1 | 1 | 0 | 0 |
 | 24 | `if-you-will-be-safe-entering-a-canoe` | 2 | 2 | 0 | 0 |
 | 25 | `if-there-are-armed-robbers-on-your-way` | 1 | 1 | 0 | 0 |
 | 26 | `if-there-will-be-a-fight-argument-etc` | 1 | 0 | 0 | 1 |
@@ -88,43 +127,97 @@ that can drift, not a live report.
 | 28→ | Two "gift/visitor figure" continuation fragments | — | not registered | — | — |
 | 29 | `if-you-will-be-successful-where-you-are` | 1 | 1 | 0 | 0 |
 | 30 | `if-you-will-be-successful-and-get-what` | 1 | 1 | 0 | 0 |
-| 31 | `about-a-lost-thing-stolen-things` | 1 | 0 | 1 | 0 |
+| 31 | `about-a-lost-thing-stolen-things` (descriptive) | 1 | 1 | 0 | 0 |
 | 32 | `if-it-will-rain-today-or-not` | 4 | 4 | 0 | 0 |
 | 33 | *(cast-out-by-4s dot-line method)* | — | not registered | — | — |
 | 34 | `if-your-enemies-are-working-against-you-or` | 2 | 2 | 0 | 0 |
 | 35 | `if-your-family-is-doing-well-while-you` | 1 | 1 | 0 | 0 |
-| 36 | `if-you-want-to-locate-someone-or-something` | 1 | 0 | 1 | 0 |
+| 36 | `if-you-want-to-locate-someone-or-something` (descriptive) | 1 | 1 | 0 | 0 |
 | 37 | `how-to-predict-a-game-who-will-win` | 2 | 1 | 0 | 1 |
 | 38 | `if-two-lovers-will-be-compatible-for-marriage` | 2 | 2 | 0 | 0 |
 | 39 | `if-your-visitor-or-the-person-that-comes` | 2 | 2 | 0 | 0 |
 | 40 | `if-spiritual-work-you-want-to-do-for` | 2 | 2 | 0 | 0 |
-| **Subtotal (20-40)** | | **37** | **28** | **4** | **5** |
-| **Grand total (1-40)** | | **85** | **63** | **6** | **16** |
+| **Subtotal (20-40)** | | **37** | **31** | **1** | **5** |
+| **Grand total (1-40)** | | **85** | **66** | **3** | **16** |
 
-## Architectural gaps (Stage 3) — computable, but not favourable/unfavourable
+## Architectural gaps (Stage 3)
 
-Three chapters this stage produce a real, fully mechanical calculation whose
-*answer* is descriptive (a terrain type, a compass direction, a thief's
-gender/rough location) rather than favourable/unfavourable/mixed. The
-engine's `MethodOutcome` vocabulary has no honest way to represent "the
-answer is water" — asserting any outcome would mischaracterize what the
-source says — so these are `needs_review` for an architectural reason, not
-because the source is ambiguous or missing:
+**Resolved by Prompt 4.5.** Chapters 23 (terrain type), 31 (lost/stolen
+thing), and 36 (locate someone/something) each produce a real, fully
+mechanical, unambiguous calculation whose *answer* is descriptive (an
+element, a compass direction, a thief's gender + rough distance) rather than
+favourable/unfavourable. These were previously logged as `needs_review`
+because the engine's `MethodOutcome` vocabulary had no honest way to
+represent "the answer is water" — that was a result-*type* gap, not a
+source ambiguity. Prompt 4.5 closed it by adding a genuine third
+`MethodOutcome`, `'descriptive'` (with its own `descriptiveAnswer` field and
+its own agree/disagree comparison model, `compareDescriptiveResults`, rather
+than overloading the favourable/unfavourable tally). All three chapters are
+now `status: 'verified'`, `outcome: 'descriptive'`, `resultKind:
+'descriptive'` — no source rule changed, only how an already-correct answer
+is represented and displayed. See the "Prompt 4.5" section above.
 
-- **Chapter 23** (terrain type: stones/trees/water/sand)
-- **Chapter 31** (lost/stolen thing: thief's gender + rough distance)
-- **Chapter 36** (locate someone/something: compass direction)
+The remaining gaps below were reviewed under Prompt 4.5's explicit
+architectural taxonomy and are still gaps — nothing here was implemented,
+guessed, or forced into the existing model:
 
-Two further methods are `uncertain` for a distinct architectural reason —
-not an omitted figure, but a concept the ChartModel has never encoded:
+- **A.** Can the current architecture (ChartModel + operations.ts +
+  QuestionDefinition/consensus model) support this once the source is
+  known?
+- **B.** Does it need better result semantics (a new `MethodOutcome` /
+  `resultKind`, beyond what Prompt 4.5 just added)?
+- **C.** Does it need a new generic operations.ts primitive?
+- **D.** Does it need source verification (a figure/token the transcription
+  omitted)?
+- **E.** Does it need a genuinely different casting/input mechanism (data
+  the current 16-house chart doesn't carry)?
 
-- **Chapter 37, Method 2** — decided by which physical "side" (right/left)
-  of the drawn chart a figure lands on; this project's `ChartModel` has no
-  left/right spatial layout for its 16 houses.
-- **Chapter 33** (not registered at all) — "make a long line and cancel 4s
-  until you reach 1-4 dots" is a *different* divination mechanic that
-  doesn't derive from the 16-house chart this app casts at all; there is no
-  UI for it and implementing one is out of scope for this stage.
+| Chapter | Blocker | A | B | C | D | E |
+|---|---|---|---|---|---|---|
+| 26 (fight/argument) | Every branch depends on named figures the transcription omitted or dropped entirely | — | — | — | **Yes** — this is the entire blocker | No |
+| 27, Methods 1-2 (farming/harvest) | Every directional/elemental branch's figure tokens omitted | — | — | — | **Yes** — this is the entire blocker | No |
+| 28 (2 continuation fragments) | Every branch's figure identifier dropped entirely; not even which figure means what is recoverable | — | — | — | **Yes**, and worse than the others above: no partial reconstruction is possible from context | No |
+| 33 ("cast out by 4s" line mechanic) | Not a chart-derived rule at all — a separate divination technique | No — nothing to compute from a `ChartModel`, because the input isn't a 16-house chart | No — this isn't a result-representation problem | Possibly, once understood (see below) | Yes — need the full mechanic described, ideally with worked examples | **Yes** — needs its own input/casting path, entirely separate from `casting.ts` |
+| 37, Method 2 | Decided by which physical side (right/left) of the *drawn* chart a figure lands on | No — `ChartModel` carries house number → figure only, no left/right layout | No — a `'descriptive'` or new outcome value doesn't help; the blocker is upstream, at input, not at output | Not on its own — a primitive can't invent geometry that isn't in the model | No — the rule text itself is understood; nothing is omitted | **Yes** — needs a spatial/layout data model (see below) |
+
+### Chapter 33 — documented, not implemented
+
+Per the source ("make a long line, cast out 4s, repeat for four lines until
+each is reduced to 1-4 dots"), this is a distinct, self-contained
+arithmetic procedure: it consumes a hand-count (a total tapped or drawn by
+the querent) and reduces it mod 4 (mapping a 0 remainder to 4), four times,
+to produce its own 4-line figure — it never reads from, and has no
+dependency on, the 16-house chart `casting.ts` builds. If the mechanic is
+ever fully verified against the source, it could become a **new, separate,
+deterministic module** (e.g. `lib/raml/engine/castOutFours.ts`) with its own
+pure function `(counts: number[]) => Figure`-shaped calculation, its own
+`QuestionDefinition`-like wrapper, and its own minimal input UI (four
+numeric taps) — entirely additive, requiring no change to `casting.ts`,
+`chartModel.ts`, or any existing question. This is a plan for *if* the
+mechanic is confirmed, not an implementation; nothing has been built for
+it, per the explicit instruction not to implement it this stage.
+
+### Chapter 37, Method 2 — missing data model, not guessed
+
+The rule as transcribed decides its verdict by which side of the physically
+*drawn* chart (traditionally arranged as a diagram, not a flat list of 16
+houses) a given figure falls on — a right/left split that depends on the
+diagram's spatial layout convention. `ChartModel` (via `casting.ts`) only
+ever exposes "house N → figure"; it has no left/right, no adjacency-by-page-
+position, no notion of a drawn diagram at all. Missing, specifically:
+
+- Which of the 16 houses fall on the "right" vs. "left" half of the
+  traditional diagram (this is a fixed convention in the source tradition,
+  not something derivable from the figures themselves).
+- Confirmation that "side" means the same thing in every classical layout
+  convention (some traditions mirror the diagram; guessing which one this
+  source uses would be inventing a rule).
+
+No spatial model was invented to fill this gap. If the existing chart
+already contained enough information, house-number parity or grouping could
+prove it with a test against the source's worked example — no such example
+survives in the transcribed material, so nothing was assumed and no such
+test could be written.
 
 Chapter 34, Method 1 needed one new primitive, `RECAST_FROM_HOUSES`
 (`operations.ts`): a known classical technique of treating 4 named houses'
@@ -155,13 +248,6 @@ required — everything else composes from what Prompts 1-2 already built.
   project only has a verified opened/closed definition per individual line,
   not for a whole 4-line figure — same unresolved gap as Chapter 1, Method 3
   above.
-- **Chapter 23** (terrain type), **Chapter 31** (lost/stolen thing), and
-  **Chapter 36** (locate someone/something) — architectural gap, not an
-  ambiguous rule: each computes a real, unambiguous answer, but that answer
-  is descriptive (an element/direction/gender) rather than favourable/
-  unfavourable, which this engine's outcome vocabulary has no honest way to
-  represent. See "Architectural gaps" above.
-
 ## Uncertain (not computable — source passages needing manual verification)
 
 Every one of these depends on named or hand-drawn figures the PDF
@@ -238,10 +324,10 @@ chapter above, chapter by chapter, in order.
 ## Confirmation
 
 The original casting engine (`lib/raml/casting.ts` — Mother/Daughter/Niece/
-Witness/Judge/Reconciler generation) was not touched in this stage, nor was
-`ruleEngine.ts`, `chartModel.ts`, or any chapter 1-19 question file.
-`operations.ts` was extended only additively: one genuinely new primitive
-(`RECAST_FROM_HOUSES`) plus four small quality/adjacency tallies
+Witness/Judge/Reconciler generation) was not touched in this stage or in
+Prompt 4.5, nor was `chartModel.ts`, or any chapter 1-19 question file.
+`operations.ts` was extended only additively in Prompt 4: one genuinely new
+primitive (`RECAST_FROM_HOUSES`) plus four small quality/adjacency tallies
 (`COUNT_FORTUNE`, `COUNT_DIRECTION`, `CHECK_FIGURE_ADJACENT_REPETITION`,
 `CHECK_ELEMENT_ADJACENT_REPETITION`), and one existing function
 (`CHECK_FIGURE_PRESENT_IN_CHART`) gained a backward-compatible optional
@@ -254,3 +340,21 @@ explicit structural audit (`__tests__/audit-1-40.test.ts`) checking for
 duplicate question ids, broken chapter references, and any needs_review/
 uncertain method leaking into a consensus count, across all 40 registered
 questions at once.
+
+**Prompt 4.5, honestly:** unlike Prompt 4, this stage did touch
+`ruleEngine.ts` and `operations.ts` again, plus `types.ts` and `reading.ts`
+(and three UI components) — but only for result-*type* plumbing, never for
+a source rule. `ruleEngine.ts` gained one new branch in
+`deriveOverallResult` (`if (consensus.kind === 'descriptive') return
+'descriptive'`) and its `runQuestion` now passes `question.resultKind` into
+`COMPARE_RESULTS`; `operations.ts`'s `COMPARE_RESULTS` gained an optional
+`resultKind` parameter and a new `compareDescriptiveResults` helper,
+purely additive and defaulting to the exact prior outcome-model behavior
+when omitted. No calculation, no source figure, and no verdict for any of
+the chapters 1-40 changed as a result — chapters 23/31/36 compute exactly
+the same value as before; only their `status` (`needs_review` →
+`verified`) and how that value is labeled and displayed changed, because
+the old `needs_review` status was itself the bug being fixed (a
+mislabeling of a real, unambiguous, verified computation as "unverified").
+No new source rule was invented anywhere in this stage, and no chapter
+outside 20-40 was touched.

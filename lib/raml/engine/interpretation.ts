@@ -12,11 +12,17 @@ const OUTCOME_LABEL: Record<MethodOutcome, string> = {
   unfavourable: 'Unfavourable',
   mixed: 'Mixed',
   uncertain: 'Uncertain',
+  descriptive: 'Descriptive',
 };
 
 export function buildSummary(overallResult: MethodOutcome | 'insufficient_data', consensus: MethodConsensus): string {
   if (overallResult === 'insufficient_data') {
     return "This chart's own figures don't give this question's verified methods enough to go on — see the calculation details below for why.";
+  }
+  if (overallResult === 'descriptive') {
+    return consensus.level === 'agree' && consensus.descriptiveAnswer
+      ? `The verified methods indicate: ${consensus.descriptiveAnswer}.`
+      : 'The verified methods give different answers for this question — see the individual methods below.';
   }
   const label = OUTCOME_LABEL[overallResult];
   switch (consensus.level) {

@@ -326,13 +326,70 @@ export function MATCH_QUALITIES(figure: ComputedFigure, match: QualityMatch): bo
 
 // --- COMPARE_RESULTS -----------------------------------------------------
 
+/** Descriptive consensus (Prompt 4.5, section 4): categorical answers
+ * (terrain type, direction, location) are compared by equality — "Methods
+ * agree" / "Methods disagree" — never voted into a favourable/unfavourable/
+ * mixed tally that was never the right shape for this kind of question. */
+function compareDescriptiveResults(totalCount: number, verifiable: MethodResult[]): MethodConsensus {
+  const uncertainCount = totalCount - verifiable.length;
+  const verifiableCount = verifiable.length;
+
+  if (verifiableCount === 0) {
+    return {
+      kind: 'descriptive',
+      level: 'insufficient_data',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount,
+      verifiableCount,
+      summary: 'None of this question’s methods could be computed with confidence for this chart.',
+      descriptiveAnswer: null,
+    };
+  }
+
+  const answers = new Set(verifiable.map((r) => r.verdict!.descriptiveAnswer));
+  const allAgree = answers.size === 1;
+
+  return {
+    kind: 'descriptive',
+    level: allAgree ? 'agree' : 'disagree',
+    favourableCount: 0,
+    unfavourableCount: 0,
+    mixedCount: 0,
+    uncertainCount,
+    verifiableCount,
+    summary: allAgree
+      ? `All ${verifiableCount} of ${verifiableCount} computable method(s) agree.`
+      : `The ${verifiableCount} computable methods give different answers.`,
+    // Agreement itself is decided on the normalized `descriptiveAnswer` key
+    // (so "water" === "water" even if phrasing ever diverged), but what gets
+    // stored here for display is the method's own human-readable `label`
+    // ("Northern direction", not the raw key "water") — `descriptiveAnswer`
+    // on MethodVerdict is documented as "never displayed raw".
+    descriptiveAnswer: allAgree ? (verifiable[0].verdict!.label ?? null) : null,
+  };
+}
+
 /** Cross-method consensus (section 5/9): whether a question's methods agree,
  * mostly agree, give mixed indications, or conflict. Only methods that
  * actually produced a verdict (status 'verified' and a computable outcome)
  * count toward the comparison — 'needs_review'/'uncertain' methods are
- * reported separately, never silently folded into the tally. */
-export function COMPARE_RESULTS(results: MethodResult[]): MethodConsensus {
+ * reported separately, never silently folded into the tally.
+ *
+ * `resultKind` (Prompt 4.5) comes from the QUESTION itself, not inferred
+ * from which methods happened to compute — a descriptive question whose
+ * only method fails to compute is still an "insufficient descriptive
+ * result," not silently relabeled as an outcome question just because no
+ * verdict survived to say otherwise. Defaults to 'outcome' so every
+ * pre-existing call site (and question) needs no change. */
+export function COMPARE_RESULTS(results: MethodResult[], resultKind: 'outcome' | 'descriptive' = 'outcome'): MethodConsensus {
   const verifiable = results.filter((r) => r.verdict && r.verdict.outcome !== 'uncertain');
+
+  if (resultKind === 'descriptive') {
+    return compareDescriptiveResults(results.length, verifiable);
+  }
+
   const favourableCount = verifiable.filter((r) => r.verdict!.outcome === 'favourable').length;
   const unfavourableCount = verifiable.filter((r) => r.verdict!.outcome === 'unfavourable').length;
   const mixedCount = verifiable.filter((r) => r.verdict!.outcome === 'mixed').length;
@@ -341,6 +398,7 @@ export function COMPARE_RESULTS(results: MethodResult[]): MethodConsensus {
 
   if (verifiableCount === 0) {
     return {
+      kind: 'outcome',
       level: 'insufficient_data',
       favourableCount,
       unfavourableCount,
@@ -348,6 +406,7 @@ export function COMPARE_RESULTS(results: MethodResult[]): MethodConsensus {
       uncertainCount,
       verifiableCount,
       summary: 'None of this question’s methods could be computed with confidence for this chart.',
+      descriptiveAnswer: null,
     };
   }
 
@@ -369,7 +428,7 @@ export function COMPARE_RESULTS(results: MethodResult[]): MethodConsensus {
     level = 'mixed';
   }
 
-  const summaries: Record<MethodConsensus['level'], string> = {
+  const summaries: Record<Exclude<MethodConsensus['level'], 'disagree'>, string> = {
     agree: `All ${verifiableCount} of ${verifiableCount} computable method(s) agree.`,
     mostly_agree: `${dominant} of ${verifiableCount} computable methods agree.`,
     mixed: `The ${verifiableCount} computable methods give mixed indications.`,
@@ -377,5 +436,15 @@ export function COMPARE_RESULTS(results: MethodResult[]): MethodConsensus {
     insufficient_data: '',
   };
 
-  return { level, favourableCount, unfavourableCount, mixedCount, uncertainCount, verifiableCount, summary: summaries[level] };
+  return {
+    kind: 'outcome',
+    level,
+    favourableCount,
+    unfavourableCount,
+    mixedCount,
+    uncertainCount,
+    verifiableCount,
+    summary: summaries[level],
+    descriptiveAnswer: null,
+  };
 }

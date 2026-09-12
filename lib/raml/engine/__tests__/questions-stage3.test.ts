@@ -116,24 +116,47 @@ describe('Good to stay in a town (ch.22)', () => {
 });
 
 describe('Terrain type (ch.23) — descriptive, not favourable/unfavourable', () => {
+  // Prompt 4.5 superseded these assertions: forcing this method to
+  // `needs_review` (and the whole question to `insufficient_data`) was
+  // never a real source-verification gap — it was an architectural
+  // workaround for an engine that had no outcome value for a categorical
+  // answer. Now that `outcome: 'descriptive'` exists, this fully-computable
+  // method is honestly `verified`, and the question resolves to a real,
+  // successful `descriptive` result instead of a fabricated-sounding
+  // "insufficient data" for an answer the source actually gives cleanly.
   const result = runEngine(chart, 'is-there-much-trees-water-sand-or-stones')!;
 
-  it('computes the element (Ali, air) but asserts no verdict — architectural gap, not a source gap', () => {
+  it('computes the element (Ali, air) and now asserts a real, verified descriptive verdict', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('needs_review');
+    expect(m1.method.status).toBe('verified');
     expect(m1.calculation!.resultFigure.figureId).toBe('ali');
     expect(m1.calculation!.resultFigure.element).toBe('air');
-    expect(m1.verdict).toBeNull();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('air');
+    expect(m1.verdict!.interpretation).toBe('The area has much trees.');
   });
 
-  it('never manufactures an answer — reports insufficient_data honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('resolves to a real descriptive result, never favourable/unfavourable/insufficient', () => {
+    expect(result.overallResult).toBe('descriptive');
+    expect(result.calculationDetails.consensus.kind).toBe('descriptive');
+    expect(result.calculationDetails.consensus.level).toBe('agree'); // a single computable method agrees with itself
   });
 
-  it('ReadingResult: shows the insufficient-data state, not a fabricated outcome', () => {
+  it('ReadingResult: shows the answer as a successful reading, not a fabricated favourable/unfavourable badge', () => {
     const reading = runReading(chart, 'is-there-much-trees-water-sand-or-stones')!;
-    expect(reading.isInsufficient).toBe(true);
-    expect(reading.primaryFigure).toBeNull();
+    expect(reading.isInsufficient).toBe(false);
+    expect(reading.resultKind).toBe('descriptive');
+    // The ReadingResult-level answer is the human-readable label ("Much
+    // trees"), never the raw MethodVerdict.descriptiveAnswer comparison key
+    // ("air") — Prompt 4.5 follow-up fix: compareDescriptiveResults was
+    // copying the raw key straight into MethodConsensus.descriptiveAnswer,
+    // which OutcomeCard then displayed verbatim ("READING: Air" instead of
+    // "READING: Much trees"), found via a live browser check of this exact
+    // fixture chart's ch.23/31/36 readings.
+    expect(reading.descriptiveAnswer).toBe('Much trees');
+    expect(reading.primaryFigure).not.toBeNull();
+    expect(reading.primaryFigure!.methodOutcome).toBe('descriptive');
+    expect(reading.primaryFigure!.methodOutcomeLabel).toBe('Much trees');
   });
 });
 
@@ -312,18 +335,25 @@ describe('Successful-trip conditional branches (isolated, not on the fixture cha
 });
 
 describe('Lost thing / thief location (ch.31) — descriptive', () => {
+  // Prompt 4.5 superseded these assertions — same reasoning as chapter 23
+  // above: this is a fully-computable, verified method that answers
+  // descriptively (gender + quarter), not an unverifiable one.
   const result = runEngine(chart, 'about-a-lost-thing-stolen-things')!;
 
-  it('computes gender and quarter, but asserts no verdict — architectural gap, not a source gap', () => {
+  it('computes gender and quarter as a real, verified descriptive verdict', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('needs_review');
+    expect(m1.method.status).toBe('verified');
     expect(m1.calculation!.resultFigure.figureId).toBe('hassan-hussein');
     expect(m1.calculation!.resultFigure.element).toBe('water'); // -> female thief
-    expect(m1.verdict).toBeNull();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('female:not-found'); // H4+H5 = Hassan & Hussein, not one of this chart's own 16 house figures
+    expect(m1.verdict!.interpretation).toContain('female');
+    expect(m1.verdict!.interpretation).toContain('not found anywhere in the chart');
   });
 
-  it('reports insufficient_data rather than a fabricated favourable/unfavourable reading', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('resolves to a real descriptive result, never favourable/unfavourable/insufficient', () => {
+    expect(result.overallResult).toBe('descriptive');
+    expect(result.calculationDetails.consensus.kind).toBe('descriptive');
   });
 });
 
@@ -400,17 +430,20 @@ describe('Family doing well (ch.35)', () => {
 });
 
 describe('Locate someone or something (ch.36) — descriptive', () => {
+  // Prompt 4.5 superseded these assertions — same reasoning as chapters 23/31.
   const result = runEngine(chart, 'if-you-want-to-locate-someone-or-something')!;
 
-  it('extracts fire@H1/air@H2/water@H3/sand@H4 = Issah (water), but asserts no verdict', () => {
+  it('extracts fire@H1/air@H2/water@H3/sand@H4 = Issah (water) as a real, verified descriptive verdict', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('needs_review');
+    expect(m1.method.status).toBe('verified');
     expect(m1.calculation!.resultFigure.element).toBe('water');
-    expect(m1.verdict).toBeNull();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('water');
+    expect(m1.verdict!.label).toBe('Northern direction');
   });
 
-  it('reports insufficient_data honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('resolves to a real descriptive result, never insufficient', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 

@@ -55,7 +55,7 @@ function engineResult(overrides: Partial<EngineResult> = {}): EngineResult {
     methods: [],
     interpretation: 'Method 1: You will get money today.',
     calculationDetails: {
-      consensus: { level: 'agree', favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 0, verifiableCount: 1, summary: 'All 1 of 1 computable method(s) agree.' },
+      consensus: { kind: 'outcome', level: 'agree', favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 0, verifiableCount: 1, summary: 'All 1 of 1 computable method(s) agree.', descriptiveAnswer: null },
     },
     ...overrides,
   };
@@ -102,7 +102,7 @@ describe('composeReading — mostly favourable (section 2/11 example)', () => {
       method: { ...method().method, id: 'm3', label: 'Method 3' },
       verdict: { outcome: 'unfavourable', label: 'Bad', interpretation: 'You will not get money.' },
     });
-    const consensus = { level: 'mostly_agree' as const, favourableCount: 2, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 3, summary: '2 of 3 computable methods agree.' };
+    const consensus = { kind: 'outcome' as const, level: 'mostly_agree' as const, favourableCount: 2, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 3, summary: '2 of 3 computable methods agree.', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'favourable', methods: [m1, m2, m3], primaryFigure: m1, calculationDetails: { consensus } }),
       question(),
@@ -126,7 +126,7 @@ describe('composeReading — conflicting methods', () => {
       method: { ...method().method, id: 'm2' },
       verdict: { outcome: 'unfavourable', label: 'Bad', interpretation: 'You will not get money.' },
     });
-    const consensus = { level: 'conflict' as const, favourableCount: 1, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 2, summary: 'The computable methods conflict.' };
+    const consensus = { kind: 'outcome' as const, level: 'conflict' as const, favourableCount: 1, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 2, summary: 'The computable methods conflict.', descriptiveAnswer: null };
     // ruleEngine.deriveOverallResult forces 'mixed' on a genuine conflict rather than picking a side.
     const result = composeReading(
       engineResult({ overallResult: 'mixed', methods: [fav, unfav], primaryFigure: fav, calculationDetails: { consensus } }),
@@ -152,7 +152,7 @@ describe('composeReading — insufficient verified data', () => {
       calculation: null,
       verdict: null,
     };
-    const consensus = { level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'None of this question’s methods could be computed with confidence for this chart.' };
+    const consensus = { kind: 'outcome' as const, level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'None of this question’s methods could be computed with confidence for this chart.', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'insufficient_data', methods: [uncertainMethod], primaryFigure: null, calculationDetails: { consensus } }),
       question(),
@@ -202,7 +202,7 @@ describe('composeReading — a VERIFIED method whose own outcome is "uncertain"'
       calculation: { housesUsed: [4], steps: ['H4 = Iddris'], resultFigure: figure({ figureId: 'iddris', figureName: 'Iddris', sourceHouses: [4] }) },
       verdict: { outcome: 'uncertain', label: 'Outside defined branches', interpretation: 'This chart falls outside every branch this rule defines.' },
     };
-    const consensus = { level: 'agree' as const, favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 1, summary: 'All 1 of 1 computable method(s) agree.' };
+    const consensus = { kind: 'outcome' as const, level: 'agree' as const, favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 1, summary: 'All 1 of 1 computable method(s) agree.', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ methods: [fav, outsideAllBranches], primaryFigure: fav, calculationDetails: { consensus } }),
       question(),
@@ -365,7 +365,7 @@ describe('Prompt 3.5 regression — (C) favourable + conditional/mixed + favoura
       verdict: { outcome: 'mixed', label: 'Conditional', interpretation: 'The outcome depends on additional circumstances.' },
     });
     const fav2 = method({ method: { ...method().method, id: 'm3', label: 'Method 3' } });
-    const consensus = { level: 'mostly_agree' as const, favourableCount: 2, unfavourableCount: 0, mixedCount: 1, uncertainCount: 0, verifiableCount: 3, summary: '2 of 3 agree.' };
+    const consensus = { kind: 'outcome' as const, level: 'mostly_agree' as const, favourableCount: 2, unfavourableCount: 0, mixedCount: 1, uncertainCount: 0, verifiableCount: 3, summary: '2 of 3 agree.', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'favourable', methods: [fav1, conditional, fav2], primaryFigure: fav1, calculationDetails: { consensus } }),
       question(),
@@ -386,7 +386,7 @@ describe('Prompt 3.5 regression — (D) favourable + unfavourable conflict', () 
       method: { ...method().method, id: 'm2' },
       verdict: { outcome: 'unfavourable', label: 'Bad', interpretation: 'You will not get money.' },
     });
-    const consensus = { level: 'conflict' as const, favourableCount: 1, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 2, summary: 'conflict' };
+    const consensus = { kind: 'outcome' as const, level: 'conflict' as const, favourableCount: 1, unfavourableCount: 1, mixedCount: 0, uncertainCount: 0, verifiableCount: 2, summary: 'conflict', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'mixed', methods: [fav, unfav], primaryFigure: fav, calculationDetails: { consensus } }),
       question(),
@@ -436,7 +436,7 @@ describe('Prompt 3.5 regression — (G) insufficient verified data', () => {
       calculation: null,
       verdict: null,
     };
-    const consensus = { level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'none' };
+    const consensus = { kind: 'outcome' as const, level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'none', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'insufficient_data', methods: [uncertainMethod], primaryFigure: null, calculationDetails: { consensus } }),
       question(),
@@ -505,7 +505,7 @@ describe('Prompt 3.5 regression — primary indicator selection', () => {
       method: { ...method().method, id: 'm2', label: 'Method 2' },
       calculation: { housesUsed: [2], steps: ['H2 = Adam'], resultFigure: figure({ figureId: 'adam', figureName: 'Adam', sourceHouses: [2] }) },
     });
-    const consensus = { level: 'agree' as const, favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 1, summary: 'agree' };
+    const consensus = { kind: 'outcome' as const, level: 'agree' as const, favourableCount: 1, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 1, summary: 'agree', descriptiveAnswer: null };
     const result = composeReading(
       // EngineResult.primaryFigure deliberately set to the engine's OWN (buggy-if-trusted-blindly) convention: the first method with any verdict at all.
       engineResult({ methods: [outsideBranches, favourable], primaryFigure: outsideBranches, calculationDetails: { consensus } }),
@@ -522,7 +522,7 @@ describe('Prompt 3.5 regression — primary indicator selection', () => {
       calculation: { housesUsed: [1], steps: ['H1 = Yussif'], resultFigure: figure() },
       verdict: { outcome: 'uncertain', label: 'Outside defined branches', interpretation: 'Falls outside every branch this rule defines.' },
     };
-    const consensus = { level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'none' };
+    const consensus = { kind: 'outcome' as const, level: 'insufficient_data' as const, favourableCount: 0, unfavourableCount: 0, mixedCount: 0, uncertainCount: 1, verifiableCount: 0, summary: 'none', descriptiveAnswer: null };
     const result = composeReading(
       engineResult({ overallResult: 'insufficient_data', methods: [uncertainWithVerdict], primaryFigure: uncertainWithVerdict, calculationDetails: { consensus } }),
       question(),
@@ -530,6 +530,119 @@ describe('Prompt 3.5 regression — primary indicator selection', () => {
 
     expect(result.isInsufficient).toBe(true);
     expect(result.primaryFigure).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prompt 4.5 — descriptive result kind
+// ---------------------------------------------------------------------------
+
+function descriptiveMethod(overrides: Partial<MethodResult> = {}): MethodResult {
+  return {
+    method: { id: 'm1', label: 'Method 1', status: 'verified', source: { book: 'kanzul-mikban', chapterId: 'test-chapter', quote: 'Extract the element and read it.' } },
+    calculation: { housesUsed: [1, 2, 3, 4], steps: ['fire@H1, air@H2, water@H3, sand@H4 → Issah'], resultFigure: figure({ figureId: 'issah', figureName: 'Issah', element: 'water' }) },
+    verdict: { outcome: 'descriptive', label: 'Northern direction', interpretation: "It's in the northern part of the place you are.", descriptiveAnswer: 'water' },
+    ...overrides,
+  };
+}
+
+function descriptiveConsensus(overrides: Partial<import('../types').MethodConsensus> = {}) {
+  return {
+    kind: 'descriptive' as const,
+    level: 'agree' as const,
+    favourableCount: 0,
+    unfavourableCount: 0,
+    mixedCount: 0,
+    uncertainCount: 0,
+    verifiableCount: 1,
+    summary: 'All 1 of 1 computable method(s) agree.',
+    descriptiveAnswer: 'water',
+    ...overrides,
+  };
+}
+
+describe('composeReading — descriptive result (a real, successful answer that is neither favourable nor unfavourable)', () => {
+  it('never forces a favourable/unfavourable badge onto a categorical answer', () => {
+    const m = descriptiveMethod();
+    const result = composeReading(
+      engineResult({ overallResult: 'descriptive', methods: [m], primaryFigure: m, calculationDetails: { consensus: descriptiveConsensus() } }),
+      question(),
+    );
+
+    expect(result.resultKind).toBe('descriptive');
+    expect(result.isInsufficient).toBe(false); // a real, computed, successful result — never mistaken for "not enough to go on"
+    expect(result.overallOutcome).toBe('descriptive');
+    expect(result.descriptiveAnswer).toBe('water');
+    expect(result.shortSummary).toBe('The verified methods indicate: water.');
+  });
+
+  it("shows the method's own answer as the label, not a generic 'Descriptive' placeholder word", () => {
+    const m = descriptiveMethod();
+    const result = composeReading(
+      engineResult({ overallResult: 'descriptive', methods: [m], primaryFigure: m, calculationDetails: { consensus: descriptiveConsensus() } }),
+      question(),
+    );
+
+    expect(result.primaryFigure!.methodOutcome).toBe('descriptive');
+    expect(result.primaryFigure!.methodOutcomeLabel).toBe('Northern direction'); // the method's own verdict.label — never OUTCOME_LABEL's generic word
+    expect(result.methodResults[0].outcomeLabel).toBe('Northern direction');
+  });
+
+  it('never attaches a "supports/differs from" relevance claim to a descriptive answer — the answer itself is the fact', () => {
+    const m = descriptiveMethod();
+    const result = composeReading(
+      engineResult({ overallResult: 'descriptive', methods: [m], primaryFigure: m, calculationDetails: { consensus: descriptiveConsensus() } }),
+      question(),
+    );
+    expect(result.primaryFigure!.relevance).toBeNull();
+  });
+
+  it('reports "agree" with the shared answer when multiple descriptive methods match', () => {
+    const m1 = descriptiveMethod({ method: { ...descriptiveMethod().method, id: 'm1', label: 'Method 1' } });
+    const m2 = descriptiveMethod({ method: { ...descriptiveMethod().method, id: 'm2', label: 'Method 2' } });
+    const consensus = descriptiveConsensus({ verifiableCount: 2, summary: 'All 2 of 2 computable method(s) agree.' });
+    const result = composeReading(
+      engineResult({ overallResult: 'descriptive', methods: [m1, m2], primaryFigure: m1, calculationDetails: { consensus } }),
+      question(),
+    );
+    expect(result.consensusLabel).toBe('Methods agree');
+    expect(result.methodResults.filter((m) => m.counted)).toHaveLength(2);
+  });
+
+  it('reports "disagree" (not "mixed") when descriptive methods give different answers, and shows no single answer', () => {
+    const m1 = descriptiveMethod({ method: { ...descriptiveMethod().method, id: 'm1', label: 'Method 1' } });
+    const m2 = descriptiveMethod({
+      method: { ...descriptiveMethod().method, id: 'm2', label: 'Method 2' },
+      calculation: { housesUsed: [5, 6, 7, 8], steps: ['→ Mahadi'], resultFigure: figure({ figureId: 'mahadi', figureName: 'Mahadi', element: 'air' }) },
+      verdict: { outcome: 'descriptive', label: 'Eastern direction', interpretation: "It's in the eastern part.", descriptiveAnswer: 'air' },
+    });
+    const consensus = descriptiveConsensus({ level: 'disagree', verifiableCount: 2, descriptiveAnswer: null, summary: 'The 2 computable methods give different answers.' });
+    const result = composeReading(
+      engineResult({ overallResult: 'descriptive', methods: [m1, m2], primaryFigure: m1, calculationDetails: { consensus } }),
+      question(),
+    );
+
+    expect(result.consensusLabel).toBe('Methods disagree');
+    expect(result.descriptiveAnswer).toBeNull();
+    expect(result.shortSummary).toBe('The verified methods give different answers for this question — see the individual methods below.');
+    expect(result.methodResults.map((m) => m.outcomeLabel)).toEqual(['Northern direction', 'Eastern direction']);
+  });
+
+  it('reports insufficient_data honestly (never a fabricated answer) when a descriptive question has nothing computable', () => {
+    const uncomputable: MethodResult = {
+      method: { id: 'm1', label: 'Method 1', status: 'uncertain', reviewNote: 'Named figures omitted.', source: { book: 'kanzul-mikban', chapterId: 'test-chapter', quote: 'quote' } },
+      calculation: null,
+      verdict: null,
+    };
+    const consensus = descriptiveConsensus({ level: 'insufficient_data', verifiableCount: 0, uncertainCount: 1, descriptiveAnswer: null, summary: 'none' });
+    const result = composeReading(
+      engineResult({ overallResult: 'insufficient_data', methods: [uncomputable], primaryFigure: null, calculationDetails: { consensus } }),
+      question(),
+    );
+
+    expect(result.isInsufficient).toBe(true);
+    expect(result.primaryFigure).toBeNull();
+    expect(result.descriptiveAnswer).toBeNull();
   });
 });
 
@@ -574,5 +687,28 @@ describe('runReading — end to end on real questions', () => {
     expect(result).not.toBeNull();
     expect(result!.overallOutcome).toBe('mixed');
     expect(result!.shortSummary).toBe('Mixed — the verified methods give materially different indications.');
+  });
+
+  it('the terrain-type question (ch.23) resolves as a real descriptive result, not insufficient_data or a fabricated favourable/unfavourable badge', () => {
+    const result = runReading(fixtureChart(), 'is-there-much-trees-water-sand-or-stones');
+    expect(result).not.toBeNull();
+    expect(result!.resultKind).toBe('descriptive');
+    expect(result!.isInsufficient).toBe(false);
+    expect(result!.descriptiveAnswer).not.toBeNull();
+    expect(result!.primaryFigure!.methodOutcome).toBe('descriptive');
+  });
+
+  it('the locate-someone-or-something question (ch.36) resolves as a real descriptive result', () => {
+    const result = runReading(fixtureChart(), 'if-you-want-to-locate-someone-or-something');
+    expect(result).not.toBeNull();
+    expect(result!.resultKind).toBe('descriptive');
+    expect(result!.isInsufficient).toBe(false);
+  });
+
+  it('the lost-thing/thief-location question (ch.31) resolves as a real descriptive result', () => {
+    const result = runReading(fixtureChart(), 'about-a-lost-thing-stolen-things');
+    expect(result).not.toBeNull();
+    expect(result!.resultKind).toBe('descriptive');
+    expect(result!.isInsufficient).toBe(false);
   });
 });

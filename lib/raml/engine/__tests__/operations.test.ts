@@ -176,6 +176,11 @@ describe('CHECK_FIGURE_PRESENT_IN_CHART with a house subset (ch.35)', () => {
     // Still finds it chart-wide when no subset is given — fully backward compatible.
     expect(CHECK_FIGURE_PRESENT_IN_CHART(chart, yussifPattern).found).toBe(true);
   });
+
+  it('throws for an out-of-range house in the subset, rather than silently ignoring it', () => {
+    const yussifPattern = chart.houses[0].dotPattern;
+    expect(() => CHECK_FIGURE_PRESENT_IN_CHART(chart, yussifPattern, [1, 17])).toThrow();
+  });
 });
 
 describe('COUNT_FORTUNE / COUNT_DIRECTION (chs. 20, 22)', () => {
@@ -191,6 +196,16 @@ describe('COUNT_FORTUNE / COUNT_DIRECTION (chs. 20, 22)', () => {
 
   it('respects an explicit house subset, same shape as COUNT_ELEMENTS', () => {
     expect(COUNT_FORTUNE(chart, [1, 2, 3, 4])).toEqual({ good: 3, middleGood: 0, bad: 1 });
+  });
+
+  it('handles an empty house subset without crashing (a real, non-error edge case, unlike an out-of-range house number)', () => {
+    expect(COUNT_FORTUNE(chart, [])).toEqual({ good: 0, middleGood: 0, bad: 0 });
+    expect(COUNT_DIRECTION(chart, [])).toEqual({ upward: 0, downward: 0 });
+  });
+
+  it('throws for an out-of-range house in the subset, same as every other house-taking operation', () => {
+    expect(() => COUNT_FORTUNE(chart, [1, 17])).toThrow();
+    expect(() => COUNT_DIRECTION(chart, [0])).toThrow();
   });
 });
 
@@ -229,6 +244,44 @@ describe('RECAST_FROM_HOUSES (ch.34 method 1)', () => {
     const before = JSON.stringify(chart);
     RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
     expect(JSON.stringify(chart)).toBe(before);
+  });
+
+  it('is deterministic: the same 4 houses, called twice, produce a structurally identical secondary chart', () => {
+    const first = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    const second = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    expect(JSON.stringify(first.chart)).toBe(JSON.stringify(second.chart));
+  });
+
+  it('is order-SENSITIVE (unlike ADD_MULTIPLE_HOUSES): the 4 houses become Mothers 1-4 in the exact order given, so reordering them changes the resulting chart', () => {
+    // This is the key audit finding for RECAST_FROM_HOUSES: geomantic
+    // ADDITION is associative/commutative (order never matters — see
+    // ADD_MULTIPLE_HOUSES above), but building 4 fresh MOTHERS is not —
+    // Daughters/Nieces are derived by reading a fixed line position ACROSS
+    // the 4 Mothers in order, so which house becomes Mother 1 vs. Mother 3
+    // genuinely changes every house of the derived chart. Kanzul Mikban ch.34
+    // Method 1 names its houses "h3, h7, h11 and h15" in a specific order;
+    // this implementation reads them in exactly that left-to-right order —
+    // a reasonable, deterministic interpretation, but a real interpretive
+    // choice worth keeping visible rather than silently assumed.
+    const inOrder = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    const reordered = RECAST_FROM_HOUSES(chart, [15, 11, 7, 3]);
+    expect(JSON.stringify(inOrder.chart)).not.toBe(JSON.stringify(reordered.chart));
+  });
+
+  it('produces a structurally valid 16-house chart with a real createdAt timestamp', () => {
+    const { chart: newChart } = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    expect(newChart.houses).toHaveLength(16);
+    newChart.houses.forEach((h, i) => {
+      expect(h.houseNumber).toBe(i + 1);
+      expect(h.dotPattern).toHaveLength(4);
+      expect(h.figureId).toBeTruthy();
+    });
+    expect(typeof newChart.createdAt).toBe('string');
+  });
+
+  it('throws for an out-of-range house, same input validation every other operation already relies on', () => {
+    expect(() => RECAST_FROM_HOUSES(chart, [3, 7, 11, 17])).toThrow();
+    expect(() => RECAST_FROM_HOUSES(chart, [0, 7, 11, 15])).toThrow();
   });
 });
 
@@ -275,5 +328,74 @@ describe('COMPARE_RESULTS (method consensus)', () => {
   it('handles a single verifiable method as agreement with itself', () => {
     const c = COMPARE_RESULTS([mk('favourable', 'a')]);
     expect(c.level).toBe('agree');
+  });
+
+  it('tags every outcome-model consensus with kind: "outcome" and a null descriptiveAnswer', () => {
+    const c = COMPARE_RESULTS([mk('favourable', 'a')]);
+    expect(c.kind).toBe('outcome');
+    expect(c.descriptiveAnswer).toBeNull();
+  });
+});
+
+describe('COMPARE_RESULTS — descriptive questions (Prompt 4.5)', () => {
+  const mkDescriptive = (answer: string, id = 'm'): MethodResult => ({
+    method: { id, label: id, status: 'verified', source: { book: 'kanzul-mikban', chapterId: 'x', quote: '' } },
+    calculation: null,
+    verdict: { outcome: 'descriptive', label: answer, interpretation: `The answer is ${answer}.`, descriptiveAnswer: answer },
+  });
+  const mkUncomputable = (id = 'm'): MethodResult => ({
+    method: { id, label: id, status: 'uncertain', source: { book: 'kanzul-mikban', chapterId: 'x', quote: '' } },
+    calculation: null,
+    verdict: null,
+  });
+
+  it('reports "agree" and the shared answer when every counted method matches (categorical equality, not a favourable/unfavourable tally)', () => {
+    const c = COMPARE_RESULTS([mkDescriptive('east', 'a'), mkDescriptive('east', 'b'), mkDescriptive('east', 'c')], 'descriptive');
+    expect(c.kind).toBe('descriptive');
+    expect(c.level).toBe('agree');
+    expect(c.descriptiveAnswer).toBe('east');
+    // The favourable/unfavourable/mixed tally fields stay at zero — a descriptive
+    // question was never voted on that axis, so nothing should populate it.
+    expect(c.favourableCount).toBe(0);
+    expect(c.unfavourableCount).toBe(0);
+    expect(c.mixedCount).toBe(0);
+  });
+
+  it('reports "disagree" (not "mixed" or "conflict") when counted methods give different categorical answers', () => {
+    const c = COMPARE_RESULTS([mkDescriptive('east', 'a'), mkDescriptive('west', 'b')], 'descriptive');
+    expect(c.level).toBe('disagree');
+    expect(c.descriptiveAnswer).toBeNull(); // no single answer to report on a real mismatch
+  });
+
+  it('a single descriptive method agrees with itself, same as the outcome model', () => {
+    const c = COMPARE_RESULTS([mkDescriptive('water', 'a')], 'descriptive');
+    expect(c.level).toBe('agree');
+    expect(c.descriptiveAnswer).toBe('water');
+  });
+
+  it('reports insufficient_data when a descriptive question has nothing computable, honestly labeled with kind: "descriptive"', () => {
+    const c = COMPARE_RESULTS([mkUncomputable('a'), mkUncomputable('b')], 'descriptive');
+    expect(c.kind).toBe('descriptive');
+    expect(c.level).toBe('insufficient_data');
+    expect(c.descriptiveAnswer).toBeNull();
+  });
+
+  it('respects the question\'s declared resultKind even if every method happens to fail — never silently reclassified as an outcome question', () => {
+    // Passing resultKind explicitly (as ruleEngine.ts now does, from
+    // question.resultKind) rather than inferring it from verdict shapes
+    // means a descriptive question with zero surviving verdicts still
+    // reports kind: 'descriptive', not kind: 'outcome'.
+    const c = COMPARE_RESULTS([mkUncomputable('a')], 'descriptive');
+    expect(c.kind).toBe('descriptive');
+  });
+
+  it('defaults to the outcome model when resultKind is omitted, for full backward compatibility', () => {
+    const favourable: MethodResult = {
+      method: { id: 'a', label: 'a', status: 'verified', source: { book: 'kanzul-mikban', chapterId: 'x', quote: '' } },
+      calculation: null,
+      verdict: { outcome: 'favourable', label: '', interpretation: '' },
+    };
+    const c = COMPARE_RESULTS([favourable]);
+    expect(c.kind).toBe('outcome');
   });
 });

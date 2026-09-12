@@ -34,13 +34,20 @@ export function EngineReadingView({ result }: { result: ReadingResult }) {
         <InsufficientNotice shortSummary={result.shortSummary} methods={result.methodResults} />
       ) : (
         <>
-          <OutcomeCard outcomeLabel={result.outcomeLabel} overallOutcome={result.overallOutcome} shortSummary={result.shortSummary} />
+          <OutcomeCard
+            resultKind={result.resultKind}
+            outcomeLabel={result.outcomeLabel}
+            overallOutcome={result.overallOutcome}
+            shortSummary={result.shortSummary}
+            descriptiveAnswer={result.descriptiveAnswer}
+          />
 
           {result.primaryFigure ? <FigureCard indicator={result.primaryFigure} /> : null}
 
           <SupportingIndicators indicators={result.supportingIndicators} />
 
           <MethodConsistencyCard
+            resultKind={result.resultKind}
             consensusLabel={result.consensusLabel}
             consensusSentence={result.consensusSentence}
             disagreementNote={result.disagreementNote}

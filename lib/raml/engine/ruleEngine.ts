@@ -20,8 +20,15 @@ import type { EngineResult, MethodCalculation, MethodConsensus, MethodOutcome, M
 // produced a self-contradictory display (an outcome badge reading
 // "Favourable" next to a Method Consistency summary reading "Mixed").
 // 'mixed' is now handled the same way 'conflict' already was.
+// Prompt 4.5: a descriptive question (terrain/direction/location) never
+// resolves through the favourable/unfavourable/mixed logic below — its own
+// consensus.level ('agree'/'disagree'/'insufficient_data') already says
+// everything the display needs; 'descriptive' here just flags "this
+// question's methods answer categorically," never a favourable/unfavourable
+// judgment the source never made.
 function deriveOverallResult(consensus: MethodConsensus): MethodOutcome | 'insufficient_data' {
   if (consensus.level === 'insufficient_data') return 'insufficient_data';
+  if (consensus.kind === 'descriptive') return 'descriptive';
   if (consensus.level === 'conflict' || consensus.level === 'mixed') return 'mixed';
   const { favourableCount, unfavourableCount, mixedCount } = consensus;
   if (favourableCount >= unfavourableCount && favourableCount >= mixedCount && favourableCount > 0) return 'favourable';
@@ -63,7 +70,7 @@ export function runQuestion(chart: Chart, question: QuestionDefinition): EngineR
     return { method: methodRef, calculation, verdict };
   });
 
-  const consensus = COMPARE_RESULTS(methods);
+  const consensus = COMPARE_RESULTS(methods, question.resultKind ?? 'outcome');
   const overallResult = deriveOverallResult(consensus);
   const primaryFigure = methods.find((m) => m.verdict) ?? null;
   const supportingHouses = Array.from(new Set(methods.flatMap((m) => m.calculation?.housesUsed ?? []))).sort((a, b) => a - b);

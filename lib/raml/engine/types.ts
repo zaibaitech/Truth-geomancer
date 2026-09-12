@@ -131,7 +131,18 @@ export interface OperationTrace {
 // methods make its shape obvious.
 // ---------------------------------------------------------------------------
 
-export type MethodOutcome = 'favourable' | 'unfavourable' | 'mixed' | 'uncertain';
+// Prompt 4.5: 'descriptive' is for a genuinely different KIND of answer —
+// not "we don't trust this verdict" (that's what 'uncertain' already means)
+// but "this method computes a real, verified, categorical fact that was
+// never favourable/unfavourable/mixed to begin with" (e.g. chapter 23's
+// terrain type, chapter 31's thief location, chapter 36's compass
+// direction). Before this, such methods were forced to `status:
+// 'needs_review'` purely because the engine had no outcome value for them —
+// an architectural workaround, not a real source-verification gap. A
+// 'descriptive' verdict is a full, counted, VERIFIED result; it is simply
+// compared across methods by answer-equality (see COMPARE_RESULTS) rather
+// than by favourable/unfavourable/mixed tallying.
+export type MethodOutcome = 'favourable' | 'unfavourable' | 'mixed' | 'uncertain' | 'descriptive';
 
 export interface MethodCalculation {
   housesUsed: number[];
@@ -141,8 +152,12 @@ export interface MethodCalculation {
 
 export interface MethodVerdict {
   outcome: MethodOutcome;
-  label: string; // short tag, e.g. "Good and Upward", "Found in chart"
+  label: string; // short tag, e.g. "Good and Upward", "Found in chart" — for a descriptive verdict, a short category name like "Water" or "Eastern"
   interpretation: string; // deterministic natural-language sentence
+  /** Only set when outcome === 'descriptive': a normalized answer value
+   * (e.g. "water", "east") used ONLY to compare methods for agreement —
+   * never displayed raw, never a favourable/unfavourable judgment. */
+  descriptiveAnswer?: string;
 }
 
 export interface SourceRef {
@@ -170,6 +185,11 @@ export interface QuestionDefinition {
   title: string;
   categoryId: string;
   chapterId: string;
+  /** Optional; defaults to 'outcome' when omitted, so every pre-existing
+   * question file needs no change. 'descriptive' marks a question whose
+   * methods answer a categorical fact (terrain, direction, location) rather
+   * than a favourable/unfavourable verdict — see MethodOutcome. */
+  resultKind?: 'outcome' | 'descriptive';
   methods: MethodDefinition[];
 }
 
@@ -177,7 +197,13 @@ export interface QuestionDefinition {
 // Engine result (sections 3, 5, 9, 10)
 // ---------------------------------------------------------------------------
 
-export type ConsensusLevel = 'agree' | 'mostly_agree' | 'mixed' | 'conflict' | 'insufficient_data';
+// 'disagree' is descriptive-only: two or more counted methods produced
+// different categorical answers (e.g. one says "east", another "west").
+// It is deliberately distinct from 'conflict' (an outcome question's
+// genuine favourable-vs-unfavourable clash) — a plain factual mismatch is
+// not the same kind of disagreement as two traditional methods contradicting
+// each other's judgment, even though both are shown just as honestly.
+export type ConsensusLevel = 'agree' | 'mostly_agree' | 'mixed' | 'conflict' | 'disagree' | 'insufficient_data';
 
 export interface MethodResult {
   method: Pick<MethodDefinition, 'id' | 'label' | 'status' | 'reviewNote' | 'source'>;
@@ -186,6 +212,12 @@ export interface MethodResult {
 }
 
 export interface MethodConsensus {
+  /** Which comparison model produced this consensus — 'outcome' tallies
+   * favourable/unfavourable/mixed as before; 'descriptive' compares
+   * categorical answers for equality instead. Sets which of `level`'s
+   * values are actually reachable (a descriptive consensus is only ever
+   * 'agree', 'disagree', or 'insufficient_data'). */
+  kind: 'outcome' | 'descriptive';
   level: ConsensusLevel;
   favourableCount: number;
   unfavourableCount: number;
@@ -193,6 +225,13 @@ export interface MethodConsensus {
   uncertainCount: number;
   verifiableCount: number;
   summary: string;
+  /** Only meaningful when kind === 'descriptive': the shared answer's
+   * human-readable label (the agreeing method's own `verdict.label`, e.g.
+   * "Northern direction" — never the raw `MethodVerdict.descriptiveAnswer`
+   * comparison key, e.g. "water") when every counted method agrees; null
+   * when they disagree, when nothing was computable, or for an ordinary
+   * outcome-kind question. */
+  descriptiveAnswer: string | null;
 }
 
 export interface EngineResult {

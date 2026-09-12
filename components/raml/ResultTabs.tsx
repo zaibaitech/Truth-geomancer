@@ -10,7 +10,7 @@ import { EngineReadingView } from './EngineReadingView';
 import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
 import { getIntentionById } from '@/content/intentions';
-import { runEngine } from '@/lib/raml/engine';
+import { runReading } from '@/lib/raml/engine';
 import {
   findBuruji,
   spiritualStrength,
@@ -56,9 +56,9 @@ export function ResultTabs({ chart, intentionId }: { chart: Chart; intentionId?:
       <div className="space-y-4 px-4">
         {tab === 'Your Reading' && intentionId ? (
           (() => {
-            const engineResult = runEngine(chart, intentionId);
-            return engineResult ? (
-              <EngineReadingView result={engineResult} />
+            const reading = runReading(chart, intentionId);
+            return reading ? (
+              <EngineReadingView result={reading} />
             ) : (
               <ReadingTab chart={chart} intentionId={intentionId} />
             );

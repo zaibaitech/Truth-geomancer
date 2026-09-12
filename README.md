@@ -165,23 +165,56 @@ for the full per-chapter table; the summary:
   into sentences. It never decides anything itself — no model call, no free-text reading of
   the chart — it only phrases a result Layer 1 already computed deterministically.
 
-`components/raml/EngineReadingView.tsx` renders the result — overall outcome, the primary
-method's figure, every house touched, method consistency, and two expandable sections ("Read
-full interpretation" / "How was this calculated?", the latter showing every method's exact
-source quote, calculation steps, and verdict, `needs_review`/`uncertain` ones included).
-`ResultTabs.tsx` uses it automatically whenever the cast chart's question is one of these 19;
-every other question (chapters 20-153) still falls back to the general-parser flow above,
-unaffected.
+Covered by an automated test suite (`npm test`, Vitest) — 103 tests as of that stage, against
+a hand-verified fixture chart whose every house was checked by hand against the addition rule
+before being relied on in an assertion: correct house selection, figure addition (including
+that it's order/grouping-independent, since the addition rule is associative and
+commutative), element extraction (both forms), quality identification, multi-method consensus
+in all five levels (including several questions that genuinely conflict or split on this
+fixture chart — encoded faithfully rather than "corrected," since two of chapter 10's own
+methods disagree with each other in the source itself), and a regression pass over the
+untouched casting engine itself.
 
-Covered by an automated test suite (`npm test`, Vitest) — 103 tests as of this writing,
-against a hand-verified fixture chart whose every house was checked by hand against the
-addition rule before being relied on in an assertion: correct house selection, figure
-addition (including that it's order/grouping-independent, since the addition rule is
-associative and commutative), element extraction (both forms), quality identification,
-multi-method consensus in all five levels (including several questions that genuinely
-conflict or split on this fixture chart — encoded faithfully rather than "corrected," since
-two of chapter 10's own methods disagree with each other in the source itself), and a
-regression pass over the untouched casting engine itself.
+### The reading & results layer
+
+`engine/reading.ts` is a third, purely presentational layer on top of the above — it
+recalculates nothing. `composeReading(engineResult, question)` takes the rule engine's own
+output and re-arranges the SAME values into a `ReadingResult`: a friendly question category,
+a primary/supporting figure split (deduped, each with only the attributes that are actually
+`verified` — never a displayed "unknown"), a per-method check/cross row against the overall
+outcome (excluding, correctly, any method whose own outcome is itself `uncertain` — that's a
+real case: a verified rule can still land outside every branch it defines, and that method
+must never silently count toward agreement), a plain-language consensus breakdown and
+disagreement note built only from the existing consensus counts, and traceable source
+references resolved to their real chapter numbers. `runReading(chart, intentionId)` is the one
+call `ResultTabs.tsx` uses — `runEngine` is still exported for anything that only wants the
+undecorated calculation.
+
+Two states get exact, spec-required copy rather than any generated phrasing: a question with
+zero verified methods shows "Insufficient Verified Data" / "We could not produce a reliable
+automatic reading from the currently verified source rules." and nothing else (no fabricated
+outcome, no primary figure); a question with a MIX of verified and unverified methods shows
+its real result plus one line — "Some additional traditional methods could not be evaluated
+because their source material requires verification." — linking into the same calculation
+details already listing those methods' review notes. A genuine conflict (e.g. chapter 19's
+court-case methods on the fixture chart) is shown as a genuine conflict, never averaged into a
+fabricated middle ground.
+
+`components/raml/reading/` holds the reusable component set this composes into, in the
+section-18 display order used across all 19 (and any future) questions: `ReadingHeader` →
+`OutcomeCard` (or the insufficient-data copy) → `FigureCard` (primary) → `InterpretationCard`
+(always visible, not gated behind a toggle) → `MethodConsistencyCard` → `SupportingIndicators`
+→ `CalculationDetails` (the one remaining expandable, showing every method's houses, steps,
+result figure, and exact source quote) → `SourceReference`. `EngineReadingView.tsx` is just
+the composition of these in order; `ResultTabs.tsx`'s integration point didn't need to change.
+
+Covered by 18 additional tests (`engine/__tests__/reading.test.ts`) — one hand-built
+`EngineResult` per scenario (favourable, unfavourable, mostly favourable, conflicting,
+insufficient data, needs_review, uncertain, a verified-but-uncertain-outcome method, missing
+figure information, missing optional qualities, source traceability with both a real and an
+unrecognized chapter id, calculation details, and question-specific interpretation
+pass-through), plus a few end-to-end checks against the real registry on the same fixture
+chart. 121 tests pass in total; none of the original 103 needed to change.
 
 ## Content protection in the book reader
 

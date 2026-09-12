@@ -128,28 +128,256 @@ per-method, hand-verified test coverage, and `__tests__/audit-1-60.test.ts`
 consensus/descriptive-integrity checks against every registered question,
 chapters 1-60 together) for the full regression audit.
 
-## Totals (as of this stage — Stage 4 / Prompt 5, chapters 41-60)
+## Prompt 6 — Source Reconciliation & Architecture Audit (chapters 1-60)
+
+A full audit stage, not a knowledge-base expansion: no new chapters, no new
+source rules, no invented classifications. Governing principle: *source
+fidelity over completeness — never infer, extrapolate, or invent a
+geomantic rule simply because the application needs a result.* Everything
+below is either a confirmation ("reviewed, no change needed") or a fix with
+regression tests; nothing was changed on editorial preference alone.
+
+**1. Chapters 1-60 audit status.** Every registered question, every
+`operations.ts` primitive, `ruleEngine.ts`, `types.ts`, `reading.ts`,
+`interpretation.ts`, and `chartModel.ts` were reviewed. `casting.ts` was
+read but not touched (see "Confirmation" below). Two genuine issues were
+found and fixed (chs. 18 and 21, detailed below); everything else reviewed
+was confirmed already correct.
+
+**2. Male/female-star resolution — CONFIRMED UNRESOLVABLE, not guessed.**
+Exhaustively re-searched both source manuscripts
+(`content/manuscripts/kanzul-mikban.ts`, all 153 chapters, and
+`master-of-geomancy-vol1.ts`) for any table, glossary, appendix, or later
+chapter defining which of the 16 figures are male vs. female. None exists.
+Two independent pieces of evidence: (a) a plain-text grep for "male
+star"/"female star" across the whole manuscript finds 7 occurrences (chs.
+31, 41, 48 x2, the pregnant fragment's Method 3, and two more not yet
+implemented, ch. ~71 and ch. ~90 by line position) and every one of them
+*uses* the classification without ever *defining* it, except ch.31, which
+explicitly redefines gender via element for its own rule only; (b) the
+manuscript's own front matter (`KM_EDITION_NOTE`, already present in this
+codebase) states outright: "male or female" is named as one of the
+qualities the book regularly uses, but "this transcription has no verified
+source defining exactly which of the sixteen named figures carries which
+quality." Per Prompt 6 section 2's explicit instruction, no classification
+was invented. Instead: chapter 41 Method 1 and chapter 48 Methods 1-2
+remain `needs_review`, and now additionally carry a new, optional,
+machine-readable `reviewReasonCode: 'gender_classification_unsourced'`
+field on `MethodDefinition` (types.ts, purely additive) — see "Operation
+and result-model audit" below. The UI already explained this in full
+sentences via each method's own `reviewNote` (confirmed unchanged via a
+live re-screenshot of ch.41's insufficient-data screen); no UI change was
+needed. Regression tests (`audit-1-60.test.ts`, new describe block) prove
+every gender-blocked method never produces a verdict and never enters
+consensus, and will automatically cover any future method carrying the
+same reason code.
+
+**3. Descriptive-result audit.** Chapters 47, 48/56, 49, 53, 54, 55, 57,
+and 58 were re-reviewed individually against the question "does the source
+attach a favourable/unfavourable value judgment to this answer, or is it a
+neutral fact?" All eight were confirmed correctly modeled as
+`resultKind: 'descriptive'` — including a specific re-examination of
+chapter 57's "daytime is good... night time is good for you to travel"
+wording (which uses the word "good" but never states an "unfavourable"
+alternative — every chart produces a recommended time, the same
+no-negative-branch shape as chapter 54's "which direction," not a
+favourable/unfavourable axis). Chapters 1-40 were scanned for the specific
+failure mode named in Prompt 6 section 3 (a real descriptive answer forced
+into `insufficient_data`): chapters 4, 5, 6, and 17 (huntingSearching,
+fightWarLocation, enemyThiefLocation, timingOfEvent) are genuinely blocked
+by omitted source figures, independent of result kind, so nothing to fix;
+chapter 10 (lostThingAround) was checked closely since its title ("Is Your
+Lost Thing Still Around or Gone") sounds locational, but its own text
+consistently frames "still around" as good news and "gone" as bad news
+across all 5 of its methods (unlike chapter 49's purely neutral "closer or
+far away," which correctly stays descriptive) — confirmed correctly
+`outcome`, not changed. One borderline case was found and deliberately
+**not** changed: chapter 32 ("will it rain") is structurally a binary
+yes/no fact like chapters 47/58, but the source never marks it as neutral
+information either, and it fits the same "will X happen" mold as many
+already-`outcome` chapters (money, children, safe return) with no clear
+evidence favoring a change — flagged in the source-verification queue
+rather than auto-changed, per section 3's explicit instruction to document
+discrepancies rather than resolve every one.
+
+**4. Conditional-result audit.** Chapters 41 M2, 42 M1, 51, and 60 M1 were
+re-verified line by line: every named good/middle-good/bad x
+upward/downward combination the source distinguishes still produces a
+distinct outcome (favourable/mixed/unfavourable), none collapsed. A
+positive control was found in `safeInCanoe.ts` (ch.24), which already
+implements the full 4-way fortune x direction split correctly, confirming
+the pattern works elsewhere in the codebase when the source supports it.
+Two "same outcome despite a stated caveat" cases were specifically
+re-examined — chapter 1 Method 1 ("return with money" vs. "return
+peacefully, but without money," both `favourable`) and chapter 19
+(`courtCase.ts`, "win with money" vs. "win, without money," both
+`favourable`) — and confirmed NOT a collapsing bug: in both, the caveat is
+the *absence of a bonus* (money), not an active downside undermining the
+question's own core ask (safe return; winning the case), structurally
+different from chapter 42's "get it but then lose it over time" (`mixed`)
+or chapter 60's "loves you but might divorce" (`mixed`), where the caveat
+directly undermines the thing being asked about. One genuine bug WAS found
+and fixed: chapter 18 (`stolenThings.ts`) Method 3's own source text names
+TWO independent rules for the same h2+h6+h9+h16 calculation — the book's
+own primary "found in the chart" rule, and a second, explicitly-attributed
+rule ("Some scholars also say...", verbatim in the source) giving a more
+detailed good/bad x upward/downward breakdown. The previous version
+folded the scholars' rule into cosmetic elaboration text on the primary
+rule's own verdict, so a "good but upward" result (which the scholars'
+rule itself calls "you might not get them," i.e. `mixed`) could never
+actually surface as anything but the primary rule's flat
+favourable/unfavourable. Split into Method 3 (primary rule only) and a new
+Method 4 (the scholars' rule, independently computed and counted) — this
+is the exact "preserve every method independently" principle, applied
+retroactively. A grep for this "Some scholars"/"also say" pattern across
+the whole manuscript confirms chapter 18 is the only occurrence — not a
+symptom of a wider problem.
+
+**5. Chapter 58 vs. Chapter 21 — RESOLVED as an implementation
+inconsistency, fixed.** Both ask the same real-world question (did sexual
+activity occur — a yes/no fact) via the identical mechanic (a water line's
+opened/closed state). Chapter 58 (`couplesHadSex.ts`, built in Prompt 5)
+correctly uses `resultKind: 'descriptive'`; chapter 21
+(`wifeSisterHadSex.ts`, built in Prompt 2, one stage before the
+descriptive model existed in Prompt 4.5) never got migrated. This is
+category 2 of the four Prompt 6 offered ("an implementation
+inconsistency") — not a genuine source difference (the source attaches no
+value judgment to either chapter's answer), not an architectural
+limitation (the descriptive model already existed and worked), and not
+insufficient evidence (both source passages are clear). Fixed: chapter
+21's Method 2 now reports `outcome: 'descriptive'` /
+`descriptiveAnswer: 'yes'|'no'`, matching chapter 58 exactly; its
+underlying calculation (H7+H13, water line state) is byte-for-byte
+unchanged — confirmed by a regression test asserting the same figure
+(Nuhu) and the same water-line state as before the fix, only the outcome
+label changed. Live-rendered and screenshotted: the reading now shows
+"READING / Had sex" instead of a fabricated "Favourable" badge.
+
+**6. Non-implemented items — permanently classified.**
+- **Chapter 46** (talismanic ritual): confirmed to be a **ritual
+  procedure, not a chart-verdict method** — its instruction (write/fold/
+  place a diagram, weighted with a stone) has no branching structure and
+  produces no determinate answer to compute, independent of its also-
+  omitted diagram. Not a "missing method" in the sense the other gaps are;
+  it was never going to produce a `ReadingResult` verdict even with the
+  diagram restored. Stays unregistered.
+- **Chapter 59** (secret of the querent): confirmed all 3 methods are
+  **open-ended by design**, not incomplete deterministic rules — Method 1
+  says "use whatever star you get to talk to the person" (no defined
+  verdict shape at all, just "here's a figure, interpret it freely");
+  Method 2 has the querent pick a figure with no chart computation
+  involved; Method 3 says "add Yusuf to any star found in a house" without
+  specifying which house, another free choice. Confirmed the general
+  fallback parser (`methodParser.ts`) cannot and does not silently
+  mis-parse any of these into a fabricated verdict — its regex patterns
+  require an explicit "if X, then Y" branch structure none of these three
+  methods have, so it safely falls through to the plain house-chip display
+  with no invented answer. Stays unregistered; documented here as its
+  permanent classification rather than left ambiguous.
+- **Unnumbered "Consequence of Friendship" fragment** (after ch.52):
+  reconfirmed **architecturally ready** (fully computable — H1+H3,
+  good/bad) but kept outside the registry solely because it carries no
+  chapter number, per this stage's explicit instruction not to assign one
+  on the project's own initiative.
+- **Pregnant fragment's Method 3** (baby-sex via male/female star):
+  treated exactly like chapter 48's own Methods 1-2 — the identical
+  unsourced-gender blocker. Not registered as its own `MethodDefinition`
+  (it would be a third, fully redundant confirmation of a gap chapter 48
+  already documents); its existence and the shared reasoning are recorded
+  here rather than silently dropped.
+
+**7. Operation and result-model audit.** `COUNT_TOTAL_DOTS` and
+`CAST_OUT_BY` (Prompt 5) were re-verified: both are pure functions with no
+dependency on chapter 48/56's specific question logic — `CAST_OUT_BY`
+doesn't even import `ChartModel`. Confirmed generic and reusable as
+designed. One genuine extraction opportunity was found: the "found in the
+first/second/third/last 4 houses" mechanic was independently hand-rolled
+with the identical `[1-4]/[5-8]/[9-12]/[13-16]` grouping in THREE separate
+files (chapters 31, 35, 55) — and a manuscript-wide grep confirms this
+exact phrasing recurs many more times in chapters not yet implemented (at
+least 8 more instances). This is genuine, evidenced reuse, not a
+speculative abstraction, so it was extracted as a new primitive,
+`FIND_FIGURE_QUARTER` (`operations.ts`) — it only finds WHICH quarter a
+figure occupies; each question keeps its own mapping from quarter to
+outcome/label/interpretation, since that meaning genuinely differs per
+chapter. All three call sites were refactored to use it with unit tests
+confirming byte-identical behavior (same `descriptiveAnswer`/outcome
+values as before the refactor, on the shared fixture chart). Result-model
+inventory (Prompt 6 section 8): every shape required by chapters 1-60 —
+favourable/unfavourable/mixed, insufficient data, descriptive (which
+already subsumes factual yes/no, directional, and locational answers via
+its `descriptiveAnswer` field, needing no separate `MethodOutcome` values),
+and source-review-required — is already representable by the existing
+`MethodOutcome`/`RuleStatus`/`resultKind` model. Open-ended (ch.59) and
+ritual (ch.46) content don't need a live representation since both stay
+unregistered — a valid, already-supported representation choice. The
+**only** architecture change made is the new optional
+`ReviewReasonCode`/`reviewReasonCode` field described in point 2 — the
+smallest possible backward-compatible addition, requested explicitly by
+this stage, touching no existing value's meaning.
+
+**8. UI audit.** `InsufficientNotice.tsx` and `CalculationDetails.tsx`
+were re-read: both already render every method's status badge and full
+`reviewNote` regardless of status, and `OutcomeCard`/`MethodConsistencyCard`
+already render the distinct `descriptive`/`disagree`/`conflict` states
+correctly (confirmed via live screenshots of the two chapters fixed this
+stage, plus chapters 58 and 60 from Prompt 5). No UI component was
+modified this stage — the existing generic components already satisfy
+"the user should understand what the method found, whether the result is
+certain/conditional/descriptive/unresolved, and when the source doesn't
+provide enough information" for every result shape audited.
+
+**9. Tests.** 819 before this stage (Prompt 5 baseline) → **829 after**,
+all passing: +6 `FIND_FIGURE_QUARTER` unit tests, +3 gender-classification
+regression tests (registry-wide, self-updating), +1 net from the chapter
+18/21 fixes (assertions updated in place, not weakened — the chapter 18
+tests now check a NEW Method 4 that didn't exist before, and the chapter
+21 tests now check `descriptiveAnswer` in addition to `outcome`). `tsc
+--noEmit` clean, `npm run build` clean, and both fixes were live-rendered
+and screenshotted in the browser.
+
+**10. Files changed:** `types.ts` (new `ReviewReasonCode` type +
+`reviewReasonCode` field, additive only), `operations.ts` (new
+`FIND_FIGURE_QUARTER`/`ChartQuarter`/`QUARTER_HOUSES`), `operations.test.ts`,
+`questions/thePersonThatTookAnItem.ts` and `questions/childGender.ts`
+(reason code + updated review notes), `questions/wifeSisterHadSex.ts`
+(descriptive migration), `questions/stolenThings.ts` (Method 3/4 split),
+`questions/lostThingThiefLocation.ts`, `questions/familyDoingWell.ts`,
+`questions/thiefWhereabouts.ts` (refactored onto `FIND_FIGURE_QUARTER`),
+`__tests__/questions-stage3.test.ts`, `__tests__/questions.test.ts`,
+`__tests__/audit-1-60.test.ts`, this file. **Not touched:** `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `reading.ts`, `interpretation.ts`, and
+every chapter 22-40/41-60 question file.
+
+**11. Remaining source-verification queue additions:** see the updated
+table below — chapter 32's "will it rain" yes/no-vs-outcome classification
+(borderline, flagged not changed), and the male/female-star gap now has 3
+confirmed occurrences (ch.41, ch.48 x2) plus 2 more named occurrences not
+yet implemented (~ch.71, ~ch.90 by manuscript line position) that a future
+stage should expect to hit the identical wall.
+
+## Totals (as of this stage — Prompt 6 reconciliation audit, chapters 1-60)
 
 | | Count |
 |---|---|
 | Total source chapters (Kanzul Mikban, numbered 1-153) | 153 |
 | Numbered chapters reviewed and entered into this engine | 60 (chapters 1-19, 20-32, 34-45, 47-55, 57-58, 60 — chapters 33, 46, 59 reviewed but out of scope/not computable, see below) |
 | Numbered chapters not yet reviewed | 93 (chapters 61-153) |
-| Unnumbered sub-chapters/continuations reviewed this stage | 2 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope) |
+| Unnumbered sub-chapters/continuations reviewed | 2 (the "Additional Methods — pregnant" fragment — 2 of its 3 methods registered under ch.47; the "Consequence of Friendship" fragment — not registered, out of numbered scope) |
 | Questions registered in `QUESTION_REGISTRY` | **57** |
-| Total methods across all registered questions | 111 |
-| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **89** |
+| Total methods across all registered questions | 112 |
+| **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **90** |
 | **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **6** |
 | **Uncertain** (not computable — almost always omitted source figures) | **16** |
-| Automated tests covering this engine | 819 (all passing) |
+| Automated tests covering this engine | 829 (all passing) |
 
-### Stage 1+2 (chapters 1-19) subtotal — unchanged since Prompt 2
+### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
 | | Count |
 |---|---|
 | Chapters | 19 |
-| Methods | 48 |
-| Verified | 35 |
+| Methods | 49 |
+| Verified | 36 |
 | Needs review | 2 |
 | Uncertain | 11 |
 
@@ -200,9 +428,9 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 15 | `if-things-will-be-better-for-the-questioner` | 1 | 1 | 0 | 0 |
 | 16 | `if-you-will-overcome-your-enemy-or-not` | 2 | 2 | 0 | 0 |
 | 17 | `if-something-will-happen-in-an-hour-day` (timing) | 2 | 0 | 0 | 2 |
-| 18 | `if-you-will-get-your-stolen-things-back` (Part B only) | 3 | 3 | 0 | 0 |
+| 18 | `if-you-will-get-your-stolen-things-back` (Part B only) | 4 | 4 | 0 | 0 |
 | 19 | `if-you-will-win-a-case-in-court` | 4 | 3 | 0 | 1 |
-| **Subtotal (1-19)** | | **48** | **35** | **2** | **11** |
+| **Subtotal (1-19)** | | **49** | **36** | **2** | **11** |
 | 20 | `who-will-win-an-election-or-a-chieftaincy` | 2 | 2 | 0 | 0 |
 | 21 | `if-your-wife-or-sister-has-had-sex` | 3 | 1 | 1 | 1 |
 | — | `if-it-s-good-to-stay-in-a` (unnumbered, between 21-22) | 3 | 3 | 0 | 0 |
@@ -249,7 +477,7 @@ _A "Verified" count below includes descriptive verdicts (chs. 23, 31, 36 — see
 | 59 | *(open-ended/non-deterministic or not chart-derived — see "Architectural gaps")* | — | not registered | — | — |
 | 60 | `if-she-he-loves-you-or-not` | 2 | 2 | 0 | 0 |
 | **Subtotal (41-60)** | | **26** | **23** | **3** | **0** |
-| **Grand total (1-60)** | | **111** | **89** | **6** | **16** |
+| **Grand total (1-60)** | | **112** | **90** | **6** | **16** |
 
 ## Architectural gaps (Stage 3)
 
@@ -464,9 +692,12 @@ section 17):
 | Ch.30 | Two named-figure branches ("profit but not stable"; "profit but very sick") omitted — not implemented, only the direction-based primary rule is |
 | Ch.33 | Uses a separate dot-line "cast out by 4s" mechanic, not the 16-house chart — architectural, needs a product decision (new input UI) rather than a source fix |
 | Ch.37, Method 2 | Needs a defined left/right spatial convention for the chart — architectural, needs a product/source decision |
-| Ch.41 Method 1, Ch.48 Methods 1-2, "pregnant" fragment Method 3 | All hinge on a "male star"/"female star" figure classification no chapter reviewed so far (1-60) actually tabulates — architectural (this project's general figure-gender axis is intentionally unsourced), needs either a later chapter that defines it or an explicit product decision to adopt a sourced classical-tradition table (see "Architectural gaps (Stage 4)") |
-| Ch.46 | Talismanic diagram omitted ("[talismanic diagram in the original — not reproduced here]"); also architectural — even with the diagram, this is a ritual-practice chapter, not a chart-verdict method |
-| Ch.58 vs. Ch.21 consistency | Ch.58 ("couples had sex") uses the new `resultKind: 'descriptive'` treatment; Ch.21's structurally identical question (wife/sister had sex) still uses the older favourable=yes/unfavourable=no treatment from before Prompt 4.5 existed — not a source issue, a product decision on whether to migrate Ch.21 for consistency in a future stage |
+| Ch.41 Method 1, Ch.48 Methods 1-2, "pregnant" fragment Method 3 | **Confirmed unresolvable (Prompt 6)** — exhaustively re-searched both manuscripts; no table exists anywhere, and the book's own front matter (`KM_EDITION_NOTE`) explicitly confirms the gap. Now carries a machine-readable `reviewReasonCode: 'gender_classification_unsourced'`. Needs either a later chapter that defines it or an explicit product decision to adopt an outside classical-tradition table (not authorized by this or any prior stage) |
+| Ch.46 | Talismanic diagram omitted ("[talismanic diagram in the original — not reproduced here]"); also architectural — even with the diagram, this is a ritual-practice chapter, not a chart-verdict method. **Permanently classified (Prompt 6)**: ritual procedure, not a missing method |
+| Ch.58 vs. Ch.21 consistency | **RESOLVED (Prompt 6)** — confirmed an implementation inconsistency (Ch.21 predates the `resultKind: 'descriptive'` model), not a genuine source difference. Ch.21 Method 2 migrated to `resultKind: 'descriptive'` to match Ch.58 exactly; regression tests confirm the underlying calculation is unchanged |
+| Ch.18, Method 3 ("some scholars") | **RESOLVED (Prompt 6)** — the source's own secondary "some scholars also say" rule was previously folded into cosmetic text on Method 3's verdict instead of counted independently. Split into Method 3 (primary rule) + a new Method 4 (the scholars' rule), each now independently contributing to consensus |
+| Ch.32 ("will it rain") | **Reviewed, not changed (Prompt 6)** — structurally a binary yes/no fact like chs. 47/58 (arguably `descriptive`), but fits the same "will X happen" mold as many already-`outcome` chapters (money, children, safe return) with no clear source evidence favoring a change either way. Flagged for a future stage's judgment, not auto-changed |
+| Ch.31, Ch.41, Ch.48 x2 gender occurrences — two further named occurrences not yet implemented (~ch.71, ~ch.90 by manuscript line position) | A future chapter-expansion stage should expect to hit the identical unsourced-gender wall; no new investigation needed, this queue entry already covers the reasoning |
 
 ## Not yet implemented
 
@@ -545,3 +776,26 @@ chapter outside 41-60 was implemented (chapters 33/46/59 and the two
 unnumbered fragments were reviewed, per Prompt 5's own instruction to
 document rather than implement architectural gaps, but nothing was coded
 for them).
+
+**Prompt 6, honestly:** `casting.ts`, `chartModel.ts`, and `ruleEngine.ts`
+remain completely untouched — confirmed by re-reading all three in full as
+part of this audit. `types.ts` gained exactly one additive change (the
+optional `ReviewReasonCode` type and `MethodDefinition.reviewReasonCode`
+field — no existing type's meaning changed, no existing field became
+required). `reading.ts` and `interpretation.ts` were read but not modified
+— the audit concluded, and confirmed by re-reading both components and
+re-screenshotting two live readings, that they already render every result
+shape (favourable/unfavourable/mixed/conflict, descriptive/agree/disagree,
+insufficient-data-with-full-explanation) honestly, with no invented
+conclusions anywhere. `operations.ts` gained one new, evidence-backed
+primitive (`FIND_FIGURE_QUARTER`, extracting a pattern that was already
+independently duplicated three times, with a manuscript-wide grep
+confirming many more future call sites). No chapter's underlying
+CALCULATION changed in this stage — the chapter 18 and chapter 21 fixes
+both changed only how an already-correct calculation's result is split
+into methods (ch.18) or labeled (ch.21), confirmed by regression tests
+asserting the exact same computed figures as before each fix. No
+male/female figure classification was invented anywhere, confirmed by an
+exhaustive re-search of both source manuscripts. No chapter outside 1-60
+was touched, and no chapter 61+ work was started, per this stage's explicit
+scope.

@@ -6,6 +6,18 @@
 // not guessed); Method 2 asks for one specific LINE's state, which IS
 // manuscript-defined and fully computable; Method 3 depends entirely on
 // named figures the source transcription omitted.
+//
+// Prompt 6 audit: this question predates the `resultKind: 'descriptive'`
+// model (built in Prompt 4.5, one stage after this file was written in
+// Prompt 2) and was never migrated. Whether sex occurred is a factual
+// yes/no answer — the source attaches no favourable/unfavourable value
+// judgment to either branch, exactly the same shape as chapter 58's "if
+// couples have had sex or not" (couplesHadSex.ts), which correctly uses the
+// descriptive model. This is a genuine implementation inconsistency, not a
+// different source rule or an architectural limitation — Method 2's own
+// calculation is unchanged, only its result kind and outcome labeling are
+// migrated to match chapter 58's more considered treatment, with regression
+// tests confirming the fixture-chart calculation itself never changed.
 
 import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_LINE_STATE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
@@ -53,8 +65,8 @@ const method2: MethodDefinition = {
   evaluate: (calc) => {
     const opened = CHECK_LINE_STATE(calc.resultFigure, 'water') === 'opened';
     return opened
-      ? { outcome: 'favourable', label: 'Water line opened', interpretation: 'She does have sex.' }
-      : { outcome: 'unfavourable', label: 'Water line closed', interpretation: "She didn't." };
+      ? { outcome: 'descriptive', label: 'Had sex', interpretation: 'The water line is opened (single dot) — she does have sex.', descriptiveAnswer: 'yes' }
+      : { outcome: 'descriptive', label: "Didn't", interpretation: "The water line is closed — she didn't.", descriptiveAnswer: 'no' };
   },
 };
 
@@ -81,5 +93,6 @@ export const wifeSisterHadSexQuestion: QuestionDefinition = {
   title: 'Has my wife or sister had sex?',
   categoryId: 'love-couple',
   chapterId: CHAPTER_ID,
+  resultKind: 'descriptive',
   methods: [method1, method2, method3],
 };

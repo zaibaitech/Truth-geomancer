@@ -18,6 +18,7 @@ import {
   COUNT_TOTAL_DOTS,
   EXTRACT_ELEMENT,
   EXTRACT_LINES,
+  FIND_FIGURE_QUARTER,
   MATCH_FIGURE,
   MATCH_QUALITIES,
   RECAST_FROM_HOUSES,
@@ -153,6 +154,45 @@ describe('COUNT_ELEMENTS', () => {
   it('tallies elements across a specific house subset', () => {
     const tally = COUNT_ELEMENTS(chart, [1, 2, 3, 4]);
     expect(tally.fire + tally.air + tally.water + tally.sand).toBe(4);
+  });
+});
+
+describe('FIND_FIGURE_QUARTER (Prompt 6 — shared by chs. 31, 35, 55)', () => {
+  it('finds a figure that only occurs in the Mothers quarter (H1-4)', () => {
+    // Yussif (1121) occurs only at H1 on the fixture chart.
+    const yussifPattern = chart.houses[0].dotPattern;
+    expect(FIND_FIGURE_QUARTER(chart, yussifPattern).quarter).toBe('mothers');
+  });
+
+  it('finds a figure that occurs (only) in the Daughters quarter (H5-8)', () => {
+    // Issah (1212) occurs at H6 and H8 on the fixture chart — both Daughters.
+    const issahPattern = chart.houses[5].dotPattern;
+    expect(FIND_FIGURE_QUARTER(chart, issahPattern).quarter).toBe('daughters');
+  });
+
+  it('finds a figure that occurs (only) in the Nieces quarter (H9-12)', () => {
+    // Usman (2121) occurs at H9 and H10 on the fixture chart — both Nieces.
+    const usmanPattern = chart.houses[8].dotPattern;
+    expect(FIND_FIGURE_QUARTER(chart, usmanPattern).quarter).toBe('nieces');
+  });
+
+  it('finds a figure that occurs (only) in the Witnesses/Judge/Reconciler quarter (H13-16)', () => {
+    // Musah (2222) occurs only at H13 on the fixture chart.
+    const musahPattern = chart.houses[12].dotPattern;
+    expect(FIND_FIGURE_QUARTER(chart, musahPattern).quarter).toBe('witnesses');
+  });
+
+  it('returns null when the pattern matches none of the chart\'s own 16 houses', () => {
+    // Ayuba (2221) is not among this fixture chart's 16 star ids.
+    const ayubaPattern: Pattern = [2, 2, 2, 1];
+    expect(FIND_FIGURE_QUARTER(chart, ayubaPattern).quarter).toBeNull();
+  });
+
+  it('is deterministic — repeated calls on the same chart/pattern always agree', () => {
+    const pattern = chart.houses[0].dotPattern;
+    const a = FIND_FIGURE_QUARTER(chart, pattern).quarter;
+    const b = FIND_FIGURE_QUARTER(chart, pattern).quarter;
+    expect(a).toBe(b);
   });
 });
 

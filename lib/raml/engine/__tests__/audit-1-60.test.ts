@@ -146,6 +146,51 @@ describe('Primary-indication correctness (every question, on the fixture chart)'
   });
 });
 
+// Prompt 6, section 2/10: "tests proving unsupported gender classifications
+// are not guessed". Checked structurally across the whole registry, not
+// just the 3 methods known today to carry the code — so this keeps working
+// automatically if a future stage adds another gender-blocked method.
+describe('Unsourced gender classification is never guessed (Prompt 6)', () => {
+  const ids = Object.keys(QUESTION_REGISTRY);
+  const genderBlocked: { questionId: string; methodId: string }[] = [];
+  ids.forEach((id) => {
+    QUESTION_REGISTRY[id].methods.forEach((m) => {
+      if (m.reviewReasonCode === 'gender_classification_unsourced') {
+        genderBlocked.push({ questionId: id, methodId: m.id });
+      }
+    });
+  });
+
+  it('finds the 3 known gender-blocked methods (ch.41 M1, ch.48 M1/M2) — a sanity check on the audit itself', () => {
+    expect(genderBlocked.map((g) => g.methodId).sort()).toEqual(
+      ['child-gender-method-1', 'child-gender-method-2', 'item-taker-method-1'].sort(),
+    );
+  });
+
+  it('every gender-blocked method is needs_review, carries a non-empty reviewNote, and never produces a verdict', () => {
+    genderBlocked.forEach(({ questionId, methodId }) => {
+      const method = QUESTION_REGISTRY[questionId].methods.find((m) => m.id === methodId)!;
+      expect(method.status, `${methodId} should be needs_review`).toBe('needs_review');
+      expect(method.reviewNote?.length ?? 0, `${methodId} should have a non-empty reviewNote`).toBeGreaterThan(0);
+
+      const result = runEngine(chart, questionId)!;
+      const m = result.methods.find((rm) => rm.method.id === methodId)!;
+      expect(m.verdict, `${methodId} should never produce a verdict (status !== 'verified')`).toBeNull();
+    });
+  });
+
+  it('a gender-blocked method never contributes to consensus, and the question never fabricates a favourable/unfavourable/descriptive answer from it alone', () => {
+    genderBlocked.forEach(({ questionId, methodId }) => {
+      const result = runEngine(chart, questionId)!;
+      const consensus = result.calculationDetails.consensus;
+      const trulyCounted = result.methods.filter((m) => m.verdict && m.verdict.outcome !== 'uncertain');
+      // The gender-blocked method itself is never among the counted methods.
+      expect(trulyCounted.some((m) => m.method.id === methodId)).toBe(false);
+      expect(consensus.verifiableCount).toBe(trulyCounted.length);
+    });
+  });
+});
+
 describe('Casting regression check', () => {
   it('the fixture chart still produces exactly the hand-verified 16 star ids (casting.ts untouched)', async () => {
     const { FIXTURE_STAR_IDS } = await import('./fixtures');

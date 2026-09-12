@@ -19,6 +19,12 @@
 //
 // resultKind is 'descriptive': the child's sex is a factual answer, not a
 // favourable/unfavourable value judgment.
+//
+// Prompt 6 audit: exhaustively re-searched both source manuscripts for a
+// male/female figure classification — none exists anywhere (see
+// thePersonThatTookAnItem.ts's own Prompt 6 note for the full reasoning,
+// including the book's own front matter explicitly confirming this gap).
+// Methods 1-2 stay needs_review, not guessed.
 
 import { CAST_OUT_BY, COUNT_TOTAL_DOTS, CHECK_HOUSE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
@@ -30,8 +36,9 @@ const method1: MethodDefinition = {
   id: 'child-gender-method-1',
   label: 'Method 1',
   status: 'needs_review',
+  reviewReasonCode: 'gender_classification_unsourced',
   reviewNote:
-    'Hinges on classifying H1 as a "male star" or "female star" — this chapter never defines which figures are male vs. female, and this project\'s general figure-gender axis is intentionally left unsourced project-wide (see FigureQualities.gender in types.ts). Withheld rather than guessed.',
+    'Hinges on classifying H1 as a "male star" or "female star" — this chapter never defines which figures are male vs. female, and this project\'s general figure-gender axis is intentionally left unsourced project-wide (see FigureQualities.gender in types.ts). Confirmed by an exhaustive re-search of both source manuscripts (Prompt 6) — no authoritative table exists. Withheld rather than guessed.',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
@@ -52,8 +59,9 @@ const method2: MethodDefinition = {
   id: 'child-gender-method-2',
   label: 'Method 2',
   status: 'needs_review',
+  reviewReasonCode: 'gender_classification_unsourced',
   reviewNote:
-    'Same unsourced-gender gap as Method 1, applied to H10 and H11 needing to match each other.',
+    'Same unsourced-gender gap as Method 1, applied to H10 and H11 needing to match each other. Confirmed by an exhaustive re-search of both source manuscripts (Prompt 6) — no authoritative table exists.',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

@@ -4,19 +4,25 @@
 // even without the words "good/bad" ("doing very well" down to "in
 // danger... can't handle it") — a direct translation of stated meaning
 // into the outcome vocabulary, not an invented judgment.
+//
+// Prompt 6 audit: the "which quarter of the chart" search previously
+// hand-rolled its own QUARTERS array — the identical mechanic to chapters
+// 31 and 55's own methods, now extracted to the shared FIND_FIGURE_QUARTER
+// operation. This chapter keeps its own quarter->outcome/label/text
+// mapping, only the SEARCH itself is shared.
 
-import { ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART } from '../operations';
+import { ADD_MULTIPLE_HOUSES, FIND_FIGURE_QUARTER, type ChartQuarter } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 import type { MethodOutcome } from '../types';
 
 const CHAPTER_ID = 'if-your-family-is-doing-well-while-you';
 
-const QUARTERS: { houses: number[]; outcome: MethodOutcome; label: string; text: string }[] = [
-  { houses: [1, 2, 3, 4], outcome: 'favourable', label: 'Found among the Mothers (H1-4)', text: 'They are doing very well.' },
-  { houses: [5, 6, 7, 8], outcome: 'mixed', label: 'Found among the Daughters (H5-8)', text: 'They are doing well, but they are facing financial problems.' },
-  { houses: [9, 10, 11, 12], outcome: 'mixed', label: 'Found among the Nieces (H9-12)', text: 'They are facing financial problems and some of them are sick.' },
-  { houses: [13, 14, 15, 16], outcome: 'unfavourable', label: 'Found among the Witnesses/Judge/Reconciler (H13-16)', text: "They are in danger, or in a situation they can't handle themselves." },
-];
+const QUARTER_MEANING: Record<ChartQuarter, { outcome: MethodOutcome; label: string; text: string }> = {
+  mothers: { outcome: 'favourable', label: 'Found among the Mothers (H1-4)', text: 'They are doing very well.' },
+  daughters: { outcome: 'mixed', label: 'Found among the Daughters (H5-8)', text: 'They are doing well, but they are facing financial problems.' },
+  nieces: { outcome: 'mixed', label: 'Found among the Nieces (H9-12)', text: 'They are facing financial problems and some of them are sick.' },
+  witnesses: { outcome: 'unfavourable', label: 'Found among the Witnesses/Judge/Reconciler (H13-16)', text: "They are in danger, or in a situation they can't handle themselves." },
+};
 
 const method1: MethodDefinition = {
   id: 'family-doing-well-method-1',
@@ -33,11 +39,12 @@ const method1: MethodDefinition = {
     return { housesUsed: [1, 4, 7, 10], steps: [trace.description], resultFigure: figure };
   },
   evaluate: (calc, chart) => {
-    const quarter = QUARTERS.find((q) => CHECK_FIGURE_PRESENT_IN_CHART(chart, calc.resultFigure.dotPattern, q.houses).found);
+    const { quarter } = FIND_FIGURE_QUARTER(chart, calc.resultFigure.dotPattern);
     if (!quarter) {
       return { outcome: 'uncertain', label: 'Not found in any quarter', interpretation: 'This result figure does not match any of the 16 houses — the source does not address this case.' };
     }
-    return { outcome: quarter.outcome, label: quarter.label, interpretation: quarter.text };
+    const meaning = QUARTER_MEANING[quarter];
+    return { outcome: meaning.outcome, label: meaning.label, interpretation: meaning.text };
   },
 };
 

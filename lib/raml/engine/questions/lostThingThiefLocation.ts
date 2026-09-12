@@ -5,18 +5,24 @@
 // result figure falls in), never a favourable/unfavourable one. See
 // terrainType.ts: `status: 'verified'` with `outcome: 'descriptive'`
 // (Prompt 4.5), not the earlier `needs_review` architectural workaround.
+//
+// Prompt 6 audit: the "which quarter of the chart" search previously
+// hand-rolled its own QUARTERS array — the identical mechanic to chapters
+// 35 and 55's own methods, now extracted to the shared FIND_FIGURE_QUARTER
+// operation. This chapter keeps its own quarter->key/label mapping (the
+// wording here differs from ch.55's), only the SEARCH itself is shared.
 
-import { ADD_MULTIPLE_HOUSES, CHECK_ELEMENT, CHECK_FIGURE_PRESENT_IN_CHART } from '../operations';
+import { ADD_MULTIPLE_HOUSES, CHECK_ELEMENT, FIND_FIGURE_QUARTER, type ChartQuarter } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'about-a-lost-thing-stolen-things';
 
-const QUARTERS: { houses: number[]; key: string; label: string }[] = [
-  { houses: [1, 2, 3, 4], key: 'same-house', label: 'in the same house as you (Mothers)' },
-  { houses: [5, 6, 7, 8], key: 'same-area', label: 'in the same area as you (Daughters)' },
-  { houses: [9, 10, 11, 12], key: 'same-town', label: 'in the same town as you (Nieces)' },
-  { houses: [13, 14, 15, 16], key: 'far-away', label: 'not in the same town — gone far away (Witnesses/Judge/Reconciler)' },
-];
+const QUARTER_LABEL: Record<ChartQuarter, { key: string; label: string }> = {
+  mothers: { key: 'same-house', label: 'in the same house as you (Mothers)' },
+  daughters: { key: 'same-area', label: 'in the same area as you (Daughters)' },
+  nieces: { key: 'same-town', label: 'in the same town as you (Nieces)' },
+  witnesses: { key: 'far-away', label: 'not in the same town — gone far away (Witnesses/Judge/Reconciler)' },
+};
 
 const method1: MethodDefinition = {
   id: 'lost-thief-location-method-1',
@@ -35,12 +41,13 @@ const method1: MethodDefinition = {
   evaluate: (calc, chart) => {
     const { element } = CHECK_ELEMENT(calc.resultFigure);
     const gender = element === 'fire' || element === 'air' ? 'male' : 'female';
-    const quarter = QUARTERS.find((q) => CHECK_FIGURE_PRESENT_IN_CHART(chart, calc.resultFigure.dotPattern, q.houses).found);
-    const locationText = quarter ? quarter.label : 'not found anywhere in the chart — location not addressed by the source';
-    const locationKey = quarter ? quarter.key : 'not-found';
+    const { quarter } = FIND_FIGURE_QUARTER(chart, calc.resultFigure.dotPattern);
+    const found = quarter ? QUARTER_LABEL[quarter] : null;
+    const locationText = found ? found.label : 'not found anywhere in the chart — location not addressed by the source';
+    const locationKey = found ? found.key : 'not-found';
     return {
       outcome: 'descriptive',
-      label: quarter ? `${gender === 'male' ? 'Male' : 'Female'}, ${quarter.key.replace('-', ' ')}` : gender === 'male' ? 'Male' : 'Female',
+      label: found ? `${gender === 'male' ? 'Male' : 'Female'}, ${found.key.replace('-', ' ')}` : gender === 'male' ? 'Male' : 'Female',
       interpretation: `The thief is ${gender} and is ${locationText}.`,
       descriptiveAnswer: `${gender}:${locationKey}`,
     };

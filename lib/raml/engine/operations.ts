@@ -119,6 +119,44 @@ export function COUNT_FIGURE_OCCURRENCES(chart: ChartModel, pattern: Pattern): {
   return { count, trace: { operation: 'COUNT_FIGURE_OCCURRENCES', description: `occurs ${count} time(s) in the chart` } };
 }
 
+// --- FIND_FIGURE_QUARTER --------------------------------------------------
+// Prompt 6 audit finding: the "found in the first/second/third/last 4
+// houses" mechanic — checking which of the chart's own 4-house quarters
+// (Mothers/Daughters/Nieces/Witnesses-Judge-Reconciler) a figure's pattern
+// falls into — was independently hand-rolled with the identical
+// [1-4]/[5-8]/[9-12]/[13-16] grouping in THREE separate question files
+// (chapters 31, 35, 55), and the same manuscript wording recurs many more
+// times across chapters not yet implemented (e.g. 62, 71, 79, 82, 90-92,
+// 100) — a genuinely reused, source-defined calculation, not a speculative
+// abstraction. This only finds WHICH quarter, if any; each question keeps
+// its own mapping from quarter to outcome/label/interpretation, since that
+// meaning differs per chapter.
+
+export type ChartQuarter = 'mothers' | 'daughters' | 'nieces' | 'witnesses';
+
+export const QUARTER_HOUSES: Record<ChartQuarter, [number, number, number, number]> = {
+  mothers: [1, 2, 3, 4],
+  daughters: [5, 6, 7, 8],
+  nieces: [9, 10, 11, 12],
+  witnesses: [13, 14, 15, 16],
+};
+
+export function FIND_FIGURE_QUARTER(chart: ChartModel, pattern: Pattern): { quarter: ChartQuarter | null; trace: OperationTrace } {
+  const quarter =
+    (Object.keys(QUARTER_HOUSES) as ChartQuarter[]).find(
+      (q) => CHECK_FIGURE_PRESENT_IN_CHART(chart, pattern, QUARTER_HOUSES[q]).found,
+    ) ?? null;
+  return {
+    quarter,
+    trace: {
+      operation: 'FIND_FIGURE_QUARTER',
+      description: quarter
+        ? `found among the ${quarter} houses (H${QUARTER_HOUSES[quarter][0]}-${QUARTER_HOUSES[quarter][3]})`
+        : "not found in any of the chart's own 16 houses",
+    },
+  };
+}
+
 // --- CHECK_ELEMENT / EXTRACT_ELEMENT ------------------------------------
 
 export function CHECK_ELEMENT(figure: ComputedFigure): { element: Element; trace: OperationTrace } {

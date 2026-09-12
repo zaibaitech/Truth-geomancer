@@ -6,18 +6,24 @@
 // merged with chapter 31 — same 1:1 chapter-to-question convention used
 // throughout this engine. resultKind is 'descriptive': a location, not a
 // favourable/unfavourable value judgment.
+//
+// Prompt 6 audit: the "which quarter of the chart" search previously
+// hand-rolled its own QUARTERS array — the identical mechanic to chapters
+// 31 and 35's own methods, now extracted to the shared FIND_FIGURE_QUARTER
+// operation. This chapter keeps its own quarter->key/label mapping, only
+// the SEARCH itself is shared.
 
-import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART } from '../operations';
+import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, FIND_FIGURE_QUARTER, type ChartQuarter } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'the-whereabouts-of-a-thief-or-robbers';
 
-const QUARTERS: { houses: number[]; key: string; label: string }[] = [
-  { houses: [1, 2, 3, 4], key: 'same-house', label: 'in the same house or compound with you' },
-  { houses: [5, 6, 7, 8], key: 'same-area', label: 'in the same area with you' },
-  { houses: [9, 10, 11, 12], key: 'same-town', label: 'in the same town with you' },
-  { houses: [13, 14, 15, 16], key: 'out-of-town', label: 'out of town' },
-];
+const QUARTER_LABEL: Record<ChartQuarter, { key: string; label: string }> = {
+  mothers: { key: 'same-house', label: 'in the same house or compound with you' },
+  daughters: { key: 'same-area', label: 'in the same area with you' },
+  nieces: { key: 'same-town', label: 'in the same town with you' },
+  witnesses: { key: 'out-of-town', label: 'out of town' },
+};
 
 const method1: MethodDefinition = {
   id: 'thief-whereabouts-method-1',
@@ -35,7 +41,7 @@ const method1: MethodDefinition = {
     return { housesUsed: [1, 12, 13], steps: [step1.trace.description, step2.trace.description], resultFigure: step2.figure };
   },
   evaluate: (calc, chart) => {
-    const quarter = QUARTERS.find((q) => CHECK_FIGURE_PRESENT_IN_CHART(chart, calc.resultFigure.dotPattern, q.houses).found);
+    const { quarter } = FIND_FIGURE_QUARTER(chart, calc.resultFigure.dotPattern);
     if (!quarter) {
       return {
         outcome: 'descriptive',
@@ -44,11 +50,12 @@ const method1: MethodDefinition = {
         descriptiveAnswer: 'not-found',
       };
     }
+    const found = QUARTER_LABEL[quarter];
     return {
       outcome: 'descriptive',
-      label: quarter.key.replace(/-/g, ' '),
-      interpretation: `The thief/robbers are ${quarter.label}.`,
-      descriptiveAnswer: quarter.key,
+      label: found.key.replace(/-/g, ' '),
+      interpretation: `The thief/robbers are ${found.label}.`,
+      descriptiveAnswer: found.key,
     };
   },
 };

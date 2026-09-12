@@ -121,6 +121,15 @@ describe('Court case / fight / war question (Kanzul Mikban ch.19)', () => {
 });
 
 describe('Stolen/lost things question (Kanzul Mikban ch.18, Part B)', () => {
+  // Prompt 6 audit superseded the Method 3 + consensus assertions below:
+  // the source text names TWO independent rules for the same h2+h6+h9+h16
+  // calculation (the book's own primary "found in the chart" rule, and a
+  // second, explicitly-attributed "Some scholars also say..." rule with a
+  // fortune x direction breakdown) — the earlier version of this file
+  // folded the scholars' rule into cosmetic elaboration text on Method 3's
+  // own verdict instead of counting it as its own method. Split into
+  // Method 3 (primary rule only) and Method 4 (the scholars' rule,
+  // independently counted) — see stolenThings.ts's own header comment.
   const result = runEngine(chart, 'if-you-will-get-your-stolen-things-back')!;
 
   it('computes Method 1 correctly: H1+H5 = Ayuba, not found in chart -> unfavourable', () => {
@@ -136,18 +145,28 @@ describe('Stolen/lost things question (Kanzul Mikban ch.18, Part B)', () => {
     expect(m2.verdict!.outcome).toBe('uncertain');
   });
 
-  it('computes Method 3 correctly: H2+H6+H9+H16 = Usman, found + good + downward -> favourable with elaboration', () => {
+  it('computes Method 3 correctly: H2+H6+H9+H16 = Usman, found in the chart -> favourable (primary rule only, no elaboration)', () => {
     const m3 = result.methods.find((m) => m.method.id === 'stolen-method-3')!;
     expect(m3.calculation!.resultFigure.figureId).toBe('usman');
     expect(m3.verdict!.outcome).toBe('favourable');
-    expect(m3.verdict!.interpretation).toContain('peacefully');
+    expect(m3.verdict!.interpretation).toBe('You will get them.');
   });
 
-  it('reports a conflict between Method 1 (unfavourable) and Method 3 (favourable)', () => {
+  it('computes Method 4 correctly: the same H2+H6+H9+H16 = Usman, good and downward -> favourable, "peacefully" (the scholars\' own rule)', () => {
+    const m4 = result.methods.find((m) => m.method.id === 'stolen-method-4')!;
+    expect(m4.calculation!.resultFigure.figureId).toBe('usman');
+    expect(m4.calculation!.resultFigure.qualities.fortune.value).toBe('good');
+    expect(m4.calculation!.resultFigure.qualities.direction.value).toBe('downward');
+    expect(m4.verdict!.outcome).toBe('favourable');
+    expect(m4.verdict!.interpretation).toContain('peacefully');
+  });
+
+  it('Methods 3 and 4 independently agree favourable; only Method 1 dissents -> mostly_agree, not a 1-vs-1 conflict', () => {
     const c = result.calculationDetails.consensus;
-    expect(c.favourableCount).toBe(1);
+    expect(c.favourableCount).toBe(2);
     expect(c.unfavourableCount).toBe(1);
-    expect(c.level).toBe('conflict');
+    expect(c.verifiableCount).toBe(3);
+    expect(c.level).toBe('mostly_agree');
   });
 });
 

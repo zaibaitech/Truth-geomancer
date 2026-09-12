@@ -166,11 +166,38 @@ export interface SourceRef {
   quote: string; // the exact source sentence(s) this method implements
 }
 
+/** Prompt 6 (source reconciliation audit): a machine-readable category for
+ * WHY a method is needs_review/uncertain — narrower and filterable, unlike
+ * the free-text `reviewNote` every such method already carries. Optional,
+ * additive, and only assigned where a method's blocker matches a genuinely
+ * recurring category (not invented per-method) — most needs_review/
+ * uncertain methods still rely on `reviewNote` alone, and that remains
+ * exactly as valid. Currently used for the male/female-star gender gap
+ * (chapter 41 Method 1, chapter 48 Methods 1-2 — see COVERAGE.md's "Prompt
+ * 6" section for the full reasoning and the confirmed absence of any
+ * authoritative source for this classification anywhere in either
+ * manuscript). The other values name categories identified during that same
+ * audit for chapters not registered in this engine at all (chapter 46's
+ * ritual practice, chapter 59's open-ended methods) — documented in
+ * COVERAGE.md rather than attached to a live MethodDefinition, since no
+ * such chapter has one. */
+export type ReviewReasonCode =
+  | 'gender_classification_unsourced'
+  | 'whole_figure_state_undefined'
+  | 'figures_omitted_by_transcription'
+  | 'open_ended_by_design'
+  | 'ritual_not_a_reading'
+  | 'spatial_layout_unsupported'
+  | 'separate_casting_mechanism';
+
 export interface MethodDefinition {
   id: string;
   label: string; // "Method 1"
   status: RuleStatus;
   reviewNote?: string; // required when status !== 'verified'
+  /** Optional machine-readable companion to `reviewNote` — see
+   * ReviewReasonCode's own doc comment. */
+  reviewReasonCode?: ReviewReasonCode;
   source: SourceRef;
   /** LAYER 1 — calculation. Pure, deterministic, no phrasing. */
   calculate: (chart: ChartModel) => MethodCalculation;

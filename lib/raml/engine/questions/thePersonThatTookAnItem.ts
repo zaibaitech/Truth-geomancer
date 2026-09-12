@@ -7,6 +7,15 @@
 // guessed); Method 2 asks whether the item is RECOVERABLE, and is fully
 // computable for 3 of its 4 good/bad x upward/downward combinations (the
 // bad-and-upward case is never addressed by the source).
+//
+// Prompt 6 audit: exhaustively re-searched both source manuscripts
+// (content/manuscripts/kanzul-mikban.ts and master-of-geomancy-vol1.ts) for
+// any table, glossary, or later chapter defining which of the 16 figures
+// are male vs. female — none exists. The book's own front matter
+// (KM_EDITION_NOTE) explicitly confirms this: "male or female" is named as
+// one of the qualities the book regularly uses, but "this transcription has
+// no verified source defining exactly which of the sixteen named figures
+// carries which quality." Method 1 stays needs_review, not guessed.
 
 import { ADD_MULTIPLE_HOUSES, CHECK_DIRECTION, CHECK_HOUSE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
@@ -17,8 +26,9 @@ const method1: MethodDefinition = {
   id: 'item-taker-method-1',
   label: 'Method 1',
   status: 'needs_review',
+  reviewReasonCode: 'gender_classification_unsourced',
   reviewNote:
-    'The verdict hinges on classifying H1 as a "male star" or "female star" — this specific chapter never defines which figures are male vs. female (unlike chapter 31, which explicitly redefines gender via element for its own rule), and this project\'s general figure-gender axis is intentionally left unsourced project-wide (see FigureQualities.gender in types.ts). Withheld rather than guessed.',
+    'The verdict hinges on classifying H1 as a "male star" or "female star" — this specific chapter never defines which figures are male vs. female (unlike chapter 31, which explicitly redefines gender via element for its own rule), and this project\'s general figure-gender axis is intentionally left unsourced project-wide (see FigureQualities.gender in types.ts). Confirmed by an exhaustive re-search of both source manuscripts (Prompt 6) — no authoritative table exists. Withheld rather than guessed.',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

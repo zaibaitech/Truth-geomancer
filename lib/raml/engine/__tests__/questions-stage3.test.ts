@@ -39,6 +39,15 @@ describe('Election or chieftaincy (ch.20)', () => {
 });
 
 describe('Wife/sister had sex (ch.21)', () => {
+  // Prompt 6 audit superseded these assertions: this question predates the
+  // `resultKind: 'descriptive'` model (Prompt 4.5, one stage after this
+  // file was written) and was never migrated, leaving it inconsistent with
+  // chapter 58's structurally identical "if couples have had sex" question.
+  // Whether sex occurred is a factual yes/no answer — the source attaches
+  // no favourable/unfavourable value judgment to either branch — so Method
+  // 2 now correctly reports `outcome: 'descriptive'` / `descriptiveAnswer:
+  // 'yes'`, matching couplesHadSex.ts exactly. The underlying calculation
+  // (H7+H13, water line state) is completely unchanged.
   const result = runEngine(chart, 'if-your-wife-or-sister-has-had-sex')!;
 
   it('Method 1: needs_review — computes the figure but withholds the whole-figure opened/closed verdict', () => {
@@ -48,11 +57,12 @@ describe('Wife/sister had sex (ch.21)', () => {
     expect(m1.verdict).toBeNull();
   });
 
-  it('Method 2: H7+H13 = Nuhu, water line opened -> favourable', () => {
+  it('Method 2: H7+H13 = Nuhu, water line opened -> a real descriptive "yes"', () => {
     const m2 = result.methods.find((m) => m.method.id === 'wife-sex-method-2')!;
     expect(m2.calculation!.resultFigure.figureId).toBe('nuhu');
     expect(m2.calculation!.resultFigure.qualities.lineStates.water).toBe('opened');
-    expect(m2.verdict!.outcome).toBe('favourable');
+    expect(m2.verdict!.outcome).toBe('descriptive');
+    expect(m2.verdict!.descriptiveAnswer).toBe('yes');
   });
 
   it('Method 3: uncertain — depends on omitted named figures', () => {
@@ -61,9 +71,13 @@ describe('Wife/sister had sex (ch.21)', () => {
     expect(m3.calculation).toBeNull();
   });
 
-  it('only the one verified, computable method counts toward the reading', () => {
-    expect(result.overallResult).toBe('favourable');
+  it('only the one verified, computable method counts toward the reading, as a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
+    expect(result.calculationDetails.consensus.kind).toBe('descriptive');
     expect(result.calculationDetails.consensus.verifiableCount).toBe(1);
+    const reading = runReading(chart, 'if-your-wife-or-sister-has-had-sex')!;
+    expect(reading.resultKind).toBe('descriptive');
+    expect(reading.isInsufficient).toBe(false);
   });
 });
 

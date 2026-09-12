@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Four rows, top to bottom: one dot, two, two, one — a geomantic figure
+       drawn the way the casting board draws one. It is the shape of a chart
+       line, not a claim about any named figure. -->
+  <rect width="32" height="32" rx="6" fill="#161009"/>
+  <g fill="#d9b878">
+    <circle cx="16" cy="7" r="2.3"/>
+    <circle cx="11.7" cy="13.5" r="2.3"/><circle cx="20.3" cy="13.5" r="2.3"/>
+    <circle cx="11.7" cy="20" r="2.3"/><circle cx="20.3" cy="20" r="2.3"/>
+    <circle cx="16" cy="26.5" r="2.3"/>
+  </g>
+</svg>

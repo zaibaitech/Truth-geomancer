@@ -27,7 +27,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
       <body className="overflow-x-hidden bg-ink font-body text-sand-light">
         <div className="mx-auto flex h-[100dvh] max-w-md flex-col overflow-x-hidden bg-ink">
-          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-4">
+          {/* data-app-scroll: the app scrolls this container, not the window,
+              so anything that needs to reset scroll position must target it. */}
+          <div data-app-scroll className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-4">
             {children}
           </div>
           <BottomNav />

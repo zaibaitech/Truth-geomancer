@@ -7,6 +7,7 @@ import { extractHouseRefs } from '@/lib/raml/houseRefs';
 import { getIntentionById, getCategoryById } from '@/content/intentions';
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import { getMethodVerdicts } from '@/lib/raml/methodVerdicts';
+import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
 
 export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: string }) {
   const intention = getIntentionById(intentionId);
@@ -18,6 +19,13 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
     .map((id) => KM_CHAPTERS.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => !!c);
 
+  // Some entries are real source material but not questions a chart can
+  // answer (a reference table, a ritual, an open-ended technique, or a passage
+  // whose identifying figures the transcription lost). Saying so plainly beats
+  // implying a reading was attempted. See lib/raml/questionAvailability.ts.
+  const availability = getQuestionAvailability(intentionId);
+  const unreadable = availability.kind === 'no-automatic-reading' ? availability : null;
+
   return (
     <div className="space-y-4">
       <Card>
@@ -25,10 +33,21 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
           {category ? category.label : 'Your question'}
         </p>
         <p className="mt-1 text-sm font-semibold text-sand-light">{intention.label}</p>
-        <p className="mt-3 text-[11px] leading-relaxed text-sand/40">
-          From Kanzul Mikban. The houses each method calls for have already been read off your
-          own chart below — open the full chapter if you want to check the method’s own wording.
-        </p>
+        {unreadable ? (
+          <>
+            <p className="mt-3 text-sm font-semibold text-clay-light">No automatic reading for this one</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-sand/55">{unreadable.note}</p>
+            <p className="mt-2 text-[11px] leading-relaxed text-sand/35">
+              This is a limit of the surviving manuscript, not an error — your chart itself is
+              complete and can be read against any other question.
+            </p>
+          </>
+        ) : (
+          <p className="mt-3 text-[11px] leading-relaxed text-sand/40">
+            From Kanzul Mikban. The houses each method calls for have already been read off your
+            own chart below — open the full chapter if you want to check the method’s own wording.
+          </p>
+        )}
       </Card>
 
       {chapters.map((ch) => {

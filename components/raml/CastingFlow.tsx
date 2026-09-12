@@ -26,6 +26,17 @@ export function CastingFlow() {
     if (step === 'ask') setRecent(listCastings().slice(0, 3));
   }, [step]);
 
+  // Each step replaces a tall screen with another tall screen, but the app
+  // scrolls an inner container rather than the window — so without this the
+  // viewport kept whatever offset the previous step left behind. Casting in
+  // particular happens at the BOTTOM of the board, which meant a finished
+  // reading opened roughly 800px down: past the question, past the verdict,
+  // somewhere in the supporting indicators. Reset to the top on every step
+  // change so the answer is the first thing on screen.
+  useEffect(() => {
+    document.querySelector('[data-app-scroll]')?.scrollTo({ top: 0 });
+  }, [step]);
+
   function reset() {
     setStep('ask');
     setIntentionId('general');
@@ -63,6 +74,7 @@ export function CastingFlow() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             rows={3}
+            aria-label="What are you asking? (optional)"
             placeholder="e.g. Will this move forward this month?"
             className="w-full resize-none rounded-xl border border-sand/15 bg-ink px-3 py-2 text-sm text-sand-light placeholder:text-sand/30 focus:border-clay/50 focus:outline-none"
           />

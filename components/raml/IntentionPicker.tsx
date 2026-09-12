@@ -5,10 +5,18 @@ import { ChevronDown, ChevronRight, Clock, Search, Sparkles, Check } from 'lucid
 import { CATEGORIES, INTENTIONS, getIntentionById, intentionsInCategory, type CategoryId } from '@/content/intentions';
 import { INTENTION_ICONS } from './intentionIcons';
 import { recordRecentIntention, listRecentIntentionIds } from '@/lib/raml/recentIntentions';
+import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
 
 type View = 'categories' | 'all';
 
-function QuestionRow({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+function QuestionRow({ id, label, selected, onClick }: { id: string; label: string; selected: boolean; onClick: () => void }) {
+  // A handful of entries are real source material the app cannot read from a
+  // chart (a reference table, a ritual, an open-ended technique, a passage
+  // whose figures were lost). Say so here rather than letting the user pick it
+  // and find out afterwards. See lib/raml/questionAvailability.ts.
+  const availability = getQuestionAvailability(id);
+  const badge = availability.kind === 'no-automatic-reading' ? availability.badge : null;
+
   return (
     <button
       type="button"
@@ -17,7 +25,14 @@ function QuestionRow({ label, selected, onClick }: { label: string; selected: bo
         selected ? 'bg-clay/10' : ''
       }`}
     >
-      <span className={`text-[13px] leading-snug ${selected ? 'text-sand-light' : 'text-sand/75'}`}>{label}</span>
+      <span className="min-w-0 flex-1">
+        <span className={`block text-[13px] leading-snug ${selected ? 'text-sand-light' : 'text-sand/75'}`}>{label}</span>
+        {badge ? (
+          <span className="mt-1 inline-block rounded-full border border-sand/15 px-2 py-0.5 text-[10px] text-sand/45">
+            {badge}
+          </span>
+        ) : null}
+      </span>
       {selected ? <Check size={14} className="shrink-0 text-clay-light" /> : null}
     </button>
   );
@@ -120,7 +135,7 @@ export function IntentionPicker({
               </button>
               {expanded === 'recent'
                 ? recentIntentions.map((i) => (
-                    <QuestionRow key={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
+                    <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
                   ))
                 : null}
             </div>
@@ -148,7 +163,7 @@ export function IntentionPicker({
                     <ChevronRight size={15} className="text-sand/40" />
                   )}
                 </button>
-                {isOpen ? items.map((i) => <QuestionRow key={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />) : null}
+                {isOpen ? items.map((i) => <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />) : null}
               </div>
             );
           })}
@@ -160,6 +175,7 @@ export function IntentionPicker({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              aria-label="Filter questions"
               placeholder="Filter questions…"
               className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
             />
@@ -169,7 +185,7 @@ export function IntentionPicker({
               <p className="px-3 py-6 text-center text-sm text-sand/40">No questions match “{query}”.</p>
             ) : (
               filteredAll.map((i) => (
-                <QuestionRow key={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
+                <QuestionRow key={i.id} id={i.id} label={i.label} selected={value === i.id} onClick={() => select(i.id)} />
               ))
             )}
           </div>

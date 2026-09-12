@@ -2440,3 +2440,66 @@ cannot know is as legible as what it can.
 
 Kanzul Mikban is complete. There is no chapter 152, and no chapters
 161-180; 151 is the last chapter the source has.
+
+---
+
+## Prompt 14 — product & UX audit (no source changes)
+
+This stage did not touch the engine. It asked one question of the product
+built on top of it: can a real user discover, cast, understand and trust the
+result of every supported question without the interface hiding, distorting
+or inventing anything? The answer required four fixes, none of which changes
+a geomantic rule.
+
+**The 13 selectable entries the engine does not answer.** The picker offers
+one entry per transcription entry (153), while the engine implements 140
+questions. Before this stage both kinds of gap silently fell through to the
+older fallback parser. They are now classified explicitly in
+`lib/raml/questionAvailability.ts`, which contains no geomantic rule — only a
+plain-language record of what each entry is:
+
+| Disposition | Count | What it means |
+| --- | --- | --- |
+| `engine` | 140 | The engine answers it directly. |
+| `consolidated` | 5 | The same source rule the engine already implements under another id — a chapter and a fragment that repeat one method. Selecting it now runs the canonical question and says so. |
+| `no-automatic-reading` | 8 | Real source material, but not a chart-verdict question: two reference tables, one ritual, one open-ended technique, one separate counting method, and three passages whose identifying figures the transcription lost (including Chapter 151, *Dreams and Their Interpretations*). |
+
+The five consolidated entries are: the repeated pregnancy chapter, the extra
+pregnancy methods, the two repeated sick-person fragments, and the behaviour
+chapter whose own note says it repeats Chapter 43 word for word. In every
+case the engine already implements that chapter's method — users were being
+given a degraded reading of a rule the app owns in full.
+
+**Three interface defects, each measured before and after.**
+
+1. A finished reading opened roughly 800px down the screen — past the
+   question, past the verdict — because the app scrolls an inner container
+   (now marked `data-app-scroll`) rather than the window, and casting
+   finishes at the bottom of the board. Measured `scrollTop` 804 at 360px
+   wide and 700 at 390px; 0 after the fix, on all 21 verified cases.
+2. The fallback reading screen told every user that "the houses each method
+   calls for have already been read off your own chart below" — untrue for a
+   reference table or a ritual. That claim now sits on the readable branch
+   only; the other branch says plainly that there is no automatic reading,
+   gives the specific reason, and notes that the limit is the manuscript's,
+   not the chart's.
+3. The picker gave no warning before selection. Entries with no automatic
+   reading now carry a short badge ("Reference table", "Figures missing",
+   "Practice, not a reading", "Open-ended", "Different method").
+
+Accessibility gaps found and fixed: the two free-text inputs had no label,
+the result screen had no second-level heading, and the reading's arrival was
+silent to a screen reader (`role="status"` now announces it). No horizontal
+overflow was found at 360px or 390px. The one remaining console warning — a
+missing icon — was fixed with a real app icon rather than documented away.
+
+**Nothing in the engine moved.** `casting.ts`, `chartModel.ts`,
+`ruleEngine.ts`, `operations.ts` and `types.ts` are untouched, no question
+file changed, no rule status changed, no blocked method became executable,
+and no classification the manuscript omits was supplied. 37 new product
+invariants (`lib/raml/productUx.test.ts`) hold the product layer to the
+engine's own honesty: every registered question reachable, every result kind
+presented as itself, every unresolved state explaining its own reason, every
+counted method showing its houses or its working, every reading attributed
+to a named chapter, and every reading a pure function of the chart — no
+clock, no randomness, nothing the user cannot reproduce.

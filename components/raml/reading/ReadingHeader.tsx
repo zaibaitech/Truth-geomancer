@@ -6,9 +6,15 @@ import { Card } from '@/components/ui/Card';
 export function ReadingHeader({ question, questionCategory }: { question: string; questionCategory: string | null }) {
   return (
     <Card>
-      <p className="text-[11px] uppercase tracking-widest text-sand/40">Your reading is ready</p>
+      {/* role="status" so a screen reader announces that the reading finished
+          — the result replaces the casting board without a page navigation,
+          which is otherwise silent. The question itself is an h2: it is the
+          heading the whole result screen sits under. */}
+      <p role="status" className="text-[11px] uppercase tracking-widest text-sand/40">
+        Your reading is ready
+      </p>
       {questionCategory ? <p className="mt-1 text-[11px] text-sand/40">{questionCategory}</p> : null}
-      <p className="mt-1 text-base font-semibold text-sand-light">{question}</p>
+      <h2 className="mt-1 text-base font-semibold text-sand-light">{question}</h2>
     </Card>
   );
 }

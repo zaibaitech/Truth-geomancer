@@ -10,6 +10,7 @@ import { EngineReadingView } from './EngineReadingView';
 import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
 import { getIntentionById } from '@/content/intentions';
+import { getQuestionAvailability, resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
 import { runReading } from '@/lib/raml/engine';
 import {
   findBuruji,
@@ -56,9 +57,21 @@ export function ResultTabs({ chart, intentionId }: { chart: Chart; intentionId?:
       <div className="space-y-4 px-4">
         {tab === 'Your Reading' && intentionId ? (
           (() => {
-            const reading = runReading(chart, intentionId);
+            // A few picker entries are the SAME question the engine already
+            // answers under another id (a chapter and a fragment repeating one
+            // rule). Run the engine's own question for those rather than
+            // dropping to the fallback parser. See lib/raml/questionAvailability.ts.
+            const availability = getQuestionAvailability(intentionId);
+            const reading = runReading(chart, resolveEngineQuestionId(intentionId));
             return reading ? (
-              <EngineReadingView result={reading} />
+              <>
+                {availability.kind === 'consolidated' ? (
+                  <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 text-[11px] leading-relaxed text-sand/50">
+                    {availability.note}
+                  </p>
+                ) : null}
+                <EngineReadingView result={reading} />
+              </>
             ) : (
               <ReadingTab chart={chart} intentionId={intentionId} />
             );

@@ -40,6 +40,27 @@ import { pregnancyStableQuestion } from './pregnancyStable';
 import { thingsWillBeBetterQuestion } from './thingsWillBeBetter';
 import { overcomeEnemyQuestion } from './overcomeEnemy';
 import { timingOfEventQuestion } from './timingOfEvent';
+import { electionOrChieftaincyQuestion } from './electionOrChieftaincy';
+import { wifeSisterHadSexQuestion } from './wifeSisterHadSex';
+import { goodToStayInHouseQuestion } from './goodToStayInHouse';
+import { goodToStayInTownQuestion } from './goodToStayInTown';
+import { terrainTypeQuestion } from './terrainType';
+import { safeInCanoeQuestion } from './safeInCanoe';
+import { armedRobbersQuestion } from './armedRobbers';
+import { fightArgumentQuestion } from './fightArgument';
+import { farmingAndFoodQuestion } from './farmingAndFood';
+import { moneyOrGoodStrangersQuestion } from './moneyOrGoodStrangers';
+import { successWhereGoingQuestion } from './successWhereGoing';
+import { successfulTripQuestion } from './successfulTrip';
+import { lostThingThiefLocationQuestion } from './lostThingThiefLocation';
+import { willItRainQuestion } from './willItRain';
+import { enemiesWorkingAgainstYouQuestion } from './enemiesWorkingAgainstYou';
+import { familyDoingWellQuestion } from './familyDoingWell';
+import { locateSomeoneOrSomethingQuestion } from './locateSomeoneOrSomething';
+import { predictGameWinnerQuestion } from './predictGameWinner';
+import { loversCompatibleQuestion } from './loversCompatible';
+import { visitorGoodOrBadQuestion } from './visitorGoodOrBad';
+import { spiritualWorkWillItWorkQuestion } from './spiritualWorkWillItWork';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -61,6 +82,32 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   thingsWillBeBetterQuestion,
   overcomeEnemyQuestion,
   timingOfEventQuestion,
+  // Chapters 20-40 (Prompt 4) — see lib/raml/engine/COVERAGE.md for the
+  // per-chapter table, including chapter 33 (not registered — depends on a
+  // separate, non-chart-based divination mechanic this app doesn't support)
+  // and the two ch.28 continuation fragments (not registered — no
+  // computable shape at all, every branch's figure token was dropped).
+  electionOrChieftaincyQuestion,
+  wifeSisterHadSexQuestion,
+  goodToStayInHouseQuestion,
+  goodToStayInTownQuestion,
+  terrainTypeQuestion,
+  safeInCanoeQuestion,
+  armedRobbersQuestion,
+  fightArgumentQuestion,
+  farmingAndFoodQuestion,
+  moneyOrGoodStrangersQuestion,
+  successWhereGoingQuestion,
+  successfulTripQuestion,
+  lostThingThiefLocationQuestion,
+  willItRainQuestion,
+  enemiesWorkingAgainstYouQuestion,
+  familyDoingWellQuestion,
+  locateSomeoneOrSomethingQuestion,
+  predictGameWinnerQuestion,
+  loversCompatibleQuestion,
+  visitorGoodOrBadQuestion,
+  spiritualWorkWillItWorkQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -91,4 +138,25 @@ export {
   thingsWillBeBetterQuestion,
   overcomeEnemyQuestion,
   timingOfEventQuestion,
+  electionOrChieftaincyQuestion,
+  wifeSisterHadSexQuestion,
+  goodToStayInHouseQuestion,
+  goodToStayInTownQuestion,
+  terrainTypeQuestion,
+  safeInCanoeQuestion,
+  armedRobbersQuestion,
+  fightArgumentQuestion,
+  farmingAndFoodQuestion,
+  moneyOrGoodStrangersQuestion,
+  successWhereGoingQuestion,
+  successfulTripQuestion,
+  lostThingThiefLocationQuestion,
+  willItRainQuestion,
+  enemiesWorkingAgainstYouQuestion,
+  familyDoingWellQuestion,
+  locateSomeoneOrSomethingQuestion,
+  predictGameWinnerQuestion,
+  loversCompatibleQuestion,
+  visitorGoodOrBadQuestion,
+  spiritualWorkWillItWorkQuestion,
 };

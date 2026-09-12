@@ -4,16 +4,21 @@ import {
   ADD_FIGURE_TO_HOUSE,
   ADD_MULTIPLE_HOUSES,
   CHECK_ELEMENT,
+  CHECK_ELEMENT_ADJACENT_REPETITION,
+  CHECK_FIGURE_ADJACENT_REPETITION,
   CHECK_FIGURE_PRESENT_IN_CHART,
   CHECK_HOUSE,
   CHECK_LINE_STATE,
   COMPARE_RESULTS,
+  COUNT_DIRECTION,
   COUNT_ELEMENTS,
   COUNT_FIGURE_OCCURRENCES,
+  COUNT_FORTUNE,
   EXTRACT_ELEMENT,
   EXTRACT_LINES,
   MATCH_FIGURE,
   MATCH_QUALITIES,
+  RECAST_FROM_HOUSES,
 } from '../operations';
 import type { MethodResult } from '../types';
 import type { Pattern } from '@/content/stars';
@@ -160,6 +165,70 @@ describe('MATCH_FIGURE / MATCH_QUALITIES', () => {
     const { figure } = CHECK_HOUSE(chart, 2); // Adam: good, upward
     expect(MATCH_QUALITIES(figure, { fortune: 'good', direction: 'upward' })).toBe(true);
     expect(MATCH_QUALITIES(figure, { fortune: 'bad' })).toBe(false);
+  });
+});
+
+describe('CHECK_FIGURE_PRESENT_IN_CHART with a house subset (ch.35)', () => {
+  it('restricts the search to the given houses, unlike the whole-chart form', () => {
+    const yussifPattern = chart.houses[0].dotPattern; // H1 only
+    expect(CHECK_FIGURE_PRESENT_IN_CHART(chart, yussifPattern, [1, 2, 3, 4]).found).toBe(true);
+    expect(CHECK_FIGURE_PRESENT_IN_CHART(chart, yussifPattern, [5, 6, 7, 8]).found).toBe(false);
+    // Still finds it chart-wide when no subset is given — fully backward compatible.
+    expect(CHECK_FIGURE_PRESENT_IN_CHART(chart, yussifPattern).found).toBe(true);
+  });
+});
+
+describe('COUNT_FORTUNE / COUNT_DIRECTION (chs. 20, 22)', () => {
+  it('tallies fortune across the whole fixture chart (hand-verified against classicalAttributes.ts)', () => {
+    // good: H2,H3,H4,H5,H7,H9,H10,H16=8 · bad: H1,H6,H8,H12=4 · middleGood: H11,H13,H14,H15=4
+    expect(COUNT_FORTUNE(chart)).toEqual({ good: 8, middleGood: 4, bad: 4 });
+  });
+
+  it('tallies direction across the whole fixture chart, excluding "level" houses from either side', () => {
+    // upward: H2,H5,H6,H8=4 · downward: H3,H7,H9,H10=4 · the remaining 8 are level (null), counted in neither
+    expect(COUNT_DIRECTION(chart)).toEqual({ upward: 4, downward: 4 });
+  });
+
+  it('respects an explicit house subset, same shape as COUNT_ELEMENTS', () => {
+    expect(COUNT_FORTUNE(chart, [1, 2, 3, 4])).toEqual({ good: 3, middleGood: 0, bad: 1 });
+  });
+});
+
+describe('CHECK_FIGURE_ADJACENT_REPETITION / CHECK_ELEMENT_ADJACENT_REPETITION (ch.32)', () => {
+  it('finds a figure repeating in two consecutive houses (Usman at H9 and H10)', () => {
+    const usmanPattern = chart.houses[8].dotPattern;
+    expect(CHECK_FIGURE_ADJACENT_REPETITION(chart, usmanPattern).found).toBe(true);
+  });
+
+  it('does not report adjacency for a figure that only occurs once (Ali, H11 alone)', () => {
+    const aliPattern = chart.houses[10].dotPattern;
+    expect(CHECK_FIGURE_ADJACENT_REPETITION(chart, aliPattern).found).toBe(false);
+  });
+
+  it('finds an element repeating in two consecutive houses (sand at H9/H10, water at H14/H15)', () => {
+    expect(CHECK_ELEMENT_ADJACENT_REPETITION(chart, 'sand').found).toBe(true);
+    expect(CHECK_ELEMENT_ADJACENT_REPETITION(chart, 'water').found).toBe(true);
+  });
+
+  it('correctly reports no adjacent repetition for an element that never occupies two consecutive houses (air)', () => {
+    expect(CHECK_ELEMENT_ADJACENT_REPETITION(chart, 'air').found).toBe(false);
+  });
+});
+
+describe('RECAST_FROM_HOUSES (ch.34 method 1)', () => {
+  it('treats 4 named houses as fresh Mothers and derives a whole new 16-house chart (hand-verified)', () => {
+    const { chart: newChart, trace } = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    expect(newChart.houses).toHaveLength(16);
+    expect(newChart.houses[0].figureId).toBe('mahadi'); // new Mother 1 = old H3
+    expect(newChart.houses[12].figureId).toBe('yussif'); // new H13, hand-verified
+    expect(trace.description).toContain('H3');
+    expect(trace.description).toContain('H15');
+  });
+
+  it('does not mutate or otherwise touch the original chart', () => {
+    const before = JSON.stringify(chart);
+    RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
+    expect(JSON.stringify(chart)).toBe(before);
   });
 });
 

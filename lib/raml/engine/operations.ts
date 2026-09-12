@@ -5,11 +5,11 @@
 // lives. Methods in engine/questions/* are built only from these; they never
 // touch addPatterns or getStarByPattern directly.
 
-import { addPatterns } from '../casting';
+import { addPatterns, buildChart } from '../casting';
 import type { Element, Pattern } from '@/content/stars';
 import { getStarByPattern } from '@/content/stars';
 import { getClassicalAttribute } from '@/content/classicalAttributes';
-import { qualitiesFor } from './chartModel';
+import { buildChartModel, qualitiesFor } from './chartModel';
 import type {
   ChartModel,
   ComputedFigure,
@@ -95,9 +95,19 @@ export function ADD_FIGURE_TO_HOUSE(chart: ChartModel, figure: ComputedFigure, h
 // --- CHECK_FIGURE_PRESENT_IN_CHART / COUNT_FIGURE_OCCURRENCES ----------
 
 /** Whether a figure's pattern matches any of the chart's own 16 houses right
- * now — purely mechanical, needs no external attribution. */
-export function CHECK_FIGURE_PRESENT_IN_CHART(chart: ChartModel, pattern: Pattern): { found: boolean; trace: OperationTrace } {
-  const found = chart.houses.some((h) => h.dotPattern.every((v, i) => v === pattern[i]));
+ * now — purely mechanical, needs no external attribution. An optional house
+ * subset restricts the search (e.g. "found among the first 4 houses") —
+ * same optional-houseNumbers shape COUNT_ELEMENTS already uses; omitting it
+ * searches the whole chart exactly as before (Kanzul Mikban ch.35 needs the
+ * subset form: "found in the Mothers' houses" vs. "found in the Judge's
+ * group" changes the reading). */
+export function CHECK_FIGURE_PRESENT_IN_CHART(
+  chart: ChartModel,
+  pattern: Pattern,
+  houseNumbers?: number[],
+): { found: boolean; trace: OperationTrace } {
+  const houses = houseNumbers ? houseNumbers.map((n) => houseAt(chart, n)) : chart.houses;
+  const found = houses.some((h) => h.dotPattern.every((v, i) => v === pattern[i]));
   return {
     found,
     trace: { operation: 'CHECK_FIGURE_PRESENT_IN_CHART', description: found ? 'found elsewhere in the chart' : 'not found elsewhere in the chart' },
@@ -197,6 +207,104 @@ export function COUNT_ELEMENTS(chart: ChartModel, houseNumbers?: number[]): Reco
     tally[h.element] += 1;
   });
   return tally;
+}
+
+// --- COUNT_FORTUNE / COUNT_DIRECTION ------------------------------------
+// New for Kanzul Mikban ch.20's sub-chapter ("check if downward stars are
+// more than upward") and ch.22 ("count all the good stars... more than the
+// bad stars"): tallying a QUALITY (rather than an element) across the whole
+// chart or a subset, same optional-houseNumbers shape as COUNT_ELEMENTS.
+// Both qualities are always populated (fortune/direction are the
+// classical-tradition-sourced axes every figure already carries), so
+// nothing here can silently count an unverified value.
+
+export function COUNT_FORTUNE(chart: ChartModel, houseNumbers?: number[]): Record<'good' | 'middleGood' | 'bad', number> {
+  const houses = houseNumbers ? houseNumbers.map((n) => houseAt(chart, n)) : chart.houses;
+  const tally: Record<'good' | 'middleGood' | 'bad', number> = { good: 0, middleGood: 0, bad: 0 };
+  houses.forEach((h) => {
+    const value = h.qualities.fortune.value;
+    if (value) tally[value] += 1;
+  });
+  return tally;
+}
+
+/** Direction is sometimes genuinely "level" (null) — those houses simply
+ * don't count toward either side, exactly as CHECK_DIRECTION already
+ * represents that case (never forced into upward or downward). */
+export function COUNT_DIRECTION(chart: ChartModel, houseNumbers?: number[]): { upward: number; downward: number } {
+  const houses = houseNumbers ? houseNumbers.map((n) => houseAt(chart, n)) : chart.houses;
+  const tally = { upward: 0, downward: 0 };
+  houses.forEach((h) => {
+    const value = h.qualities.direction.value;
+    if (value) tally[value] += 1;
+  });
+  return tally;
+}
+
+// --- CHECK_FIGURE_ADJACENT_REPETITION / CHECK_ELEMENT_ADJACENT_REPETITION -
+// New for Kanzul Mikban ch.32 ("check if Ali is following each other in the
+// chart" / "when water stars are following each other"): whether a named
+// figure, or a given element, occupies two or more CONSECUTIVE house
+// positions anywhere in the 16 houses — a positional check neither
+// CHECK_FIGURE_PRESENT_IN_CHART nor COUNT_FIGURE_OCCURRENCES provides
+// (both ignore house adjacency entirely). Generic and reusable for any
+// future "X follows X" source wording.
+
+export function CHECK_FIGURE_ADJACENT_REPETITION(chart: ChartModel, pattern: Pattern): { found: boolean; trace: OperationTrace } {
+  let found = false;
+  for (let i = 0; i < chart.houses.length - 1; i++) {
+    const a = chart.houses[i];
+    const b = chart.houses[i + 1];
+    if (a.dotPattern.every((v, j) => v === pattern[j]) && b.dotPattern.every((v, j) => v === pattern[j])) {
+      found = true;
+      break;
+    }
+  }
+  return {
+    found,
+    trace: { operation: 'CHECK_FIGURE_ADJACENT_REPETITION', description: found ? 'found in two adjacent houses' : 'not found in adjacent houses' },
+  };
+}
+
+export function CHECK_ELEMENT_ADJACENT_REPETITION(chart: ChartModel, element: Element): { found: boolean; trace: OperationTrace } {
+  let found = false;
+  for (let i = 0; i < chart.houses.length - 1; i++) {
+    if (chart.houses[i].element === element && chart.houses[i + 1].element === element) {
+      found = true;
+      break;
+    }
+  }
+  return {
+    found,
+    trace: {
+      operation: 'CHECK_ELEMENT_ADJACENT_REPETITION',
+      description: found ? `two adjacent ${element} houses found` : `no two adjacent ${element} houses`,
+    },
+  };
+}
+
+// --- RECAST_FROM_HOUSES --------------------------------------------------
+
+/** New for Kanzul Mikban ch.34 Method 1: "pick h3, h7, h11 and h15 and use
+ * them to form new Umuhat (mother houses)... use the Umuhat to form another
+ * chart." A known classical technique — treat 4 named houses' own figures
+ * as a fresh set of 4 Mothers and run the full casting algorithm again to
+ * derive an entirely separate 16-house chart. Reuses buildChart/
+ * buildChartModel exactly as designed (neither is modified); this is the
+ * one new primitive this stage needed that couldn't be composed from the
+ * others, since nothing existing produces a SECOND chart from the first
+ * one's own houses. */
+export function RECAST_FROM_HOUSES(chart: ChartModel, houseNumbers: [number, number, number, number]): { chart: ChartModel; trace: OperationTrace } {
+  const houses = houseNumbers.map((n) => houseAt(chart, n));
+  const newMothers = houses.map((h) => h.dotPattern) as [Pattern, Pattern, Pattern, Pattern];
+  const newChart = buildChartModel(buildChart(newMothers));
+  return {
+    chart: newChart,
+    trace: {
+      operation: 'RECAST_FROM_HOUSES',
+      description: `${houses.map(houseLabel).join(', ')} used as new Mothers → a fresh 16-house chart`,
+    },
+  };
 }
 
 // --- MATCH_FIGURE / MATCH_QUALITIES -------------------------------------

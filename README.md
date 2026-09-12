@@ -142,21 +142,27 @@ for the full per-chapter table; the summary:
   generalized), compare several methods' verdicts into one consensus. Methods never call
   `addPatterns` or `getStarByPattern` directly — only through these, so there's exactly one
   place the actual geomantic math lives.
-- **Question registry** (`engine/questions/`) currently covers Kanzul Mikban chapters 1-19
-  in full, each transcribed and cross-checked against the manuscript text directly, not
-  paraphrased — travel, money, business, hunting/searching, fight-war-court (two separate
-  chapters), enemy/thief location, marriage, staying in a place, sickness survival, two
-  distinct lost/stolen-item questions, home-vs-travel success, wealth, having children,
-  pregnancy stability, life improving, overcoming an enemy, and timing. Of their 48 combined
-  methods, 35 are `verified` and computed automatically; 2 are `needs_review` (the
-  calculation is computable but the rule itself is ambiguous — e.g. a "single-dot star"
-  label the source never defines at the whole-figure level); 11 are `uncertain`, almost all
-  because their deciding figures were transcribed as "[figures omitted]" in the source
-  PDFs. A `needs_review`/`uncertain` method whose facts ARE still computable (e.g. "check H2
-  and H6") shows those facts in the audit trail regardless — only the verdict is withheld,
-  never the calculation. A question with zero verified methods still gets a registry entry
-  rather than silently falling back, so picking it produces an honest
-  "not enough to go on" reading with the source quotes, not no acknowledgment at all.
+- **Question registry** (`engine/questions/`) currently covers Kanzul Mikban chapters 1-40
+  (plus one unnumbered sub-chapter) in full, each transcribed and cross-checked against the
+  manuscript text directly, not paraphrased — travel, money, business, hunting/searching,
+  fight-war-court, enemy/thief location, marriage, staying in a place/town, sickness survival,
+  lost/stolen items, home-vs-travel success, wealth, having children, pregnancy stability, life
+  improving, overcoming an enemy, timing, elections, canoe safety, armed robbers, rain,
+  enemies working against you, family well-being while away, game predictions, lovers'
+  compatibility, visitors, and spiritual work, among others. Of their 85 combined methods, 63
+  are `verified` and computed automatically; 6 are `needs_review` (the calculation is
+  computable but the rule itself is ambiguous, or — new in chapters 20-40 — answers a
+  descriptive question like "which element/direction" that this engine's favourable/
+  unfavourable vocabulary has no honest way to represent); 16 are `uncertain`, almost all
+  because their deciding figures were transcribed as "[figures omitted]" in the source PDFs,
+  plus two (chapter 33, and chapter 37's Method 2) that depend on a mechanic or a spatial
+  layout this project's chart model doesn't encode at all. A `needs_review`/`uncertain` method
+  whose facts ARE still computable (e.g. "check H2 and H6") shows those facts in the audit
+  trail regardless — only the verdict is withheld, never the calculation. A question with zero
+  verified methods still gets a registry entry rather than silently falling back, so picking it
+  produces an honest "not enough to go on" reading with the source quotes, not no
+  acknowledgment at all. See `engine/COVERAGE.md` for the full per-chapter table and source-
+  verification queue.
 - **Rule engine** (`engine/ruleEngine.ts`) runs every method for a question automatically —
   no house is ever asked of the user — and computes a consensus across whichever methods
   came back verified: `agree`, `mostly_agree`, `mixed`, `conflict`, or `insufficient_data`
@@ -165,7 +171,7 @@ for the full per-chapter table; the summary:
   into sentences. It never decides anything itself — no model call, no free-text reading of
   the chart — it only phrases a result Layer 1 already computed deterministically.
 
-Covered by an automated test suite (`npm test`, Vitest) — 103 tests as of that stage, against
+Covered by an automated test suite (`npm test`, Vitest) — 438 tests as of this stage, against
 a hand-verified fixture chart whose every house was checked by hand against the addition rule
 before being relied on in an assertion: correct house selection, figure addition (including
 that it's order/grouping-independent, since the addition rule is associative and

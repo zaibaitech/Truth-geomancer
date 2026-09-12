@@ -26,7 +26,16 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
       <div className="mt-1.5 space-y-1.5">
         {methods.map((m) => (
           <p key={m.id} className="text-[12px] leading-relaxed text-sand/55">
-            <span className="text-sand-light">{m.label}</span> — {m.reviewNote ?? 'Not yet verified against the source manuscript.'}
+            <span className="text-sand-light">{m.label}</span> —{' '}
+            {/* A method's own reviewNote (why the whole method is withheld,
+                e.g. needs_review/uncertain status) takes priority; a
+                verified method whose THIS-CHART outcome is merely
+                'uncertain' has no reviewNote at all, so its own verdict's
+                interpretation (e.g. "the source only defines the X
+                trigger — this is not addressed") is shown instead — never
+                the generic fallback, which would wrongly claim a fully
+                verified rule was "not yet verified". */}
+            {m.reviewNote ?? m.interpretation ?? 'Not yet verified against the source manuscript.'}
           </p>
         ))}
       </div>

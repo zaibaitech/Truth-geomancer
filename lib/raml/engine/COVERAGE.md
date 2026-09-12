@@ -469,7 +469,309 @@ descriptive-integrity/gender-classification checks against every
 registered question, chapters 1-80 together, now 4 confirmed
 gender-blocked methods instead of 3) for the full regression audit.
 
-## Totals (as of this stage — Prompt 7 extraction, chapters 1-80)
+## Prompt 8 — Dependency Resolution & Chapters 1-80 Integrity Audit
+
+Not a new-chapter stage: no chapter 81+ work, no new questions registered,
+no new source rules. This stage re-investigated every unresolved
+dependency accumulated across Prompts 1-7, resolved what genuinely could
+be resolved, and formally tabulated what cannot. One real, source-neutral
+UI accuracy bug was found and fixed along the way (detailed in section 8
+below); no geomantic rule, figure classification, or user input was
+invented anywhere.
+
+**1. Male/female-star dependency — re-searched, still confirmed
+unresolvable, no new invention.** Both manuscripts were re-grepped in
+full (`content/manuscripts/kanzul-mikban.ts`, all 153 chapters, and
+`master-of-geomancy-vol1.ts`, all 10 chapters) for every spelling of "male
+star," "female star," "masculine," "feminine," and equivalent phrasing.
+Confirmed exactly **7 occurrences across 6 chapters/fragments**, all of
+which *use* the classification without ever *defining* it, and confirmed
+**no table, glossary, or definition exists anywhere in either supplied
+manuscript** (a direct grep for phrasing like "the following are male,"
+"male stars are," etc. returns nothing). The occurrences: ch.41 M1, ch.48
+M1, ch.48 M2, the pregnancy fragment's own M3 (all already documented),
+ch.68 M1 (Prompt 7), and — resolving Prompt 6/7's own open prediction of
+"a later occurrence around ch.71/ch.90" — the two actual further
+occurrences are **chapter 127 ("The Description of the Thief")** and
+**chapter 141 ("If the Prisoner Is Male or Female")**, both read in full
+this stage. Neither defines the classification either; both just use it
+exactly like ch.41/48/68 do, and both are far outside 1-80 (not
+implemented, not touched). The earlier "~ch.71, ~ch.90" line-position
+guess is **retired and corrected** in the source-verification queue below
+— it was an approximation from before the exact grep was run; the real
+positions are now known precisely. No classification was invented. Ch.41
+M1, ch.48 M1/M2, and ch.68 M1 remain `needs_review` with
+`reviewReasonCode: 'gender_classification_unsourced'`, unchanged.
+
+**2. Querent-gender dependency — investigated, confirmed scoped to ch.68
+alone, no product-wide input added.** A full-manuscript grep for the
+querent-differentiated phrasing pattern ch.68 uses ("if it's a man that
+comes to check... if it's a lady...") and near-synonyms ("the querent is a
+man/woman," "whoever is asking," etc.) across all 153 Kanzul Mikban
+chapters found **exactly one occurrence: chapter 68 itself.** No other
+chapter, anywhere in the manuscript, distinguishes its rule by who is
+asking. This is a source requirement of exactly one method, not a
+recurring pattern. Separately, the app's entire architecture was
+inspected for any existing suitable input: `lib/raml/storage.ts`'s
+`SavedCasting` (question, mothers, intentionId only), `app/settings/`, and
+every component under `components/raml/` were read — **the app has no
+user/profile/account concept of any kind**, let alone a gender field; a
+casting is four Mother patterns and nothing else. Per this stage's
+explicit instruction not to add a gender input merely because one method
+needs it, **no input was added.** `partner-cheating-method-1` stays
+`needs_review`, `reviewReasonCode: 'gender_classification_unsourced'`
+(the primary, listed-first blocker — the figure-gender gap alone is
+already sufficient to block it), with its `reviewNote` prose fully
+explaining the second, independent querent-gender-input gap. A second,
+distinct `reviewReasonCode` value for the input gap was considered and
+declined: `reviewReasonCode` is a single value per method (not an array),
+changing that shape for one method would be exactly the kind of
+speculative architecture change this stage's own instructions warn
+against, and the existing prose note already documents the second
+blocker in full (confirmed rendering correctly in the browser — see
+section 12). The required product decision — whether and how to collect
+querent identity at all — remains **open and undecided**; section 10
+below designs, without implementing, the smallest mechanism for it should
+a future stage's source findings justify building it.
+
+**3. Chapter 64 Method 2 — re-investigated, confirmed unresolvable, no
+verdict fabricated.** Re-read chapter 64 in full context: Method 2's
+complete text is "After the chart is drawn, pick h4, h11, h7 and 14 and
+add them. Check if it's a good, middle-good, or a bad star." — one
+sentence, immediately followed in the manuscript by an unrelated,
+differently-titled entry (the unnumbered "Someone's Behavior" fragment,
+itself a confirmed duplicate of ch.43 M1 — see Prompt 7). There is no
+continuation, footnote, or cross-reference anywhere nearby that supplies
+what good/middle-good/bad means for this specific rule. The calculation
+remains fully computed and shown (H4+H11+H7+H14, the resulting figure and
+its fortune); the verdict mapping is not. `marriage-last-forever-method-2`
+stays `status: 'uncertain'`, `reviewReasonCode: 'interpretation_not_stated'`,
+unchanged.
+
+**4. Chapter 79 Method 2, exactly-one case — re-investigated, confirmed no
+implicit rule, non-invention proven by test.** Re-read chapter 79's exact
+text: "Check h5; if it repeats in the chart twice, it means twins. If it
+repeats thrice, it means more than two. If it repeats more than 3 times,
+it means more than 3 babies." This is a plain enumeration starting at 2,
+not an arithmetic formula with an implicit base case — there is no stated
+rule of the form "if it does not repeat, it means..." A count of exactly
+1 (H5's own figure appearing nowhere else in the chart) is never
+addressed. **"1 = one baby" was deliberately not assumed**, even though it
+is the intuitively obvious reading — per this stage's explicit
+instruction, an intuitive inference is still an invented rule unless the
+source states it. A new regression test
+(`questions-stage5.test.ts`, ch.79 describe block) asserts directly that
+this exact case — which the shared fixture chart actually produces (H5 =
+Kalla Allahu, occurring exactly once) — never turns `descriptive`, never
+carries a `descriptiveAnswer`, and never displays a label resembling "one
+baby." Verified live in the browser (section 12) showing the accurate,
+non-fabricated explanation.
+
+**5. Complete unresolved-method audit, chapters 1-80.** Every method
+whose `status` is not `'verified'`, plus every chapter/fragment never
+registered at all, tabulated below across all 7 dimensions this stage's
+instructions require. Nothing here is collapsed into a generic
+"insufficient_data" label — each row states its own, specific cause.
+
+*Registered methods with `status !== 'verified'` (24 total, machine-counted
+directly from `QUESTION_REGISTRY` — matches the running Needs
+review + Uncertain totals below exactly):*
+
+| Group | Methods | Calc. complete? | Interp. complete? | Missing input | Cause | Resolvable from supplied manuscripts? | Recommended permanent status |
+|---|---|---|---|---|---|---|---|
+| A — figure-trigger list omitted by transcription | ch.2 M4, ch.4 M1, ch.5 M1/M2, ch.6 M1, ch.7 M4, ch.9 M3, ch.13 M3, ch.17 M1/M2, ch.19 M3, ch.21 M3, ch.26 M1, ch.27 M1/M2 (15 methods) | Yes — houses computed | No — named-figure verdict list never transcribed | A figure-trigger list (which named figures map to which branch) | Source (transcription gap) | No — needs the original manuscript scan | **UNCERTAIN** (permanent, pending scan access) |
+| B — ambiguous split / incomplete interpretation | ch.3 M3 (2 of 4 fortune combos addressed) | Yes | Partial | None — the stated rule itself is incomplete | Source | No | **NEEDS_REVIEW** (permanent) |
+| B2 — interpretation never stated at all | ch.64 M2 | Yes | No — zero branches interpreted | None — nothing to input, the mapping sentence is simply absent | Source | No — reconfirmed this stage, no continuation exists | **UNCERTAIN** (permanent), `reviewReasonCode: interpretation_not_stated` |
+| C — whole-figure opened/closed axis undefined | ch.1 M3, ch.21 M1 | Yes | No | A verified whole-figure (not per-line) open/closed classification | Architectural (project-wide axis gap, not chapter-specific) + Source (no table anywhere) | No | **NEEDS_REVIEW** (permanent, project-wide) |
+| D — spatial (left/right diagram) layout undefined | ch.37 M2 | Yes (rule itself understood) | No — needs a drawn-diagram convention `ChartModel` doesn't carry | A left/right house-layout convention | Architectural / Product | No — no worked example survives to reverse-engineer it | **NEEDS_REVIEW** (permanent, pending a product/source decision) |
+| E — figure-gender classification unsourced | ch.41 M1, ch.48 M1, ch.48 M2 | Yes | No | A figure male/female table | Source (reconfirmed this stage — 7 occurrences, 0 definitions, in both manuscripts) | No | **NEEDS_REVIEW** (permanent, pending a source table) |
+| E2 — figure-gender + querent-gender (dual, independent) | ch.68 M1 | Yes | No | Figure-gender table (source) **and** a querent-identity input (product) | Source (figure-gender) **and** Product (querent-gender — confirmed this stage to be genuinely required by the source, but not yet a made product decision) | No for either | **NEEDS_REVIEW** (permanent, pending both a source table and a product decision) |
+
+*Never registered at all (not counted in the 24 above; whole chapters or
+fragments, permanently classified):*
+
+| Item | Calc. complete? | Interp. complete? | Missing input | Cause | Resolvable? | Recommended permanent status |
+|---|---|---|---|---|---|---|
+| Ch.28, 2 continuation fragments | No — every branch's figure identifier dropped entirely | No | The figure list itself, with no partial reconstruction possible | Source | No | **NOT_IMPLEMENTED** (permanent, pending original scan) |
+| Ch.30, 2 named-figure branches (within an otherwise-implemented chapter) | No (these 2 branches only) | No | Named figure list for these 2 branches | Source | No | **NOT_IMPLEMENTED** (partial — sub-method only; the chapter's direction-based primary rule is implemented and verified) |
+| Ch.33 ("cast out by 4s" dot-line mechanic) | Yes — the rule is fully stated with a worked example | Yes | A second, non-16-house casting input mechanism | Architectural / Product | Yes, technically — the rule text is complete; blocked purely on a product decision to build a second casting flow | **NOT_IMPLEMENTED** (pending a product decision, not a source gap) |
+| Ch.46 (talismanic diagram + ritual) | N/A — no branch structure to compute at all | N/A | A physical-practice instruction, not a chart-verdict rule | Source (also architectural — this was never going to be a `QuestionDefinition`, diagram or not) | N/A | **RITUAL_NON_READING** (permanent) |
+| Ch.59, Methods 1-3 (secret of the querent) | Yes (M1's calculation runs); no defined verdict shape for any of the 3 | No — each method is explicitly open-ended by its own design ("use whatever star you get," querent freely picks, unspecified house) | A fixed interpretation shape, which the method itself declines to have | Source (the ambiguity is the method's own open-ended design, not an omission) | N/A — nothing is missing to look up | **OPEN_ENDED** (permanent) |
+| "Consequence of Friendship" fragment (after ch.52) | Yes — fully computable | Yes | None | Product/process — held out solely because Prompt 5 scoped that stage to numbered chapters 41-60 | Yes — already fully resolvable, not blocked on anything | **NOT_IMPLEMENTED** (scope-deferred only; a legitimate candidate for a future stage's registration, not attempted here per this stage's own "not a new-chapter stage" restriction) |
+| "Someone's Behavior" fragment (after ch.64) | Yes | Yes | None | N/A | Yes | **RESOLVED — not a gap.** Confirmed (Prompt 7) byte-for-byte identical to ch.43 M1; the question it asks is already answered |
+| Pregnant fragment's own Method 3 (baby-sex via figure-gender) | Yes | No | Figure-gender table | Source — identical gap to ch.48 | No | **NEEDS_REVIEW-equivalent**, deliberately not instantiated as its own `MethodDefinition` (would be a fully redundant third confirmation of ch.48's own gap) |
+
+**6. Descriptive/outcome result-kind audit, chapters 1-80.** Re-applied
+the governing test — *does the source attach an inherent value judgment,
+or is it neutrally reporting a fact?* — across every `resultKind:
+'descriptive'` question in the registry (19 total: chs. 21/23/31/36 from
+1-40's later reconciliation, chs. 47/48+56/49/53/54/55/57/58 from 41-60,
+and chs. 63/66/73/78/79/80 plus the "still in marriage" fragment from
+61-80) and cross-checked against the outcome-kind factual questions this
+stage's instructions specifically named (pregnancy, child sex, previous
+marriage, sexual activity, birth circumstances, counts, location,
+direction, weather, relationship states). All 19 confirmed correctly
+`descriptive`; no misclassification found or changed. **Chapter 32
+("will it rain") was specifically re-checked, as instructed, and
+deliberately left unchanged.** Its own text is 4 pure positive-trigger
+statements ("if X, then it will rain") with no stated negative branch and
+no explicit neutral framing either — structurally similar to the
+already-descriptive weather-adjacent chapters, but the source gives no
+clearer signal one way or the other than it did at the Prompt 6 review,
+and this stage found **no new source evidence** to justify a change.
+Per this stage's own explicit instruction ("do not change it without
+source evidence"), `willItRain.ts` is untouched: `rain-method-1..4`
+still map their positive trigger to `favourable` and the unaddressed case
+to `uncertain`. This is documented here as a **known, reconfirmed,
+open tension** (rain-as-fact vs. rain-as-favourable-outcome) rather than
+silently left unremarked, exactly as it was at Prompt 6 — not resolved,
+because resolving it now would mean guessing, which this stage's
+instructions explicitly forbid.
+
+**7. Conflict/disagreement/consensus semantics — re-verified, no drift.**
+Re-read `ruleEngine.ts`'s `runQuestion`/`deriveOverallResult` and
+`operations.ts`'s `COMPARE_RESULTS` in full. Confirmed unchanged since
+Prompt 6 and still structurally sound: a method with `status !==
+'verified'` always gets `verdict: null` and is never passed to
+`evaluate()`; `COMPARE_RESULTS`'s `verifiableCount` only ever counts
+methods with a non-null verdict whose `outcome !== 'uncertain'`; a
+genuine favourable-vs-unfavourable split renders as `conflict`/`mixed`,
+never averaged into a false single answer (re-confirmed live for ch.61 —
+see section 12); a descriptive question's methods are compared by answer
+value, not outcome-type equality, and a genuine value split (e.g. ch.58,
+Prompt 5) renders as `disagree`, never silently resolved. The Prompt 7
+audit test suite (`audit-1-80.test.ts`) already runs every one of these
+invariants against all 78 registered questions on every test run; this
+stage re-read the assertions rather than re-deriving them, and found no
+gap.
+
+**8. Method-exclusion semantics — re-verified, and one real bug found and
+fixed.** Re-read `ruleEngine.ts` (verified methods with conclusions
+participate; methods with no verdict are excluded; calculation stays
+visible even when withheld — all confirmed correct, unchanged) and every
+UI component that explains an unresolved method to the user. **One
+genuine, source-neutral accuracy bug was found in
+`InsufficientNotice.tsx`**: its per-method "WHY" line fell back to the
+generic string `"Not yet verified against the source manuscript."`
+whenever a method's own `reviewNote` was empty — but a fully `verified`
+method whose outcome on *this particular chart* happens to be
+`'uncertain'` (the chart's own figures simply don't match any branch the
+source defines) never has a `reviewNote` at all; only genuinely
+`needs_review`/`uncertain`-status methods do. The fallback text was
+therefore **factually wrong** for every verified-but-chart-uncertain
+method — for example chapter 79 previously showed "Method 1 — Not yet
+verified against the source manuscript" even though Method 1 is, and
+always was, a fully verified rule; this chart's own figures (Usman at H10,
+not Musah) simply don't trigger any of its defined branches. Fixed with
+the smallest possible change: the WHY line now prefers `m.reviewNote` (the
+method-level "why this whole method is withheld" explanation, when one
+exists), falling back to `m.interpretation` (the verdict's own, already-
+computed, chart-specific explanation — e.g. *"The source only defines the
+'Musah at H10' trigger — this is not addressed"*) before ever reaching the
+generic string. This required no data model change — `m.interpretation`
+already existed on `ReadingMethodRow` and was already being computed
+correctly; it just wasn't being displayed in this one spot. Verified live
+for chapters 79 and 67 (both now show their real, accurate reasons) and
+reconfirmed unaffected for chapter 68 (a genuinely `needs_review` method,
+which still shows its full `reviewNote` exactly as before) — see section
+12. This is a presentation-layer fix only; no calculation, verdict, or
+consensus value changed anywhere, confirmed by the full suite staying at
+1078/1078 (no test asserted on the old, inaccurate wording — none existed
+to break).
+
+**9. Reusable-operations audit — no new operation extracted, and no
+duplicated equivalent calculation left un-extracted where it mattered.**
+Re-read `COUNT_TOTAL_DOTS`, `CAST_OUT_BY`, `FIND_FIGURE_QUARTER`,
+`ADD_FIGURES`, and `COUNT_OPENED_LINES`: all five remain pure, chart-
+generic, unit-tested, and used exactly as designed — no chapter 1-80
+method hand-rolls an equivalent reduction/quartet/summation loop instead
+of using them (confirmed by grep: no `while` loops and no hand-written
+`[1,2,3,4]`/`[5,6,7,8]`-style quartet arithmetic exist anywhere in
+`questions/*.ts` outside the methods that already use these primitives or
+that deliberately diverge from `FIND_FIGURE_QUARTER` for a documented
+reason, e.g. ch.63's self-exclusion — see Prompt 7). One near-duplication
+was found and deliberately **not** extracted: `pregnancyHealthy.ts` M1 and
+`pregnancyPaternity.ts` M2 both inline the identical one-line pattern
+`housesToCheck.every((n) => CHECK_HOUSE(chart, n).figure.qualities.fortune.value === 'good')`,
+and `exWillReturn.ts` inlines a related-but-distinct one checking
+`CHECK_LINE_STATE(...) === 'opened'`/`'closed'` across an array of
+already-computed figures. This is 2 exact duplicates (not the 3+ that
+justified extracting `FIND_FIGURE_QUARTER` in Prompt 6), each a single
+line of trivial composition over an existing primitive (`CHECK_HOUSE`),
+not hand-rolled arithmetic — extracting a named operation for a one-line,
+twice-repeated boolean check would be exactly the kind of premature,
+stylistic-only refactor this stage's own instructions warn against. Left
+inline, documented here rather than silently noticed and dropped.
+
+**10. Architecture decision for contextual inputs — designed, not
+implemented.** Section 2 confirmed a genuine, if narrow, source
+requirement (ch.68 needs the querent's own gender) with no existing
+product-level input to supply it, and confirmed this need does not
+recur anywhere else in the manuscript. Per this stage's instruction to
+design the smallest future-proof mechanism *without* implementing it
+unless the audit demands it (it doesn't, yet — one method out of 143 is a
+weak case for a new product surface), the proposed shape, for whenever a
+future stage's source findings justify building it, is:
+
+```
+QuestionDefinition
+  contextInputs?: ContextInputSpec[]   // declared per-question, optional, empty by default
+
+ContextInputSpec
+  { id: 'querent-gender', label: string, kind: 'select', options: [...], required: false }
+
+MethodDefinition.evaluate(calc, chart, context?: Record<string, string>)
+  // context is undefined/empty for every existing method — a strictly
+  // additive third parameter, not a chart field
+```
+
+This keeps the 16-figure `ChartModel` and `casting.ts` completely
+untouched — a contextual input is metadata attached to a *question*, read
+by a *method's* `evaluate()`, never a property of the chart itself, and
+every question without `contextInputs` behaves exactly as it does today
+(the parameter is optional and unused). The casting flow would only ever
+prompt for a context input immediately before showing results for a
+question that declares one, never during the four-Mother-pattern casting
+itself, and a querent who declines to answer leaves that one method
+blocked exactly as today (a missing optional context input is not
+materially different from a missing figure — the method's calculation
+still runs and shows, its verdict stays withheld). **Not implemented this
+stage** — this is a design on paper only, matching the letter of this
+stage's "do not implement additional contextual inputs unless supported
+by actual source requirements" instruction: the requirement exists (one
+method), but building product surface for a single method is a judgment
+call for the product owner, not something this audit stage decides on its
+own initiative.
+
+**11. Tests.** 1077 (Prompt 7 baseline) → **1078 after**: one new
+regression test proving chapter 79 Method 2 never invents an answer for
+its unsupported "exactly one" case (section 4). No other test was added,
+removed, or had its assertion weakened — every chapter 1-80 assertion
+from Prompts 1-7 passes unchanged. `tsc --noEmit` clean, `npm run build`
+clean.
+
+**12. Browser verification.** Seven cases rendered live against the
+shared fixture chart, screenshotted, and read back in full: chapter 61
+(a genuine conflict — Method 1 favourable vs. Method 2 unfavourable,
+shown as `Methods conflict`/`MIXED`, never averaged); chapter 64 (Method 1
+favourable, Method 2 shown as "Not counted" with its withheld-
+interpretation reason visible under "Source verification notes");
+chapter 68 (`Insufficient Verified Data`, both independent gaps — figure-
+gender and querent-gender — spelled out in full prose, unaffected by the
+section 8 fix since it's a genuinely `needs_review` method with its own
+`reviewNote`); chapter 79 (`Insufficient Verified Data`, now — post-fix —
+showing each method's own accurate, chart-specific reason instead of the
+old misleading "not yet verified" text, and no "one baby" answer
+anywhere); chapter 80 (an ordinary descriptive result, two methods
+agreeing on "Not yours"); chapter 69 (an ordinary conditional/mixed
+result, "Conditional / Mixed," one method); and chapter 72 (an ordinary
+unfavourable outcome, one method, methods agree). Every screen matched
+the hand-computed values from Prompts 1-7 exactly, explained every
+withheld verdict honestly, and fabricated nothing. No UI change was made
+beyond the section 8 accuracy fix — every result shape this stage
+exercised was already representable by the existing renderers.
+
+## Totals (as of this stage — Prompt 8 dependency-resolution audit, chapters 1-80)
 
 | | Count |
 |---|---|
@@ -482,7 +784,7 @@ gender-blocked methods instead of 3) for the full regression audit.
 | **Verified** (computed automatically, count toward the result — includes descriptive verdicts) | **119** |
 | **Needs review** (calculable, but the rule itself is genuinely ambiguous) | **7** |
 | **Uncertain** (not computable — omitted source figures, or, new this stage, a stated calculation whose verdict-mapping sentence is itself missing) | **17** |
-| Automated tests covering this engine | 1077 (all passing) |
+| Automated tests covering this engine | 1078 (all passing — Prompt 8 added 1 regression test proving ch.79 M2 never invents "1 = one baby") |
 
 ### Stage 1+2 (chapters 1-19) subtotal — Prompt 6 touched 2 of these (ch.18, ch.21; see "Prompt 6" section below)
 
@@ -878,7 +1180,12 @@ section 17):
 | Ch.58 vs. Ch.21 consistency | **RESOLVED (Prompt 6)** — confirmed an implementation inconsistency (Ch.21 predates the `resultKind: 'descriptive'` model), not a genuine source difference. Ch.21 Method 2 migrated to `resultKind: 'descriptive'` to match Ch.58 exactly; regression tests confirm the underlying calculation is unchanged |
 | Ch.18, Method 3 ("some scholars") | **RESOLVED (Prompt 6)** — the source's own secondary "some scholars also say" rule was previously folded into cosmetic text on Method 3's verdict instead of counted independently. Split into Method 3 (primary rule) + a new Method 4 (the scholars' rule), each now independently contributing to consensus |
 | Ch.32 ("will it rain") | **Reviewed, not changed (Prompt 6)** — structurally a binary yes/no fact like chs. 47/58 (arguably `descriptive`), but fits the same "will X happen" mold as many already-`outcome` chapters (money, children, safe return) with no clear source evidence favoring a change either way. Flagged for a future stage's judgment, not auto-changed |
-| Ch.31, Ch.41, Ch.48 x2, Ch.68 gender occurrences — one further named occurrence not yet implemented (~ch.90 by manuscript line position; the earlier "~ch.71" estimate did not materialize as gender-blocked — ch.71 as actually read turns out to be two ordinary named-figure trigger methods, no gender terminology at all) | A future chapter-expansion stage should expect to hit the identical unsourced-gender wall at or near ch.90; no new investigation needed, this queue entry already covers the reasoning |
+| Ch.31, Ch.41, Ch.48 x2, Ch.68 gender occurrences — **corrected (Prompt 8)**: 2 further named occurrences now precisely located by a full-manuscript re-grep, replacing the earlier "~ch.71, ~ch.90" line-position estimate (ch.71, as actually implemented in Prompt 7, turned out to be two ordinary named-figure trigger methods with no gender terminology at all — that guess did not materialize) | The 2 real further occurrences are **chapter 127** ("The Description of the Thief," h1 or h7 male/female star → male/female thief) and **chapter 141** ("If the Prisoner Is Male or Female," h1+h7 male/female star → prisoner's sex). Both read in full this stage; neither defines the classification either — same unsourced gap. Both are far beyond chapters 1-80 and were not implemented, per this stage's explicit scope. A future stage reaching ch.127/ch.141 should expect to hit the identical wall; no new investigation needed there |
+| Ch.64, Method 2 | **Reconfirmed unresolvable (Prompt 8)** — re-read in full context; the passage genuinely ends after "check if it's a good, middle-good, or a bad star" with no continuation anywhere nearby. `interpretation_not_stated` stands, permanently, pending a source that was never supplied |
+| Ch.68, Method 1 — querent-gender input | **New finding, confirmed genuine and scoped (Prompt 8)** — a full-manuscript grep confirms this querent-differentiated pattern occurs exactly once in the entire 153-chapter book (ch.68 only); the app has no querent-identity input anywhere in its architecture. Not added this stage (a single method is a weak case for new product surface) — the required product decision (whether/how to collect querent identity) is open. See "Architecture decision for contextual inputs" in the Prompt 8 section above for the proposed (undeployed) mechanism |
+| Ch.79, Method 2 — exactly-one case | **Reconfirmed non-invention (Prompt 8)** — the source enumerates only 2/3/>3; no implicit rule covers a count of 1. Left `uncertain`, now with a dedicated regression test proving the app doesn't fabricate "one baby" for the one fixture chart that actually produces this exact case |
+| Ch.32 ("will it rain") | **Re-checked, still not changed (Prompt 8)** — same conclusion as Prompt 6: no new source evidence surfaced to justify moving it to `descriptive`. Documented again as an open, deliberately-unresolved tension rather than silently dropped |
+| `InsufficientNotice.tsx` WHY text | **RESOLVED (Prompt 8)** — a verified method whose per-chart outcome is `'uncertain'` was showing the generic, factually wrong "Not yet verified against the source manuscript" instead of its own accurate, already-computed verdict interpretation. Fixed to prefer the method's `reviewNote` (when the whole method is blocked) then its verdict's own `interpretation` (when the method is verified but this chart falls outside its defined branches), before ever falling back to the generic string. Presentation-layer only; no calculation or verdict changed |
 
 ## Not yet implemented
 
@@ -1008,3 +1315,38 @@ guessed one, and chapter 79 Method 2's count-of-1 case was left
 `uncertain` rather than assumed to mean "one baby." No chapter outside
 61-80 was touched, and no chapter 81+ work was started, per this stage's
 explicit scope.
+
+**Prompt 8, honestly:** this was an audit stage, not an implementation
+stage, and its footprint reflects that. `casting.ts`, `chartModel.ts`,
+`ruleEngine.ts`, `types.ts`, and every chapter 1-80 question file's
+calculation logic are completely untouched — re-confirmed by re-reading
+the core three files in full and by the full suite staying green at
+1078/1078 with only one new test added. No new `ReviewReasonCode` value
+was needed (the two-independent-gaps case on ch.68 was judged to fit the
+existing single-code shape, with the second gap documented in prose rather
+than forcing a second machine-readable code). No new `operations.ts`
+primitive was extracted — the one candidate found (a twice-duplicated,
+one-line "are these houses all a given fortune" check) was judged below
+the extraction threshold this project has consistently used (three or
+more genuine occurrences), and left inline, deliberately, with the
+reasoning recorded rather than silently skipped. **Exactly one file
+changed in a way that affects what a user sees**:
+`components/raml/reading/InsufficientNotice.tsx`, and even that change
+touches no calculation, verdict, or consensus value — it only fixes which
+of two already-computed, already-accurate strings (`reviewNote` vs. the
+verdict's own `interpretation`) gets shown, in favor of the one that
+was actually true for verified-but-chart-uncertain methods. No male/
+female-star classification was invented, confirmed by a second
+exhaustive re-search of both manuscripts (this time locating the two
+further occurrences — ch.127, ch.141 — precisely, rather than by
+estimate). No querent-gender input was added, despite confirming the
+need is genuine, because it is scoped to exactly one method out of 143
+and building new product surface for that alone was correctly identified
+as outside this audit's authority to decide unilaterally — the design
+for it exists on paper only. Chapter 64 Method 2's missing verdict
+mapping and chapter 79 Method 2's exactly-one case were both
+re-investigated and both remain exactly as unresolved as they were at
+the end of Prompt 7 — reconfirmed, not newly discovered, and neither was
+filled in with a plausible-sounding guess. No chapter 81+ work was
+started, and no chapter 1-80 source rule, figure classification, or user
+input was invented anywhere in this stage.

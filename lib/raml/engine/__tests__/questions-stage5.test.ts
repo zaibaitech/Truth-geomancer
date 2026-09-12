@@ -432,6 +432,20 @@ describe('The number of babies in a pregnancy (ch.79) — descriptive but insuff
     expect(m2.verdict!.label).toBe('Occurs 1 time(s)');
   });
 
+  // Prompt 8, section 4: the source (ch.79's own text) explicitly defines
+  // only 2 ("twins"), 3 ("more than two"), and >3 ("more than 3 babies") —
+  // it never states what a count of exactly 1 (no repeat at all) means.
+  // Re-confirmed this stage that no later passage supplies it either. This
+  // test exists specifically to prove the app does NOT silently invent
+  // "1 = one baby" — a plausible-sounding but unsourced inference — on the
+  // one chart in this whole suite that actually produces that count.
+  it('Method 2 does not invent "1 = one baby" (or any answer) for the count-of-1 case the source never addresses', () => {
+    const m2 = result.methods.find((m) => m.method.id === 'number-of-babies-method-2')!;
+    expect(m2.verdict!.outcome).not.toBe('descriptive');
+    expect(m2.verdict!.descriptiveAnswer).toBeUndefined();
+    expect(m2.verdict!.label).not.toMatch(/one baby|singleton|1 baby/i);
+  });
+
   it('no method counts -> insufficient data, even though the question is descriptive-kind', () => {
     expect(result.overallResult).toBe('insufficient_data');
     expect(result.calculationDetails.consensus.level).toBe('insufficient_data');

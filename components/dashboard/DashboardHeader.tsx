@@ -26,7 +26,7 @@ export function DashboardHeader() {
             <h1 className="truncate font-logo text-lg leading-tight text-sand-light">
               Truth Geomancer
             </h1>
-            <p className="text-[9.5px] font-medium uppercase tracking-[0.16em] text-sand/40">
+            <p className="text-[9.5px] font-medium uppercase tracking-[0.16em] text-sand/65">
               Discover &middot; Learn &middot; Align
             </p>
           </div>

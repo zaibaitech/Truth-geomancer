@@ -10,10 +10,10 @@ export function ReadingHeader({ question, questionCategory }: { question: string
           — the result replaces the casting board without a page navigation,
           which is otherwise silent. The question itself is an h2: it is the
           heading the whole result screen sits under. */}
-      <p role="status" className="type-meta uppercase tracking-widest text-sand/40">
+      <p role="status" className="type-meta uppercase tracking-widest text-sand/65">
         Your reading is ready
       </p>
-      {questionCategory ? <p className="mt-1 type-meta text-sand/45">{questionCategory}</p> : null}
+      {questionCategory ? <p className="mt-1 type-meta text-sand/65">{questionCategory}</p> : null}
       <h2 className="mt-1 type-method font-semibold text-sand-light">{question}</h2>
     </Card>
   );

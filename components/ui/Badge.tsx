@@ -15,7 +15,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.8125rem] font-medium uppercase tracking-wide ${tones[tone]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 type-label font-medium uppercase tracking-wide ${tones[tone]}`}
     >
       {children}
     </span>

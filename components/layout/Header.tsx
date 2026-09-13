@@ -8,7 +8,7 @@ export function Header({ title, subtitle }: { title?: string; subtitle?: string 
       <div className="flex items-center justify-between">
         <Logo />
         <Link
-          href="/star"
+          href="/settings"
           aria-label="Settings"
           className="flex h-8 w-8 items-center justify-center rounded-full border border-sand/15 text-sand/70"
         >
@@ -18,7 +18,7 @@ export function Header({ title, subtitle }: { title?: string; subtitle?: string 
       {title ? (
         <div className="mt-3">
           <h1 className="font-logo text-xl text-sand-light">{title}</h1>
-          {subtitle ? <p className="mt-0.5 text-xs text-sand/50">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-0.5 type-label text-sand/65">{subtitle}</p> : null}
         </div>
       ) : null}
     </header>

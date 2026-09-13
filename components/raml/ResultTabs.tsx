@@ -47,7 +47,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             onClick={() => setTab(t)}
             aria-pressed={tab === t}
             className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
-              tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/60'
+              tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/70'
             }`}
           >
             {t}
@@ -67,7 +67,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             return reading ? (
               <>
                 {availability.kind === 'consolidated' ? (
-                  <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 type-evidence text-sand/55">
+                  <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 type-evidence text-sand/70">
                     {availability.note}
                   </p>
                 ) : null}
@@ -82,21 +82,21 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
         {tab === 'Overview' ? (
           <>
             <StarCard star={judge.star} eyebrow="The Judge — the chart’s verdict">
-              <p className="text-sm leading-relaxed text-sand/70">{judge.star.house6.meaning}</p>
+              <p className="type-body text-sand/70">{judge.star.house6.meaning}</p>
             </StarCard>
             <StarCard star={self.star} eyebrow="House 1 — Self / the Querent" />
             <StarCard star={wealth.star} eyebrow="House 2 — Wealth">
-              <p className="text-sm leading-relaxed text-sand/70">{wealth.star.house2.meaning}</p>
+              <p className="type-body text-sand/70">{wealth.star.house2.meaning}</p>
             </StarCard>
             <StarCard star={illness.star} eyebrow="House 6 — Illness & Enemies">
-              <p className="text-sm leading-relaxed text-sand/70">{illness.star.house6.meaning}</p>
+              <p className="type-body text-sand/70">{illness.star.house6.meaning}</p>
             </StarCard>
           </>
         ) : null}
 
         {tab === 'Full Chart' ? (
           <>
-            <p className="text-xs text-sand/50">
+            <p className="type-meta text-sand/65">
               Houses 1-4 are the Mothers, 5-8 the Daughters, 9-12 the Nieces, 13-14 the Witnesses,
               15 the Judge, 16 the Reconciler.
             </p>
@@ -107,13 +107,13 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
         {tab === 'My Star' ? (
           <>
             <Card>
-              <p className="mb-3 text-sm font-semibold text-sand-light">Knowing your Buruji (life star)</p>
+              <p className="mb-3 type-body font-semibold text-sand-light">Knowing your Buruji (life star)</p>
               <div className="space-y-3">
                 {buruji.map((b) => (
                   <div key={b.method} className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm text-sand-light">{b.star.name}</p>
-                      <p className="text-[11px] text-sand/45">{b.method}</p>
+                      <p className="type-body text-sand-light">{b.star.name}</p>
+                      <p className="type-label text-sand/65">{b.method}</p>
                     </div>
                     <Badge tone={b.star.element}>{elementLabel(b.star.element)}</Badge>
                   </div>
@@ -122,8 +122,8 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             </Card>
 
             <Card>
-              <p className="mb-2 text-sm font-semibold text-sand-light">Spiritual strength</p>
-              <p className="text-sm leading-relaxed text-sand/70">{strength.verdict}</p>
+              <p className="mb-2 type-body font-semibold text-sand-light">Spiritual strength</p>
+              <p className="type-body text-sand/70">{strength.verdict}</p>
               <div className="mt-3 flex gap-2">
                 {(Object.keys(strength.tally) as (keyof typeof strength.tally)[]).map((el) => (
                   <Badge key={el} tone={el === strength.dominant ? el : 'neutral'}>
@@ -134,9 +134,9 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             </Card>
 
             <Card>
-              <p className="mb-2 text-sm font-semibold text-sand-light">Root cause, if something feels stuck</p>
-              <p className="text-sm leading-relaxed text-sand/70">{causes.reading}</p>
-              <p className="mt-2 text-[11px] text-sand/40">
+              <p className="mb-2 type-body font-semibold text-sand-light">Root cause, if something feels stuck</p>
+              <p className="type-body text-sand/70">{causes.reading}</p>
+              <p className="mt-2 type-label text-sand/65">
                 From {causes.houses.map((n) => `H${n}`).join(' + ')} → {causes.star.name}
               </p>
             </Card>
@@ -145,14 +145,14 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
 
         {tab === 'Sadaqah' ? (
           <Card>
-            <p className="mb-1 text-sm font-semibold text-sand-light">{sadaqah.star.name}</p>
-            <p className="mb-3 text-[11px] text-sand/40">
+            <p className="mb-1 type-body font-semibold text-sand-light">{sadaqah.star.name}</p>
+            <p className="mb-3 type-label text-sand/65">
               From {sadaqah.houses.map((n) => `${houseInfo(n).title} (H${n})`).join(' + ')}
             </p>
-            <p className="text-sm leading-relaxed text-sand/70">
+            <p className="type-body text-sand/70">
               <span className="text-sand-light">Offering:</span> {sadaqah.star.sadaqah.offering}
             </p>
-            <p className="mt-1 text-sm leading-relaxed text-sand/70">
+            <p className="mt-1 type-body text-sand/70">
               <span className="text-sand-light">When:</span> {sadaqah.star.sadaqah.day}
             </p>
           </Card>

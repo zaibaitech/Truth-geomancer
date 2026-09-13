@@ -10,7 +10,7 @@ export function SupportingIndicators({ indicators }: { indicators: ReadingIndica
 
   return (
     <div>
-      <p className="mb-2 type-meta uppercase tracking-widest text-sand/40">Supporting indicators</p>
+      <p className="mb-2 type-meta uppercase tracking-widest text-sand/65">Supporting indicators</p>
       <div className="space-y-2.5">
         {indicators.map((indicator) => (
           <FigureCard key={indicator.figureId} indicator={indicator} />

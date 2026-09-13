@@ -2646,3 +2646,67 @@ method 21px, source quote 17px/1.6, evidence 16px, verdict 19px, metadata
 font size finally gets larger text — the app's px sizes had been ignoring that
 setting entirely. Verified at 100/125/150/200%: text scales proportionally, and
 no width or font setting produces horizontal overflow or clipped content.
+
+---
+
+## Prompt 18 — reader accessibility and text size (no engine changes)
+
+**The app was ignoring the reader's own browser setting.** Prompt 17 had moved
+the reading and the method details onto a rem-based scale, but the rest of the
+app was still full of `text-[11px]` and `text-xs` brackets, and px does not
+respond to a browser font-size preference at all. Twelve files in the reading
+flow were converted onto the same nine tokens, so the question list, the
+confirmation step, the casting board, the result, history and settings now all
+answer to one scale.
+
+**A reader can also choose the size in the app.** `lib/raml/readerSize.ts`
+stores one of three values — `standard`, `large`, `xlarge` — under
+`truth-geomancer:reader-size` and sets `data-reader-size` on `<html>`. The
+stylesheet turns that into a single multiplier, `--reader-scale` (1, 1.15,
+1.32), and every type token is `calc(Xrem * var(--reader-scale))`. That is the
+whole mechanism, and it is deliberately narrow: the multiplier touches type
+sizes only, so figure glyph geometry, the chart grid, icons and the logo keep
+their proportions. Measured on the source quote: 17px → 19.55px → 22.44px, and
+33.66px at Extra large with the browser at 150%.
+
+A small inline script in `<head>` applies the stored value before first paint,
+so a reader who has chosen Extra large never sees a frame of Standard text.
+Anything else in that key — `HUGE`, a JSON object, an empty string, `null`,
+`42` — falls back to Standard rather than throwing, and a browser that refuses
+storage gets a plain sentence saying the setting will not be remembered instead
+of a control that silently fails. 24 tests cover the parsing, the fallback and
+the write path.
+
+**Contrast is now measured rather than judged.** The palette dims sand
+(`#d9b878`) with Tailwind alpha suffixes, and by eye `text-sand/35` reads as
+ordinary quiet metadata — it is 2.23:1. Every text colour below 65% was raised,
+across the reading flow and the marketplace and chrome pages alike; 65% is the
+lowest alpha that clears 4.5:1 on both the page (`#161009`, 4.80:1) and a card
+(`#1f1610`, 4.67:1). `lib/raml/readability.test.ts` recomputes the ratio for
+every `text-sand/NN` in `app/` and `components/` on each run, so the floor
+cannot quietly slip back.
+
+**Focus is visible everywhere.** A single `:focus-visible` rule gives every
+link, button, input and `tabindex` element a 2px clay outline with an offset.
+Verified by tabbing Settings end to end — every stop, including the three size
+options, reports a real outline.
+
+**Reading Mode was considered and not built.** The result screen already has no
+decorative background, no imagery behind the text and no competing column; a
+distraction-free mode would have been a second rendering path over the same
+content, with its own scroll, navigation and history behaviour to keep in step.
+The text-size control covers the need it was meant to serve, so the complexity
+was not added. This is a decision, not an omission.
+
+**Nothing about the reading changed.** The rendered text of a reading was
+captured at Standard and at Extra large and compared: identical, 4,381
+characters both times. No question, figure, house, method, consensus rule or
+casting step was touched in this prompt.
+
+**Still outstanding: haptics on real hardware.** `navigator.vibrate` is feature
+detected and wrapped in try/catch, and the fallback path is verified, but no
+desktop browser actually vibrates. The manual test that remains is on an
+Android handset: tap one element and feel a single short tick, tap rapidly and
+confirm the ticks do not queue or stall the UI, confirm no count appears,
+complete four draws and confirm the reading matches the same taps on desktop.
+Until that is done, haptic hardware is unverified.

@@ -10,7 +10,7 @@ export default function StarPage() {
       <div className="space-y-3 px-4">
         <Card className="flex flex-col items-center gap-3 py-8 text-center">
           <Sparkles size={22} className="text-clay-light" />
-          <p className="text-sm text-sand/60">
+          <p className="text-sm text-sand/65">
             Cast a chart about your general life, then open the “My Star” tab in the results to
             find your Buruji, your spiritual strength, and the root of anything that feels stuck.
           </p>
@@ -20,7 +20,7 @@ export default function StarPage() {
         </Card>
         <Link
           href="/raml/history"
-          className="flex items-center justify-center gap-2 rounded-2xl border border-sand/10 bg-ink-card py-3 text-sm text-sand/60"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-sand/10 bg-ink-card py-3 text-sm text-sand/65"
         >
           <History size={15} /> View past castings
         </Link>

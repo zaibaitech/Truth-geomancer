@@ -18,9 +18,9 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
           manuscript's rather than a failure of the app. */}
       <p className="type-method font-semibold text-clay-light">{INSUFFICIENT_HEADING}</p>
       <p className="mt-1.5 type-body text-sand/75">{INSUFFICIENT_EXPLANATION}</p>
-      <p className="mt-1.5 type-body text-sand/55">{shortSummary}</p>
+      <p className="mt-1.5 type-body text-sand/70">{shortSummary}</p>
 
-      <p className="mt-5 type-meta uppercase tracking-widest text-sand/40">Why</p>
+      <p className="mt-5 type-meta uppercase tracking-widest text-sand/65">Why</p>
       <div className="mt-1.5 space-y-2">
         {methods.map((m) => (
           <p key={m.id} className="type-evidence text-sand/65">
@@ -38,7 +38,7 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
         ))}
       </div>
 
-      <p className="mt-5 type-meta uppercase tracking-widest text-sand/40">What the source gives</p>
+      <p className="mt-5 type-meta uppercase tracking-widest text-sand/65">What the source gives</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         <span className="type-evidence text-sand/65">{methodTally(verifiedCount, methods.length)}</span>
         {methods.map((m) => (

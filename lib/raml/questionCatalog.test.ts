@@ -429,8 +429,11 @@ describe('navigation contracts', () => {
     const chapterIndex = card.indexOf('Chapter {entry.chapterNumber}');
     expect(titleIndex).toBeGreaterThan(-1);
     expect(chapterIndex).toBeGreaterThan(titleIndex);
-    expect(card).toMatch(/text-\[13\.5px\] font-medium[^"]*">\{entry\.title\}/);
-    expect(card).toMatch(/text-\[10px\] text-sand\/35">Chapter/);
+    // Prompt 18 moved these onto the shared reader scale: the question sits a
+    // step above its own chapter line, and both grow with the reader's chosen
+    // text size instead of being pinned in px.
+    expect(card).toMatch(/type-body font-medium text-sand-light">\{entry\.title\}/);
+    expect(card).toMatch(/type-label text-sand\/\d+">Chapter/);
   });
 
   it('labels every new control for assistive technology', () => {

@@ -25,8 +25,8 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
           <BookCover book={book} className="w-28 shrink-0" />
           <div>
             <h1 className="font-logo text-xl text-sand-light">{book.title}</h1>
-            <p className="text-sm text-sand/50">{book.subtitle}</p>
-            <p className="mt-0.5 text-xs text-sand/35">{book.author}</p>
+            <p className="text-sm text-sand/65">{book.subtitle}</p>
+            <p className="mt-0.5 text-xs text-sand/65">{book.author}</p>
             <div className="mt-2">
               <Badge tone={book.status === 'readable' ? 'sand' : 'neutral'}>{book.priceDisplay}</Badge>
             </div>
@@ -42,14 +42,14 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             Start Reading
           </Link>
         ) : (
-          <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center text-sm text-sand/50">
+          <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center text-sm text-sand/65">
             This volume is not yet available.
           </div>
         )}
 
         {chapters.length > 0 ? (
           <div className="mt-6">
-            <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">Contents</p>
+            <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/65">Contents</p>
             <ChapterList bookId={book.id} chapters={chapters} />
           </div>
         ) : null}

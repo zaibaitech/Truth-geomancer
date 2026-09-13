@@ -60,7 +60,7 @@ export function HeroCarousel() {
                 </span>
               ))}
             </h2>
-            <p className="mt-2.5 text-[13px] leading-relaxed text-sand/60">{slide.body}</p>
+            <p className="mt-2.5 text-[13px] leading-relaxed text-sand/65">{slide.body}</p>
             <Link
               href={slide.href}
               className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-b from-sand-light to-sand px-4 py-2.5 text-[13px] font-semibold text-ink shadow-[0_4px_14px_-4px_rgba(217,184,120,0.6)] transition-transform active:scale-95"

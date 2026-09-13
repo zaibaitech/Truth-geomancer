@@ -25,10 +25,10 @@ const STATE_TONE: Record<HistoryStateKind, string> = {
   unfavourable: 'border-clay/40 text-clay-light',
   mixed: 'border-clay/30 text-clay-light',
   descriptive: 'border-sand/25 text-sand-light',
-  insufficient: 'border-sand/15 text-sand/60',
-  'source-detail-missing': 'border-sand/15 text-sand/60',
-  'not-defined-in-source': 'border-sand/15 text-sand/60',
-  'no-automatic-reading': 'border-sand/15 text-sand/60',
+  insufficient: 'border-sand/15 text-sand/70',
+  'source-detail-missing': 'border-sand/15 text-sand/70',
+  'not-defined-in-source': 'border-sand/15 text-sand/70',
+  'no-automatic-reading': 'border-sand/15 text-sand/70',
   general: 'border-sand/20 text-sand/70',
   unreconstructable: 'border-clay/30 text-clay-light',
 };
@@ -37,7 +37,7 @@ export function HistoryStateBadge({ entry }: { entry: HistoryEntry }) {
   const Icon = STATE_ICON[entry.stateKind];
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium ${
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 type-label font-medium ${
         STATE_TONE[entry.stateKind]
       }`}
     >
@@ -67,22 +67,22 @@ export function HistoryCard({
   return (
     <div className="flex items-start gap-2 rounded-2xl border border-sand/10 bg-ink-card p-3">
       <Link href={`/raml/history/${entry.record.id}`} className="min-w-0 flex-1">
-        <p className="text-[13.5px] font-medium leading-snug text-sand-light">{entry.title}</p>
+        <p className="type-body font-medium text-sand-light">{entry.title}</p>
         {entry.intentionText ? (
-          <p className="mt-1 line-clamp-2 text-[11.5px] italic leading-snug text-sand/45">“{entry.intentionText}”</p>
+          <p className="mt-1 line-clamp-2 type-label italic text-sand/70">“{entry.intentionText}”</p>
         ) : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <HistoryStateBadge entry={entry} />
-          {entry.sourceLabel ? <span className="text-[10px] text-sand/35">{entry.sourceLabel}</span> : null}
+          {entry.sourceLabel ? <span className="type-label text-sand/65">{entry.sourceLabel}</span> : null}
         </div>
-        <p className="mt-1.5 text-[10.5px] text-sand/35">{formatDate(entry.record.createdAt)}</p>
+        <p className="mt-1.5 type-label text-sand/65">{formatDate(entry.record.createdAt)}</p>
       </Link>
       {onDelete ? (
         <button
           type="button"
           onClick={() => onDelete(entry.record.id)}
           aria-label={`Delete the reading “${entry.title}” from ${formatDate(entry.record.createdAt)}`}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/10 text-sand/40"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/10 text-sand/65"
         >
           <Trash2 size={14} />
         </button>

@@ -23,7 +23,7 @@ export function RecommendedBooks() {
               <BookCover book={book} />
             </div>
             <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug text-sand-light">{book.title}</p>
-            <p className="line-clamp-1 text-xs text-sand/50">{book.subtitle}</p>
+            <p className="line-clamp-1 text-xs text-sand/65">{book.subtitle}</p>
             <div className="mt-1.5">
               <Badge tone={book.status === 'readable' ? 'sand' : 'neutral'}>{book.priceDisplay}</Badge>
             </div>

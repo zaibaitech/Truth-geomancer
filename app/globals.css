@@ -51,33 +51,57 @@ body {
  * use, so the hierarchy stays consistent instead of drifting into one-off
  * bracket values.
  * ------------------------------------------------------------------------ */
+:root {
+  /* The reader's own choice of reading size (Prompt 18). It multiplies the
+     scale below and nothing else, so text grows while figure glyphs, chart
+     geometry, icons and the logo stay put. */
+  --reader-scale: 1;
+}
+html[data-reader-size='large'] {
+  --reader-scale: 1.15;
+}
+html[data-reader-size='xlarge'] {
+  --reader-scale: 1.32;
+}
+
 .type-section {
-  font-size: 1.125rem; /* 18px */
+  font-size: calc(1.125rem * var(--reader-scale)); /* 18px */
   line-height: 1.4;
 }
 .type-method {
-  font-size: 1.3125rem; /* 21px */
+  font-size: calc(1.3125rem * var(--reader-scale)); /* 21px */
   line-height: 1.35;
 }
 .type-quote {
-  font-size: 1.0625rem; /* 17px */
-  line-height: 1.6;
+  font-size: calc(1.0625rem * var(--reader-scale)); /* 17px */
+  line-height: 1.65;
 }
 .type-body {
-  font-size: 1.0625rem; /* 17px */
+  font-size: calc(1.0625rem * var(--reader-scale)); /* 17px */
   line-height: 1.6;
 }
 .type-evidence {
-  font-size: 1rem; /* 16px */
+  font-size: calc(1rem * var(--reader-scale)); /* 16px */
   line-height: 1.55;
 }
 .type-verdict {
-  font-size: 1.1875rem; /* 19px */
+  font-size: calc(1.1875rem * var(--reader-scale)); /* 19px */
   line-height: 1.45;
 }
 .type-meta {
-  font-size: 0.9375rem; /* 15px */
+  font-size: calc(0.9375rem * var(--reader-scale)); /* 15px */
   line-height: 1.5;
+}
+/* The two ends of the scale, added in Prompt 18: a screen title, and the
+   smallest label the product uses — still 14px at standard size, which is the
+   floor agreed for metadata. */
+.type-title {
+  font-size: calc(1.5rem * var(--reader-scale)); /* 24px */
+  line-height: 1.25;
+}
+.type-label {
+  font-size: calc(0.875rem * var(--reader-scale)); /* 14px */
+  line-height: 1.45;
 }
 
 /* A tap on a casting line acknowledges itself with one short pulse. It says
@@ -107,4 +131,18 @@ body {
   }
   /* Motion is never the only signal: the row keeps its marked styling, which
    * is a static state change, and the haptic tick still fires. */
+}
+
+/* A visible focus ring everywhere a keyboard can land. The app used
+   focus:outline-none on its text inputs, which left a keyboard user with no
+   indication of where they were (Prompt 18, section 13). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #d97b4c;
+  outline-offset: 2px;
+  border-radius: 6px;
 }

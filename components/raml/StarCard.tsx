@@ -25,7 +25,7 @@ export function StarCard({
         <FigureGlyph pattern={star.pattern} size="lg" />
         <div className="flex-1">
           {eyebrow ? (
-            <p className="mb-1 text-[11px] uppercase tracking-widest text-sand/45">{eyebrow}</p>
+            <p className="mb-1 type-label uppercase tracking-widest text-sand/65">{eyebrow}</p>
           ) : null}
           <h3 className="font-logo text-lg text-sand-light">{star.name}</h3>
           <div className="mt-1.5">

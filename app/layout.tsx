@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { cinzel, inter } from '@/lib/fonts';
+import { READER_SIZE_BOOTSTRAP } from '@/lib/raml/readerSize';
 import { BottomNav } from '@/components/layout/BottomNav';
 import './globals.css';
 
@@ -28,6 +29,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
+      <head>
+        {/* Applies the reader's saved text size before the first paint, so a
+            larger setting never flashes at the standard size. Falls back to
+            standard on any error; see lib/raml/readerSize.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: READER_SIZE_BOOTSTRAP }} />
+      </head>
       <body className="overflow-x-hidden bg-ink font-body text-sand-light">
         <div className="mx-auto flex h-[100dvh] max-w-md flex-col overflow-x-hidden bg-ink lg:max-w-3xl">
           {/* data-app-scroll: the app scrolls this container, not the window,

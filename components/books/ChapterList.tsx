@@ -21,25 +21,25 @@ export function ChapterList({ bookId, chapters }: { bookId: string; chapters: Ch
     <div>
       {showFilter ? (
         <div className="mb-3 flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2">
-          <Search size={14} className="text-sand/40" />
+          <Search size={14} className="text-sand/65" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter chapters…"
-            className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
+            className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/65 focus:outline-none"
           />
         </div>
       ) : null}
 
       {showFilter && query ? (
-        <p className="mb-2 text-[11px] text-sand/40">
+        <p className="mb-2 text-[11px] text-sand/65">
           {filtered.length} of {chapters.length} chapters
         </p>
       ) : null}
 
       <Card padding="p-0">
         {filtered.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-sand/40">No chapters match “{query}”.</p>
+          <p className="px-4 py-6 text-center text-sm text-sand/65">No chapters match “{query}”.</p>
         ) : (
           filtered.map((ch, i) => (
             <Link
@@ -50,10 +50,10 @@ export function ChapterList({ bookId, chapters }: { bookId: string; chapters: Ch
               }`}
             >
               <span className="text-sand-light/90">
-                {ch.number !== null ? <span className="mr-2 text-sand/40">{ch.number}.</span> : null}
+                {ch.number !== null ? <span className="mr-2 text-sand/65">{ch.number}.</span> : null}
                 {ch.title}
               </span>
-              <ChevronRight size={16} className="shrink-0 text-sand/30" />
+              <ChevronRight size={16} className="shrink-0 text-sand/65" />
             </Link>
           ))
         )}

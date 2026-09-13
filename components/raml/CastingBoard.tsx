@@ -129,7 +129,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
                   <p className="type-meta font-medium text-sand-light">{name}</p>
                   {/* A stage indicator, not a tap counter: which of the four
                       draws this is, and how many of its lines carry a mark. */}
-                  <p className="type-meta text-sand/45">
+                  <p className="type-meta text-sand/65">
                     Draw {drawIndex + 1} of 4 · {drawDone ? 'all four lines marked' : `${marked} of 4 lines marked`}
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
                         {el.label}
                       </span>
                     </span>
-                    <span className={`relative type-meta ${lineMarked ? 'text-sand/55' : 'text-sand/35'}`}>
+                    <span className={`relative type-meta ${lineMarked ? 'text-sand/70' : 'text-sand/65'}`}>
                       {lineMarked ? 'Marked · tap again if you wish' : 'Tap to draw'}
                     </span>
                   </button>
@@ -195,7 +195,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
       <button
         type="button"
         onClick={resetAll}
-        className="mx-auto mt-2.5 flex min-h-[44px] items-center justify-center gap-1.5 px-4 py-1 type-meta text-sand/45"
+        className="mx-auto mt-2.5 flex min-h-[44px] items-center justify-center gap-1.5 px-4 py-1 type-meta text-sand/65"
       >
         <RotateCcw size={14} aria-hidden /> Start the draws again
       </button>

@@ -49,9 +49,9 @@ export function QuickAccess() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-medium leading-tight text-sand-light">{title}</p>
-              <p className="mt-0.5 truncate text-[11px] text-sand/45">{description}</p>
+              <p className="mt-0.5 truncate text-[11px] text-sand/65">{description}</p>
             </div>
-            <ChevronRight size={14} className="mt-1 shrink-0 text-sand/25" />
+            <ChevronRight size={14} className="mt-1 shrink-0 text-sand/65" />
           </Link>
         ))}
       </div>

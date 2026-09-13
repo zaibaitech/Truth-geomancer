@@ -29,13 +29,15 @@ export function ResultSummaryCard({ result, userQuestion }: { result: ReadingRes
 
   return (
     <Card>
-      <div className="flex items-start justify-between gap-3">
-        <p className="type-meta uppercase tracking-widest text-sand/40">Summary</p>
+      {/* Wraps rather than overflowing: at Extra large with a large browser
+          font, "Copy reading" no longer fits beside the heading. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="type-meta uppercase tracking-widest text-sand/65">Summary</p>
         <button
           type="button"
           onClick={copy}
           aria-label="Copy this reading as text"
-          className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-sand/15 px-3 py-1 type-meta text-sand/65"
+          className="flex min-h-[40px] max-w-full items-center gap-1.5 rounded-full border border-sand/15 px-3 py-1 type-meta text-sand/65"
         >
           {copied ? <Check size={12} className="text-clay-light" /> : <Copy size={12} />}
           {copied ? 'Copied' : 'Copy reading'}
@@ -47,7 +49,7 @@ export function ResultSummaryCard({ result, userQuestion }: { result: ReadingRes
         {summary.status}
       </p>
       <p className="mt-1.5 type-body text-sand/70">{summary.interpretation}</p>
-      {summary.source ? <p className="mt-2 type-meta uppercase tracking-widest text-sand/35">{summary.source}</p> : null}
+      {summary.source ? <p className="mt-2 type-meta uppercase tracking-widest text-sand/65">{summary.source}</p> : null}
       <p aria-live="polite" className="sr-only">
         {copied ? 'Reading copied to the clipboard' : ''}
       </p>

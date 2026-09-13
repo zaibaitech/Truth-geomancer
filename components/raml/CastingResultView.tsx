@@ -27,12 +27,12 @@ export function CastingResultView({
         <div className="mx-4 mb-4 rounded-xl border border-sand/10 bg-ink-card px-3 py-2">
           {question ? (
             <>
-              <p className="type-meta uppercase tracking-widest text-sand/40">Your question</p>
+              <p className="type-meta uppercase tracking-widest text-sand/65">Your question</p>
               <p className="type-body text-sand-light">{question}</p>
             </>
           ) : fallbackLabel ? (
             <>
-              <p className="type-meta uppercase tracking-widest text-sand/40">Reading for</p>
+              <p className="type-meta uppercase tracking-widest text-sand/65">Reading for</p>
               <p className="type-body text-sand-light">{fallbackLabel}</p>
             </>
           ) : null}

@@ -70,8 +70,8 @@ export function CastingFlow() {
   if (step === 'ask') {
     return (
       <div className="px-4">
-        <p className="mb-2 text-sm font-semibold text-sand-light">What is this reading for?</p>
-        <p className="mb-3 text-xs text-sand/50">
+        <p className="mb-2 type-body font-semibold text-sand-light">What is this reading for?</p>
+        <p className="mb-3 type-meta text-sand/65">
           Pick a question and you’ll get the exact method Kanzul Mikban gives for it — read against your
           own chart.
         </p>
@@ -80,8 +80,8 @@ export function CastingFlow() {
         {recent && recent.length > 0 ? (
           <div className="mt-8">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-widest text-sand/45">Recent readings</p>
-              <Link href="/raml/history" className="flex items-center gap-1 text-xs text-clay-light">
+              <p className="type-label uppercase tracking-widest text-sand/65">Recent readings</p>
+              <Link href="/raml/history" className="flex items-center gap-1 type-meta text-clay-light">
                 <History size={13} /> View all
               </Link>
             </div>
@@ -103,27 +103,27 @@ export function CastingFlow() {
         <button
           type="button"
           onClick={() => setStep('ask')}
-          className="mb-3 flex items-center gap-1.5 text-xs text-sand/60"
+          className="mb-3 flex items-center gap-1.5 type-meta text-sand/70"
         >
           <ArrowLeft size={14} /> Choose a different question
         </button>
 
         <Card>
-          <p className="text-[11px] uppercase tracking-widest text-sand/40">Question</p>
+          <p className="type-label uppercase tracking-widest text-sand/65">Question</p>
           <h2 className="mt-1 text-base font-semibold text-sand-light">
             {entry ? entry.title : 'General reading'}
           </h2>
-          {entry?.hasShortTitle ? <p className="mt-1 text-[11px] text-sand/40">{entry.sourceTitle}</p> : null}
+          {entry?.hasShortTitle ? <p className="mt-1 type-label text-sand/65">{entry.sourceTitle}</p> : null}
 
-          <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">What this reading does</p>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-sand/65">
+          <p className="mt-4 type-label uppercase tracking-widest text-sand/65">What this reading does</p>
+          <p className="mt-1 type-meta text-sand/65">
             {entry
               ? readingBrief(entry)
               : 'You cast the sixteen houses and read the chart itself — the Judge, your own house, and the figures around them — without a set question.'}
           </p>
 
-          <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">Source</p>
-          <p className="mt-1 text-[12.5px] text-sand/65">
+          <p className="mt-4 type-label uppercase tracking-widest text-sand/65">Source</p>
+          <p className="mt-1 type-meta text-sand/65">
             {entry
               ? entry.chapterNumber !== null
                 ? `Kanzul Mikban — Chapter ${entry.chapterNumber}`
@@ -133,14 +133,14 @@ export function CastingFlow() {
         </Card>
 
         <Card className="mt-3">
-          <label htmlFor="intention-text" className="block text-sm font-semibold text-sand-light">
+          <label htmlFor="intention-text" className="block type-body font-semibold text-sand-light">
             Your question or intention (optional)
           </label>
           {/* Honesty, not decoration: the engine reads the chart and nothing
               else, so this text must never be presented as an input to the
               calculation. See lib/raml/productUx.test.ts, which asserts the
               reading is a pure function of the chart. */}
-          <p className="mt-1 text-xs leading-relaxed text-sand/50">
+          <p className="mt-1 type-meta text-sand/65">
             Hold it in mind as you cast. This does not change the geomancy calculation — it is saved with
             the casting on this device so you can remember what you asked.
           </p>
@@ -151,13 +151,13 @@ export function CastingFlow() {
             rows={3}
             aria-label="Your question or intention (optional)"
             placeholder="e.g. Will this move forward this month?"
-            className="mt-2 w-full resize-none rounded-xl border border-sand/15 bg-ink px-3 py-2 text-sm text-sand-light placeholder:text-sand/30 focus:border-clay/50 focus:outline-none"
+            className="mt-2 w-full resize-none rounded-xl border border-sand/15 bg-ink px-3 py-2 type-body text-sand-light placeholder:text-sand/65 focus:border-clay/50"
           />
         </Card>
 
         <button
           onClick={() => setStep('casting')}
-          className="mt-4 w-full rounded-xl bg-clay py-3 text-sm font-semibold text-ink"
+          className="mt-4 w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
         >
           Start Reading
         </button>
@@ -169,7 +169,7 @@ export function CastingFlow() {
     const entry = catalogEntry(intentionId);
     return (
       <div className="px-4">
-        {entry ? <p className="mb-3 text-center text-[11px] text-clay-light">Casting for: {entry.title}</p> : null}
+        {entry ? <p className="mb-3 text-center type-label text-clay-light">Casting for: {entry.title}</p> : null}
         <CastingBoard onComplete={handleCastComplete} />
       </div>
     );
@@ -183,12 +183,12 @@ export function CastingFlow() {
         intentionId={intentionId}
         meta={
           saved === false ? (
-            <p className="mt-1 flex items-start gap-1 text-[11px] text-clay-light">
+            <p className="mt-1 flex items-start gap-1 type-label text-clay-light">
               <TriangleAlert size={12} className="mt-0.5 shrink-0" /> This browser would not let the app save
               the reading, so it won’t appear in Past Readings.
             </p>
           ) : (
-            <p className="mt-1 flex items-center gap-1 text-[11px] text-sand/35">
+            <p className="mt-1 flex items-center gap-1 type-label text-sand/65">
               <Check size={12} className="text-clay-light" /> Saved on this device — nothing is sent anywhere
             </p>
           )
@@ -197,13 +197,13 @@ export function CastingFlow() {
           <div className="mx-4 mb-2 mt-6 flex gap-2">
             <button
               onClick={reset}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 text-sm text-sand/60"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 type-body text-sand/70"
             >
               <RotateCcw size={15} /> New reading
             </button>
             <Link
               href="/raml/history"
-              className="flex items-center justify-center gap-2 rounded-xl border border-sand/15 px-4 py-3 text-sm text-sand/60"
+              className="flex items-center justify-center gap-2 rounded-xl border border-sand/15 px-4 py-3 type-body text-sand/70"
             >
               <History size={15} /> History
             </Link>

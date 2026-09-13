@@ -5,9 +5,9 @@ import { Card } from '@/components/ui/Card';
 
 const ITEMS = [
   { href: '/search', icon: Search, title: 'Search', description: 'Books, chapters and stars' },
-  { href: '/raml/history', icon: History, title: 'Past Castings', description: 'Every chart you’ve saved' },
+  { href: '/raml/history', icon: History, title: 'Past Readings', description: 'Every reading saved on this device' },
   { href: '/notifications', icon: Bell, title: 'Notifications', description: 'Updates and announcements' },
-  { href: '/settings', icon: Settings, title: 'Settings', description: 'Your data and app info' },
+  { href: '/settings', icon: Settings, title: 'Settings', description: 'Text size, your data and app info' },
   { href: '/books', icon: BookOpen, title: 'Library', description: 'The full manuscript catalog' },
 ];
 
@@ -29,10 +29,10 @@ export default function MorePage() {
                 <item.icon size={16} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-sand-light">{item.title}</p>
-                <p className="text-xs text-sand/45">{item.description}</p>
+                <p className="type-body text-sand-light">{item.title}</p>
+                <p className="type-label text-sand/65">{item.description}</p>
               </div>
-              <ChevronRight size={16} className="text-sand/25" />
+              <ChevronRight size={16} className="text-sand/65" />
             </Link>
           ))}
         </Card>

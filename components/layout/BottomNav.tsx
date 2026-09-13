@@ -25,7 +25,7 @@ export function BottomNav() {
               key={href}
               href={href}
               className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10.5px] ${
-                active ? 'text-clay-light' : 'text-sand/50'
+                active ? 'text-clay-light' : 'text-sand/65'
               }`}
             >
               {active ? (

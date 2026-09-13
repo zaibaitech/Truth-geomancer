@@ -18,8 +18,8 @@ const ROW_ICON: Record<Exclude<MethodOutcome, 'descriptive'>, string> = {
 const ROW_TONE: Record<Exclude<MethodOutcome, 'descriptive'>, string> = {
   favourable: 'text-sand-light',
   unfavourable: 'text-clay-light',
-  mixed: 'text-sand/60',
-  uncertain: 'text-sand/60',
+  mixed: 'text-sand/70',
+  uncertain: 'text-sand/70',
 };
 
 /** Section 2/5 (outcome questions) and Prompt 4.5 section 4 (descriptive
@@ -48,13 +48,13 @@ export function MethodConsistencyCard({
 
   return (
     <Card>
-      <p className="mb-2 type-meta uppercase tracking-widest text-sand/40">Method consistency</p>
+      <p className="mb-2 type-meta uppercase tracking-widest text-sand/65">Method consistency</p>
       <div className="space-y-1.5">
         {counted.map((m) =>
           resultKind === 'descriptive' ? (
             <p key={m.id} className="flex items-center gap-2 text-sm">
               <span className="text-sand-light">{m.label}</span>
-              <span className="text-sand/40">→</span>
+              <span className="text-sand/65">→</span>
               <span className="text-sand-light">{m.outcomeLabel}</span>
             </p>
           ) : (
@@ -63,15 +63,15 @@ export function MethodConsistencyCard({
                 {ROW_ICON[m.outcome as Exclude<MethodOutcome, 'descriptive'>]}
               </span>
               <span className="text-sand-light">{m.label}</span>
-              <span className="text-sand/50">— {OUTCOME_ROW_LABEL[m.outcome!]}</span>
+              <span className="text-sand/65">— {OUTCOME_ROW_LABEL[m.outcome!]}</span>
             </p>
           ),
         )}
       </div>
       <p className="mt-3 text-sm font-medium text-sand-light">{consensusLabel}</p>
-      {consensusSentence ? <p className="mt-1 type-evidence text-sand/60">{consensusSentence}</p> : null}
-      {disagreementNote ? <p className="mt-1 type-evidence text-sand/60">{disagreementNote}</p> : null}
-      <p className="mt-2 type-meta text-sand/45">
+      {consensusSentence ? <p className="mt-1 type-evidence text-sand/70">{consensusSentence}</p> : null}
+      {disagreementNote ? <p className="mt-1 type-evidence text-sand/70">{disagreementNote}</p> : null}
+      <p className="mt-2 type-meta text-sand/65">
         {resultKind === 'descriptive'
           ? 'This reflects whether the traditional methods point to the same answer — not a favourable/unfavourable judgment.'
           : 'This reflects how consistently the traditional methods agree with each other — a measure of method consistency, not a statistical probability.'}

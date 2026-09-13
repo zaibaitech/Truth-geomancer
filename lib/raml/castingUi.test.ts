@@ -316,8 +316,9 @@ describe('method details typography', () => {
     ]) {
       expect(repoFile(file), file).not.toMatch(/text-\[(9|10|10\.5|11|12|12\.5|13)px\]/);
     }
-    // Badges scale with the reader's font setting too.
-    expect(repoFile('components/ui/Badge.tsx')).toContain('text-[0.8125rem]');
+    // Badges scale with the reader's font setting — and, since Prompt 18,
+    // with the reader's chosen text size too.
+    expect(repoFile('components/ui/Badge.tsx')).toContain('type-label');
   });
 
   it('keeps the working behind its disclosure control', () => {

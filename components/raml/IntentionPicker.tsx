@@ -78,16 +78,16 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
       {/* Search is always the fastest route, so it stays at the top of every
           view rather than hiding inside an "All questions" tab. */}
       <div className="mb-3 flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2">
-        <Search size={14} className="shrink-0 text-sand/40" />
+        <Search size={14} className="shrink-0 text-sand/65" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search questions"
           placeholder="Search: money, marriage, enemy, lost…"
-          className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/30 focus:outline-none"
+          className="w-full bg-transparent type-body text-sand-light placeholder:text-sand/65"
         />
         {query ? (
-          <button type="button" onClick={() => setQuery('')} className="shrink-0 text-[11px] text-sand/45">
+          <button type="button" onClick={() => setQuery('')} className="shrink-0 type-label text-sand/65">
             Clear
           </button>
         ) : null}
@@ -95,11 +95,11 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
 
       {results ? (
         <div>
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/45" role="status">
+          <p className="mb-2 type-label uppercase tracking-widest text-sand/65" role="status">
             {results.length} question{results.length === 1 ? '' : 's'} match “{query.trim()}”
           </p>
           {results.length === 0 ? (
-            <p className="rounded-xl border border-sand/12 bg-ink-card px-3 py-6 text-center text-sm text-sand/45">
+            <p className="rounded-xl border border-sand/12 bg-ink-card px-3 py-6 text-center type-body text-sand/65">
               Nothing in the book matches that word. Try “money”, “marriage”, “enemy”, “travel” or “lost”.
             </p>
           ) : (
@@ -117,14 +117,14 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
           >
             <Sparkles size={15} className="shrink-0 text-clay-light" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-medium text-sand-light">General reading</span>
-              <span className="block text-[11px] text-sand/45">Cast without a set question and read the chart itself</span>
+              <span className="block type-meta font-medium text-sand-light">General reading</span>
+              <span className="block type-label text-sand/65">Cast without a set question and read the chart itself</span>
             </span>
           </button>
 
           {recentEntries.length > 0 ? (
             <section>
-              <h3 className="mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-sand/45">
+              <h3 className="mb-2 flex items-center gap-1.5 type-label uppercase tracking-widest text-sand/65">
                 <Clock size={12} /> Recent
               </h3>
               {renderList(recentEntries)}
@@ -132,7 +132,7 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
           ) : null}
 
           <section>
-            <h3 className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">What would you like to know?</h3>
+            <h3 className="mb-2 type-label uppercase tracking-widest text-sand/65">What would you like to know?</h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {CATEGORIES.map((category) => {
                 const Icon = INTENTION_ICONS[category.icon];
@@ -146,8 +146,8 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
                     <span className="flex h-7 w-7 items-center justify-center rounded-full border border-sand/15 text-clay-light">
                       <Icon size={14} />
                     </span>
-                    <span className="text-[12.5px] font-medium leading-tight text-sand-light">{category.label}</span>
-                    <span className="text-[10.5px] text-sand/40">
+                    <span className="type-meta font-medium leading-tight text-sand-light">{category.label}</span>
+                    <span className="type-label text-sand/65">
                       {counts[category.id]} question{counts[category.id] === 1 ? '' : 's'}
                     </span>
                   </button>
@@ -159,14 +159,14 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
           <section>
             {/* "Suggested", never "Popular": the app records no usage, so any
                 popularity claim would be invented. */}
-            <h3 className="mb-2 text-[11px] uppercase tracking-widest text-sand/45">Suggested questions</h3>
+            <h3 className="mb-2 type-label uppercase tracking-widest text-sand/65">Suggested questions</h3>
             {renderList(SUGGESTED_QUESTIONS)}
           </section>
 
           <button
             type="button"
             onClick={() => setView({ kind: 'all' })}
-            className="w-full rounded-xl border border-sand/15 py-2.5 text-xs font-medium text-sand/70"
+            className="w-full rounded-xl border border-sand/15 py-2.5 type-meta font-medium text-sand/70"
           >
             Browse all {QUESTION_CATALOG.length} questions
           </button>
@@ -176,16 +176,16 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
           <button
             type="button"
             onClick={() => setView({ kind: 'home' })}
-            className="mb-3 flex items-center gap-1.5 text-xs text-sand/60"
+            className="mb-3 flex items-center gap-1.5 type-meta text-sand/70"
           >
             <ArrowLeft size={14} /> All categories
           </button>
           {view.kind === 'category' ? (
             <>
-              <h3 className="text-sm font-semibold text-sand-light">
+              <h3 className="type-body font-semibold text-sand-light">
                 {CATEGORIES.find((c) => c.id === view.id)?.label}
               </h3>
-              <p className="mb-3 text-[11px] text-sand/45">
+              <p className="mb-3 type-label text-sand/65">
                 {CATEGORIES.find((c) => c.id === view.id)?.description} · {counts[view.id]} question
                 {counts[view.id] === 1 ? '' : 's'}
               </p>
@@ -193,8 +193,8 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
             </>
           ) : (
             <>
-              <h3 className="text-sm font-semibold text-sand-light">All questions</h3>
-              <p className="mb-3 text-[11px] text-sand/45">
+              <h3 className="type-body font-semibold text-sand-light">All questions</h3>
+              <p className="mb-3 type-label text-sand/65">
                 Every passage in Kanzul Mikban the app can take a question from, A-Z.
               </p>
               {renderList(alphabetical)}

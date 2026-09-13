@@ -27,7 +27,7 @@ export function OutcomeCard({
   if (resultKind === 'descriptive') {
     return (
       <Card>
-        <p className="type-meta uppercase tracking-widest text-sand/40">Reading</p>
+        <p className="type-meta uppercase tracking-widest text-sand/65">Reading</p>
         <p className="mt-1.5 type-method font-semibold text-sand-light">
           {descriptiveAnswer ?? 'The methods give different answers'}
         </p>
@@ -38,7 +38,7 @@ export function OutcomeCard({
 
   return (
     <Card>
-      <p className="type-meta uppercase tracking-widest text-sand/40">Overall indication</p>
+      <p className="type-meta uppercase tracking-widest text-sand/65">Overall indication</p>
       <div className="mt-1.5">
         <Badge tone={OUTCOME_TONE[overallOutcome]}>{outcomeLabel}</Badge>
       </div>

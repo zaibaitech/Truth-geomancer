@@ -11,11 +11,11 @@ export function MethodVerdictCard({ verdict }: { verdict: MethodVerdictResult })
 
   return (
     <div className="rounded-xl border border-sand/10 bg-ink px-3 py-3">
-      <p className="text-xs font-semibold uppercase tracking-widest text-clay-light">{verdict.label}</p>
+      <p className="type-meta font-semibold uppercase tracking-widest text-clay-light">{verdict.label}</p>
 
       <div className="mt-2 space-y-0.5">
         {verdict.calculationSteps.map((step, i) => (
-          <p key={i} className="text-[12px] text-sand/50">
+          <p key={i} className="type-meta text-sand/65">
             {step}
           </p>
         ))}
@@ -24,7 +24,7 @@ export function MethodVerdictCard({ verdict }: { verdict: MethodVerdictResult })
       <div className="mt-3 flex items-center gap-3">
         <FigureGlyph pattern={result.pattern} size="sm" />
         <div>
-          <p className="text-sm font-medium text-sand-light">{result.starName}</p>
+          <p className="type-body font-medium text-sand-light">{result.starName}</p>
           <div className="mt-1 flex flex-wrap gap-1">
             <Badge tone={FORTUNE_TONE[result.fortune]}>{FORTUNE_LABEL[result.fortune]}</Badge>
             <Badge tone={UPDOWN_TONE[result.upDown]}>{UPDOWN_LABEL[result.upDown]}</Badge>
@@ -32,7 +32,7 @@ export function MethodVerdictCard({ verdict }: { verdict: MethodVerdictResult })
         </div>
       </div>
 
-      <p className={`mt-3 text-sm leading-relaxed ${verdict.ambiguous ? 'text-sand/50 italic' : 'text-sand-light'}`}>
+      <p className={`mt-3 type-body ${verdict.ambiguous ? 'text-sand/65 italic' : 'text-sand-light'}`}>
         {verdict.interpretation}
       </p>
     </div>

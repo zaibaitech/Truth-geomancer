@@ -37,19 +37,19 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
                   breathe — rather than like disabled small print. */}
               <blockquote className="mt-3 border-l-2 border-clay/30 pl-3">
                 <p className="type-quote italic text-sand/75">“{m.sourceQuote}”</p>
-                <cite className="mt-1.5 block type-meta not-italic text-sand/45">{m.sourceLabel}</cite>
+                <cite className="mt-1.5 block type-meta not-italic text-sand/65">{m.sourceLabel}</cite>
               </blockquote>
 
               {m.housesUsed.length > 0 ? (
                 <div className="mt-3">
-                  <p className="type-meta uppercase tracking-widest text-sand/40">Houses used</p>
+                  <p className="type-meta uppercase tracking-widest text-sand/65">Houses used</p>
                   <p className="mt-0.5 type-evidence text-sand/70">{m.housesUsed.map((n) => `H${n}`).join(', ')}</p>
                 </div>
               ) : null}
 
               {m.calculationSteps.length > 0 ? (
                 <div className="mt-3">
-                  <p className="type-meta uppercase tracking-widest text-sand/40">Working</p>
+                  <p className="type-meta uppercase tracking-widest text-sand/65">Working</p>
                   <div className="mt-0.5 space-y-1">
                     {m.calculationSteps.map((step, i) => (
                       <p key={i} className="type-evidence text-sand/70">
@@ -62,7 +62,7 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
 
               {m.resultFigureName ? (
                 <div className="mt-3">
-                  <p className="type-meta uppercase tracking-widest text-sand/40">Result figure</p>
+                  <p className="type-meta uppercase tracking-widest text-sand/65">Result figure</p>
                   <p className="mt-0.5 type-evidence text-sand/70">
                     {m.resultFigureName}
                     {qualities.length > 0 ? ` (${qualities.join(' · ')})` : ''}
@@ -76,7 +76,7 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
                   <p className="mt-1.5 type-verdict text-sand-light">{m.interpretation}</p>
                 </div>
               ) : (
-                <p className="mt-4 border-t border-sand/10 pt-3 type-body text-sand/60">{m.reviewNote}</p>
+                <p className="mt-4 border-t border-sand/10 pt-3 type-body text-sand/70">{m.reviewNote}</p>
               )}
             </div>
           );
@@ -85,14 +85,14 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
 
       {detailedInterpretation ? (
         <div className="mt-4 rounded-xl border border-sand/10 bg-ink px-4 py-4">
-          <p className="mb-1.5 type-meta uppercase tracking-widest text-sand/40">
+          <p className="mb-1.5 type-meta uppercase tracking-widest text-sand/65">
             Full computed interpretation (all methods)
           </p>
           <p className="type-body text-sand/65">{detailedInterpretation}</p>
         </div>
       ) : null}
 
-      <p className="mt-4 type-meta text-sand/45">
+      <p className="mt-4 type-meta text-sand/65">
         Good/bad and upward/downward here are read from classical geomancy attributions for each
         figure — not from this manuscript, which doesn’t tabulate them itself. Methods marked
         “source detail missing” or “not defined in the source” are shown for transparency but don’t

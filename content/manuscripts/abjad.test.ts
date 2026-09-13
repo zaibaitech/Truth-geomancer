@@ -3,6 +3,7 @@ import { STAR_USE_ENTRIES } from './starUses';
 import { HATIM_DEFINITIONS } from './hatim';
 import {
   ABJAD_VALIDATIONS,
+  abjadStatusLabel,
   abjadValue,
   getAbjadValidationByStarId,
   stripCallingParticle,
@@ -33,13 +34,28 @@ describe('Abjad validation — section 15: diagnostic only, never overrides the 
     }
   });
 
-  it('reports DISCREPANCY rather than silently correcting the manuscript for the five flagged invocations', () => {
-    const discrepancies = ['yussif', 'iddris', 'ayuba', 'ali', 'yunus'];
+  it('reports DISCREPANCY rather than silently correcting the manuscript for the four full-mismatch invocations', () => {
+    const discrepancies = ['yussif', 'iddris', 'ayuba', 'ali'];
     for (const starId of discrepancies) {
       const v = getAbjadValidationByStarId(starId)!;
       expect(v.status, `${starId} expected discrepancy`).toBe('discrepancy');
       expect(v.note).not.toBeNull();
     }
+  });
+
+  it('reports Yunus as a PARTIAL MATCH (one word of its two-name phrase matches), not a plain discrepancy', () => {
+    const v = getAbjadValidationByStarId('yunus')!;
+    expect(v.status).toBe('partial_match');
+    expect(v.note).not.toBeNull();
+  });
+
+  it('labels every status with the precise, non-euphemistic wording (section 10) — never "verified" for a discrepancy', () => {
+    expect(abjadStatusLabel(getAbjadValidationByStarId('adam')!)).toBe('MATCH');
+    expect(abjadStatusLabel(getAbjadValidationByStarId('yunus')!)).toBe('PARTIAL MATCH');
+    expect(abjadStatusLabel(getAbjadValidationByStarId('ali')!)).toBe('SOURCE SPELLING UNRESOLVED');
+    expect(abjadStatusLabel(getAbjadValidationByStarId('iddris')!)).toBe('SOURCE VALUE \u2260 ABJAD');
+    expect(abjadStatusLabel(getAbjadValidationByStarId('ayuba')!)).toBe('SOURCE VALUE \u2260 ABJAD');
+    expect(abjadStatusLabel(getAbjadValidationByStarId('yussif')!)).toBe('SOURCE VALUE \u2260 ABJAD');
   });
 
   it('never mutates the manuscript-stated invocation count, regardless of match/discrepancy', () => {
@@ -102,7 +118,7 @@ describe('Abjad validation — section 15: diagnostic only, never overrides the 
     expect(v.divineNameOnly).toBe('حي قيوم');
     expect(abjadValue('حي')).toBe(18);
     expect(v.computedValue).not.toBe(18); // full phrase (174) does not equal the stated count
-    expect(v.status).toBe('discrepancy');
+    expect(v.status).toBe('partial_match');
   });
 });
 

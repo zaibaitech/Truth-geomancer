@@ -12,7 +12,7 @@ import { CHAPTERS, INTRODUCTION } from '@/content/manuscripts/master-of-geomancy
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import { getStarUseByStarId } from '@/content/manuscripts/starUses';
 import { getHatimByStarId } from '@/content/manuscripts/hatim';
-import { getAbjadValidationByStarId } from '@/content/manuscripts/abjad';
+import { getAbjadValidationByStarId, abjadStatusLabel } from '@/content/manuscripts/abjad';
 import { STARS, ELEMENT_LABEL, ELEMENT_OCCUPATIONS, type Element } from '@/content/stars';
 
 const ELEMENTS: Element[] = ['fire', 'air', 'water', 'sand'];
@@ -152,7 +152,7 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                         {abjad ? (
                                           <>
                                             {' '}
-                                            · Abjad check: {abjad.status === 'match' ? 'match' : 'source/math discrepancy'}
+                                            · Abjad check: {abjadStatusLabel(abjad)}
                                           </>
                                         ) : null}
                                       </p>

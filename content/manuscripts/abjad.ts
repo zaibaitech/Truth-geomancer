@@ -39,7 +39,13 @@ export function abjadValue(phrase: string): number {
   return total;
 }
 
-export type AbjadStatus = 'match' | 'discrepancy';
+export type AbjadStatus = 'match' | 'partial_match' | 'discrepancy';
+
+/** Stars whose exact manuscript spelling for the Divine Name is flagged, by
+ * the restoration brief itself, as needing verification we cannot perform
+ * without the original image (Prompt 21, section 5C) — recorded here as an
+ * honest flag, not derived from the Abjad arithmetic. */
+const SPELLING_UNCERTAIN = new Set(['ali']);
 
 export interface AbjadValidation {
   starId: string;
@@ -61,29 +67,46 @@ export interface AbjadValidation {
 
 const KNOWN_NOTES: Partial<Record<string, string>> = {
   yussif:
-    'Computed Abjad (215) does not match the manuscript\'s stated recitation count (251), but it does match the ' +
-    'already source-verified Hatim middle-left cell for Yussif (٢١٥ = 215) — see content/manuscripts/hatim.ts. Both ' +
-    'source-stated numbers (251 recitation count, 215 Hatim cell) are preserved as-is; neither is overwritten by the other.',
+    'Computed Abjad (215) does not match the manuscript\'s stated recitation count (251). 215 also matches the ' +
+    'already source-verified Hatim middle-left cell for Yussif (٢١٥) taken at face value, but the wider Hatim-pattern ' +
+    'diagnostic (see hatimPattern.ts) finds that value conflicts with the OTHER two verified Hatim cells once the ' +
+    'N-4/N-5/N-6 formula is applied — so the relationship between 251, 215, and the Hatim cells is only PARTLY ' +
+    'explained, not fully reconciled. All three source-stated numbers (251, 215, and each Hatim cell) are preserved ' +
+    'as-is; none is overwritten by another.',
   iddris:
     'Computed Abjad of رحيم (258) does not match the manuscript\'s stated count (115). No matching alternate ' +
-    'reading was found elsewhere in the source; reported as an open source/math discrepancy, not corrected.',
+    'reading, alternate spelling, or Hatim cross-check was found anywhere else in the source. SOURCE VALUE MEANING ' +
+    'UNRESOLVED — reported as an open discrepancy, not corrected.',
   ayuba:
-    'Computed Abjad of باسط (72) does not match the manuscript\'s stated count (312), but 312 is exactly the value ' +
-    'the source-verified Hatim cells for Ayuba are built from (308/307/306 = 312-4/312-5/312-6). The manuscript\'s ' +
-    'stated count is preserved; the discrepancy is with the bare name\'s letter sum only.',
+    'Computed Abjad of باسط (72) does not match the manuscript\'s stated count (312) — but unlike Iddris, this one ' +
+    'has a source-backed explanation: 312 is exactly the value the source-verified Hatim cells for Ayuba are built ' +
+    'from (308/307/306 = 312-4/312-5/312-6, all three agreeing). The evidence indicates the Hatim is constructed ' +
+    'from the manuscript\'s stated recitation count, not from the bare Divine Name\'s Abjad sum.',
   ali:
     'Computed Abjad of سالم (131) does not match the manuscript\'s stated count (370). The brief flags Ali\'s Divine ' +
-    'Name as needing verification against the exact manuscript spelling; this is reported as unresolved rather than ' +
-    'inferred from the transliteration.',
+    'Name as needing verification against the exact manuscript spelling; with no source image available this ' +
+    'session, the spelling itself — not just the arithmetic — is reported as unresolved rather than inferred from ' +
+    'the transliteration.',
   yunus:
     'The invocation combines two names ("Ya Hayyu Ya Qayyum"). The manuscript\'s stated count (18) equals the Abjad ' +
     'of حي ("Al-Hayy") alone (18), not the combined phrase\'s letter sum (174) nor قيوم alone (156). Reported as a ' +
     'partial match rather than asserted as either a full match or a full discrepancy.',
 };
 
+/** For a multi-word phrase whose full sum doesn't match the stated count,
+ * checks whether any SINGLE word of it does — this is how Yunus's "يا حي يا
+ * قيوم" (18) is found to match حي ("Al-Hayy", 18) alone, without hard-coding
+ * that star id: any future multi-name entry would be caught the same way. */
+function findPartialMatch(divineNameOnly: string, statedValue: number): string | null {
+  const words = divineNameOnly.split(/\s+/).filter(Boolean);
+  if (words.length < 2) return null;
+  return words.find((w) => abjadValue(w) === statedValue) ?? null;
+}
+
 /** Built generically from content/manuscripts/starUses.ts — every star's
  * invocation is put through the same calculation; nothing star-specific is
- * hard-coded except the explanatory notes above, which never change a value. */
+ * hard-coded except the explanatory notes and the spelling-uncertainty flag
+ * above, neither of which ever changes a value. */
 export function buildAbjadValidations(
   entries: { starId: string; invocation: { arabic: string; count: number } | null }[],
 ): AbjadValidation[] {
@@ -93,16 +116,28 @@ export function buildAbjadValidations(
       const divineNameOnly = stripCallingParticle(e.invocation!.arabic);
       const computedValue = abjadValue(divineNameOnly);
       const statedValue = e.invocation!.count;
+      const partialMatchWord = computedValue === statedValue ? null : findPartialMatch(divineNameOnly, statedValue);
+      const status: AbjadStatus = computedValue === statedValue ? 'match' : partialMatchWord ? 'partial_match' : 'discrepancy';
       return {
         starId: e.starId,
         invocationArabic: e.invocation!.arabic,
         divineNameOnly,
         statedValue,
         computedValue,
-        status: computedValue === statedValue ? 'match' : 'discrepancy',
+        status,
         note: KNOWN_NOTES[e.starId] ?? null,
       } satisfies AbjadValidation;
     });
+}
+
+/** The precise, non-euphemistic status wording Prompt 21 (section 10)
+ * requires — this never says "verified" or hides a discrepancy behind a
+ * generic label. */
+export function abjadStatusLabel(v: AbjadValidation): string {
+  if (v.status === 'match') return 'MATCH';
+  if (v.status === 'partial_match') return 'PARTIAL MATCH';
+  if (SPELLING_UNCERTAIN.has(v.starId)) return 'SOURCE SPELLING UNRESOLVED';
+  return 'SOURCE VALUE \u2260 ABJAD';
 }
 
 /** The sixteen invocations' Abjad validation, computed once against the

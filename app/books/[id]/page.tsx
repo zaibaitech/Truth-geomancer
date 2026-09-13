@@ -23,33 +23,33 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       <div className="px-4 py-4">
         <div className="flex gap-4">
           <BookCover book={book} className="w-28 shrink-0" />
-          <div>
+          <div className="min-w-0">
             <h1 className="font-logo text-xl text-sand-light">{book.title}</h1>
-            <p className="text-sm text-sand/65">{book.subtitle}</p>
-            <p className="mt-0.5 text-xs text-sand/65">{book.author}</p>
+            <p className="type-body text-sand/65">{book.subtitle}</p>
+            <p className="mt-0.5 type-meta text-sand/65">{book.author}</p>
             <div className="mt-2">
               <Badge tone={book.status === 'readable' ? 'sand' : 'neutral'}>{book.priceDisplay}</Badge>
             </div>
           </div>
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-sand/70">{book.description}</p>
+        <p className="mt-4 type-body leading-relaxed text-sand/70">{book.description}</p>
 
         {book.status === 'readable' ? (
           <Link
             href={`/books/${book.id}/read`}
-            className="mt-5 block rounded-xl bg-clay px-4 py-3 text-center text-sm font-semibold text-ink"
+            className="mt-5 block rounded-xl bg-clay px-4 py-3 text-center type-body font-semibold text-ink"
           >
             Start Reading
           </Link>
         ) : (
-          <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center text-sm text-sand/65">
+          <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center type-body text-sand/65">
             This volume is not yet available.
           </div>
         )}
 
         {chapters.length > 0 ? (
           <div className="mt-6">
-            <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/65">Contents</p>
+            <p className="mb-2 type-label uppercase tracking-widest text-sand/65">Contents</p>
             <ChapterList bookId={book.id} chapters={chapters} />
           </div>
         ) : null}

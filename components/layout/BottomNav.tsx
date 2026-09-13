@@ -24,7 +24,7 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10.5px] ${
+              className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 type-label ${
                 active ? 'text-clay-light' : 'text-sand/65'
               }`}
             >

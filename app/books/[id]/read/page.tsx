@@ -26,7 +26,7 @@ export function generateStaticParams() {
 function ChapterHeading({ eyebrow, title, first }: { eyebrow: string; title: string; first: boolean }) {
   return (
     <div className={first ? '' : 'mt-12 border-t border-sand/10 pt-8'}>
-      <p className="text-[11px] uppercase tracking-widest text-sand/65">{eyebrow}</p>
+      <p className="type-label uppercase tracking-widest text-sand/65">{eyebrow}</p>
       <h2 className="font-logo text-xl leading-snug text-sand-light">{title}</h2>
     </div>
   );
@@ -40,7 +40,7 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
     <div className="flex flex-col">
       <div className="flex items-center justify-between border-b border-sand/10 px-4 py-3">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-widest text-sand/65">Reading</p>
+          <p className="type-label uppercase tracking-widest text-sand/65">Reading</p>
           <h1 className="truncate font-logo text-lg leading-snug text-sand-light">{book.title}</h1>
         </div>
         <Link
@@ -80,8 +80,8 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                           <Card key={star.id} className="flex items-center gap-3">
                             <FigureGlyph pattern={star.pattern} size="sm" />
                             <div>
-                              <p className="text-sm font-medium text-sand-light">{star.name}</p>
-                              <p className="text-[11px] text-sand/65">{ELEMENT_LABEL[star.element]}</p>
+                              <p className="type-body font-medium text-sand-light">{star.name}</p>
+                              <p className="type-label text-sand/65">{ELEMENT_LABEL[star.element]}</p>
                             </div>
                           </Card>
                         ))}
@@ -99,11 +99,11 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                             <div className="mt-3 space-y-2">
                               <div>
                                 <Badge tone="fire">House 6 · Illness</Badge>
-                                <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house6.meaning}</p>
+                                <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house6.meaning}</p>
                               </div>
                               <div>
                                 <Badge tone="sand">House 2 · Wealth</Badge>
-                                <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{star.house2.meaning}</p>
+                                <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house2.meaning}</p>
                               </div>
                             </div>
                           </Card>
@@ -123,7 +123,7 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                   className="flex flex-col items-center gap-1 rounded-xl border border-sand/10 py-3"
                                 >
                                   <FigureGlyph pattern={s.pattern} size="sm" />
-                                  <span className="text-[11px] text-sand/65">{s.name}</span>
+                                  <span className="type-label text-sand/65">{s.name}</span>
                                 </div>
                               ))}
                             </div>
@@ -137,12 +137,12 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                         {ELEMENTS.map((el) => (
                           <Card key={el}>
                             <Badge tone={el}>{ELEMENT_LABEL[el]}</Badge>
-                            <p className="mt-2 text-sm font-medium text-sand-light">
+                            <p className="mt-2 type-body font-medium text-sand-light">
                               {STARS.filter((s) => s.element === el)
                                 .map((s) => s.name)
                                 .join(', ')}
                             </p>
-                            <p className="mt-2 text-sm leading-relaxed text-sand/70">{ELEMENT_OCCUPATIONS[el]}</p>
+                            <p className="mt-2 type-body leading-relaxed text-sand/70">{ELEMENT_OCCUPATIONS[el]}</p>
                           </Card>
                         ))}
                       </div>
@@ -154,9 +154,9 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                           <Card key={star.id} className="flex items-center gap-3">
                             <FigureGlyph pattern={star.pattern} size="sm" />
                             <div>
-                              <p className="text-sm font-medium text-sand-light">{star.name}</p>
-                              <p className="text-sm text-sand/70">{star.sadaqah.offering}</p>
-                              <p className="text-[11px] text-sand/65">{star.sadaqah.day}</p>
+                              <p className="type-body font-medium text-sand-light">{star.name}</p>
+                              <p className="type-body text-sand/70">{star.sadaqah.offering}</p>
+                              <p className="type-label text-sand/65">{star.sadaqah.day}</p>
                             </div>
                           </Card>
                         ))}

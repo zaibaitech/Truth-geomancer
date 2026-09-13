@@ -99,3 +99,51 @@ describe('text contrast', () => {
     expect(passing[0]).toBe(65);
   });
 });
+
+/** Prompt 18, sections 2 and 10 — the type scale.
+ *
+ * The app's sizes used to be a mix of `text-[11px]`, `text-xs` and `text-sm`.
+ * px ignores the reader's browser font setting entirely, and neither responds
+ * to the in-app text-size control, so any screen still using them is a screen
+ * the accessibility work silently does not reach. Six such leftovers survived
+ * the first conversion pass and were only caught by measuring in a browser;
+ * this catches the next one without a browser. */
+describe('reader type scale', () => {
+  // Tailwind's own font-size utilities and arbitrary px values. `text-sand/65`
+  // and `text-left` are colours and alignment, so the pattern is anchored to
+  // the size keywords only.
+  const RAW_SIZE = /\btext-\[[\d.]+px\]|\btext-(xs|sm|base|lg|xl|[2-9]xl)\b/g;
+
+  /** The reading flow: the casting board, the result, history, and the
+   * manuscript reader and library. App chrome elsewhere is not in scope. */
+  const inScope = (rel: string) =>
+    rel.startsWith('components/raml') || rel.startsWith('components/books');
+
+  it('finds the reading-flow files it means to check', () => {
+    const checked = FILES.map((f) => f.slice(ROOT.length + 1)).filter(inScope);
+    expect(checked.length).toBeGreaterThan(15);
+    expect(checked).toContain('components/books/Prose.tsx');
+    expect(checked).toContain('components/raml/CastingBoard.tsx');
+  });
+
+  it('uses the shared tokens, not raw px or Tailwind size utilities', () => {
+    const offenders: string[] = [];
+    for (const file of FILES) {
+      const rel = file.slice(ROOT.length + 1);
+      if (!inScope(rel)) continue;
+      const hits = Array.from(readFileSync(file, 'utf8').matchAll(RAW_SIZE)).map((m) => m[0]);
+      if (hits.length) offenders.push(`${rel}: ${Array.from(new Set(hits)).join(', ')}`);
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('scales every token off the reader preference', () => {
+    const css = readFileSync(join(ROOT, 'app', 'globals.css'), 'utf8');
+    const tokens = Array.from(css.matchAll(/\.type-([a-z]+)\s*\{([^}]*)\}/g));
+    expect(tokens.length).toBeGreaterThanOrEqual(9);
+    for (const [, name, body] of tokens) {
+      expect(`${name}: ${body.match(/font-size:[^;]*/)?.[0] ?? 'none'}`)
+        .toMatch(/calc\([\d.]+rem \* var\(--reader-scale\)\)/);
+    }
+  });
+});

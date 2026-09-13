@@ -61,12 +61,12 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search “pregnancy”, “travel”, “Yussif”…"
-            className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/65 focus:outline-none"
+            className="w-full bg-transparent type-body text-sand-light placeholder:text-sand/65 focus:outline-none"
           />
         </div>
 
         {query.trim() && results.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-sand/65">Nothing found for “{query}”.</p>
+          <p className="mt-6 text-center type-body text-sand/65">Nothing found for “{query}”.</p>
         ) : null}
 
         <div className="mt-4 space-y-2">
@@ -84,15 +84,15 @@ export default function SearchPage() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-sand-light">{r.title}</p>
-                <p className="text-[11px] text-sand/65">{r.subtitle}</p>
+                <p className="truncate type-body text-sand-light">{r.title}</p>
+                <p className="type-label text-sand/65">{r.subtitle}</p>
               </div>
             </Link>
           ))}
         </div>
 
         {totalCount > results.length ? (
-          <p className="mt-3 text-center text-[11px] text-sand/65">
+          <p className="mt-3 text-center type-label text-sand/65">
             Showing {results.length} of {totalCount} matches — refine your search to narrow it down.
           </p>
         ) : null}
@@ -100,7 +100,7 @@ export default function SearchPage() {
         {!query.trim() ? (
           <div className="mt-8 flex flex-col items-center gap-2 text-center">
             <Sparkles size={18} className="text-sand/65" />
-            <p className="text-sm text-sand/65">
+            <p className="type-body text-sand/65">
               Search both books — 160+ chapters and reading methods — plus all 16 stars.
             </p>
           </div>

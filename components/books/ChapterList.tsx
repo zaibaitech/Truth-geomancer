@@ -26,30 +26,30 @@ export function ChapterList({ bookId, chapters }: { bookId: string; chapters: Ch
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter chapters…"
-            className="w-full bg-transparent text-sm text-sand-light placeholder:text-sand/65 focus:outline-none"
+            className="w-full bg-transparent type-body text-sand-light placeholder:text-sand/65 focus:outline-none"
           />
         </div>
       ) : null}
 
       {showFilter && query ? (
-        <p className="mb-2 text-[11px] text-sand/65">
+        <p className="mb-2 type-label text-sand/65">
           {filtered.length} of {chapters.length} chapters
         </p>
       ) : null}
 
       <Card padding="p-0">
         {filtered.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-sand/65">No chapters match “{query}”.</p>
+          <p className="px-4 py-6 text-center type-body text-sand/65">No chapters match “{query}”.</p>
         ) : (
           filtered.map((ch, i) => (
             <Link
               key={ch.id}
               href={`/books/${bookId}/read#${ch.id}`}
-              className={`flex items-center justify-between gap-3 px-4 py-3 text-sm ${
+              className={`flex items-center justify-between gap-3 px-4 py-3 type-body ${
                 i !== filtered.length - 1 ? 'border-b border-sand/10' : ''
               }`}
             >
-              <span className="text-sand-light/90">
+              <span className="min-w-0 text-sand-light/90">
                 {ch.number !== null ? <span className="mr-2 text-sand/65">{ch.number}.</span> : null}
                 {ch.title}
               </span>

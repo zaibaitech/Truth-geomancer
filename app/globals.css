@@ -11,6 +11,11 @@ html {
 body {
   height: 100%;
   overflow-x: hidden;
+  /* At the larger reader sizes a phone column can be narrower than a single
+     long word, and a justified line then runs past the edge and is clipped by
+     the scroll container. Let such a word break rather than overflow; ordinary
+     text is unaffected, because this only applies when a word cannot fit. */
+  overflow-wrap: break-word;
   background-color: #161009;
   color: #ecd6a4;
 }
@@ -136,6 +141,17 @@ html[data-reader-size='xlarge'] {
 /* A visible focus ring everywhere a keyboard can land. The app used
    focus:outline-none on its text inputs, which left a keyboard user with no
    indication of where they were (Prompt 18, section 13). */
+/* Justified manuscript text needs a reasonable measure. On a phone at the
+ * larger reader sizes the column holds only a handful of words per line, and
+ * justifying that opens rivers of white space between them — so the manuscript
+ * goes ragged-right instead. `break-words` on the paragraph is the safety net
+ * for the same situation: a word longer than the line can break rather than
+ * run past the edge and be clipped by the scroll container. */
+html[data-reader-size='large'] .manuscript-paragraph,
+html[data-reader-size='xlarge'] .manuscript-paragraph {
+  text-align: left;
+}
+
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,

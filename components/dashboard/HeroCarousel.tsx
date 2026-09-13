@@ -50,20 +50,20 @@ export function HeroCarousel() {
         />
         <div className="relative flex items-center gap-4 px-5 pb-5 pt-6">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-clay-light">
+            <p className="type-label font-semibold uppercase tracking-[0.2em] text-clay-light">
               {slide.eyebrow}
             </p>
-            <h2 className="mt-1.5 font-logo text-[26px] leading-[1.15] text-sand-light">
+            <h2 className="mt-1.5 font-logo type-title leading-[1.15] text-sand-light">
               {slide.heading.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
             </h2>
-            <p className="mt-2.5 text-[13px] leading-relaxed text-sand/65">{slide.body}</p>
+            <p className="mt-2.5 type-meta leading-relaxed text-sand/65">{slide.body}</p>
             <Link
               href={slide.href}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-b from-sand-light to-sand px-4 py-2.5 text-[13px] font-semibold text-ink shadow-[0_4px_14px_-4px_rgba(217,184,120,0.6)] transition-transform active:scale-95"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-b from-sand-light to-sand px-4 py-2.5 type-meta font-semibold text-ink shadow-[0_4px_14px_-4px_rgba(217,184,120,0.6)] transition-transform active:scale-95"
             >
               {slide.cta} <ArrowRight size={14} />
             </Link>

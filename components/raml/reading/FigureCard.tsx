@@ -21,13 +21,13 @@ export function FigureCard({ indicator }: { indicator: ReadingIndicator }) {
           <p className="type-meta uppercase tracking-widest text-sand/65">
             {indicator.role === 'primary' ? 'Primary indication' : 'Supporting indicator'}
           </p>
-          <p className="text-sm font-medium text-sand-light">{indicator.figureName}</p>
+          <p className="type-body font-medium text-sand-light">{indicator.figureName}</p>
           {qualities.length > 0 ? <p className="type-meta text-sand/65">{qualities.join(' · ')}</p> : null}
         </div>
       </div>
 
       <div className="mt-3 border-t border-sand/10 pt-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span className="type-meta uppercase tracking-widest text-sand/65">{indicator.methodLabel}</span>
           {indicator.methodOutcomeLabel ? (
             <Badge tone={OUTCOME_TONE[indicator.methodOutcome!]}>{indicator.methodOutcomeLabel}</Badge>
@@ -35,7 +35,7 @@ export function FigureCard({ indicator }: { indicator: ReadingIndicator }) {
             <Badge tone="neutral">Not counted</Badge>
           )}
         </div>
-        {indicator.interpretation ? <p className="mt-1.5 text-sm leading-relaxed text-sand/80">“{indicator.interpretation}”</p> : null}
+        {indicator.interpretation ? <p className="mt-1.5 type-body leading-relaxed text-sand/80">“{indicator.interpretation}”</p> : null}
         {indicator.role === 'supporting' && indicator.relevance ? (
           <p className="mt-1.5 type-evidence text-sand/70">{indicator.relevance}</p>
         ) : null}

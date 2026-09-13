@@ -35,7 +35,7 @@ export function QuickAccess() {
     <div className="px-4">
       <div className="mb-3 flex items-center gap-1.5">
         <Zap size={15} className="text-clay-light" />
-        <h2 className="text-sm font-semibold text-sand-light">Quick Access</h2>
+        <h2 className="type-body font-semibold text-sand-light">Quick Access</h2>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {ITEMS.map(({ href, icon: Icon, title, description }) => (
@@ -48,8 +48,8 @@ export function QuickAccess() {
               <Icon size={15} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium leading-tight text-sand-light">{title}</p>
-              <p className="mt-0.5 truncate text-[11px] text-sand/65">{description}</p>
+              <p className="type-meta font-medium leading-tight text-sand-light">{title}</p>
+              <p className="mt-0.5 truncate type-label text-sand/65">{description}</p>
             </div>
             <ChevronRight size={14} className="mt-1 shrink-0 text-sand/65" />
           </Link>

@@ -2703,6 +2703,28 @@ captured at Standard and at Extra large and compared: identical, 4,381
 characters both times. No question, figure, house, method, consensus rule or
 casting step was touched in this prompt.
 
+**A second pass, after measuring the right thing.** The first round of this
+work checked for horizontal overflow with `document.documentElement.scrollWidth`
+— which is clamped by the `overflow-x: hidden` the app sets, so it reported
+clean no matter what. Measuring the container that actually scrolls
+(`[data-app-scroll]`) instead turned up six real problems at the larger sizes,
+all now fixed and all covered by the matrix: the manuscript body (`Prose.tsx`)
+was pinned at 17px and was the one screen the control could not reach; a book
+card carried a rem-based fixed width that burst out of its grid cell; the book
+detail header and the chapter list had flex children without `min-w-0`, so long
+titles pushed past the edge instead of wrapping; outcome badges and method
+consistency rows did not wrap; and six `text-sm`/`text-lg` leftovers in the
+reading flow had survived the first conversion. `readability.test.ts` now also
+asserts that no file under `components/raml` or `components/books` uses a raw px
+or Tailwind size utility, and that every `type-*` token multiplies by
+`--reader-scale`. All three guards were confirmed to fail when deliberately
+violated, rather than assumed to work.
+
+Justified text also stops being justified at the two larger reader sizes: a
+phone column at that size holds a handful of words per line, and justifying it
+opens rivers of white space. `overflow-wrap: break-word` on the body is the
+backstop for the same situation.
+
 **Still outstanding: haptics on real hardware.** `navigator.vibrate` is feature
 detected and wrapped in try/catch, and the fallback path is verified, but no
 desktop browser actually vibrates. The manual test that remains is on an

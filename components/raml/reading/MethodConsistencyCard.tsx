@@ -52,13 +52,13 @@ export function MethodConsistencyCard({
       <div className="space-y-1.5">
         {counted.map((m) =>
           resultKind === 'descriptive' ? (
-            <p key={m.id} className="flex items-center gap-2 text-sm">
+            <p key={m.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 type-body">
               <span className="text-sand-light">{m.label}</span>
               <span className="text-sand/65">→</span>
               <span className="text-sand-light">{m.outcomeLabel}</span>
             </p>
           ) : (
-            <p key={m.id} className="flex items-center gap-2 text-sm">
+            <p key={m.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 type-body">
               <span className={ROW_TONE[m.outcome as Exclude<MethodOutcome, 'descriptive'>]}>
                 {ROW_ICON[m.outcome as Exclude<MethodOutcome, 'descriptive'>]}
               </span>
@@ -68,7 +68,7 @@ export function MethodConsistencyCard({
           ),
         )}
       </div>
-      <p className="mt-3 text-sm font-medium text-sand-light">{consensusLabel}</p>
+      <p className="mt-3 type-body font-medium text-sand-light">{consensusLabel}</p>
       {consensusSentence ? <p className="mt-1 type-evidence text-sand/70">{consensusSentence}</p> : null}
       {disagreementNote ? <p className="mt-1 type-evidence text-sand/70">{disagreementNote}</p> : null}
       <p className="mt-2 type-meta text-sand/65">

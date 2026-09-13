@@ -110,7 +110,7 @@ export function CastingFlow() {
 
         <Card>
           <p className="type-label uppercase tracking-widest text-sand/65">Question</p>
-          <h2 className="mt-1 text-base font-semibold text-sand-light">
+          <h2 className="mt-1 type-section font-semibold text-sand-light">
             {entry ? entry.title : 'General reading'}
           </h2>
           {entry?.hasShortTitle ? <p className="mt-1 type-label text-sand/65">{entry.sourceTitle}</p> : null}

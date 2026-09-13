@@ -27,7 +27,7 @@ export function StarCard({
           {eyebrow ? (
             <p className="mb-1 type-label uppercase tracking-widest text-sand/65">{eyebrow}</p>
           ) : null}
-          <h3 className="font-logo text-lg text-sand-light">{star.name}</h3>
+          <h3 className="font-logo type-method text-sand-light">{star.name}</h3>
           <div className="mt-1.5">
             <Badge tone={elementTone[star.element]}>{ELEMENT_LABEL[star.element]}</Badge>
           </div>

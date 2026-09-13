@@ -82,7 +82,7 @@ export function ContentGuard({
           notice ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <p className="rounded-full border border-sand/15 bg-ink-card px-4 py-2 text-[12px] text-sand-light shadow-lg">
+        <p className="rounded-full border border-sand/15 bg-ink-card px-4 py-2 type-label text-sand-light shadow-lg">
           Copying is disabled to protect this manuscript.
         </p>
       </div>

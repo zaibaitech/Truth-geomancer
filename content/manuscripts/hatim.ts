@@ -103,6 +103,18 @@ function star(id: string): Pattern {
   return s.pattern;
 }
 
+const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+
+/** Converts the manuscript's own Western/Maghrebi-tradition Arabic-Indic
+ * numeral glyphs (٠-٩) to Latin digits, for the reader's optional "Latin"
+ * or "Arabic + Latin" display mode (section 7). Non-digit characters (e.g.
+ * a verified cell's text is always pure digits here) pass through
+ * unchanged. This never replaces the stored glyph — see HatimDiagram.tsx,
+ * which renders this alongside, not instead of, hatim.ts's own text. */
+export function arabicIndicToLatin(text: string): string {
+  return text.replace(/[٠-٩]/g, (d) => String(ARABIC_INDIC_DIGITS.indexOf(d)));
+}
+
 export const HATIM_DEFINITIONS: HatimDefinition[] = [
   {
     starId: 'yussif',

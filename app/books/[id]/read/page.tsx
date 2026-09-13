@@ -12,6 +12,7 @@ import { CHAPTERS, INTRODUCTION } from '@/content/manuscripts/master-of-geomancy
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import { getStarUseByStarId } from '@/content/manuscripts/starUses';
 import { getHatimByStarId } from '@/content/manuscripts/hatim';
+import { getAbjadValidationByStarId } from '@/content/manuscripts/abjad';
 import { STARS, ELEMENT_LABEL, ELEMENT_OCCUPATIONS, type Element } from '@/content/stars';
 
 const ELEMENTS: Element[] = ['fire', 'air', 'water', 'sand'];
@@ -106,6 +107,7 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                         {STARS.map((star) => {
                           const use = getStarUseByStarId(star.id);
                           const hatim = getHatimByStarId(star.id);
+                          const abjad = getAbjadValidationByStarId(star.id);
                           return (
                             <Card key={star.id} id={star.id} className="scroll-mt-16">
                               <div className="flex items-center gap-3">
@@ -137,6 +139,25 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                     <p className="rounded-lg border border-sand/10 bg-ink px-2.5 py-2 type-label text-sand/65">
                                       Source note: {use.sourceAmbiguity}
                                     </p>
+                                  ) : null}
+                                  {use.invocation ? (
+                                    <div className="rounded-lg border border-sand/10 bg-ink px-3 py-2.5">
+                                      <p className="type-label uppercase tracking-widest text-sand/65">Divine Name</p>
+                                      <p className="type-body text-sand-light" dir="rtl" lang="ar">
+                                        {use.invocation.arabic}
+                                      </p>
+                                      <p className="mt-1 type-label text-sand/65">
+                                        Source value: {use.invocation.count} (source-derived — repeated as a recitation, not
+                                        computed by this app)
+                                        {abjad ? (
+                                          <>
+                                            {' '}
+                                            · Abjad check: {abjad.status === 'match' ? 'match' : 'source/math discrepancy'}
+                                          </>
+                                        ) : null}
+                                      </p>
+                                      {abjad?.note ? <p className="mt-1 type-evidence text-sand/65">{abjad.note}</p> : null}
+                                    </div>
                                   ) : null}
                                 </div>
                               ) : (

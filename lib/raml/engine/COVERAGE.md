@@ -2858,3 +2858,119 @@ horizontal overflow, no clipped text, no oversized or overlapping grid
 cells, no JS errors, no failed requests. The Hatim grid scales with the
 reader-size preference like the rest of the chapter (324px wide at Large and
 Extra-large on a 390px viewport, unclipped) since it is CSS, not an image.
+
+---
+
+## Prompt 20 — Abjad validation and a numeral display toggle (audit, no new image evidence)
+
+**What this prompt supplied, and what it didn't.** A follow-up brief re-stated
+the Prompt 19 restoration requirements and included a working table of
+Divine-Name/value pairs and a specific Hatim reading for Yussif (3/211/1,
+210/center/5, 2/4/209) as "source-audit targets... not permission to blindly
+hard-code them." No new manuscript photographs or scans came with it — this
+repository still has no image assets for the sixteen Hatim diagrams (checked:
+only `public/covers/master-of-geomancy-vol-1.jpg`, the book's cover). Per the
+brief's own section 5 ("do not silently change 211/210/209 to \[anything]...
+first determine what the original manuscript actually shows") and section 15
+("do not silently 'correct' manuscript values"), nothing in `hatim.ts` was
+changed on the strength of this table alone. The existing Yussif reading
+(٢١١ / ٢١٥ / ٢٠٩ — topMiddle / middleLeft / bottomRight), produced in Prompt
+19 from an actual high-magnification pass over the source photograph, is kept
+exactly as it was.
+
+**What is new, and doesn't need a photograph: Abjad validation
+(`content/manuscripts/abjad.ts`).** A diagnostic-only module computes the
+classical Abjad-kabir letter sum of each star's Divine Name (the calling
+participle "يا" is stripped first) and compares it to the manuscript's own
+stated repeat count from `starUses.ts`, reporting `match` or `discrepancy` —
+never overwriting either number. Running it against all sixteen invocations
+found:
+
+- **Eleven matches** — Adam (الله=66), Mahadi (زكي=37), Issah (لطيف=129),
+  Ibrahim (عليم=150), Umar (جبار=206), Kalla Allahu (هادي=20), Sulemana
+  (نور=256), Nuhu (وكيل=66), Hassan & Hussein (حليم=88), Usman (كافي=111),
+  Musah (جامع=114) — the bare name's Abjad sum equals the manuscript's stated
+  count exactly, for all eleven.
+- **Five discrepancies, each documented rather than resolved:**
+  - **Yussif** — طاهر sums to 215, not the stated recitation count of 251.
+    215 is exactly the source-verified Hatim middle-left cell (٢١٥). Both
+    numbers (251 the recitation count, 215 the Hatim cell) are genuinely
+    different figures in the source and both are kept.
+  - **Ayuba** — باسط sums to 72, not the stated 312. 312 is exactly what the
+    source-verified Hatim geometry is built from (308/307/306 = 312−4/−5/−6).
+    Both numbers are kept; only the bare name's Abjad is flagged as not
+    matching 312.
+  - **Iddris** — رحيم sums to 258, not the stated 115. No alternative
+    reading was found anywhere else in the source; reported as an open,
+    unresolved source/math discrepancy.
+  - **Ali** — سالم sums to 131, not the stated 370. The Prompt 20 brief itself
+    flags Ali's Divine Name as needing verification against the exact
+    manuscript spelling; this is reported as unresolved, not inferred.
+  - **Yunus** — the invocation combines two names ("يا حي يا قيوم"). The
+    stated count (18) equals حي ("Al-Hayy") alone, not قيوم alone (156) nor
+    the combined phrase (174). Reported as a partial match, not asserted
+    either way.
+
+None of this changes `starUses.ts`'s transcribed counts or `hatim.ts`'s
+verified/review cells — it is a read-only cross-check layered on top of both,
+exposed in the reader alongside each star's Divine Name and surfaced as
+"Abjad check: match" or "Abjad check: source/math discrepancy" with the
+specific note for the five discrepancies above.
+
+**A numeral display toggle (`HatimDiagram.tsx`).** Per section 7 of the
+restoration brief ("preserve the original manuscript numeral glyphs... may
+additionally provide Latin equivalents... but the source glyph must remain
+available"), the Hatim diagram now has an "Original / Arabic + Latin / Latin"
+control (`role="radiogroup"`, default "Original"). `arabicIndicToLatin()` in
+`hatim.ts` converts the stored Arabic-Indic digits to Latin digits for
+display only — the stored `HatimCell.text` values are never rewritten, and
+switching modes is purely a rendering choice. The screen-reader `sr-only`
+list always states both forms regardless of the visual toggle, so a
+non-visual reader isn't limited to whichever mode is currently selected.
+
+**The Divine Name is now shown in the reader**, next to each star's House 6/
+House 2 text: the manuscript's own Arabic invocation, its stated repeat
+count labelled "(source-derived...)", and the Abjad check result. This
+answers section 12's "view the Divine Name and source numerical value" /
+"understand that the value is source-derived" requirements, which Prompt 19
+had transcribed into data but not yet surfaced as a distinct UI element.
+
+**Guided drawing order (section 8): still not implemented, on purpose.**
+Nothing in the manuscript text restored in Prompt 19, and nothing supplied
+with this prompt, establishes a stroke-by-stroke drawing sequence for any of
+the sixteen Hatim diagrams. Per the brief's own instruction ("if the
+manuscript does not explicitly establish the order, do not pretend that an
+inferred order is authoritative... leave the guided order disabled"), no
+`drawingOrder` field or "Show drawing order" control was added. This remains
+unresolved, not guessed.
+
+**Tests.** `content/manuscripts/abjad.test.ts` (13 tests) covers: one
+validation per star; the calling-particle strip; the Abjad-kabir sum
+function against two known values; the eleven matches; the five
+discrepancies each carrying a note; that the manuscript's stated count is
+never mutated; Yussif's 215-vs-251 split and its cross-check against the
+existing verified Hatim cell; an explicit assertion that this session does
+NOT overwrite the source-verified 211/215/209 reading with the unverified
+211/210/209 working table supplied this prompt; Ayuba's 72-vs-312 split
+against its Hatim geometry; Umar's clean match on both fronts; and Yunus's
+partial-name match. `starUses.test.ts`'s existing 57 tests are unchanged and
+still pass. Full suite: 2,211 tests passing (up from Prompt 19's 2,198),
+`tsc --noEmit` clean, `next build` clean (19 static routes generated,
+including both book readers).
+
+**Files changed:** `content/manuscripts/abjad.ts` (new),
+`content/manuscripts/abjad.test.ts` (new), `content/manuscripts/hatim.ts`
+(added `arabicIndicToLatin`; no existing cell value changed),
+`components/books/HatimDiagram.tsx` (numeral toggle; now a client component),
+`app/books/[id]/read/page.tsx` (Divine Name + Abjad check surfaced per
+star). `casting.ts`, `chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` untouched.
+
+**Still unresolved, honestly.** The Hatim border's 70 "under review" cells
+from Prompt 19 are unchanged — this prompt had no new image evidence to
+re-inspect them with, and none was invented. Yussif's specific 211/210/209
+vs 211/215/209 question (section 5) is not "solved" here; it is documented,
+cross-checked against an independent Abjad calculation (which favours 215,
+not 210), and left exactly as Prompt 19 verified it, pending an actual
+re-inspection of the source photograph.
+

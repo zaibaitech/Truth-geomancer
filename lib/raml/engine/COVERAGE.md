@@ -2732,3 +2732,129 @@ Android handset: tap one element and feel a single short tick, tap rapidly and
 confirm the ticks do not queue or stall the UI, confirm no count appears,
 complete four draws and confirm the reading matches the same taps on desktop.
 Until that is done, haptic hardware is unverified.
+
+---
+
+## Prompt 19 — restoring "the stars and their uses in a chat" (no engine changes)
+
+**What was missing.** Chapter Four of *The Master of Geomancy, Volume 1* —
+"The stars and their uses in a chat" — has sixteen numbered entries (①–⑯,
+pages 8–23 of the source PDF), each giving a star's meaning in House 6 and
+House 2, the sadaka it calls for, an invocation with a repeat count, named
+surahs, and a hand-drawn Hatim diagram. None of this had ever been
+transcribed into the app. `content/stars.ts` already carried a *paraphrase*
+of the house-6/house-2 meanings (its own file header says so, and it feeds
+the casting engine's "My Star" tab), but the manuscript's own words were
+nowhere, and the Hatim diagrams did not exist in the codebase at all —
+confirmed by a repo-wide search before writing anything.
+
+**The exact source text is restored**, in `content/manuscripts/starUses.ts`,
+one entry per star, transcribed from the source PDF's own text layer rather
+than the supplied screenshots alone (the screenshots were used to check the
+hand-drawn Hatim, which has no text layer). The manuscript's own spellings
+are kept — "sadaka", "colanut", "enemity", "massan" — because this is a
+restoration, not a house-style rewrite. Four entries (Umar, Ayuba, Kalla
+Allahu, Sulemana) run House 6 and House 2 together in one paragraph in the
+source; each is split at the source's own transition sentence ("Also, if you
+found X in house (2)…"), not at an invented boundary — and each such entry
+says so in a `sourceAmbiguity` note. Genuine source oddities are reproduced
+rather than smoothed over: Ayuba's House 6 paragraph ends mid-word ("…don't
+taste or eat it pleas"), Nuhu's ends without a full stop, Usman's surah name
+is printed in the source itself as "Suratul...Alamnashiraha" with the gap,
+and Musah's closing surah has no stated repeat count — all four are
+reproduced exactly and flagged, not corrected. The sixteen Arabic invocations
+are each a standard, independently-identifiable Divine Name (Ya Tahir, Ya
+Rahim, Ya 'Alim, …); the only edits made to them close up a stray space the
+PDF's own text extraction introduced mid-word, never a transliteration or a
+guess.
+
+**One naming discrepancy is documented, not resolved.** The symbol page
+(Chapter Three) pairs "Hassan & Hussein" as one entry; Chapter Four's own
+numbered entry (⑬) names only Hassan throughout. `content/stars.ts` already
+used the paired name, kept here for consistency, but the discrepancy itself
+is recorded in the entry's `sourceAmbiguity` field and asserted by a test
+rather than silently picked one way.
+
+**The Hatim diagrams — verified where the evidence supports it, marked
+"under review" everywhere it doesn't.** Every diagram is a 3×3 grid: a
+centre cell holding "Intentions" beneath a small geomantic figure, framed by
+eight hand-written bordering marks. Two things about them are verified with
+real confidence:
+
+- The centre figure is that star's own four-line pattern. Checked by
+  counting dots under 5–8x magnification against three stars whose pattern
+  is already in `content/stars.ts` — Yussif (1,1,2,1), Adam (1,2,2,2), and
+  Umar (2,1,2,2) — all three matched exactly. `centerFigure` is generated
+  from the star's own pattern rather than re-read per diagram.
+- Three of the eight bordering cells (top-left "٣", top-right "١",
+  bottom-left "٢") are the same simple, unambiguous shape in every one of
+  the sixteen diagrams.
+
+Everything else about the border required real digit-by-digit inspection,
+and most of it did not clear the bar. High-magnification crops gave a clean,
+defensible reading of the three remaining cells for exactly three stars —
+Yussif (211 / 215 / 209), Umar (202 / 201 / 200), Ayuba (308 / 307 / 306) —
+plus Mahadi's top-middle cell ("33"). Umar's and Ayuba's readings each
+happen to descend by exactly one across their three cells; testing that
+same shape against Yussif's confirmed reading disproved it as a general
+rule (211/215/209 does not descend by one), so no shared generation formula
+was assumed or applied to the stars that weren't individually checked.
+
+A single hooked mark — resembling either the Arabic-Indic numeral ٦ or the
+letter ك — recurs identically in the bottom-middle cell of all sixteen
+diagrams, and the same shape was also found inside Ibrahim's own variable
+cells, which rules out treating it as a fixed, known-value template
+constant. Rather than assert a reading for it, every cell containing it is
+marked `status: 'review'` with a note describing exactly what was seen. In
+total, of the 128 bordering cells across sixteen diagrams (8 × 16): 58 are
+verified (the three fixed corners × 16, plus the three variable cells each
+for Yussif, Umar and Ayuba, plus Mahadi's top-middle cell); 70 are under
+review. No diagram is `fullyVerified`.
+This is reported as a fact, not smoothed into "16 diagrams restored" — the
+UI shows "under review" in place of every unverified mark, with the same
+distinction repeated for screen readers rather than only conveyed visually.
+
+**Nothing was invented.** No Hatim numeral was guessed to complete a row, no
+missing repeat count was supplied, no Qur'anic reference was added, no
+relationship between stars was proposed, and no generation formula was
+applied beyond what was directly observed and then disproved as universal.
+Where the source itself is incomplete or inconsistent, that incompleteness
+is reproduced and flagged, not corrected.
+
+**Where this lives.** `content/manuscripts/starUses.ts` (exact source
+prose) and `content/manuscripts/hatim.ts` (diagram data, `HatimCell` typed
+as `{status:'verified', text}` or `{status:'review', note}`) are new,
+separate files — `content/stars.ts`'s paraphrase, and its use in the "My
+Star" result tab, are untouched. `components/books/HatimDiagram.tsx` renders
+the grid as CSS-bordered cells (crisp at any zoom, not a scanned image),
+with `role="img"` carrying a summary label and a `sr-only` list carrying
+every individual cell's content — including its review status — for a
+screen reader. The restored chapter is wired into the existing manuscript
+reader (`app/books/[id]/read/page.tsx`, the `stars-in-the-chart` chapter),
+which already had a per-star loop; it now shows the manuscript's own words
+instead of the paraphrase, with the Hatim beneath each entry, and a closing
+note explaining the unresolved mark once rather than sixteen times.
+
+`content/manuscripts/starUses.test.ts` (57 tests) checks: all sixteen
+entries present in the manuscript's own ①–⑯ order (not the symbol page's
+grouping); every entry names both houses and at least one sadaka, invocation
+and recitation; the Hassan/Hussein discrepancy is asserted rather than
+resolved; the four source oddities (Ayuba, Nuhu, Usman, Musah) are asserted
+byte-for-byte rather than corrected; every Hatim's centre figure equals its
+star's own pattern; the three fixed corner cells read identically across all
+sixteen; the recurring hook mark is never assigned a value; the
+descending-sequence pattern is proven NOT to generalise to Yussif; and the
+coverage tally (58 verified / 70 review, out of 128) is asserted exactly
+rather than approximated. None of this content touches `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, or `types.ts`, and no
+existing reading, question, or result changed — the full suite (2,198 tests,
+up from the Prompt 18 baseline of 2,141) and the manuscript's own structural
+audit (`audit-1-151.test.ts`) both still pass unchanged.
+
+**Browser verification.** The restored chapter, three star entries (first,
+a middle one, last), and three Hatim diagrams were checked at 360/390/412
+and 1280px, and at Standard, Large and Extra-large reader sizes: no
+horizontal overflow, no clipped text, no oversized or overlapping grid
+cells, no JS errors, no failed requests. The Hatim grid scales with the
+reader-size preference like the rest of the chapter (324px wide at Large and
+Extra-large on a 390px viewport, unclipped) since it is CSS, not an image.

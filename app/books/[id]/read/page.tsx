@@ -6,9 +6,12 @@ import { Badge } from '@/components/ui/Badge';
 import { ContentGuard } from '@/components/books/ContentGuard';
 import { Prose } from '@/components/books/Prose';
 import { FigureGlyph } from '@/components/raml/FigureGlyph';
+import { HatimDiagram } from '@/components/books/HatimDiagram';
 import { BOOKS, getBookById } from '@/content/books';
 import { CHAPTERS, INTRODUCTION } from '@/content/manuscripts/master-of-geomancy-vol1';
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+import { getStarUseByStarId } from '@/content/manuscripts/starUses';
+import { getHatimByStarId } from '@/content/manuscripts/hatim';
 import { STARS, ELEMENT_LABEL, ELEMENT_OCCUPATIONS, type Element } from '@/content/stars';
 
 const ELEMENTS: Element[] = ['fire', 'air', 'water', 'sand'];
@@ -90,24 +93,83 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
 
                     {chapter.id === 'stars-in-the-chart' ? (
                       <div className="mt-4 space-y-4">
-                        {STARS.map((star) => (
-                          <Card key={star.id} id={star.id} className="scroll-mt-16">
-                            <div className="flex items-center gap-3">
-                              <FigureGlyph pattern={star.pattern} size="sm" />
-                              <h3 className="font-logo text-base text-sand-light">{star.name}</h3>
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              <div>
-                                <Badge tone="fire">House 6 · Illness</Badge>
-                                <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house6.meaning}</p>
+                        <p className="rounded-xl border border-sand/10 bg-ink px-3 py-2.5 type-evidence text-sand/70">
+                          The paragraphs below are the manuscript’s own wording for each star, restored
+                          from the source pages, followed by its hand-drawn Hatim. Where a Hatim mark
+                          could not be read with confidence it says “under review” rather than guessing —
+                          see{' '}
+                          <a href="#stars-in-the-chart-notes" className="underline underline-offset-2 text-clay-light">
+                            the note at the end of this chapter
+                          </a>
+                          .
+                        </p>
+                        {STARS.map((star) => {
+                          const use = getStarUseByStarId(star.id);
+                          const hatim = getHatimByStarId(star.id);
+                          return (
+                            <Card key={star.id} id={star.id} className="scroll-mt-16">
+                              <div className="flex items-center gap-3">
+                                <FigureGlyph pattern={star.pattern} size="sm" />
+                                <div>
+                                  <h3 className="font-logo type-method text-sand-light">{star.name}</h3>
+                                  {use ? (
+                                    <p className="type-label text-sand/65">
+                                      Entry {use.entryNumber} of 16 · page {use.sourcePage}
+                                    </p>
+                                  ) : null}
+                                </div>
                               </div>
-                              <div>
-                                <Badge tone="sand">House 2 · Wealth</Badge>
-                                <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house2.meaning}</p>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
+
+                              {use ? (
+                                <div className="mt-3 space-y-3">
+                                  <div>
+                                    <Badge tone="fire">House 6 · Illness</Badge>
+                                    <p className="mt-1.5 type-body leading-relaxed text-sand/70">{use.house6Text}</p>
+                                  </div>
+                                  <div>
+                                    <Badge tone="sand">House 2 · Wealth</Badge>
+                                    <p className="mt-1.5 type-body leading-relaxed text-sand/70">{use.house2Text}</p>
+                                  </div>
+                                  {use.notes.length > 0 ? (
+                                    <p className="type-evidence italic text-sand/65">{use.notes.join(' ')}</p>
+                                  ) : null}
+                                  {use.sourceAmbiguity ? (
+                                    <p className="rounded-lg border border-sand/10 bg-ink px-2.5 py-2 type-label text-sand/65">
+                                      Source note: {use.sourceAmbiguity}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ) : (
+                                <div className="mt-3">
+                                  <div>
+                                    <Badge tone="fire">House 6 · Illness</Badge>
+                                    <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house6.meaning}</p>
+                                  </div>
+                                  <div className="mt-2">
+                                    <Badge tone="sand">House 2 · Wealth</Badge>
+                                    <p className="mt-1.5 type-body leading-relaxed text-sand/70">{star.house2.meaning}</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {hatim ? (
+                                <div className="mt-4 border-t border-sand/10 pt-3">
+                                  <p className="mb-2 type-label uppercase tracking-widest text-sand/65">Hatim</p>
+                                  <HatimDiagram hatim={hatim} starName={star.name} />
+                                </div>
+                              ) : null}
+                            </Card>
+                          );
+                        })}
+                        <p id="stars-in-the-chart-notes" className="scroll-mt-16 type-evidence text-sand/65">
+                          A hand-drawn hooked mark recurs, unchanged, in the bottom-middle cell of every
+                          one of the sixteen Hatim diagrams, and inside some stars’ own variable cells too.
+                          It resembles either the Arabic-Indic numeral ٦ or the letter ك, but nothing in the
+                          source glosses it, so no value is assigned to it here. Cells marked “under review”
+                          contain that mark, or another hand-written figure that could not be read with
+                          confidence from the source photographs — they are not blank, and no number was
+                          guessed to fill them.
+                        </p>
                       </div>
                     ) : null}
 

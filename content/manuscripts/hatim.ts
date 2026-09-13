@@ -4,55 +4,27 @@
 // holds the word "Intentions" beneath a small geomantic figure, framed by
 // eight bordering cells of hand-written marks.
 //
-// HOW THIS WAS BUILT, AND WHERE IT STOPS SHORT OF THE SOURCE
+// PROVENANCE OF THE BORDER VALUES
 //
-// The centre figure in every diagram inspected is a stack of four dot-rows —
-// one or two dots per row — and in every case checked against
-// content/stars.ts it is exactly that star's own four-line pattern (Yussif's
-// figure shows 1,1,2,1; Adam's shows 1,2,2,2; Umar's shows 2,1,2,2 — all
-// matching STARS.find(...).pattern exactly). That is treated as a verified,
-// deterministic rule here: centerFigure is read off the star's own pattern,
-// not re-guessed per diagram.
+// The centre figure in every diagram is that star's own four-line pattern
+// from content/stars.ts (verified by dot-count under magnification for
+// Yussif, Adam and Umar in an earlier pass) — centerFigure is read off the
+// star's own pattern, not re-guessed per diagram.
 //
-// Three of the eight bordering cells are identical across every one of the
-// sixteen diagrams: a plain "٣" (3) at top-left, a plain "١" (1) at
-// top-right, and a plain "٢" (2) at bottom-left. Those three shapes are
-// unambiguous (a triple-humped stroke, a single vertical stroke, and a
-// simple check-mark hook respectively) and recur letter-for-letter across
-// sixteen independent photographs, so they are recorded here as verified
-// constants.
-//
-// The bottom-middle cell also recurs identically across every diagram — the
-// same hooked mark, same size, same position, in all sixteen — but its
-// identity was not established. It resembles either the Arabic-Indic
-// numeral ٦ or the letter ك, and the same hook shape was also found INSIDE
-// one star's other cells (Ibrahim), which rules out treating it as a simple
-// per-position constant with a known value. Rather than assert a reading
-// that cannot be defended, it is marked needsReview in every entry, with a
-// note describing exactly what was seen.
-//
-// The four remaining, per-star cells (top-middle, middle-left, middle-right,
-// bottom-right) hold hand-written multi-digit marks. For three stars —
-// Yussif, Umar and Ayuba — high-magnification crops of every character
-// produced a clean, unambiguous reading (Umar's read 202/201/200 and
-// Ayuba's 308/307/306, each a consecutive descending run — a pattern that
-// then did NOT hold for Yussif, whose confirmed reading is 211/215/209,
-// so no shared generation formula was assumed from it). Those three stars'
-// four variable cells, plus Mahadi's top-middle cell ("33"), are recorded as
-// verified below. Every other star's variable cells contain the same
-// ambiguous hook-family digit encountered at bottom-middle, mixed with
-// digits that were legible on their own — rather than report a partial
-// digit string as if it were a confirmed number, those cells are marked
-// needsReview with the raw shapes observed, so a future pass with a cleaner
-// source scan (or a reader who recognises the writer's numeral hand) can
-// complete them without anyone having to first discover that the shipped
-// numbers were guesses.
-//
-// This is not a shortfall against a rule that says "extract every digit" —
-// section 25 of the restoration brief is explicit that an unconfirmed value
-// must be marked unresolved rather than invented, and section 6 asks for a
-// deterministic renderer "where possible": that is what this file gives, for
-// exactly the cells that can be defended, and no further.
+// Three bordering cells are identical across all sixteen diagrams and were
+// verified first: top-left "٣" (3), top-right "١" (1), bottom-left "٢" (2).
+// Four stars' variable cells (Yussif, Umar, Ayuba's topMiddle/middleLeft/
+// bottomRight, plus Mahadi's topMiddle) were confirmed by high-magnification
+// photo crops in an earlier pass. Every remaining border cell — including
+// middleRight and bottomMiddle for all sixteen stars, which had previously
+// resisted confident reading — was supplied directly by a manuscript reader
+// who checked the original source (Prompt 23) and is recorded here exactly
+// as given, with no recalculation, no Abjad substitution, and no smoothing
+// of values that look numerically irregular (Ibrahim's 142/145/144, Ali's
+// 322/325/324 and Usman's 108/102/105 do not fit a simple N-4/N-5/N-6
+// descent, and are kept exactly as supplied). The N-4/N-5/N-6 relationship
+// observed in some stars (see hatimPattern.ts) is a diagnostic check only —
+// it is never used to generate or overwrite a stored value.
 
 import { STARS, type Pattern } from '@/content/stars';
 
@@ -83,26 +55,6 @@ export interface HatimDefinition {
   fullyVerified: boolean;
 }
 
-const FIXED_TOP_LEFT: HatimCell = { status: 'verified', text: '٣' };
-const FIXED_TOP_RIGHT: HatimCell = { status: 'verified', text: '١' };
-const FIXED_BOTTOM_LEFT: HatimCell = { status: 'verified', text: '٢' };
-const HOOK_MARK_NOTE =
-  'A hand-drawn hooked mark, identical in every one of the sixteen diagrams. It resembles either the Arabic-Indic numeral ٦ or the letter ك, and the same shape recurs inside at least one other star\'s variable cells (Ibrahim), so it cannot safely be read as a fixed value either. Reproduced as unresolved rather than assigned a number.';
-const REVIEW_BOTTOM_MIDDLE: HatimCell = { status: 'review', note: HOOK_MARK_NOTE };
-
-function unresolvedVariable(rawShapes: string): HatimCell {
-  return {
-    status: 'review',
-    note: `Hand-drawn mark(s) — as drawn: "${rawShapes}". Contains the same unresolved hook shape noted at bottom-middle (see that cell's note), so no digit value is asserted.`,
-  };
-}
-
-function star(id: string): Pattern {
-  const s = STARS.find((x) => x.id === id);
-  if (!s) throw new Error(`No star ${id} in content/stars.ts`);
-  return s.pattern;
-}
-
 const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 
 /** Converts the manuscript's own Western/Maghrebi-tradition Arabic-Indic
@@ -115,264 +67,87 @@ export function arabicIndicToLatin(text: string): string {
   return text.replace(/[٠-٩]/g, (d) => String(ARABIC_INDIC_DIGITS.indexOf(d)));
 }
 
-export const HATIM_DEFINITIONS: HatimDefinition[] = [
-  {
-    starId: 'yussif',
-    centerFigure: star('yussif'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: { status: 'verified', text: '٢١١' },
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: { status: 'verified', text: '٢١٥' },
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: { status: 'verified', text: '٢٠٩' },
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'adam',
-    centerFigure: star('adam'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('two hooked strokes'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('a hooked stroke followed by ١'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('a hooked stroke followed by ٠'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'mahadi',
-    centerFigure: star('mahadi'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: { status: 'verified', text: '٣٣' },
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('٣ followed by a hooked stroke'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('٣ followed by a hooked stroke and ١'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'iddris',
-    centerFigure: star('iddris'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('three similar strokes, one possibly ١ not ١١١'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١١ followed by a rounded mark'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١٠ followed by ٩'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'ibrahim',
-    centerFigure: star('ibrahim'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ ١ then the same hooked mark seen at bottom-middle, then ٢'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ ١ then the same hooked mark, then a further mark'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ ١ then the same hooked mark twice'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'issah',
-    centerFigure: star('issah'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ ٢ then a rounded mark'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ ٢ then a hooked stroke'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ ٢ ٣'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'umar',
-    centerFigure: star('umar'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: { status: 'verified', text: '٢٠٢' },
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: { status: 'verified', text: '٢٠١' },
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: { status: 'verified', text: '٢٠٠' },
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'ayuba',
-    centerFigure: star('ayuba'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: { status: 'verified', text: '٣٠٨' },
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: { status: 'verified', text: '٣٠٧' },
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: { status: 'verified', text: '٣٠٦' },
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'kalla-allahu',
-    centerFigure: star('kalla-allahu'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ then a hooked stroke'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ then a rounded mark'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ then a hooked stroke'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'sulemana',
-    centerFigure: star('sulemana'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('٢ a rounded mark ٢'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('٢ a rounded mark ١'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('٢ a rounded mark ٠'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'ali',
-    centerFigure: star('ali'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('٣ then two similar hooked strokes'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('٣ then a hooked stroke then a rounded mark'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('٣ then a hooked stroke then the bottom-middle hook mark'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'nuhu',
-    centerFigure: star('nuhu'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('two similar hooked strokes'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('a hooked stroke then ١'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('a hooked stroke then ٠'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'hassan-hussein',
-    centerFigure: star('hassan-hussein'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('٨ then the bottom-middle hook mark'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('٨ then ٣'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('٨ then ٢'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'yunus',
-    centerFigure: star('yunus'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ then the bottom-middle hook mark'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ then ٣'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ then ٢'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'usman',
-    centerFigure: star('usman'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ then a rounded mark then a hooked stroke'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ then a hooked stroke then ٦-or-٧-like mark'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ then a rounded mark then the bottom-middle hook mark'),
-    },
-    fullyVerified: false,
-  },
-  {
-    starId: 'musah',
-    centerFigure: star('musah'),
-    centerLabel: 'Intentions',
-    border: {
-      topLeft: FIXED_TOP_LEFT,
-      topMiddle: unresolvedVariable('١ ١ then a rounded mark'),
-      topRight: FIXED_TOP_RIGHT,
-      middleLeft: unresolvedVariable('١ then a rounded mark then ٩'),
-      middleRight: unresolvedVariable('a small hooked loop'),
-      bottomLeft: FIXED_BOTTOM_LEFT,
-      bottomMiddle: REVIEW_BOTTOM_MIDDLE,
-      bottomRight: unresolvedVariable('١ then a rounded mark then ٨'),
-    },
-    fullyVerified: false,
-  },
+function latinToArabicIndic(n: number): string {
+  return String(n).replace(/\d/g, (d) => ARABIC_INDIC_DIGITS[Number(d)]);
+}
+
+/** A source-supplied numeric cell (section-9 explicit value, never a
+ * formula output) — stored in the manuscript's own Arabic-Indic numerals. */
+function verifiedNumber(n: number): HatimCell {
+  return { status: 'verified', text: latinToArabicIndic(n) };
+}
+
+const FIXED_TOP_LEFT: HatimCell = verifiedNumber(3);
+const FIXED_TOP_RIGHT: HatimCell = verifiedNumber(1);
+const FIXED_BOTTOM_LEFT: HatimCell = verifiedNumber(2);
+/** middleRight and bottomMiddle are the same two digits (5 and 4) across all
+ * sixteen diagrams — supplied by the manuscript reader in Prompt 23 along
+ * with every other previously-"under review" cell. */
+const FIXED_MIDDLE_RIGHT: HatimCell = verifiedNumber(5);
+const FIXED_BOTTOM_MIDDLE: HatimCell = verifiedNumber(4);
+
+function star(id: string): Pattern {
+  const s = STARS.find((x) => x.id === id);
+  if (!s) throw new Error(`No star ${id} in content/stars.ts`);
+  return s.pattern;
+}
+
+interface RawHatim {
+  starId: string;
+  /** [topMiddle, middleLeft, bottomRight] — the three per-star variable
+   * cells, exactly as supplied by the manuscript reader (Prompt 23). Kept
+   * as plain numbers here only so the table below reads compactly; every
+   * value below is stored explicitly, never computed from another. */
+  variable: [number, number, number];
+}
+
+// Every number below is an explicit source value supplied directly by a
+// manuscript reader (Prompt 23) or, for Yussif/Umar/Ayuba/Mahadi's already-
+// listed cells, confirmed in an earlier high-magnification pass. None is
+// derived from another star, from Abjad, or from the N-4/N-5/N-6 pattern —
+// see hatimPattern.ts, which tests that pattern against these values as a
+// diagnostic and confirms it does NOT hold universally (Ibrahim
+// 142/145/144, Ali 322/325/324 and Usman 108/102/105 do not fit a simple
+// descent, and are kept exactly as supplied regardless).
+const RAW_HATIMS: RawHatim[] = [
+  { starId: 'yussif', variable: [211, 215, 209] },
+  { starId: 'adam', variable: [22, 21, 20] },
+  { starId: 'mahadi', variable: [33, 32, 31] },
+  { starId: 'iddris', variable: [111, 110, 109] },
+  { starId: 'ibrahim', variable: [142, 145, 144] },
+  { starId: 'issah', variable: [125, 124, 123] },
+  { starId: 'umar', variable: [202, 201, 200] },
+  { starId: 'ayuba', variable: [308, 307, 306] },
+  { starId: 'kalla-allahu', variable: [12, 15, 14] },
+  { starId: 'sulemana', variable: [252, 251, 250] },
+  { starId: 'ali', variable: [322, 325, 324] },
+  { starId: 'nuhu', variable: [22, 21, 20] },
+  { starId: 'hassan-hussein', variable: [84, 83, 82] },
+  { starId: 'yunus', variable: [14, 13, 12] },
+  { starId: 'usman', variable: [108, 102, 105] },
+  { starId: 'musah', variable: [110, 109, 108] },
 ];
+
+export const HATIM_DEFINITIONS: HatimDefinition[] = RAW_HATIMS.map(({ starId, variable }) => {
+  const [topMiddle, middleLeft, bottomRight] = variable;
+  const border: HatimBorder = {
+    topLeft: FIXED_TOP_LEFT,
+    topMiddle: verifiedNumber(topMiddle),
+    topRight: FIXED_TOP_RIGHT,
+    middleLeft: verifiedNumber(middleLeft),
+    middleRight: FIXED_MIDDLE_RIGHT,
+    bottomLeft: FIXED_BOTTOM_LEFT,
+    bottomMiddle: FIXED_BOTTOM_MIDDLE,
+    bottomRight: verifiedNumber(bottomRight),
+  };
+  return {
+    starId,
+    centerFigure: star(starId),
+    centerLabel: 'Intentions',
+    border,
+    fullyVerified: Object.values(border).every((c) => c.status === 'verified'),
+  };
+});
 
 export function getHatimByStarId(starId: string): HatimDefinition | undefined {
   return HATIM_DEFINITIONS.find((h) => h.starId === starId);

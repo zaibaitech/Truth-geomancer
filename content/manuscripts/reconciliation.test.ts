@@ -4,6 +4,12 @@ import { STAR_USE_ENTRIES } from './starUses';
 import { HATIM_PATTERN_DIAGNOSTICS, getPatternDiagnosticByStarId } from './hatimPattern';
 import { VALUE_RECONCILIATIONS, getValueReconciliationByStarId } from './valueReconciliation';
 
+// Prompt 23 supplied manuscript values for every previously-"under review"
+// cell, so every one of the sixteen diagrams now has three verified variable
+// cells (topMiddle/middleLeft/bottomRight) instead of just four stars having
+// some. That means the pattern diagnostic (section 7) can now be tested
+// against all sixteen — and it does NOT confirm the N-4/N-5/N-6 formula
+// universally, which is exactly what section 6 of Prompt 23 asked to prove.
 describe('Hatim N-4/N-5/N-6 pattern diagnostic — section 7: a check, never a generator', () => {
   it('produces one diagnostic per star, none mutating hatim.ts', () => {
     expect(HATIM_PATTERN_DIAGNOSTICS).toHaveLength(16);
@@ -12,33 +18,53 @@ describe('Hatim N-4/N-5/N-6 pattern diagnostic — section 7: a check, never a g
     expect(JSON.stringify(HATIM_DEFINITIONS)).toBe(before);
   });
 
-  it('is UNTESTABLE for the twelve stars with no verified variable cells', () => {
-    const untestable = ['adam', 'iddris', 'ibrahim', 'issah', 'kalla-allahu', 'sulemana', 'ali', 'nuhu', 'hassan-hussein', 'yunus', 'usman', 'musah'];
-    for (const starId of untestable) {
-      expect(getPatternDiagnosticByStarId(starId)!.status, starId).toBe('untestable');
+  it('is CONFIRMED_BY_SOURCE for the nine stars whose three verified cells all imply the same N', () => {
+    const confirmed: Record<string, number> = {
+      mahadi: 37,
+      iddris: 115, // matches the STATED count (115), not the 258 Abjad sum
+      issah: 129,
+      umar: 206,
+      ayuba: 312, // matches the STATED count (312), not the 72 Abjad sum
+      sulemana: 256,
+      'hassan-hussein': 88,
+      yunus: 18,
+      musah: 114,
+    };
+    for (const [starId, n] of Object.entries(confirmed)) {
+      const d = getPatternDiagnosticByStarId(starId)!;
+      expect(d.status, starId).toBe('confirmed_by_source');
+      expect(d.consistentN, starId).toBe(n);
     }
   });
 
-  it('is PARTIALLY_CONFIRMED for Mahadi (only topMiddle verified, consistent with N=37)', () => {
-    const d = getPatternDiagnosticByStarId('mahadi')!;
-    expect(d.status).toBe('partially_confirmed');
-    expect(d.consistentN).toBe(37);
-    expect(d.sourceStatedValue).toBe(37);
+  it('is CONFLICTING for five stars whose three verified cells do NOT all imply the same N — proving the formula is not universal', () => {
+    // Section 6/11 of Prompt 23 specifically calls out Ibrahim, Ali and Usman
+    // as stars whose supplied values do not fit the simple descent.
+    const conflicting = ['yussif', 'ibrahim', 'kalla-allahu', 'ali', 'usman'];
+    for (const starId of conflicting) {
+      const d = getPatternDiagnosticByStarId(starId)!;
+      expect(d.status, starId).toBe('conflicting');
+      expect(d.consistentN, starId).toBeNull();
+    }
   });
 
-  it('is CONFIRMED_BY_SOURCE for Umar (three verified cells all agree on N=206, matching stated and Abjad)', () => {
-    const d = getPatternDiagnosticByStarId('umar')!;
-    expect(d.status).toBe('confirmed_by_source');
-    expect(d.consistentN).toBe(206);
-    expect(d.verifiedCells).toHaveLength(3);
+  it('is NOT_CONFIRMED for Adam and Nuhu — their three cells agree with each other, but on a number matching neither the stated count nor the Abjad sum', () => {
+    for (const starId of ['adam', 'nuhu']) {
+      const d = getPatternDiagnosticByStarId(starId)!;
+      expect(d.status, starId).toBe('not_confirmed');
+      expect(d.consistentN, starId).toBe(26);
+      expect(d.consistentN).not.toBe(d.sourceStatedValue);
+      expect(d.consistentN).not.toBe(d.abjadValue);
+    }
   });
 
-  it('is CONFIRMED_BY_SOURCE for Ayuba (three verified cells agree on N=312 — the STATED count, not the 72 Abjad sum)', () => {
-    const d = getPatternDiagnosticByStarId('ayuba')!;
-    expect(d.status).toBe('confirmed_by_source');
-    expect(d.consistentN).toBe(312);
-    expect(d.abjadValue).toBe(72);
-    expect(d.consistentN).not.toBe(d.abjadValue);
+  it('is CONFIRMED_BY_SOURCE for Umar and Ayuba, unchanged from Prompt 21/22 (already-verified cells untouched)', () => {
+    const umar = getPatternDiagnosticByStarId('umar')!;
+    expect(umar.consistentN).toBe(206);
+    const ayuba = getPatternDiagnosticByStarId('ayuba')!;
+    expect(ayuba.consistentN).toBe(312);
+    expect(ayuba.abjadValue).toBe(72);
+    expect(ayuba.consistentN).not.toBe(ayuba.abjadValue);
   });
 
   it('is CONFLICTING for Yussif — its three verified cells do NOT all imply the same N', () => {
@@ -49,6 +75,20 @@ describe('Hatim N-4/N-5/N-6 pattern diagnostic — section 7: a check, never a g
     // topMiddle(211)+4=215, bottomRight(209)+6=215, but middleLeft(215)+5=220 — a real disagreement.
     const impliedNs = d.verifiedCells.map((c) => c.impliedN).sort((a, b) => a - b);
     expect(impliedNs).toEqual([215, 215, 220]);
+  });
+
+  it('Ibrahim/Ali/Usman: explicit regression proof that these do not follow a simple descent (Prompt 23 section 11)', () => {
+    const ibrahim = getPatternDiagnosticByStarId('ibrahim')!;
+    const ibrahimNs = ibrahim.verifiedCells.map((c) => c.impliedN).sort((a, b) => a - b);
+    expect(ibrahimNs).toEqual([146, 150, 150]);
+
+    const ali = getPatternDiagnosticByStarId('ali')!;
+    const aliNs = ali.verifiedCells.map((c) => c.impliedN).sort((a, b) => a - b);
+    expect(aliNs).toEqual([326, 330, 330]);
+
+    const usman = getPatternDiagnosticByStarId('usman')!;
+    const usmanNs = usman.verifiedCells.map((c) => c.impliedN).sort((a, b) => a - b);
+    expect(usmanNs).toEqual([107, 111, 112]);
   });
 
   it('never invents a Hatim value: every diagnostic\'s verifiedCells come only from hatim.ts cells already marked verified', () => {
@@ -94,21 +134,46 @@ describe('Value reconciliation — section 9: sourceStatedValue, abjadValue and 
     expect(r.valueConfidence).toBe('verified');
   });
 
-  it('Iddris and Ali stay "unresolved" — no invented explanation is accepted as a fix', () => {
-    expect(getValueReconciliationByStarId('iddris')!.valueConfidence).toBe('unresolved');
-    expect(getValueReconciliationByStarId('ali')!.valueConfidence).toBe('unresolved');
+  it('Iddris is now upgraded to "verified": the Prompt 23 Hatim cells confirm 115 independently of the mismatched Abjad sum (258)', () => {
+    const r = getValueReconciliationByStarId('iddris')!;
+    expect(r.hatimReferenceValue).toBe(115);
+    expect(r.sourceStatedValue).toBe(115);
+    expect(r.abjadValue).toBe(258);
+    expect(r.valueConfidence).toBe('verified');
+  });
+
+  it('Ali stays "unresolved" — its Hatim cells conflict with each other too, so there is no fallback confirmation', () => {
+    const r = getValueReconciliationByStarId('ali')!;
+    expect(r.hatimReferenceValue).toBeNull();
+    expect(r.valueConfidence).toBe('unresolved');
   });
 
   it('Yunus is "partial" — never claimed fully resolved nor a plain discrepancy', () => {
     expect(getValueReconciliationByStarId('yunus')!.valueConfidence).toBe('partial');
   });
 
-  it('the eleven full matches with no Hatim cross-check available report "verified" without a hatimReferenceValue', () => {
-    const noHatimData = ['adam', 'issah', 'ibrahim', 'kalla-allahu', 'sulemana', 'nuhu', 'hassan-hussein', 'usman', 'musah'];
-    for (const starId of noHatimData) {
+  it('Adam and Nuhu are "partial": stated count = Abjad, but the Hatim\'s own consistent N (26) matches neither', () => {
+    for (const starId of ['adam', 'nuhu']) {
+      const r = getValueReconciliationByStarId(starId)!;
+      expect(r.valueConfidence, starId).toBe('partial');
+      expect(r.hatimReferenceValue, starId).toBe(26);
+    }
+  });
+
+  it('Ibrahim, Kalla Allahu and Usman are "partial": stated count = Abjad, but their Hatim cells conflict with each other', () => {
+    for (const starId of ['ibrahim', 'kalla-allahu', 'usman']) {
+      const r = getValueReconciliationByStarId(starId)!;
+      expect(r.valueConfidence, starId).toBe('partial');
+      expect(r.hatimReferenceValue, starId).toBeNull();
+    }
+  });
+
+  it('the six stars whose stated count, Abjad, and Hatim-derived N all agree report full "verified" confidence', () => {
+    const allAgree = ['mahadi', 'issah', 'umar', 'sulemana', 'hassan-hussein', 'musah'];
+    for (const starId of allAgree) {
       const r = getValueReconciliationByStarId(starId)!;
       expect(r.valueConfidence, starId).toBe('verified');
-      expect(r.hatimReferenceValue, starId).toBeNull();
+      expect(r.hatimReferenceValue, starId).toBe(r.sourceStatedValue);
     }
   });
 });
@@ -120,3 +185,4 @@ describe('This session does not touch the casting engine', () => {
     expect(mod).not.toHaveProperty('buildChart');
   });
 });
+

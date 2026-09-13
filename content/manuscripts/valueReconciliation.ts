@@ -27,23 +27,44 @@ export interface ValueReconciliation {
 function reconcile(starId: string): ValueReconciliation {
   const abjad = ABJAD_VALIDATIONS.find((v) => v.starId === starId)!;
   const pattern = HATIM_PATTERN_DIAGNOSTICS.find((p) => p.starId === starId)!;
-  const hatimReferenceValue = pattern.status === 'confirmed_by_source' || pattern.status === 'partially_confirmed' ? pattern.consistentN : null;
+  // pattern.consistentN is already null exactly when the verified cells are
+  // untestable or disagree with each other ('conflicting'/'untestable') —
+  // it is a real number for 'confirmed_by_source', 'partially_confirmed',
+  // AND 'not_confirmed' (the cells agree with each other, just not with the
+  // stated/Abjad value), so it is passed through as-is rather than refiltered.
+  const hatimReferenceValue = pattern.consistentN;
+  const hatimMatchesStated = hatimReferenceValue !== null && hatimReferenceValue === abjad.statedValue;
 
   let valueMeaning: string;
   let valueConfidence: ValueConfidence;
 
   if (abjad.status === 'match') {
-    valueMeaning =
-      hatimReferenceValue !== null
-        ? `Source-stated recitation count, Abjad sum, and Hatim-construction number all agree (${abjad.statedValue}).`
-        : `Source-stated recitation count and Abjad sum agree (${abjad.statedValue}); the Hatim's own variable cells are not yet verified enough to cross-check.`;
-    valueConfidence = 'verified';
+    if (hatimMatchesStated) {
+      valueMeaning = `Source-stated recitation count, Abjad sum, and Hatim-construction number all agree (${abjad.statedValue}).`;
+      valueConfidence = 'verified';
+    } else if (pattern.status === 'not_confirmed') {
+      valueMeaning =
+        `Source-stated recitation count and Abjad sum agree (${abjad.statedValue}), but the Hatim's own verified ` +
+        `cells consistently imply a different number (${pattern.consistentN}) that matches neither — an ` +
+        'unexplained discrepancy, not corrected here.';
+      valueConfidence = 'partial';
+    } else if (pattern.status === 'conflicting') {
+      valueMeaning =
+        `Source-stated recitation count and Abjad sum agree (${abjad.statedValue}); the Hatim's own three verified ` +
+        'cells do not agree with each other under the N-4/N-5/N-6 formula, so no single cross-check number is available.';
+      valueConfidence = 'partial';
+    } else {
+      valueMeaning = `Source-stated recitation count and Abjad sum agree (${abjad.statedValue}); the Hatim's own variable cells are not yet verified enough to cross-check.`;
+      valueConfidence = 'verified';
+    }
   } else if (abjad.status === 'partial_match') {
     valueMeaning = abjad.note ?? 'Only part of a multi-name invocation matches the stated count.';
     valueConfidence = 'partial';
-  } else if (starId === 'ayuba') {
-    valueMeaning = abjad.note ?? 'Stated count does not match the bare-name Abjad sum.';
-    valueConfidence = 'verified'; // the *relationship* is understood, even though stated ≠ abjad
+  } else if (hatimMatchesStated) {
+    // The bare-name Abjad sum disagrees, but the Hatim's own verified cells
+    // independently confirm the stated recitation count (Ayuba, Iddris).
+    valueMeaning = abjad.note ?? 'Stated count does not match the bare-name Abjad sum, but the Hatim confirms it.';
+    valueConfidence = 'verified';
   } else {
     valueMeaning = abjad.note ?? 'Stated count does not match the bare-name Abjad sum, and no further explanation was found.';
     valueConfidence = 'unresolved';

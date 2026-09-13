@@ -74,19 +74,22 @@ const KNOWN_NOTES: Partial<Record<string, string>> = {
     'explained, not fully reconciled. All three source-stated numbers (251, 215, and each Hatim cell) are preserved ' +
     'as-is; none is overwritten by another.',
   iddris:
-    'Computed Abjad of رحيم (258) does not match the manuscript\'s stated count (115). No matching alternate ' +
-    'reading, alternate spelling, or Hatim cross-check was found anywhere else in the source. SOURCE VALUE MEANING ' +
-    'UNRESOLVED — reported as an open discrepancy, not corrected.',
+    'Computed Abjad of رحيم (258) does not match the manuscript\'s stated count (115) — but the Prompt 23 ' +
+    'manuscript-supplied Hatim cells for Iddris (111/110/109) all agree on N=115 under the N-4/N-5/N-6 formula, ' +
+    'exactly matching the stated recitation count. The evidence indicates the Hatim is constructed from the ' +
+    'stated count, not from the bare Divine Name\'s Abjad sum (258) — the same relationship found for Ayuba.',
   ayuba:
-    'Computed Abjad of باسط (72) does not match the manuscript\'s stated count (312) — but unlike Iddris, this one ' +
-    'has a source-backed explanation: 312 is exactly the value the source-verified Hatim cells for Ayuba are built ' +
-    'from (308/307/306 = 312-4/312-5/312-6, all three agreeing). The evidence indicates the Hatim is constructed ' +
-    'from the manuscript\'s stated recitation count, not from the bare Divine Name\'s Abjad sum.',
+    'Computed Abjad of باسط (72) does not match the manuscript\'s stated count (312) — but the source-verified Hatim ' +
+    'cells for Ayuba are built from exactly 312 (308/307/306 = 312-4/312-5/312-6, all three agreeing). The evidence ' +
+    'indicates the Hatim is constructed from the manuscript\'s stated recitation count, not from the bare Divine ' +
+    'Name\'s Abjad sum.',
   ali:
-    'Computed Abjad of سالم (131) does not match the manuscript\'s stated count (370). The brief flags Ali\'s Divine ' +
-    'Name as needing verification against the exact manuscript spelling; with no source image available this ' +
-    'session, the spelling itself — not just the arithmetic — is reported as unresolved rather than inferred from ' +
-    'the transliteration.',
+    'Computed Abjad of سالم (131) does not match the manuscript\'s stated count (370). Unlike Ayuba and Iddris, the ' +
+    'Prompt 23 Hatim cells for Ali (322/325/324) do not even agree with EACH OTHER under the N-4/N-5/N-6 formula ' +
+    '(see hatimPattern.ts — status "conflicting"), so there is no Hatim cross-check to fall back on here either. ' +
+    'The brief flags Ali\'s Divine Name as needing verification against the exact manuscript spelling; with no ' +
+    'source image available, the spelling itself — not just the arithmetic — is reported as unresolved rather ' +
+    'than inferred from the transliteration.',
   yunus:
     'The invocation combines two names ("Ya Hayyu Ya Qayyum"). The manuscript\'s stated count (18) equals the Abjad ' +
     'of حي ("Al-Hayy") alone (18), not the combined phrase\'s letter sum (174) nor قيوم alone (156). Reported as a ' +

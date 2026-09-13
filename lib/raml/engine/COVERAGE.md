@@ -2568,3 +2568,53 @@ the landing section is called "Suggested questions". Metrics worth adding
 later, if the owner wants them: questions selected, confirmations that went
 on to a casting, castings completed, category vs. search entry, and how often
 a reading lands on the insufficient state.
+
+---
+
+## Prompt 16 — reading history (no source changes)
+
+A user's own past readings, kept on their device and rebuilt from the engine
+rather than remembered. Nothing in the engine moved.
+
+**What is stored.** One localStorage key, `truth-geomancer:castings`, holding
+at most 100 records of exactly five fields: `v` (schema version), `id`,
+`createdAt`, `questionId`, optional `intentionText`, and the four Mothers. No
+verdict, no summary, no method list — those are recomputed. No account, no
+location, no identifier of any kind, and no network call: `lib/raml/history.ts`
+contains no fetch, XHR, WebSocket or beacon, and a test asserts it.
+
+**Why replay rather than snapshot.** The engine is a pure function of the
+chart (asserted in `productUx.test.ts`), so a saved chart plus a question id
+reproduces the whole reading exactly. That removes a whole class of lie: a
+stored verdict could drift out of step with the rules it came from, while a
+replayed one cannot. The browser matrix compared a freshly cast reading with
+the same reading reopened from history — character for character identical.
+
+**When a reading cannot be rebuilt.** If the question is no longer in the app,
+history says so — "This reading can no longer be reconstructed from the saved
+information" — rather than answering with some other question's rule. The
+chart itself is still shown, because it is still intact.
+
+**States a past reading can carry** (ten): favourable, unfavourable, mixed /
+conflicting, the descriptive answer itself, insufficient information, source
+detail missing, not defined in the source, no automatic reading, a general
+chart reading, and cannot-be-reconstructed. Each is rendered as words plus an
+icon, never colour alone.
+
+**Migration.** The pre-Prompt-16 record stored the user's free text under
+`question` and the chosen question under `intentionId`. Those are read,
+converted in place on first load, and written back once; an existing user
+keeps every casting, with their words and the traditional question now in the
+right places. If the rewrite cannot be saved, the migration still applies in
+memory and nothing is lost.
+
+**Saving is automatic**, and the result screen says only what is true —
+"Saved on this device — nothing is sent anywhere" — or, when the browser
+refuses to store anything, that the reading will not appear in Past Readings.
+There is no "Save" button, because there is nothing for it to do.
+
+**Storage is treated as hostile**: invalid JSON, a non-array payload, a record
+with no date, a bad date, missing or malformed Mothers, an empty id — each is
+dropped and the rest kept; a quota error sheds the oldest readings rather than
+failing; a browser with no storage, or one that throws on touching it, leaves
+the app fully working and merely unable to remember. 52 tests cover this.

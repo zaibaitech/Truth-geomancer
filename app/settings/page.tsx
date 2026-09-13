@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { Trash2, History, BookOpen, Info } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
-import { countCastings, clearAllCastings } from '@/lib/raml/storage';
+import { countReadings, clearHistory } from '@/lib/raml/history';
 
 export default function SettingsPage() {
   const [count, setCount] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    setCount(countCastings());
+    setCount(countReadings());
   }, []);
 
   function handleClear() {
@@ -20,7 +20,7 @@ export default function SettingsPage() {
       setConfirming(true);
       return;
     }
-    clearAllCastings();
+    clearHistory();
     setCount(0);
     setConfirming(false);
   }
@@ -35,7 +35,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2.5">
               <History size={16} className="text-clay-light" />
               <div>
-                <p className="text-sm text-sand-light">Saved castings</p>
+                <p className="text-sm text-sand-light">Saved readings</p>
                 <p className="text-xs text-sand/45">{count === null ? '—' : count} on this device</p>
               </div>
             </div>
@@ -52,7 +52,7 @@ export default function SettingsPage() {
             }`}
           >
             <Trash2 size={14} />
-            {confirming ? 'Tap again to confirm — this can’t be undone' : 'Clear all saved castings'}
+            {confirming ? 'Tap again to confirm — this can’t be undone' : 'Clear all saved readings'}
           </button>
         </Card>
 

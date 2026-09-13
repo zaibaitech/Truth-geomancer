@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { RotateCcw, Check, History, ArrowLeft } from 'lucide-react';
+import { RotateCcw, Check, History, ArrowLeft, TriangleAlert } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { IntentionPicker } from './IntentionPicker';
 import { CastingBoard } from './CastingBoard';
 import { CastingResultView } from './CastingResultView';
-import { CastingListItem } from './CastingListItem';
+import { HistoryCard } from './HistoryCard';
 import { buildChart, type Chart } from '@/lib/raml/casting';
-import { saveCasting, listCastings, type SavedCasting } from '@/lib/raml/storage';
+import { describeHistory, listReadings, saveReading, type HistoryEntry } from '@/lib/raml/history';
 import { catalogEntry, readingBrief } from '@/lib/raml/questionCatalog';
 import type { Pattern } from '@/content/stars';
 
@@ -20,10 +20,12 @@ export function CastingFlow() {
   const [intentionId, setIntentionId] = useState('general');
   const [question, setQuestion] = useState('');
   const [chart, setChart] = useState<Chart | null>(null);
-  const [recent, setRecent] = useState<SavedCasting[] | null>(null);
+  const [recent, setRecent] = useState<HistoryEntry[] | null>(null);
+  // null until a casting completes; false when the browser refused to store it.
+  const [saved, setSaved] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (step === 'ask') setRecent(listCastings().slice(0, 3));
+    if (step === 'ask') setRecent(describeHistory(listReadings().slice(0, 3)));
   }, [step]);
 
   // Each step replaces a tall screen with another tall screen, but the app
@@ -42,6 +44,7 @@ export function CastingFlow() {
     setIntentionId('general');
     setQuestion('');
     setChart(null);
+    setSaved(null);
   }
 
   // Choosing a question moves straight to the confirmation screen: it says
@@ -55,7 +58,12 @@ export function CastingFlow() {
   function handleCastComplete(mothers: [Pattern, Pattern, Pattern, Pattern]) {
     const built = buildChart(mothers);
     setChart(built);
-    saveCasting({ question, mothers, intentionId });
+    // Every completed reading is kept on this device automatically — see
+    // lib/raml/history.ts. `persisted` is false when the browser refuses to
+    // store anything, and the result screen then says so rather than
+    // claiming a save that did not happen.
+    const { persisted } = saveReading({ questionId: intentionId, intentionText: question, mothers });
+    setSaved(persisted);
     setStep('result');
   }
 
@@ -72,14 +80,14 @@ export function CastingFlow() {
         {recent && recent.length > 0 ? (
           <div className="mt-8">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-widest text-sand/45">Recent castings</p>
+              <p className="text-[11px] uppercase tracking-widest text-sand/45">Recent readings</p>
               <Link href="/raml/history" className="flex items-center gap-1 text-xs text-clay-light">
                 <History size={13} /> View all
               </Link>
             </div>
             <div className="space-y-2.5">
-              {recent.map((c) => (
-                <CastingListItem key={c.id} casting={c} />
+              {recent.map((entry) => (
+                <HistoryCard key={entry.record.id} entry={entry} />
               ))}
             </div>
           </div>
@@ -174,17 +182,32 @@ export function CastingFlow() {
         question={question}
         intentionId={intentionId}
         meta={
-          <p className="mt-1 flex items-center gap-1 text-[11px] text-sand/35">
-            <Check size={12} className="text-clay-light" /> Saved to Past Castings on this device
-          </p>
+          saved === false ? (
+            <p className="mt-1 flex items-start gap-1 text-[11px] text-clay-light">
+              <TriangleAlert size={12} className="mt-0.5 shrink-0" /> This browser would not let the app save
+              the reading, so it won’t appear in Past Readings.
+            </p>
+          ) : (
+            <p className="mt-1 flex items-center gap-1 text-[11px] text-sand/35">
+              <Check size={12} className="text-clay-light" /> Saved on this device — nothing is sent anywhere
+            </p>
+          )
         }
         footer={
-          <button
-            onClick={reset}
-            className="mx-4 mt-6 mb-2 flex w-[calc(100%-2rem)] items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 text-sm text-sand/60"
-          >
-            <RotateCcw size={15} /> New casting
-          </button>
+          <div className="mx-4 mb-2 mt-6 flex gap-2">
+            <button
+              onClick={reset}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-sand/15 py-3 text-sm text-sand/60"
+            >
+              <RotateCcw size={15} /> New reading
+            </button>
+            <Link
+              href="/raml/history"
+              className="flex items-center justify-center gap-2 rounded-xl border border-sand/15 px-4 py-3 text-sm text-sand/60"
+            >
+              <History size={15} /> History
+            </Link>
+          </div>
         }
       />
     );

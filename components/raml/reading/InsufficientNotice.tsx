@@ -16,14 +16,14 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
       {/* Prompt 15, section 14: the same state the engine calls
           `insufficient_data`, said in words that make clear the limit is the
           manuscript's rather than a failure of the app. */}
-      <p className="text-sm font-semibold text-clay-light">{INSUFFICIENT_HEADING}</p>
-      <p className="mt-1.5 text-sm leading-relaxed text-sand/70">{INSUFFICIENT_EXPLANATION}</p>
-      <p className="mt-1.5 text-[12px] leading-relaxed text-sand/50">{shortSummary}</p>
+      <p className="type-method font-semibold text-clay-light">{INSUFFICIENT_HEADING}</p>
+      <p className="mt-1.5 type-body text-sand/75">{INSUFFICIENT_EXPLANATION}</p>
+      <p className="mt-1.5 type-body text-sand/55">{shortSummary}</p>
 
-      <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">Why</p>
-      <div className="mt-1.5 space-y-1.5">
+      <p className="mt-5 type-meta uppercase tracking-widest text-sand/40">Why</p>
+      <div className="mt-1.5 space-y-2">
         {methods.map((m) => (
-          <p key={m.id} className="text-[12px] leading-relaxed text-sand/55">
+          <p key={m.id} className="type-evidence text-sand/65">
             <span className="text-sand-light">{m.label}</span> —{' '}
             {/* A method's own reviewNote (why the whole method is withheld,
                 e.g. needs_review/uncertain status) takes priority; a
@@ -38,9 +38,9 @@ export function InsufficientNotice({ shortSummary, methods }: { shortSummary: st
         ))}
       </div>
 
-      <p className="mt-4 text-[11px] uppercase tracking-widest text-sand/40">What the source gives</p>
+      <p className="mt-5 type-meta uppercase tracking-widest text-sand/40">What the source gives</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        <span className="text-[12px] text-sand/55">{methodTally(verifiedCount, methods.length)}</span>
+        <span className="type-evidence text-sand/65">{methodTally(verifiedCount, methods.length)}</span>
         {methods.map((m) => (
           <Badge key={m.id} tone="neutral">
             {m.label}: {METHOD_STATUS_LABEL[m.status]}

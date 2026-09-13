@@ -41,3 +41,70 @@ body {
 .dot-in {
   animation: dot-in 220ms ease-out both;
 }
+
+/* ---------------------------------------------------------------------------
+ * Reading type scale (Prompt 17)
+ *
+ * Sizes are in rem so that a reader who raises their browser's default font
+ * size actually gets larger text — the app's older px sizes ignore that
+ * setting entirely. These are the only sizes the reading and method details
+ * use, so the hierarchy stays consistent instead of drifting into one-off
+ * bracket values.
+ * ------------------------------------------------------------------------ */
+.type-section {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.4;
+}
+.type-method {
+  font-size: 1.3125rem; /* 21px */
+  line-height: 1.35;
+}
+.type-quote {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.6;
+}
+.type-body {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.6;
+}
+.type-evidence {
+  font-size: 1rem; /* 16px */
+  line-height: 1.55;
+}
+.type-verdict {
+  font-size: 1.1875rem; /* 19px */
+  line-height: 1.45;
+}
+.type-meta {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.5;
+}
+
+/* A tap on a casting line acknowledges itself with one short pulse. It says
+ * "registered" and nothing about how many times — see CastingBoard. */
+@keyframes tap-pulse {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.tap-pulse {
+  background-color: rgba(217, 184, 120, 0.22);
+  animation: tap-pulse 420ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tap-pulse,
+  .dot-in {
+    animation: none;
+  }
+  /* Without the fade the overlay would simply stay lit, so hide it: the row's
+     own "marked" styling carries the acknowledgement instead. */
+  .tap-pulse {
+    background-color: transparent;
+  }
+  /* Motion is never the only signal: the row keeps its marked styling, which
+   * is a static state change, and the haptic tick still fires. */
+}

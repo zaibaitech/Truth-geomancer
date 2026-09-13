@@ -30,24 +30,24 @@ export function ResultSummaryCard({ result, userQuestion }: { result: ReadingRes
   return (
     <Card>
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] uppercase tracking-widest text-sand/40">Summary</p>
+        <p className="type-meta uppercase tracking-widest text-sand/40">Summary</p>
         <button
           type="button"
           onClick={copy}
           aria-label="Copy this reading as text"
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-sand/15 px-2.5 py-1 text-[11px] text-sand/65"
+          className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-sand/15 px-3 py-1 type-meta text-sand/65"
         >
           {copied ? <Check size={12} className="text-clay-light" /> : <Copy size={12} />}
           {copied ? 'Copied' : 'Copy reading'}
         </button>
       </div>
 
-      <p className="mt-2 text-[13px] font-medium leading-snug text-sand-light">{summary.question}</p>
-      <p className={`mt-1.5 text-sm font-semibold ${summary.conflict ? 'text-clay-light' : 'text-sand-light'}`}>
+      <p className="mt-2 type-body font-medium text-sand-light">{summary.question}</p>
+      <p className={`mt-1.5 type-verdict font-semibold ${summary.conflict ? 'text-clay-light' : 'text-sand-light'}`}>
         {summary.status}
       </p>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-sand/65">{summary.interpretation}</p>
-      {summary.source ? <p className="mt-2 text-[10.5px] uppercase tracking-widest text-sand/35">{summary.source}</p> : null}
+      <p className="mt-1.5 type-body text-sand/70">{summary.interpretation}</p>
+      {summary.source ? <p className="mt-2 type-meta uppercase tracking-widest text-sand/35">{summary.source}</p> : null}
       <p aria-live="polite" className="sr-only">
         {copied ? 'Reading copied to the clipboard' : ''}
       </p>

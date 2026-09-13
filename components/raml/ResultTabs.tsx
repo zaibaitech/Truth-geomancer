@@ -45,7 +45,8 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
+            aria-pressed={tab === t}
+            className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
               tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/60'
             }`}
           >
@@ -66,7 +67,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             return reading ? (
               <>
                 {availability.kind === 'consolidated' ? (
-                  <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 text-[11px] leading-relaxed text-sand/50">
+                  <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 type-evidence text-sand/55">
                     {availability.note}
                   </p>
                 ) : null}

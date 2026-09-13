@@ -70,7 +70,7 @@ export function EngineReadingView({ result, userQuestion }: { result: ReadingRes
         onClick={() => setShowCalculation((v) => !v)}
         aria-expanded={showCalculation}
         aria-controls="reading-working"
-        className="w-full rounded-xl border border-sand/15 px-3 py-2 text-xs font-medium text-sand-light"
+        className="min-h-[48px] w-full rounded-xl border border-sand/15 px-3 py-2.5 type-evidence font-medium text-sand-light"
       >
         {showCalculation ? 'Hide the working' : 'How this was determined'}
       </button>

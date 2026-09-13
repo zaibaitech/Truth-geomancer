@@ -27,22 +27,22 @@ export function OutcomeCard({
   if (resultKind === 'descriptive') {
     return (
       <Card>
-        <p className="text-[11px] uppercase tracking-widest text-sand/40">Reading</p>
-        <p className="mt-1.5 text-base font-semibold text-sand-light">
+        <p className="type-meta uppercase tracking-widest text-sand/40">Reading</p>
+        <p className="mt-1.5 type-method font-semibold text-sand-light">
           {descriptiveAnswer ?? 'The methods give different answers'}
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-sand/70">{shortSummary}</p>
+        <p className="mt-2 type-body text-sand/75">{shortSummary}</p>
       </Card>
     );
   }
 
   return (
     <Card>
-      <p className="text-[11px] uppercase tracking-widest text-sand/40">Overall indication</p>
+      <p className="type-meta uppercase tracking-widest text-sand/40">Overall indication</p>
       <div className="mt-1.5">
         <Badge tone={OUTCOME_TONE[overallOutcome]}>{outcomeLabel}</Badge>
       </div>
-      <p className="mt-2 text-sm leading-relaxed text-sand/70">{shortSummary}</p>
+      <p className="mt-2 type-body text-sand/75">{shortSummary}</p>
     </Card>
   );
 }

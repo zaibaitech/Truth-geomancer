@@ -48,7 +48,7 @@ export function MethodConsistencyCard({
 
   return (
     <Card>
-      <p className="mb-2 text-[11px] uppercase tracking-widest text-sand/40">Method consistency</p>
+      <p className="mb-2 type-meta uppercase tracking-widest text-sand/40">Method consistency</p>
       <div className="space-y-1.5">
         {counted.map((m) =>
           resultKind === 'descriptive' ? (
@@ -69,9 +69,9 @@ export function MethodConsistencyCard({
         )}
       </div>
       <p className="mt-3 text-sm font-medium text-sand-light">{consensusLabel}</p>
-      {consensusSentence ? <p className="mt-1 text-[12px] leading-relaxed text-sand/50">{consensusSentence}</p> : null}
-      {disagreementNote ? <p className="mt-1 text-[12px] leading-relaxed text-sand/50">{disagreementNote}</p> : null}
-      <p className="mt-2 text-[11px] leading-relaxed text-sand/35">
+      {consensusSentence ? <p className="mt-1 type-evidence text-sand/60">{consensusSentence}</p> : null}
+      {disagreementNote ? <p className="mt-1 type-evidence text-sand/60">{disagreementNote}</p> : null}
+      <p className="mt-2 type-meta text-sand/45">
         {resultKind === 'descriptive'
           ? 'This reflects whether the traditional methods point to the same answer — not a favourable/unfavourable judgment.'
           : 'This reflects how consistently the traditional methods agree with each other — a measure of method consistency, not a statistical probability.'}

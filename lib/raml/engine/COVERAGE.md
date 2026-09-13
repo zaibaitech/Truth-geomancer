@@ -2618,3 +2618,31 @@ with no date, a bad date, missing or malformed Mothers, an empty id — each is
 dropped and the rest kept; a quota error sheds the oldest readings rather than
 failing; a browser with no storage, or one that throws on touching it, leaves
 the app fully working and merely unable to remember. 52 tests cover this.
+
+---
+
+## Prompt 17 — casting interaction & readability (no engine changes)
+
+**The board no longer shows the count.** The engine needs the number of marks
+on each line — parity decides single or double — and it still has it, in
+`lib/raml/castingBoardState.ts`, which is the old in-component grid lifted out
+so it can be tested directly. What changed is what a reader sees. The board
+used to print "8 tap" beside each line and reveal a draw's figure as soon as
+its four lines were marked; both are gone. A tap now answers with a pulse, a
+short haptic tick where the device offers one, and a quiet "Marked" state, and
+the accessibility tree hears "Fire tap registered." — never a number. The only
+digits on the screen are the draw stage ("Draw 2 of 4 · 3 of 4 lines marked"),
+which counts lines, not taps, and never passes four.
+
+Nothing about the arithmetic moved: the same tap sequence gives the same
+Mothers, the same houses and the same reading, asserted against the suite's
+hand-verified fixture chart and across tap counts of matching parity.
+
+**The working is readable.** `How this was determined` was 11-12px throughout —
+the one part of the app a practising geomancer actually studies was the hardest
+to read. A shared type scale now lives in `app/globals.css` (section 18px,
+method 21px, source quote 17px/1.6, evidence 16px, verdict 19px, metadata
+15px), and it is expressed in rem, so a reader who raises their browser's own
+font size finally gets larger text — the app's px sizes had been ignoring that
+setting entirely. Verified at 100/125/150/200%: text scales proportionally, and
+no width or font setting produces horizontal overflow or clipped content.

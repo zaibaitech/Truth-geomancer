@@ -12,7 +12,7 @@ const EXPECTED: Record<string, { tm: number; ml: number; br: number }> = {
   adam: { tm: 62, ml: 61, br: 60 }, // corrected from an initial 22/21/20 after a second manuscript check
   mahadi: { tm: 33, ml: 32, br: 31 },
   iddris: { tm: 111, ml: 110, br: 109 },
-  ibrahim: { tm: 142, ml: 145, br: 144 },
+  ibrahim: { tm: 146, ml: 145, br: 144 }, // topMiddle corrected from an initial 142 after a second manuscript check
   issah: { tm: 125, ml: 124, br: 123 },
   umar: { tm: 202, ml: 201, br: 200 },
   ayuba: { tm: 308, ml: 307, br: 306 },
@@ -72,14 +72,16 @@ describe('Prompt 23 — complete 16 x 8 Hatim table, exact values', () => {
     }
   });
 
-  it('Ibrahim, Ali and Usman are stored as explicit, independent values — not generated from one N (Prompt 23 section 6/11 regression proof)', () => {
-    // If these were generated from a single N via TM=N-4/ML=N-5/BR=N-6, all
-    // three would have to agree on the same N. They do not — proving the
-    // values below are read from the manuscript, not computed.
-    expect(EXPECTED.ibrahim.tm - 4).not.toBe(EXPECTED.ibrahim.ml - 5);
-    expect(EXPECTED.ali.tm - 4).not.toBe(EXPECTED.ali.ml - 5);
-    expect(EXPECTED.usman.tm - 4).not.toBe(EXPECTED.usman.ml - 5);
-    expect(EXPECTED.usman.ml - 5).not.toBe(EXPECTED.usman.br - 6);
+  it('Ali and Usman are stored as explicit, independent values — not generated from one N (Prompt 23 section 6/11 regression proof)', () => {
+    // If these were generated from a single N via TM=N-4/ML=N-5/BR=N-6 (i.e.
+    // N=TM+4=ML+5=BR+6), all three would have to agree on the same N. They
+    // do not for these two stars — proving the values below are read from
+    // the manuscript, not computed. (Ibrahim's topMiddle was corrected in a
+    // later pass and now DOES satisfy the formula — see hatimPattern.ts and
+    // reconciliation.test.ts for that positive case.)
+    expect(EXPECTED.ali.tm + 4).not.toBe(EXPECTED.ali.ml + 5);
+    expect(EXPECTED.usman.tm + 4).not.toBe(EXPECTED.usman.ml + 5);
+    expect(EXPECTED.usman.ml + 5).not.toBe(EXPECTED.usman.br + 6);
   });
 
   it('never mutates a stored value when converting for display (numeral toggle safety)', () => {

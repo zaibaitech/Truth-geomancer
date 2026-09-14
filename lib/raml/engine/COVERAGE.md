@@ -3260,5 +3260,34 @@ build` clean.
 
 **Not deployed, not pushed.**
 
+---
+
+## Prompt 25 — Ibrahim Hatim correction
+
+**A single-cell correction.** A further manuscript check found Ibrahim's
+`topMiddle` cell was 146, not the 142 recorded in Prompt 23; `middleLeft`
+(145) and `bottomRight` (144) are unchanged. `RAW_HATIMS`'s `ibrahim` entry
+was updated to `[146, 145, 144]`.
+
+**This resolves Ibrahim's own pattern conflict.** With 142, Ibrahim's three
+cells implied N=146/150/150 — a real disagreement (`conflicting`). With 146,
+all three now imply N=150 exactly (`146+4`, `145+5`, `144+6`), matching both
+Ibrahim's stated recitation count and its Abjad sum (عليم = 150). Ibrahim
+moves from `conflicting`/`'partial'` to `confirmed_by_source`/`'verified'` —
+now 11 of 16 stars confirm a single N (up from 9), and only four (Yussif,
+Kalla Allahu, Ali, Usman) still conflict with themselves. Ali (322/325/324)
+and Usman (108/102/105) remain the standing proof that the N-4/N-5/N-6
+pattern is not a universal generator — Ibrahim is no longer part of that
+proof, since its corrected values do fit.
+
+**Tests updated:** `hatimComplete.test.ts` (Ibrahim's expected table, and
+the non-formula regression test narrowed to Ali/Usman only),
+`reconciliation.test.ts` (Ibrahim moved between groups in four separate
+assertions). Full suite: 2,256 tests passing. `tsc --noEmit` and `next
+build` clean. Verified live in-browser: Ibrahim's Hatim renders ٣/١٤٦/١ ·
+١٤٥/Intentions/٥ · ٢/٤/١٤٤.
+
+**Not deployed, not pushed.**
+
 
 

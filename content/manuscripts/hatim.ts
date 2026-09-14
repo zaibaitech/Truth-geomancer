@@ -20,9 +20,12 @@
 // resisted confident reading — was supplied directly by a manuscript reader
 // who checked the original source (Prompt 23) and is recorded here exactly
 // as given, with no recalculation, no Abjad substitution, and no smoothing
-// of values that look numerically irregular (Ibrahim's 142/145/144, Ali's
-// 322/325/324 and Usman's 108/102/105 do not fit a simple N-4/N-5/N-6
-// descent, and are kept exactly as supplied). The N-4/N-5/N-6 relationship
+// of values that look numerically irregular (Ali's 322/325/324 and Usman's
+// 108/102/105 do not fit a simple N-4/N-5/N-6 descent, and are kept exactly
+// as supplied). Ibrahim's topMiddle was corrected from an initial 142 to
+// 146 after a second manuscript check, which does fit that descent
+// (146/145/144 = 150-4/150-5/150-6, matching Ibrahim's own stated/Abjad
+// value of 150) — the earlier 142 did not. The N-4/N-5/N-6 relationship
 // observed in some stars (see hatimPattern.ts) is a diagnostic check only —
 // it is never used to generate or overwrite a stored value.
 
@@ -114,7 +117,7 @@ const RAW_HATIMS: RawHatim[] = [
   { starId: 'adam', variable: [62, 61, 60] }, // corrected from an initial 22/21/20 after a second manuscript check
   { starId: 'mahadi', variable: [33, 32, 31] },
   { starId: 'iddris', variable: [111, 110, 109] },
-  { starId: 'ibrahim', variable: [142, 145, 144] },
+  { starId: 'ibrahim', variable: [146, 145, 144] }, // topMiddle corrected from an initial 142 after a second manuscript check
   { starId: 'issah', variable: [125, 124, 123] },
   { starId: 'umar', variable: [202, 201, 200] },
   { starId: 'ayuba', variable: [308, 307, 306] },

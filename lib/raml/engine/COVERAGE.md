@@ -3302,5 +3302,119 @@ build` clean. Verified live in-browser: Ibrahim's Hatim renders ٣/١٤٦/١ ·
 
 **Not deployed, not pushed.**
 
+---
+
+## Prompt 26 — Restore the missing book opening + Chapter 1 source layout
+
+**The gap.** The reader started the book at "Chapter 1," with the
+Introduction ("What is Geomancy?") nested inside that chapter's own
+section — `{chapter.id === 'drawing-a-chart' ? <Prose paragraphs={INTRODUCTION} /> : null}`
+rendered the Introduction's five paragraphs directly above Chapter 1's own
+body, under a single "Chapter 1" heading. The Dedication (source page 1) was
+never rendered anywhere. Chapter 1's own body was an accurate prose
+paraphrase of the Counting and Cancelling Methods (already present, already
+tested, not rewritten here) but had none of the source's worked examples or
+diagrams: the Counting Method's two labelled dot-figure examples, the
+Cancelling Method's four tally-mark examples, the "In adding stars"
+combination sequence (H1+H2→H9 … H15+H1→H16), or the Bazdaaho formula's
+letter-value table and four worked examples.
+
+**What was added — `content/manuscripts/chapterOneDiagrams.ts` (new).**
+Structured data for all four diagram types, transcribed from the source
+(pages 4-6) and verified before being treated as data:
+
+- **Counting Method** — two worked examples, four tally lines each. The
+  source draws a hand figure under each raw count; magnified dot-counting
+  against all six labelled figures on the page confirmed, 6/6, that the
+  figure for raw count N is exactly `STARS.find(s => s.number === N).pattern`
+  — the manuscript's own Bazdaaho numbering. The examples' figures are
+  therefore looked up from the existing, already-tested `STARS` array
+  (`starForCount()`), not redrawn or re-guessed.
+- **Cancelling Method** — four worked examples, four typeset tally lines
+  each, transcribed verbatim from the PDF's own text layer. The source does
+  not label these four examples with a stated numeric result the way it
+  does the Counting Method's, so none is computed or asserted here — the
+  tokens (`'|'`/`'||'`) are reproduced exactly as printed.
+- **Addition sequence** — the source's "In adding stars:" combination chain
+  (Mothers+Daughters → Nieces → Witnesses → Judge → Reconciler) restated as
+  house-number pairs only (`H1+H2→H9` … `H15+H1→H16`). Structural, not a
+  re-derivation: it states the same sequence the protected `buildChart()`
+  already computes, with no specific figure values asserted.
+- **Bazdaaho formula** — the letter-value table (four entries) and its four
+  worked examples. One table character extracts as "Ͻ", which does not
+  match a standard Arabic letterform; it is flagged with a note and
+  reproduced exactly as printed rather than guessed at. Eg. 1's own working
+  line sums only three of the table's four values (2+7+8=17-16=1) rather
+  than all four — an internal source inconsistency, reproduced verbatim
+  rather than corrected (`BAZDAAHO_EG1_NOTE` documents this explicitly).
+- The parity-addition rule ("2+2=2, 1+2=1, 1+1=2") is restated as three
+  worked instances for the diagram, cross-checked in tests against the
+  protected engine's own `addRows()` — same function, not reimplemented.
+
+**Four new presentational components** consume this data:
+`components/books/CountingMethodDiagram.tsx`,
+`CancellingMethodDiagram.tsx`, `AdditionSequenceDiagram.tsx`,
+`BazdaahoFormulaDiagram.tsx`. All deterministic HTML/CSS (dot spans, thin
+tally bars, a letter-value grid) — no images, no canvas, no new SVG
+dependency — matching `FigureGlyph`'s existing approach so figures stay
+sharp at any zoom and scale with the reader's text-size setting.
+
+**`content/manuscripts/master-of-geomancy-vol1.ts`:** added
+`DEDICATION_TITLE` ("Dedication") and `INTRODUCTION_TITLE` ("What is
+Geomancy?") — the Introduction's own source heading, carrying no chapter
+number. Corrected `DEDICATION`'s wording against the source page itself:
+parenthetical names in place of the previous em-dash asides, "Jannatul
+Fridaus" as printed (not "Firdaus"), and the source's own sentence breaks
+preserved. No new names were introduced — the dedication still names
+exactly the same two parties (the sheikh/mentor, and the parents).
+`CHAPTERS` itself (chapter ids, numbers, titles, and Chapter 1's existing
+prose body) is unchanged.
+
+**`app/books/[id]/read/page.tsx` restructured.** For the Master of Geomancy
+book only (`book.id === 'master-of-geomancy-vol-1'`; Kanzul Mikban's reader
+branch is untouched), the page now renders, in order: a Dedication section
+(no chapter number, its own "Opening" eyebrow, the dedication text styled as
+a centred italic opening page rather than running body text) → an
+Introduction section (no chapter number, eyebrow "Introduction", heading
+"What is Geomancy?") → Chapter 1 onward via the existing `CHAPTERS.map`.
+The old `INTRODUCTION` nesting inside `drawing-a-chart` was removed — the
+Introduction is rendered once, before any chapter, not duplicated. Chapter
+1's existing prose body is unchanged; the four new diagrams are appended
+after it. The Bazdaaho formula diagram is appended after Chapter 2's
+existing prose body, keyed off `chapter.id === 'bazdaaho-method'`.
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts`, and `content/stars.ts` is empty — none of these files changed.
+The new Addition-sequence diagram states the same combination sequence
+`buildChart()` already computes, and the parity-rule diagram's three
+examples are asserted equal to `addRows()`'s own output in
+`chapterOneDiagrams.test.ts`, rather than reimplementing either.
+
+**Tests.** Two new files: `content/manuscripts/chapterOneDiagrams.test.ts`
+(15 tests — every Counting Method figure verified against `STARS`, the six
+magnified-verified figures asserted by name, Cancelling Method tokens
+restricted to `'|'`/`'||'` with no invented remainder field, the addition
+sequence's eight steps, the parity rule cross-checked against `addRows()`,
+the Bazdaaho table and its flagged glyph, Eg. 1's discrepancy reproduced
+verbatim) and `content/manuscripts/master-of-geomancy-vol1.test.ts` (6
+tests — Dedication/Introduction are not `CHAPTERS` entries, the Introduction
+heading carries no "chapter" wording, Chapter 1 still leads `CHAPTERS` as
+before, the Dedication names exactly its two source parties). Full suite:
+2,278 tests passing (2,256 prior + 22 new). `tsc --noEmit` clean, `next
+build` clean (19 static/SSG routes generated, including both book readers).
+
+**Browser-verified** at a 390×844 mobile viewport: no horizontal overflow at
+either Standard or Extra Large reader size; section order is
+dedication → introduction → drawing-a-chart → bazdaaho-method → …; the
+Dedication renders first with no chapter number; the Introduction renders
+"What is Geomancy?" with no "Chapter 1" label; Chapter 1 opens with "How to
+Draw a Chart in Geomancy" followed by its existing prose, then all three new
+diagram blocks; the Bazdaaho Formula diagram renders after Chapter 2's
+prose; Arabic star names and the Hatim diagrams elsewhere on the page still
+render correctly (20 `dir="rtl"` elements found, unaffected by this change).
+
+**Not deployed, not pushed** — per this prompt's explicit instruction.
+
 
 

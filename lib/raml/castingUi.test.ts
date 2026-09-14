@@ -166,8 +166,8 @@ describe('the reader is never shown the tap count', () => {
     for (const label of ariaLabels) {
       expect(label, label).not.toMatch(/drawTaps|taps\[|\bcount\b/);
     }
-    // The one live region announces the element, not a number.
-    expect(BOARD).toMatch(/setAnnouncement\(`\$\{ELEMENTS\[elementIndex\]\.label\} tap registered\.`\)/);
+    // The one live region announces the line, not a number.
+    expect(BOARD).toMatch(/setAnnouncement\(`\$\{LINES\[lineIndex\]\.label\} tap registered\.`\)/);
   });
 
   it('does not reveal a draw’s figure before the casting is finished', () => {
@@ -181,6 +181,76 @@ describe('the reader is never shown the tap count', () => {
   it('shows draw stage rather than tap totals', () => {
     expect(BOARD).toMatch(/Draw \{drawIndex \+ 1\} of 4/);
     expect(BOARD).toMatch(/lines marked/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4b. Source alignment — the four casting rows are Lines, not elements
+// ---------------------------------------------------------------------------
+//
+// "The Master of Geomancy" describes casting as making "4 straight lines
+// with dots", and only afterward names the resulting four figures the
+// "Umuhat mother stars." It never assigns Fire/Air/Water/Earth to these four
+// rows while they are being drawn — that labelling came from a different
+// app. The engine's own Element type ('fire'|'air'|'water'|'sand' in
+// operations.ts, interpret.ts, etc.) is a real, separately-established part
+// of chart INTERPRETATION after casting, and is untouched by this change —
+// these tests are about the casting board's row labels only.
+
+describe('casting rows are labelled Line 1-4, not Fire/Air/Water/Earth', () => {
+  it('does not display Fire/Air/Water/Earth as the primary casting row labels', () => {
+    expect(BOARD_CODE).not.toMatch(/\bFire\b/);
+    expect(BOARD_CODE).not.toMatch(/\bAir\b/);
+    expect(BOARD_CODE).not.toMatch(/\bWater\b/);
+    expect(BOARD_CODE).not.toMatch(/\bEarth\b/);
+    expect(BOARD_CODE).not.toContain('Flame');
+    expect(BOARD_CODE).not.toContain('Wind');
+    expect(BOARD_CODE).not.toContain('Droplet');
+    expect(BOARD_CODE).not.toContain('Mountain');
+  });
+
+  it('displays Line 1, Line 2, Line 3 and Line 4', () => {
+    const LINES = repoFile('components/raml/CastingBoard.tsx');
+    expect(LINES).toContain("{ label: 'Line 1' }");
+    expect(LINES).toContain("{ label: 'Line 2' }");
+    expect(LINES).toContain("{ label: 'Line 3' }");
+    expect(LINES).toContain("{ label: 'Line 4' }");
+  });
+
+  it('does not assign an elemental meaning to a casting row', () => {
+    // No per-line element/icon mapping remains on the board -- Check and
+    // RotateCcw are still imported from lucide-react for the "Done" mark and
+    // the reset button, unrelated to the four casting rows.
+    expect(BOARD).not.toMatch(/icon:/);
+    expect(BOARD).not.toMatch(/import\s*\{[^}]*Flame[^}]*\}/);
+  });
+
+  it('keeps the four-draw structure: each of the four draws still has exactly four lines', () => {
+    const match = BOARD.match(/const LINES = \[([^\]]*)\] as const;/);
+    expect(match).not.toBeNull();
+    const lineCount = match![1].split('},').filter((s) => s.trim().length > 0).length;
+    expect(lineCount).toBe(4);
+    expect(BOARD).toContain("const DRAW_NAMES = ['1st Draw', '2nd Draw', '3rd Draw', '4th Draw']");
+  });
+
+  it('does not reveal a live dot/tap count during marking (unchanged from before this change)', () => {
+    expect(BOARD).not.toMatch(/\{drawTaps\[lineIndex\]\}/);
+    expect(BOARD_CODE).not.toMatch(/\d+ dots?\b/i);
+  });
+
+  it('preserves the underlying casting data and calculations exactly -- only row labels changed', () => {
+    // Same four-draw x four-line tap grid, same parity reducer, same Mother
+    // derivation -- the whole point of this change is that none of this
+    // module needed to change.
+    const counts = [[1, 1, 2, 1], [1, 2, 2, 2], [2, 1, 1, 1], [2, 2, 1, 2]];
+    const mothers = mothersFromTaps(tapOut(counts));
+    expect(mothers).toEqual(FIXTURE_MOTHERS);
+    expect(buildChart(mothers).houses.map((h) => h.star.id)).toEqual(FIXTURE_STAR_IDS);
+  });
+
+  it('leaves the engine untouched: casting.ts still exports only what it did before', () => {
+    const CASTING = repoFile('lib/raml/casting.ts');
+    expect(CASTING).not.toMatch(/\bFire\b|\bAir\b|\bWater\b|\bEarth\b/);
   });
 });
 
@@ -212,7 +282,7 @@ describe('tap feedback', () => {
   });
 
   it('registers a mark from exactly one kind of event', () => {
-    expect(BOARD).toMatch(/onClick=\{\(\) => tap\(drawIndex, elementIndex\)\}/);
+    expect(BOARD).toMatch(/onClick=\{\(\) => tap\(drawIndex, lineIndex\)\}/);
     expect(BOARD).not.toMatch(/onPointerDown|onTouchStart|onMouseDown/);
     expect(BOARD).toContain("touchAction: 'manipulation'");
   });

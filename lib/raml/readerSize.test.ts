@@ -329,9 +329,9 @@ describe('legibility', () => {
 describe('earlier guarantees still hold', () => {
   it('keeps the casting board’s accessible names and its silence about counts', () => {
     const board = repoFile('components/raml/CastingBoard.tsx');
-    expect(board).toContain('draw. Tap to register a mark.');
+    expect(board).toContain('. Tap to register a mark.');
     expect(board).toContain('tap registered.');
-    expect(board).not.toMatch(/\{drawTaps\[elementIndex\]\}/);
+    expect(board).not.toMatch(/\{drawTaps\[lineIndex\]\}/);
     expect(board).not.toContain('FigureGlyph');
   });
 

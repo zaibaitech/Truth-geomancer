@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Flame, Wind, Droplet, Mountain, RotateCcw, Check } from 'lucide-react';
+import { RotateCcw, Check } from 'lucide-react';
 import {
   activeDrawIndex,
   emptyTapGrid,
@@ -15,12 +15,12 @@ import {
 import type { Pattern } from '@/content/stars';
 
 const DRAW_NAMES = ['1st Draw', '2nd Draw', '3rd Draw', '4th Draw'];
-const ELEMENTS = [
-  { label: 'Fire', icon: Flame },
-  { label: 'Air', icon: Wind },
-  { label: 'Water', icon: Droplet },
-  { label: 'Earth', icon: Mountain },
-] as const;
+/** The source ("The Master of Geomancy") describes making "4 straight lines
+ * with dots" and only afterward names the resulting four figures the
+ * "Umuhat mother stars." It never assigns Fire/Air/Water/Earth to these four
+ * casting rows — that came from another app and is not established here, so
+ * the rows are labelled plainly as what they are while being drawn. */
+const LINES = [{ label: 'Line 1' }, { label: 'Line 2' }, { label: 'Line 3' }, { label: 'Line 4' }] as const;
 
 /** One short tick per accepted tap, where the device offers one. Progressive
  * enhancement only: the casting works identically without it, and nothing
@@ -56,7 +56,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
   const [taps, setTaps] = useState<TapGrid>(emptyTapGrid);
   // Which row pulsed last, and a sequence number so that tapping the SAME row
   // again restarts the animation rather than being ignored as an unchanged key.
-  const [pulse, setPulse] = useState<{ draw: number; element: number; seq: number } | null>(null);
+  const [pulse, setPulse] = useState<{ draw: number; line: number; seq: number } | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const seq = useRef(0);
 
@@ -72,15 +72,15 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
   // Only `onClick` registers a mark. A pointer/touch handler alongside it
   // would double-count a single touch on some browsers, and the count is the
   // one thing here that must stay exact.
-  function tap(drawIndex: number, elementIndex: number) {
+  function tap(drawIndex: number, lineIndex: number) {
     seq.current += 1;
     // Functional update: a burst of rapid taps queues up and every one of
     // them lands, even if React batches the renders.
-    setTaps((prev) => registerTap(prev, drawIndex, elementIndex));
-    setPulse({ draw: drawIndex, element: elementIndex, seq: seq.current });
-    // Deliberately never "Fire, 8 taps" — the screen reader hears exactly what
-    // the eye sees: that the mark registered.
-    setAnnouncement(`${ELEMENTS[elementIndex].label} tap registered.`);
+    setTaps((prev) => registerTap(prev, drawIndex, lineIndex));
+    setPulse({ draw: drawIndex, line: lineIndex, seq: seq.current });
+    // Deliberately never "Line 1, 8 taps" — the screen reader hears exactly
+    // what the eye sees: that the mark registered.
+    setAnnouncement(`${LINES[lineIndex].label} tap registered.`);
     tick();
   }
 
@@ -140,15 +140,15 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
                 ) : null}
               </div>
 
-              {ELEMENTS.map((el, elementIndex) => {
-                const lineMarked = drawTaps[elementIndex] > 0;
-                const pulsing = pulse?.draw === drawIndex && pulse.element === elementIndex;
+              {LINES.map((line, lineIndex) => {
+                const lineMarked = drawTaps[lineIndex] > 0;
+                const pulsing = pulse?.draw === drawIndex && pulse.line === lineIndex;
                 return (
                   <button
-                    key={el.label}
+                    key={line.label}
                     type="button"
-                    onClick={() => tap(drawIndex, elementIndex)}
-                    aria-label={`${el.label} draw. Tap to register a mark.`}
+                    onClick={() => tap(drawIndex, lineIndex)}
+                    aria-label={`${line.label}. Tap to register a mark.`}
                     style={{ touchAction: 'manipulation' }}
                     className={`relative flex min-h-[56px] w-full select-none items-center justify-between gap-3 overflow-hidden border-b border-sand/8 px-3 py-3 text-left last:border-b-0 active:bg-clay/10 ${
                       lineMarked ? 'bg-sand/[0.04]' : ''
@@ -156,16 +156,13 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
                   >
                     {/* The pulse lives on its own element, keyed by the tap's
                         sequence number: tapping the same line twice in a row
-                        restarts the animation, and because the element is not
+                        restarts the animation, and because the pulse is not
                         the button itself, keyboard focus is never lost. */}
                     {pulsing ? (
                       <span key={pulse!.seq} aria-hidden className="tap-pulse pointer-events-none absolute inset-0" />
                     ) : null}
-                    <span className="relative flex items-center gap-2.5">
-                      <el.icon size={18} className={lineMarked ? 'text-clay-light' : 'text-clay-light/70'} aria-hidden />
-                      <span className="type-evidence font-medium uppercase tracking-wide text-sand-light">
-                        {el.label}
-                      </span>
+                    <span className="relative type-evidence font-medium uppercase tracking-wide text-sand-light">
+                      {line.label}
                     </span>
                     <span className={`relative type-meta ${lineMarked ? 'text-sand/70' : 'text-sand/65'}`}>
                       {lineMarked ? 'Marked · tap again if you wish' : 'Tap to draw'}

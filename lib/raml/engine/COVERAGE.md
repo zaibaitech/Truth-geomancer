@@ -4330,4 +4330,80 @@ inspected cards.
 
 **Not pushed, not deployed**, per this prompt's explicit instruction.
 
+## Prompt 37 — align the casting UI strictly with the source (Fire/Air/Water/Earth → Line 1-4)
+
+The casting board (`components/raml/CastingBoard.tsx`) labelled its four
+per-draw rows Fire/Air/Water/Earth, each with an element icon. "The
+Master of Geomancy" describes making "4 straight lines with dots" and
+only afterward names the resulting four figures the "Umuhat mother
+stars" — it never assigns Fire/Air/Water/Earth to these four casting
+rows; that came from another, unrelated app. This prompt removed the
+mislabeling from the presentation layer only.
+
+**Change.** The `ELEMENTS` constant (`{label, icon}` tuples for Fire,
+Air, Water, Earth, each paired with a `lucide-react` icon) was replaced
+with a plain `LINES` constant (`Line 1`–`Line 4`, no icon, no elemental
+meaning), with a comment recording the source basis for the rename. The
+`Flame`/`Wind`/`Droplet`/`Mountain` icon imports were dropped (`Check`
+and `RotateCcw`, used by the Done badge and reset button, are unrelated
+and stayed). Every downstream reference — the pulse-animation state
+(`{draw, element}` → `{draw, line}`), the `tap()` handler and its
+parameter name, the live-region announcement ("Line 1 tap registered."
+in place of "Fire tap registered."), the `aria-label` on each row
+button, and the render loop's `key`/`onClick` — was renamed to match, so
+no stale "element" terminology remains anywhere in the file. No
+elemental meaning was assigned to Line 1-4, and no "Mother Star N"
+secondary descriptor was added, per the prompt's own preference for
+"simply LINE 1-4" during casting to avoid confusion. `DRAW_NAMES`
+("1st Draw" … "4th Draw") was left as-is; the prompt did not ask for it
+to change. All interaction behavior is unchanged: a tap still registers
+via `registerTap()` from `castingBoardState.ts`, the mark persists and
+re-tapping still works, the tap count is still never displayed, the
+"Done" badge still appears once all four lines of a draw are marked, and
+`Cast Reading` is still gated on `isCastComplete()` and still calls
+`mothersFromTaps()` unchanged.
+
+**Engine and state, untouched.** `lib/raml/castingBoardState.ts` (the
+pure tap-grid module `registerTap`/`isLineMarked`/`linesMarked`/
+`isDrawComplete`/`isCastComplete`/`activeDrawIndex`/`mothersFromTaps`)
+and `lib/raml/casting.ts` (parity/reduction) were read to confirm they
+carry no Fire/Air/Water/Earth semantics — the tap grid is a plain
+`number[][]` indexed generically by draw/line — and neither file was
+touched. `git diff --name-only` against `casting.ts`, `chartModel.ts`,
+`ruleEngine.ts`, `operations.ts`, `types.ts`, `castingBoardState.ts` and
+`content/stars.ts` is empty; only `CastingBoard.tsx` and two test files
+changed. The unrelated, legitimate elemental-interpretation feature
+(Chapter Seven's `ELEMENTS: Element[] = ["fire","air","water","sand"]`
+in `app/books/[id]/read/page.tsx`, and the `Element` type used
+throughout the rule engine and question files for post-casting house
+interpretation) was left alone — it is a different, source-established
+concept unrelated to the four casting rows.
+
+**Tests (7 new, 2 fixed for the rename):** a new
+`describe('casting rows are labelled Line 1-4, not Fire/Air/Water/Earth')`
+block in `lib/raml/castingUi.test.ts` proves Fire/Air/Water/Earth and
+their icon imports (`Flame`/`Wind`/`Droplet`/`Mountain`) are absent from
+the component source, that `Line 1`–`Line 4` are present, that the
+four-lines-per-draw structure and the tap-count silence are preserved,
+and — directly — that `casting.ts` itself carries no elemental
+references, confirming the engine boundary. Two existing regex
+assertions in the same file (referencing the old `elementIndex`/
+`ELEMENTS` names) and one in `lib/raml/readerSize.test.ts` (a stale
+aria-label substring broken by dropping the word "draw" from the new
+label) were updated to match the rename; no assertion's intent changed.
+Full suite: 2359 passing (2352 prior + 7 new). `tsc --noEmit` clean,
+`next build` clean (the `/raml` route's bundle shrank slightly,
+7.89 kB → 7.54 kB, from the removed unused icon imports).
+
+**Browser-verified** at 390×844: every draw on the casting board now
+reads `LINE 1`–`LINE 4` with zero occurrences of Fire/Air/Water/Earth
+anywhere on the page; no horizontal overflow. Tapping a line's button
+produced the announcement "Line 1 tap registered." (never a count), the
+row's state changed to "Marked · tap again if you wish," and re-tapping
+worked without incident; the draw subtitle correctly continued to read
+only "N of 4 lines marked," never exposing the underlying tap count.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

@@ -20,20 +20,28 @@
 // resisted confident reading — was supplied directly by a manuscript reader
 // who checked the original source (Prompt 23) and is recorded here exactly
 // as given, with no recalculation, no Abjad substitution, and no smoothing
-// of values that look numerically irregular (Ali's 322/325/324 and Usman's
-// 108/102/105 do not fit a simple N-4/N-5/N-6 descent, and are kept exactly
-// as supplied). Ibrahim's topMiddle was corrected from an initial 142 to
-// 146 after a second manuscript check, which does fit that descent
-// (146/145/144 = 150-4/150-5/150-6, matching Ibrahim's own stated/Abjad
-// value of 150) — the earlier 142 did not. The N-4/N-5/N-6 relationship
-// observed in some stars (see hatimPattern.ts) is a diagnostic check only —
-// it is never used to generate or overwrite a stored value.
+// of values that look numerically irregular (Usman's 108/102/105 does not
+// fit a simple N-4/N-5/N-6 descent, and is kept exactly as supplied).
+// Ibrahim's topMiddle was corrected from an initial 142 to 146 after a
+// second manuscript check, which does fit that descent (146/145/144 =
+// 150-4/150-5/150-6, matching Ibrahim's own stated/Abjad value of 150) —
+// the earlier 142 did not. Ali's variable cells were likewise corrected,
+// from an initial 322/325/324 to the authoritative manuscript values
+// 366/365/364, after a further check (Prompt 35) confirmed the earlier
+// figures were wrong; the corrected values are supplied directly, not
+// computed here, and happen to all imply N=370 under the same descent —
+// matching Ali's own manuscript-stated recitation count (370, see
+// abjad.ts) — which is recorded as a downstream diagnostic fact in
+// hatimPattern.ts, never as the reason the values were chosen. The
+// N-4/N-5/N-6 relationship observed in some stars (see hatimPattern.ts) is
+// a diagnostic check only — it is never used to generate or overwrite a
+// stored value.
 
-import { STARS, type Pattern } from '@/content/stars';
+import { STARS, type Pattern } from "@/content/stars";
 
 export type HatimCell =
-  | { status: 'verified'; text: string }
-  | { status: 'review'; note: string };
+  | { status: "verified"; text: string }
+  | { status: "review"; note: string };
 
 export interface HatimBorder {
   topLeft: HatimCell;
@@ -52,13 +60,13 @@ export interface HatimDefinition {
    * see the file header for why this is treated as a verified rule rather
    * than a per-diagram guess. */
   centerFigure: Pattern;
-  centerLabel: 'Intentions';
+  centerLabel: "Intentions";
   border: HatimBorder;
   /** True only when every one of the eight bordering cells is verified. */
   fullyVerified: boolean;
 }
 
-const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const ARABIC_INDIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 /** Converts the manuscript's own Western/Maghrebi-tradition Arabic-Indic
  * numeral glyphs (٠-٩) to Latin digits, for the reader's optional "Latin"
@@ -77,7 +85,7 @@ function latinToArabicIndic(n: number): string {
 /** A source-supplied numeric cell (section-9 explicit value, never a
  * formula output) — stored in the manuscript's own Arabic-Indic numerals. */
 function verifiedNumber(n: number): HatimCell {
-  return { status: 'verified', text: latinToArabicIndic(n) };
+  return { status: "verified", text: latinToArabicIndic(n) };
 }
 
 const FIXED_TOP_LEFT: HatimCell = verifiedNumber(3);
@@ -109,48 +117,54 @@ interface RawHatim {
 // listed cells, confirmed in an earlier high-magnification pass. None is
 // derived from another star, from Abjad, or from the N-4/N-5/N-6 pattern —
 // see hatimPattern.ts, which tests that pattern against these values as a
-// diagnostic and confirms it does NOT hold universally (Ibrahim
-// 142/145/144, Ali 322/325/324 and Usman 108/102/105 do not fit a simple
-// descent, and are kept exactly as supplied regardless).
+// diagnostic and confirms it does NOT hold universally (Usman's
+// 108/102/105 does not fit a simple descent, and is kept exactly as
+// supplied regardless; Ibrahim's and Ali's corrected values do fit it, but
+// that is a fact about the authoritative values, not how they were chosen
+// — see the file-header note above).
 const RAW_HATIMS: RawHatim[] = [
-  { starId: 'yussif', variable: [211, 215, 209] },
-  { starId: 'adam', variable: [62, 61, 60] }, // corrected from an initial 22/21/20 after a second manuscript check
-  { starId: 'mahadi', variable: [33, 32, 31] },
-  { starId: 'iddris', variable: [111, 110, 109] },
-  { starId: 'ibrahim', variable: [146, 145, 144] }, // topMiddle corrected from an initial 142 after a second manuscript check
-  { starId: 'issah', variable: [125, 124, 123] },
-  { starId: 'umar', variable: [202, 201, 200] },
-  { starId: 'ayuba', variable: [308, 307, 306] },
-  { starId: 'kalla-allahu', variable: [12, 15, 14] },
-  { starId: 'sulemana', variable: [252, 251, 250] },
-  { starId: 'ali', variable: [322, 325, 324] },
-  { starId: 'nuhu', variable: [22, 21, 20] },
-  { starId: 'hassan-hussein', variable: [84, 83, 82] },
-  { starId: 'yunus', variable: [14, 13, 12] },
-  { starId: 'usman', variable: [108, 102, 105] },
-  { starId: 'musah', variable: [110, 109, 108] },
+  { starId: "yussif", variable: [211, 215, 209] },
+  { starId: "adam", variable: [62, 61, 60] }, // corrected from an initial 22/21/20 after a second manuscript check
+  { starId: "mahadi", variable: [33, 32, 31] },
+  { starId: "iddris", variable: [111, 110, 109] },
+  { starId: "ibrahim", variable: [146, 145, 144] }, // topMiddle corrected from an initial 142 after a second manuscript check
+  { starId: "issah", variable: [125, 124, 123] },
+  { starId: "umar", variable: [202, 201, 200] },
+  { starId: "ayuba", variable: [308, 307, 306] },
+  { starId: "kalla-allahu", variable: [12, 15, 14] },
+  { starId: "sulemana", variable: [252, 251, 250] },
+  { starId: "ali", variable: [366, 365, 364] }, // corrected from an initial 322/325/324 to the authoritative manuscript values (Prompt 35)
+  { starId: "nuhu", variable: [22, 21, 20] },
+  { starId: "hassan-hussein", variable: [84, 83, 82] },
+  { starId: "yunus", variable: [14, 13, 12] },
+  { starId: "usman", variable: [108, 102, 105] },
+  { starId: "musah", variable: [110, 109, 108] },
 ];
 
-export const HATIM_DEFINITIONS: HatimDefinition[] = RAW_HATIMS.map(({ starId, variable }) => {
-  const [topMiddle, middleLeft, bottomRight] = variable;
-  const border: HatimBorder = {
-    topLeft: FIXED_TOP_LEFT,
-    topMiddle: verifiedNumber(topMiddle),
-    topRight: FIXED_TOP_RIGHT,
-    middleLeft: verifiedNumber(middleLeft),
-    middleRight: FIXED_MIDDLE_RIGHT,
-    bottomLeft: FIXED_BOTTOM_LEFT,
-    bottomMiddle: FIXED_BOTTOM_MIDDLE,
-    bottomRight: verifiedNumber(bottomRight),
-  };
-  return {
-    starId,
-    centerFigure: star(starId),
-    centerLabel: 'Intentions',
-    border,
-    fullyVerified: Object.values(border).every((c) => c.status === 'verified'),
-  };
-});
+export const HATIM_DEFINITIONS: HatimDefinition[] = RAW_HATIMS.map(
+  ({ starId, variable }) => {
+    const [topMiddle, middleLeft, bottomRight] = variable;
+    const border: HatimBorder = {
+      topLeft: FIXED_TOP_LEFT,
+      topMiddle: verifiedNumber(topMiddle),
+      topRight: FIXED_TOP_RIGHT,
+      middleLeft: verifiedNumber(middleLeft),
+      middleRight: FIXED_MIDDLE_RIGHT,
+      bottomLeft: FIXED_BOTTOM_LEFT,
+      bottomMiddle: FIXED_BOTTOM_MIDDLE,
+      bottomRight: verifiedNumber(bottomRight),
+    };
+    return {
+      starId,
+      centerFigure: star(starId),
+      centerLabel: "Intentions",
+      border,
+      fullyVerified: Object.values(border).every(
+        (c) => c.status === "verified",
+      ),
+    };
+  },
+);
 
 export function getHatimByStarId(starId: string): HatimDefinition | undefined {
   return HATIM_DEFINITIONS.find((h) => h.starId === starId);
@@ -158,14 +172,22 @@ export function getHatimByStarId(starId: string): HatimDefinition | undefined {
 
 /** For a quick coverage tally: how many of the eight bordering cells across
  * all sixteen diagrams are verified vs. left for review. */
-export function hatimCoverageTally(): { verifiedCells: number; reviewCells: number; totalCells: number } {
+export function hatimCoverageTally(): {
+  verifiedCells: number;
+  reviewCells: number;
+  totalCells: number;
+} {
   let verifiedCells = 0;
   let reviewCells = 0;
   for (const def of HATIM_DEFINITIONS) {
     for (const cell of Object.values(def.border)) {
-      if (cell.status === 'verified') verifiedCells += 1;
+      if (cell.status === "verified") verifiedCells += 1;
       else reviewCells += 1;
     }
   }
-  return { verifiedCells, reviewCells, totalCells: verifiedCells + reviewCells };
+  return {
+    verifiedCells,
+    reviewCells,
+    totalCells: verifiedCells + reviewCells,
+  };
 }

@@ -4176,4 +4176,78 @@ with both number and star name.
 
 **Not pushed, not deployed**, per this prompt's explicit instruction.
 
+## Prompt 35 — fix Ali Hatim: authoritative manuscript values
+
+Corrected Ali's Hatim outer-cell values from an initial 322/325/324
+(topMiddle/middleLeft/bottomRight) to the authoritative manuscript values
+366/365/364, supplied directly rather than calculated, derived, or
+normalized via Abjad or the N-4/N-5/N-6 pattern. Ali's complete Hatim now
+reads exactly:
+
+```
+3   | 366 | 1
+365 | •   | 5
+2   | 4   | 364
+```
+
+(the four shared cells — topLeft=3, topRight=1, middleRight=5,
+bottomLeft=2, bottomMiddle=4 — are unchanged, as they are correct and
+already identical across all sixteen diagrams; only `content/manuscripts/
+hatim.ts`'s `RAW_HATIMS` entry for `'ali'` changed, from
+`variable: [322, 325, 324]` to `variable: [366, 365, 364]`). Ali's centre
+figure (its own four-line pattern from `content/stars.ts`, [2,1,1,2]) is
+untouched — nothing in this correction affects it.
+
+**An emergent, not engineered, consequence.** `hatimPattern.ts`'s
+existing N-4/N-5/N-6 diagnostic (diagnostic-only, never writes back into
+`hatim.ts` — unchanged by this prompt) automatically recomputes over the
+new values, since it always has: all three of Ali's corrected cells now
+imply the same N (370) under that formula, and 370 is exactly Ali's own
+manuscript-stated recitation count (visible in the chapter's existing
+prose, "Write يا سالم (370) times" — unchanged by this correction, not
+something this prompt added). This is the same relationship the app
+already reports for Ayuba and Iddris (Hatim confirms the stated count
+where the bare-name Abjad sum does not, 131 for Ali's سالم). Per this
+prompt's explicit instruction, none of this was used to *choose* Ali's
+values — 366/365/364 are stored as plain authoritative literals in
+`hatim.ts`; the fact that they satisfy the diagnostic is downstream
+information the existing (untouched) diagnostic modules report, not the
+method by which the values were derived. `content/manuscripts/abjad.ts`'s
+explanatory note for Ali was rewritten to state this plainly and to
+retire the now-false claim that Ali's Hatim cells "do not even agree with
+each other" — they do, now that they carry the correct manuscript values.
+
+**Downstream test updates** (in `hatimComplete.test.ts` and
+`reconciliation.test.ts`, both of which read live off `hatim.ts` and
+would otherwise fail against stale expectations): Ali moved from the
+"conflicting" group to the "confirmed_by_source" group (N=370) in the
+pattern-diagnostic tests; from "unresolved" to "verified" (matching
+Ayuba/Iddris) in the value-reconciliation tests; and the old "Ali and
+Usman prove non-generation" regression test was split — Usman (untouched,
+still 108/102/105, still does not fit the descent) keeps its own
+regression test, and a new dedicated Ali test asserts the exact
+authoritative values, confirms the diagnostic doesn't mutate `hatim.ts`,
+and confirms the stored values are not silently derived from Ali's own
+Abjad value (131) either.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts` and
+`content/stars.ts` is empty — only `hatim.ts`, `abjad.ts`,
+`hatimComplete.test.ts` and `reconciliation.test.ts` changed.
+`hatimPattern.ts` and `valueReconciliation.ts` (the diagnostic-only
+modules) are unmodified; they simply recomputed correctly over the
+corrected input, as designed.
+
+**Tests:** 2336 passing (2334 prior + 2 net new — several existing Ali
+assertions were rewritten in place to match the corrected status rather
+than added alongside). `tsc --noEmit` clean, `next build` clean.
+
+**Browser-verified** at 390×844: Ali's Hatim grid, navigated to directly
+via `#ali`, reads exactly `3 | 366 | 1` / `365 | • | 5` / `2 | 4 | 364`
+in all three display modes (Original, Arabic + Latin, Latin numerals);
+the centre figure is visually unchanged (Ali's own [2,1,1,2] pattern);
+no horizontal overflow.
+
+**Not pushed, not deployed**, per this prompt's explicit instruction.
+
 

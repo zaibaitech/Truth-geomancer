@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { STARS } from '@/content/stars';
-import { HATIM_DEFINITIONS, arabicIndicToLatin, getHatimByStarId, hatimCoverageTally } from './hatim';
+import { describe, expect, it } from "vitest";
+import { STARS } from "@/content/stars";
+import {
+  HATIM_DEFINITIONS,
+  arabicIndicToLatin,
+  getHatimByStarId,
+  hatimCoverageTally,
+} from "./hatim";
+import { getPatternDiagnosticByStarId } from "./hatimPattern";
 
 // Prompt 23 — the manuscript reader supplied every previously-"under review"
 // cell directly. This file is the single, exhaustive record of the complete
@@ -16,38 +22,51 @@ const EXPECTED: Record<string, { tm: number; ml: number; br: number }> = {
   issah: { tm: 125, ml: 124, br: 123 },
   umar: { tm: 202, ml: 201, br: 200 },
   ayuba: { tm: 308, ml: 307, br: 306 },
-  'kalla-allahu': { tm: 12, ml: 15, br: 14 },
+  "kalla-allahu": { tm: 12, ml: 15, br: 14 },
   sulemana: { tm: 252, ml: 251, br: 250 },
-  ali: { tm: 322, ml: 325, br: 324 },
+  ali: { tm: 366, ml: 365, br: 364 }, // corrected from an initial 322/325/324 to the authoritative manuscript values (Prompt 35)
   nuhu: { tm: 22, ml: 21, br: 20 },
-  'hassan-hussein': { tm: 84, ml: 83, br: 82 },
+  "hassan-hussein": { tm: 84, ml: 83, br: 82 },
   yunus: { tm: 14, ml: 13, br: 12 },
   usman: { tm: 108, ml: 102, br: 105 },
   musah: { tm: 110, ml: 109, br: 108 },
 };
 
-function cellNumber(starId: string, position: 'topMiddle' | 'middleLeft' | 'bottomRight'): number {
+function cellNumber(
+  starId: string,
+  position: "topMiddle" | "middleLeft" | "bottomRight",
+): number {
   const cell = getHatimByStarId(starId)!.border[position];
-  if (cell.status !== 'verified') throw new Error(`${starId}.${position} is not verified`);
+  if (cell.status !== "verified")
+    throw new Error(`${starId}.${position} is not verified`);
   return Number(arabicIndicToLatin(cell.text));
 }
 
-describe('Prompt 23 — complete 16 x 8 Hatim table, exact values', () => {
-  it('has all sixteen stars in EXPECTED, matching content/stars.ts exactly', () => {
+describe("Prompt 23 — complete 16 x 8 Hatim table, exact values", () => {
+  it("has all sixteen stars in EXPECTED, matching content/stars.ts exactly", () => {
     expect(Object.keys(EXPECTED).sort()).toEqual(STARS.map((s) => s.id).sort());
   });
 
   for (const [starId, { tm, ml, br }] of Object.entries(EXPECTED)) {
     it(`${starId}: topMiddle=${tm}, middleLeft=${ml}, bottomRight=${br}, plus the fixed corners and 5/4 centre-flanking cells`, () => {
       const hatim = getHatimByStarId(starId)!;
-      expect(hatim.border.topLeft).toEqual({ status: 'verified', text: '٣' });
-      expect(cellNumber(starId, 'topMiddle')).toBe(tm);
-      expect(hatim.border.topRight).toEqual({ status: 'verified', text: '١' });
-      expect(cellNumber(starId, 'middleLeft')).toBe(ml);
-      expect(hatim.border.middleRight).toEqual({ status: 'verified', text: '٥' });
-      expect(hatim.border.bottomLeft).toEqual({ status: 'verified', text: '٢' });
-      expect(hatim.border.bottomMiddle).toEqual({ status: 'verified', text: '٤' });
-      expect(cellNumber(starId, 'bottomRight')).toBe(br);
+      expect(hatim.border.topLeft).toEqual({ status: "verified", text: "٣" });
+      expect(cellNumber(starId, "topMiddle")).toBe(tm);
+      expect(hatim.border.topRight).toEqual({ status: "verified", text: "١" });
+      expect(cellNumber(starId, "middleLeft")).toBe(ml);
+      expect(hatim.border.middleRight).toEqual({
+        status: "verified",
+        text: "٥",
+      });
+      expect(hatim.border.bottomLeft).toEqual({
+        status: "verified",
+        text: "٢",
+      });
+      expect(hatim.border.bottomMiddle).toEqual({
+        status: "verified",
+        text: "٤",
+      });
+      expect(cellNumber(starId, "bottomRight")).toBe(br);
     });
   }
 
@@ -58,37 +77,55 @@ describe('Prompt 23 — complete 16 x 8 Hatim table, exact values', () => {
     expect(tally.reviewCells).toBe(0);
     for (const hatim of HATIM_DEFINITIONS) {
       for (const cell of Object.values(hatim.border)) {
-        expect(cell.status).toBe('verified');
-        if (cell.status === 'verified') {
+        expect(cell.status).toBe("verified");
+        if (cell.status === "verified") {
           expect(cell.text.length).toBeGreaterThan(0);
         }
       }
     }
   });
 
-  it('marks every one of the sixteen diagrams fullyVerified', () => {
+  it("marks every one of the sixteen diagrams fullyVerified", () => {
     for (const hatim of HATIM_DEFINITIONS) {
       expect(hatim.fullyVerified, hatim.starId).toBe(true);
     }
   });
 
-  it('Ali and Usman are stored as explicit, independent values — not generated from one N (Prompt 23 section 6/11 regression proof)', () => {
+  it("Usman is stored as explicit, independent values — not generated from one N (Prompt 23 section 6/11 regression proof)", () => {
     // If these were generated from a single N via TM=N-4/ML=N-5/BR=N-6 (i.e.
     // N=TM+4=ML+5=BR+6), all three would have to agree on the same N. They
-    // do not for these two stars — proving the values below are read from
-    // the manuscript, not computed. (Ibrahim's topMiddle was corrected in a
-    // later pass and now DOES satisfy the formula — see hatimPattern.ts and
-    // reconciliation.test.ts for that positive case.)
-    expect(EXPECTED.ali.tm + 4).not.toBe(EXPECTED.ali.ml + 5);
+    // do not for Usman — proving the values below are read from the
+    // manuscript, not computed. (Ibrahim's topMiddle and Ali's variable
+    // cells were each corrected in a later pass and now DO satisfy the
+    // formula — see hatimPattern.ts and reconciliation.test.ts, and the
+    // dedicated Ali test below, for those positive cases.)
     expect(EXPECTED.usman.tm + 4).not.toBe(EXPECTED.usman.ml + 5);
     expect(EXPECTED.usman.ml + 5).not.toBe(EXPECTED.usman.br + 6);
   });
 
-  it('never mutates a stored value when converting for display (numeral toggle safety)', () => {
+  it("Ali: authoritative manuscript values (Prompt 35), not generated by the N-4/N-5/N-6 formula despite now satisfying it", () => {
+    // 366/365/364 are copied verbatim from the authoritative manuscript
+    // values this prompt supplied -- nothing here computes topMiddle as
+    // "370 - 4" or similar. That they all imply the same N (370) under the
+    // N-4/N-5/N-6 diagnostic, and that N matches Ali's own manuscript-
+    // stated recitation count, is a downstream fact ABOUT these values
+    // (asserted below and in reconciliation.test.ts), not how they were
+    // produced -- and the diagnostic itself never writes back into hatim.ts.
+    expect(EXPECTED.ali).toEqual({ tm: 366, ml: 365, br: 364 });
+    const before = JSON.stringify(getHatimByStarId("ali")!.border);
+    const diagnostic = getPatternDiagnosticByStarId("ali")!;
+    expect(diagnostic.status).toBe("confirmed_by_source");
+    expect(diagnostic.consistentN).toBe(370);
+    expect(JSON.stringify(getHatimByStarId("ali")!.border)).toBe(before);
+    // Not silently derived from Ali's Abjad value (131) either.
+    expect(EXPECTED.ali.tm).not.toBe(131 - 4);
+  });
+
+  it("never mutates a stored value when converting for display (numeral toggle safety)", () => {
     for (const hatim of HATIM_DEFINITIONS) {
       const before = JSON.parse(JSON.stringify(hatim.border));
       for (const cell of Object.values(hatim.border)) {
-        if (cell.status === 'verified') arabicIndicToLatin(cell.text);
+        if (cell.status === "verified") arabicIndicToLatin(cell.text);
       }
       expect(hatim.border).toEqual(before);
     }
@@ -98,15 +135,15 @@ describe('Prompt 23 — complete 16 x 8 Hatim table, exact values', () => {
     for (const hatim of HATIM_DEFINITIONS) {
       const star = STARS.find((s) => s.id === hatim.starId)!;
       expect(hatim.centerFigure).toEqual(star.pattern);
-      expect(hatim.centerLabel).toBe('Intentions');
+      expect(hatim.centerLabel).toBe("Intentions");
     }
   });
 });
 
-describe('Prompt 23 — no engine coupling', () => {
-  it('this module does not import or export anything from the casting engine', () => {
+describe("Prompt 23 — no engine coupling", () => {
+  it("this module does not import or export anything from the casting engine", () => {
     const mod: Record<string, unknown> = { HATIM_DEFINITIONS };
-    expect(mod).not.toHaveProperty('runReading');
-    expect(mod).not.toHaveProperty('buildChart');
+    expect(mod).not.toHaveProperty("runReading");
+    expect(mod).not.toHaveProperty("buildChart");
   });
 });

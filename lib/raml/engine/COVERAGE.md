@@ -3812,5 +3812,96 @@ text (a second occurrence of each row label found only inside its own
 **Not pushed, not deployed**, consistent with this session's established
 practice of committing locally and pushing only on explicit request.
 
+---
+
+## Prompt 31 — Kanzul Mikban Chapter 151: restore the dream-interpretation figures
+
+**The gap.** Chapter 151, "Dreams and Their Interpretations," teaches
+sixteen dream meanings, each keyed to a small four-row geomantic figure
+the source prints immediately after that entry's own "If it's" /
+"If it's:". The app's stored chapter text (`content/manuscripts/
+kanzul-mikban.ts`) already carried the full prose accurately, but every
+one of the sixteen figures was missing — the source page's own text layer
+drops embedded raster images, so PDF text extraction produced "If it's,"
+with nothing between the words and the comma, and nothing had ever
+supplied the sixteen dropped figures since.
+
+**Identifying each figure.** Confirmed via `f9ca6042-KM_91_to_16.pdf`
+(manuscript pages 112-116, matching this prompt's own stated page
+mapping exactly). Each of the sixteen embedded figure images was located
+by its own exact PDF image-placement rectangle (`page.get_image_rects`),
+not by guessed screen position or assumed Bazdaaho order, then rendered
+at high resolution and read as a four-row dot pattern — cross-checked
+programmatically via connected-component blob detection clustered into
+rows, not by eye alone. Every resulting pattern was matched against the
+existing canonical `STARS` array by exact equality.
+
+**Result — `content/manuscripts/dreamInterpretations.ts` (new):**
+```
+#1  -> Yussif [1,1,2,1]   #9  -> Kalla Allahu [1,1,2,2]
+#2  -> Adam [1,2,2,2]     #10 -> Sulemana [1,2,2,1]
+#3  -> Mahadi [2,1,1,1]   #11 -> Ali [2,1,1,2]
+#4  -> Yussif [1,1,2,1]   #12 -> Nuhu [2,2,1,1]
+#5  -> Ibrahim [1,1,1,1]  #13 -> Hassan & Hussein [1,1,1,2]
+#6  -> Issah [1,2,1,2]    #14 -> Yunus [1,2,1,1]
+#7  -> Iddris [2,2,1,2]   #15 -> Usman [2,1,2,1]
+#8  -> Ayuba [2,2,2,1]    #16 -> Musah [2,2,2,2]
+```
+Two source characteristics, confirmed rather than "corrected": #1 and #4
+print the identical Yussif figure (independently re-verified, not a
+misread), and Umar's figure ([2,1,2,2]) does not appear among the
+sixteen at all — the chapter's sixteen dream-figures are not a
+one-to-one relabelling of the sixteen Bazdaaho stars, and neither was
+forced into that shape. Every pattern is looked up from `STARS`, not
+redefined.
+
+**Restoring the figures without rewriting any text.** Rather than
+hand-editing `kanzul-mikban.ts`'s paragraph strings (risking a typo
+across four long, multi-interpretation paragraphs), a pure parser,
+`parseDreamParagraph()`, splits each existing paragraph string at its own
+"N. If it's[:]" markers via regex — `lead` (any text before the first
+marker, e.g. the chapter's own intro sentence) plus, per interpretation,
+`markerText` (the literal "N. If it's" or "N. If it's:" substring) and
+`rest` (everything up to the next marker, starting with the source's own
+comma). `kanzul-mikban.ts` itself is untouched — confirmed via
+`git diff --stat`, which shows zero changes to that file. A new
+component, `DreamInterpretationsBody.tsx`, renders each interpretation as
+its own card: `markerText`, then `FigureGlyph` (looked up via
+`getDreamInterpretationPattern`), then `rest` — restoring the figure in
+the exact textual position the source places it, while every word of the
+interpretation and sadaka text renders unchanged.
+
+**Wiring.** `app/books/[id]/read/page.tsx`'s existing Kanzul Mikban
+render branch now special-cases `chapter.id === 'dreams-and-their-
+interpretations'` to use `DreamInterpretationsBody` instead of the
+generic `Prose` component; every other KM chapter is unaffected.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts` and
+`types.ts` is empty. No other chapter's rendering changed. Every figure
+is read from the existing `STARS` array — nothing here defines a new
+figure.
+
+**Tests** (`dreamInterpretations.test.ts`, 12 new): exactly 16
+interpretations; every figure non-null, four rows, each row 1 or 2 dots;
+every interpretation matched to its expected star via an independently
+hand-written table (not copy-pasted from the data file) and cross-checked
+against `STARS` directly; the #1/#4 duplicate and Umar's absence both
+asserted explicitly; order 1-16 preserved; and — the strongest of these —
+a byte-for-byte (whitespace-normalized) reconstruction of every one of
+Chapter 151's five paragraphs from `lead` + each item's `markerText` +
+`rest`, proving no word was dropped, added, or reordered by the split.
+Full suite: 2,310 tests passing (2,298 prior + 12 new). `tsc --noEmit`
+clean, `next build` clean.
+
+**Browser-verified** at 390×844, Standard/Large/Extra Large reader size:
+no horizontal overflow at any size. All 16 `FigureGlyph` instances present
+in Chapter 151's rendered HTML, each confirmed immediately adjacent to its
+own "N. If it's" marker in strictly increasing order 1→16; sadaka
+instructions, the "[unclear in the original]" notes, and the chapter's
+intro sentence all confirmed present verbatim in the rendered page.
+
+**Not pushed, not deployed**, per this prompt's explicit instruction.
+
 
 

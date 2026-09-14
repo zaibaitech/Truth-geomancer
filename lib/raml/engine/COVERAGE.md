@@ -3476,5 +3476,109 @@ overflow at Standard or Extra Large reader size.
 
 **Not pushed, not deployed** — per this prompt's explicit instruction.
 
+---
+
+## Prompt 28 — Counting Method: make the demonstration manuscript-faithful
+
+**The gap.** Prompt 26/27's `CountingMethodDiagram` showed only the final
+result of each counting line — a card with the arithmetic label, the
+resulting figure, and the star's personal name (e.g. "Sulemana"). That
+tells a reader the answer without showing the method: the source's own
+page shows a countable row of dots per line, the source's own circled line
+numbers (①②③④), and a small "4 3 2 1" result strip, none of which existed
+in the prior rendering. The prior rendering also substituted the
+Bazdaaho-order star names for the source's own circled-number labelling,
+which the source's Chapter 1 demonstration never does.
+
+**Data model (`content/manuscripts/chapterOneDiagrams.ts`).**
+`CountingMethodLine` gained three fields: `circledNumber` (①/②/③/④, the
+source's own line label), `rawCount` (the literal number of dots the
+source draws for that line *before* any reduction — 18 and 19 for the two
+reduced lines, not 2 and 3), and `arithmeticLabel` (renamed from
+`rawLabel`, unchanged in content — "10", "18 - 16 = 2", etc., exactly as
+printed). `reducedValue` is unchanged and still only feeds the existing
+`starForCount()` lookup against `STARS` — no new calculation, no changed
+star values. `CountingMethodExample` gained `resultOrder: [4,3,2,1]`, the
+source's own display order for its four-figure result strip (the reverse
+of drawing order, matching "starting counting from the fourth line, right
+to left"). A new constant, `COUNTING_DIRECTION_NOTE`, quotes the source's
+counting-direction sentence verbatim ("Starting counting from 4th line
+from your right to the left…") exactly as supplied in this prompt, with no
+extension past what was quoted. All six previously-verified reduced values
+(10, 12, 14, 2, 13, 15, plus 3) and their star-figure lookups are
+byte-identical to Prompt 26 — this is additive data, not a recalculation.
+
+**`components/books/CountingMethodDiagram.tsx` rebuilt.** Each of the four
+lines per example now renders: the circled number and a "Line N" label, a
+`CountingMarks` row of `rawCount` individual dot marks (a reader can
+literally count them — 18 or 19 marks for the reduced lines, not a
+pre-reduced 2 or 3), the arithmetic label, and the resulting figure via the
+same `FigureGlyph`/`starForCount` lookup as before. A `ResultOrderStrip`
+below the four lines reproduces the source's own "4 3 2 1" result display,
+each position pulling that line's already-looked-up figure — the same
+data, shown a second time only because the source itself shows it a second
+time. `COUNTING_DIRECTION_NOTE` is quoted, italicised, between the two
+examples — where the source prints it. The star's personal name (Sulemana,
+Nuhu, Yunus, Adam, Hassan & Hussein, Usman) is no longer visible text
+anywhere in the component; it survives only as `sr-only` accessibility text
+on each figure ("Resulting figure: Sulemana") and inside the file's own
+verification comments — internal/source metadata, never a replacement for
+the source's circled-number labelling, per this prompt's explicit
+instruction.
+
+**`content/manuscripts/master-of-geomancy-vol1.ts`:** Chapter 1's Counting
+Method paragraph (`CHAPTERS[0].body[1]`) was reduced to the source's own
+literal lead sentence — "**The Counting Method.** You will make 4 straight
+lines with dots as shown below." — replacing the earlier paraphrase
+("traditionally by striking the sand quickly, without deliberately
+counting, so the number falls to chance... Starting from the fourth
+line... these first four are called the Umuhat, the Mother stars."), which
+this prompt identified as an invented elaboration not present on this
+source page. The counting-direction sentence and the "these first four are
+called Umuhat" line are not lost — they now appear where the source itself
+places them: the direction sentence between the two worked examples (via
+`COUNTING_DIRECTION_NOTE`, already rendered by the diagram) and the Umuhat
+line as `COUNTING_METHOD_CLOSING` after both examples (already rendered by
+the diagram since Prompt 26) — so nothing is duplicated, only relocated
+into the diagram it was describing. The Cancelling Method paragraph
+(`body[2]`) and the rest of the chapter are unchanged.
+
+**`app/books/[id]/read/page.tsx` is unchanged** for this prompt — the
+existing splice point (Counting Method heading → `body[1]` → diagram) from
+Prompt 27 already places the corrected paragraph and the rebuilt diagram in
+the right position; no page-level restructuring was needed.
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` and `content/stars.ts` is empty. Only content and component
+files changed: `chapterOneDiagrams.ts`, `CountingMethodDiagram.tsx`,
+`master-of-geomancy-vol1.ts`, and their two test files.
+
+**Tests.** 5 new regression tests in `chapterOneDiagrams.test.ts` (circled
+numbers in drawing order; `rawCount` distinct from `reducedValue` for the
+two reduced lines and correct for all six unreduced ones; `resultOrder`
+equals `[4,3,2,1]` for both examples; `COUNTING_DIRECTION_NOTE`'s exact
+quoted text) and one in `master-of-geomancy-vol1.test.ts` (the corrected
+lead sentence is present, the "striking the sand" phrase is absent). Full
+suite: 2,283 tests passing (2,278 prior + 5 new). `tsc --noEmit` clean,
+`next build` clean.
+
+**Browser-verified** at 390×844: no horizontal overflow at Standard or
+Extra Large reader size. Marker-position checks on the rendered HTML confirm
+the full order — Counting Method heading → corrected lead paragraph → e.g.
+1 (circled numbers, "Line N" labels, dot-mark rows with correct
+`aria-label` counts [10,12,14,18] → result strip "4 3 2 1") → the
+direction-note quote → e.g. 2 (dot-mark counts [13,15,18,19] → its own
+result strip) → the "umuhat mother stars" closing line → Cancelling
+Method. Confirmed, after stripping React's hydration comment markers and
+each figure's `sr-only` span, that none of the six star names appear as
+visible text anywhere in Chapter 1's rendered HTML — each survives only
+inside its `sr-only` span, exactly once per occurrence. "e.g." (2, one per
+example), circled numbers (8, four per example), and "Resulting stars"
+strips (2) each appear exactly once where expected — no duplicated
+examples.
+
+**Not pushed, not deployed** — per this prompt's explicit instruction.
+
 
 

@@ -1,26 +1,35 @@
 // The instructional diagrams for Chapter One, "How to Draw a Chart in
 // Geomancy" (source pages 4-6), restored alongside the chapter's existing
-// prose in content/manuscripts/master-of-geomancy-vol1.ts. That prose was
-// already an accurate paraphrase of the method; what was missing was the
-// worked examples and diagrams the source teaches them with. This file
-// supplies exactly those — nothing here replaces or edits the existing
-// chapter body.
+// prose in content/manuscripts/master-of-geomancy-vol1.ts. This file
+// supplies the worked examples and diagrams the source teaches the methods
+// with — nothing here replaces or edits the chapter's own prose body.
 //
 // HOW THE COUNTING METHOD'S DOT FIGURES WERE VERIFIED
 //
-// The source's counting-method examples label each line with a raw tally
-// (e.g. "= 10 ="), followed by a hand-drawn dot figure. Cropping and
+// The source's counting-method examples label each circled line with a raw
+// tally (e.g. "① = 10 ="), followed by a hand-drawn dot figure. Cropping and
 // magnifying those figures and counting dots row by row gave, for all six
 // labelled examples on the page (10, 12, 14, 18-16=2, 13, 15 — the other two,
 // 18-16=2 and 19-16=3, repeat and confirm the same rule): the figure drawn
-// for raw count N is exactly the four-line pattern already stored as
+// for the reduced count N is exactly the four-line pattern already stored as
 // STARS.find(s => s.number === N).pattern — i.e. the manuscript's own
 // Bazdaaho numbering (Yussif=1 ... Musah=16). Six for six matched exactly
 // (10->Sulemana[1,2,2,1], 12->Nuhu[2,2,1,1], 14->Yunus[1,2,1,1],
 // 18-16=2->Adam[1,2,2,2], 13->Hassan & Hussein[1,1,1,2], 15->Usman[2,1,2,1]).
 // That match is treated as a verified rule below — the figures are derived
 // from the existing, already-tested STARS array, not re-guessed or hand
-// coded a second time.
+// coded a second time. Those six names are internal/source metadata only
+// (used for the diagram's aria-labels and its own regression tests) — the
+// visible Chapter 1 demonstration below shows the source's own circled line
+// numbers and its "4 3 2 1" result order, never a star's personal name, per
+// the source-fidelity correction in Prompt 28.
+//
+// The source draws each example's raw count as a literal row of dots that a
+// reader can count — not merely a numeral. COUNTING_METHOD_EXAMPLES'
+// rawCount field is that literal dot count (18 and 19 before the source's
+// own stated subtract-16 reduction, exactly as drawn); the diagram renders
+// that many marks. Nothing here reduces or re-derives rawCount — it is
+// transcribed directly from the source's own arithmetic line for each entry.
 //
 // The Cancelling Method's four worked examples, by contrast, are typeset
 // tally marks (not hand-drawn), extracted cleanly from the PDF's own text
@@ -34,23 +43,36 @@
 
 import { STARS, type Pattern } from "@/content/stars";
 
+/** The circled line numbers the source prints beside each counting line
+ * (①②③④), in drawing order. */
+export type CircledNumber = "①" | "②" | "③" | "④";
+export const CIRCLED_NUMBERS: readonly CircledNumber[] = ["①", "②", "③", "④"];
+
 export interface CountingMethodLine {
-  /** The raw tally the source states for this line, e.g. "10" or "18 - 16 = 2". */
-  rawLabel: string;
-  /** The literal number of dots drawn (post-reduction if the source reduces
-   * it, e.g. 18-16 -> 2), used to look up the resulting star. */
+  /** The source's own circled line number, in drawing order. */
+  circledNumber: CircledNumber;
+  /** The literal number of dots the source draws for this line, before any
+   * reduction — this is what the rendered row of marks counts out. For a
+   * line the source reduces (e.g. "18 - 16 = 2"), this is 18, not 2. */
+  rawCount: number;
+  /** The arithmetic exactly as the source prints it for this line, e.g.
+   * "10" or "18 - 16 = 2". */
+  arithmeticLabel: string;
+  /** The value after the source's own stated reduction — used only to look
+   * up the resulting star pattern, never recomputed here. */
   reducedValue: number;
 }
 
 export interface CountingMethodExample {
-  label: string; // "e.g. 1" / "e.g. 2" as printed
-  lines: CountingMethodLine[]; // four lines, in the source's own order (1st drawn to 4th drawn)
-}
-
-function starPattern(number: number): Pattern {
-  const star = STARS.find((s) => s.number === number);
-  if (!star) throw new Error(`No star numbered ${number} in content/stars.ts`);
-  return star.pattern;
+  label: string; // "e.g." as printed
+  lines: CountingMethodLine[]; // four lines, in the source's own drawing order (1st to 4th)
+  /** The source's own display order for the four resulting figures, drawn
+   * on the right as a small result strip labelled "4 3 2 1" (the reverse of
+   * drawing order) — each entry is a 1-based line number, e.g. [4,3,2,1]
+   * means: show line 4's figure first, then line 3's, then line 2's, then
+   * line 1's. Matches the source's own stated counting direction (starting
+   * from the fourth line, right to left) rather than the drawing order. */
+  resultOrder: [number, number, number, number];
 }
 
 export function starForCount(reducedValue: number): {
@@ -64,27 +86,78 @@ export function starForCount(reducedValue: number): {
 }
 
 // Both example sets from page 4 of the source, transcribed exactly —
-// including the source's own reduction arithmetic where it shows one.
+// including the source's own reduction arithmetic and raw (pre-reduction)
+// dot counts where it shows one.
 export const COUNTING_METHOD_EXAMPLES: CountingMethodExample[] = [
   {
     label: "e.g.",
     lines: [
-      { rawLabel: "10", reducedValue: 10 },
-      { rawLabel: "12", reducedValue: 12 },
-      { rawLabel: "14", reducedValue: 14 },
-      { rawLabel: "18 - 16 = 2", reducedValue: 2 },
+      {
+        circledNumber: "①",
+        rawCount: 10,
+        arithmeticLabel: "10",
+        reducedValue: 10,
+      },
+      {
+        circledNumber: "②",
+        rawCount: 12,
+        arithmeticLabel: "12",
+        reducedValue: 12,
+      },
+      {
+        circledNumber: "③",
+        rawCount: 14,
+        arithmeticLabel: "14",
+        reducedValue: 14,
+      },
+      {
+        circledNumber: "④",
+        rawCount: 18,
+        arithmeticLabel: "18 - 16 = 2",
+        reducedValue: 2,
+      },
     ],
+    resultOrder: [4, 3, 2, 1],
   },
   {
     label: "e.g.",
     lines: [
-      { rawLabel: "13", reducedValue: 13 },
-      { rawLabel: "15", reducedValue: 15 },
-      { rawLabel: "18 - 16 = 2", reducedValue: 2 },
-      { rawLabel: "19 - 16 = 3", reducedValue: 3 },
+      {
+        circledNumber: "①",
+        rawCount: 13,
+        arithmeticLabel: "13",
+        reducedValue: 13,
+      },
+      {
+        circledNumber: "②",
+        rawCount: 15,
+        arithmeticLabel: "15",
+        reducedValue: 15,
+      },
+      {
+        circledNumber: "③",
+        rawCount: 18,
+        arithmeticLabel: "18 - 16 = 2",
+        reducedValue: 2,
+      },
+      {
+        circledNumber: "④",
+        rawCount: 19,
+        arithmeticLabel: "19 - 16 = 3",
+        reducedValue: 3,
+      },
     ],
+    resultOrder: [4, 3, 2, 1],
   },
 ];
+
+/** The source's own instruction on counting direction, printed between the
+ * two worked examples: counting starts at the fourth (bottom) line, reading
+ * right to left — quoted verbatim, not paraphrased, and not extended beyond
+ * what is quoted (the source page's own continuation past this point is not
+ * independently verified here). */
+export const COUNTING_DIRECTION_NOTE =
+  "Starting counting from 4th line from your right to the left…";
 
 /** The source's own closing line under the Counting Method's examples. */
 export const COUNTING_METHOD_CLOSING =

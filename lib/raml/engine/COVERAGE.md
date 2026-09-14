@@ -4250,4 +4250,84 @@ no horizontal overflow.
 
 **Not pushed, not deployed**, per this prompt's explicit instruction.
 
+## Prompt 36 — clean up user-facing Divine Name / Hatim source notes
+
+The reader's "Divine Name" block had been showing internal reconciliation
+commentary — Abjad-vs-stated status labels ("SOURCE VALUE ≠ ABJAD",
+"SOURCE SPELLING UNRESOLVED") and full explanatory notes describing the
+N-4/N-5/N-6 Hatim diagnostic — as if that machinery were how the Hatim
+is constructed. It isn't: the Hatim cells are source data, and the
+diagnostic is a development-time cross-check. This prompt cleaned up the
+presentation without touching any of the underlying data or diagnostic
+logic.
+
+**New presentation-layer module.** `content/manuscripts/
+divineNameDisplay.ts` exports `divineNameSourceLine(invocation)`, a pure
+function that takes ONLY a manuscript-stated recitation count (never an
+Abjad value, never a Hatim diagnostic result) and returns a plain
+"Source value: N" + "Manuscript-stated recitation count." pair, or —
+when no invocation exists — "Source value not specified in the available
+manuscript material." Its signature has no room for a computed value to
+compare against, so it cannot structurally produce an "X ≠ Y" warning.
+
+**`app/books/[id]/read/page.tsx` changes.** The Divine Name block now
+calls this helper instead of `abjadStatusLabel()`/`.note`; the
+`getAbjadValidationByStarId` import and per-star `abjad` variable are
+removed from the page entirely (unused after the block simplification).
+A new "SOURCE / Hatim reproduced from the manuscript source." caption
+was added directly beneath every Hatim diagram. The end-of-chapter notes
+paragraph's dangling cross-reference to "the Divine Name note above each
+Hatim" (which no longer exists in that form) was rewritten to state the
+same fact — no cell is calculated from another star or a formula —
+without the stale pointer.
+
+**Nothing internal was deleted or weakened.** `abjad.ts`,
+`hatimPattern.ts` and `valueReconciliation.ts` are byte-for-byte
+untouched by this prompt; their full diagnostic data (Abjad computations,
+N-4/N-5/N-6 status per star, value-reconciliation confidence) remains
+importable and is still exercised by `abjad.test.ts`,
+`reconciliation.test.ts` and `hatimComplete.test.ts`, unchanged. This
+app has no existing developer-only/debug-mode mechanism to gate a richer
+view behind, so none was invented; the data simply lives in the content
+modules for any future developer/source-audit UI to draw on, exactly as
+it did before this prompt.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`,
+`content/stars.ts`, `hatim.ts`, `abjad.ts`, `hatimPattern.ts` and
+`valueReconciliation.ts` is empty — only `page.tsx` changed, plus two
+new content-layer files.
+
+**Tests (16 new):** `divineNameDisplay.test.ts` (6) proves the helper's
+behavior directly — plain display for Iddris (115) and Ayuba (312),
+"not specified" rather than a warning when no invocation exists, and
+that its output never contains "Abjad", "mismatch", "N-4", "Hatim", or
+"conflict" wording, for any input. `readerPresentation.test.ts` (10)
+reads the shipped `page.tsx` source directly (this app has no
+component-rendering test harness) and proves the normal reader's output:
+no N-4/N-5/N-6, no Abjad-check/computed-Abjad/mismatch text, no
+"unresolved" spelling-status language, no literal 322/325/324 anywhere
+in the page; the clean caption and Hatim source line are present; and,
+cross-checked against the still-correct `HATIM_DEFINITIONS` data, Ali's
+rendered cells are exactly 3/366/1, 365/•/5, 2/4/364 with none of the
+old incorrect values present, and Iddris's (115) and Ayuba's (312)
+Hatim geometry is confirmed exact. Full suite: 2352 passing (2336 prior
++ 16 new). `tsc --noEmit` clean, `next build` clean.
+
+**Browser-verified** at 390×844 across Iddris, Ayuba, Ali and Yunus:
+every Divine Name block now reads exactly "Source value: N" /
+"Manuscript-stated recitation count." with no Abjad or N-4/N-5/N-6
+commentary — including Yunus, whose invocation previously carried a
+multi-paragraph partial-match explanation, now shown with the same plain
+two-line note as every other star. Ali's Hatim grid confirmed exactly
+3/366/1, 365/•/5, 2/4/364 across all three numeral display modes, with
+neither the old 322/325/324 values nor any diagnostic text visible. The
+end-of-chapter notes paragraph reads cleanly with no dangling reference.
+No horizontal overflow at any card. A scripted full-page scan (16
+requirement checks) confirms all forbidden strings absent and all
+required strings present across the whole chapter, not just the four
+inspected cards.
+
+**Not pushed, not deployed**, per this prompt's explicit instruction.
+
 

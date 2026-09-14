@@ -26,10 +26,7 @@ import {
 import { KM_CHAPTERS } from "@/content/manuscripts/kanzul-mikban";
 import { getStarUseByStarId } from "@/content/manuscripts/starUses";
 import { getHatimByStarId } from "@/content/manuscripts/hatim";
-import {
-  getAbjadValidationByStarId,
-  abjadStatusLabel,
-} from "@/content/manuscripts/abjad";
+import { divineNameSourceLine } from "@/content/manuscripts/divineNameDisplay";
 import {
   STARS,
   ELEMENT_LABEL,
@@ -306,7 +303,6 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                           {STARS.map((star) => {
                             const use = getStarUseByStarId(star.id);
                             const hatim = getHatimByStarId(star.id);
-                            const abjad = getAbjadValidationByStarId(star.id);
                             return (
                               <Card
                                 key={star.id}
@@ -359,37 +355,36 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                         Source note: {use.sourceAmbiguity}
                                       </p>
                                     ) : null}
-                                    {use.invocation ? (
-                                      <div className="rounded-lg border border-sand/10 bg-ink px-3 py-2.5">
-                                        <p className="type-label uppercase tracking-widest text-sand/65">
-                                          Divine Name
-                                        </p>
-                                        <p
-                                          className="type-body text-sand-light"
-                                          dir="rtl"
-                                          lang="ar"
-                                        >
-                                          {use.invocation.arabic}
-                                        </p>
-                                        <p className="mt-1 type-label text-sand/65">
-                                          Source value: {use.invocation.count}{" "}
-                                          (source-derived — repeated as a
-                                          recitation, not computed by this app)
-                                          {abjad ? (
-                                            <>
-                                              {" "}
-                                              · Abjad check:{" "}
-                                              {abjadStatusLabel(abjad)}
-                                            </>
-                                          ) : null}
-                                        </p>
-                                        {abjad?.note ? (
-                                          <p className="mt-1 type-evidence text-sand/65">
-                                            {abjad.note}
+                                    {(() => {
+                                      const sourceLine = divineNameSourceLine(
+                                        use.invocation,
+                                      );
+                                      return (
+                                        <div className="rounded-lg border border-sand/10 bg-ink px-3 py-2.5">
+                                          <p className="type-label uppercase tracking-widest text-sand/65">
+                                            Divine Name
                                           </p>
-                                        ) : null}
-                                      </div>
-                                    ) : null}
+                                          {use.invocation ? (
+                                            <p
+                                              className="type-body text-sand-light"
+                                              dir="rtl"
+                                              lang="ar"
+                                            >
+                                              {use.invocation.arabic}
+                                            </p>
+                                          ) : null}
+                                          {sourceLine.hasSourceValue ? (
+                                            <p className="mt-1 type-label text-sand/65">
+                                              Source value:{" "}
+                                              {sourceLine.sourceValue}
+                                            </p>
+                                          ) : null}
+                                          <p className="mt-0.5 type-evidence text-sand/65">
+                                            {sourceLine.caption}
+                                          </p>
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 ) : (
                                   <div className="mt-3">
@@ -421,6 +416,13 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                       hatim={hatim}
                                       starName={star.name}
                                     />
+                                    <p className="mt-2 type-label uppercase tracking-widest text-sand/65">
+                                      Source
+                                    </p>
+                                    <p className="type-evidence text-sand/65">
+                                      Hatim reproduced from the manuscript
+                                      source.
+                                    </p>
                                   </div>
                                 ) : null}
                               </Card>
@@ -437,11 +439,9 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                             in the bottom-middle cell of every diagram, which
                             earlier passes could not confidently read from
                             photographs — were confirmed directly against the
-                            original manuscript. No cell’s value was calculated
-                            from another star, from an Abjad sum, or from the
-                            numerical pattern some diagrams happen to share (see
-                            the Divine Name note above each Hatim); every number
-                            shown is a manuscript-read value.
+                            original manuscript. Every number shown is a
+                            manuscript-read value, not calculated from another
+                            star or from a formula.
                           </p>
                         </div>
                       ) : null}

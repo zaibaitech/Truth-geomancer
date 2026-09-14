@@ -3416,5 +3416,65 @@ render correctly (20 `dir="rtl"` elements found, unaffected by this change).
 
 **Not deployed, not pushed** — per this prompt's explicit instruction.
 
+---
+
+## Prompt 27 — Chapter 1: reposition practical examples under each method
+
+**The gap.** Prompt 26 restored the Counting Method, Cancelling Method and
+star-addition diagrams, but rendered all three in a single block after
+Chapter 1's entire prose body — so a reader met the Counting Method's
+explanation, then the Cancelling Method's explanation, then the Banaat and
+chart-building paragraphs, and only after all of that, the three diagrams
+grouped together. The source teaches and demonstrates one method at a time;
+the practical example belongs immediately under the method it demonstrates,
+not in a separate section at the chapter's end.
+
+**What changed.** `app/books/[id]/read/page.tsx`'s rendering of the
+`drawing-a-chart` chapter only. `chapter.body` itself (its five paragraphs:
+[0] intro sentence, [1] Counting Method explanation, [2] Cancelling Method
+explanation, [3] Banaat/Daughters formation, [4] chart continues building)
+is unchanged — this is purely how those same five paragraphs are
+interleaved with the diagram components on the page:
+
+1. `chapter.body[0]` (intro sentence).
+2. "The Counting Method" heading → `chapter.body[1]` → `CountingMethodDiagram`
+   (its own two worked examples and closing "umuhat mother stars" line,
+   unchanged).
+3. "The Cancelling Method" heading → `chapter.body[2]` → `CancellingMethodDiagram`
+   (its own four worked examples, unchanged).
+4. `chapter.body.slice(3)` (Banaat formation, then chart-building) →
+   "Adding Stars: From Mothers to the Full Chart" heading →
+   `AdditionSequenceDiagram`.
+
+The Bazdaaho Formula diagram's position is unchanged — still appended after
+Chapter 2's own prose body, keyed off `chapter.id === 'bazdaaho-method'`,
+outside Chapter 1 entirely. No diagram component was rewritten, and none is
+rendered twice — `CountingMethodDiagram`, `CancellingMethodDiagram`,
+`AdditionSequenceDiagram` and `BazdaahoFormulaDiagram` are each called
+exactly once, same as before, only relocated within Chapter 1's JSX.
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` and `content/stars.ts` is empty; only `page.tsx` changed for
+this prompt (no data file, no diagram component, no content file touched).
+
+**Tests.** Full suite: 2,278 tests passing — unchanged count, since no data
+or component logic changed, only page layout. `tsc --noEmit` clean, `next
+build` clean.
+
+**Browser-verified** at 390×844: Dedication still renders first, Chapter 1
+still directly follows the Introduction. Inside Chapter 1's rendered HTML,
+marker-position checks confirm, in order: Counting Method heading →
+explanation → its two worked examples → "This first 4 is called umuhat
+mother stars." → Cancelling Method heading → explanation → its four worked
+examples → the Banaat paragraph → the chart-continues paragraph → the
+Addition Sequence heading and its combination chips. The Bazdaaho Formula
+diagram is absent from Chapter 1's HTML and present, once, in Chapter 2's.
+No duplicated diagram markers (each star name, each "Eg. N." label, the
+Addition Sequence heading — all appear exactly once). No horizontal
+overflow at Standard or Extra Large reader size.
+
+**Not pushed, not deployed** — per this prompt's explicit instruction.
+
 
 

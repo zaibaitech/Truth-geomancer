@@ -171,37 +171,56 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                       first={false}
                     />
                     <div className="mt-4">
-                      {chapter.body ? (
-                        <Prose paragraphs={chapter.body} />
-                      ) : null}
+                      {chapter.id === "drawing-a-chart" && chapter.body ? (
+                        // The source teaches each method and immediately
+                        // demonstrates it — the explanatory paragraph and its
+                        // worked example belong together, not in a separate
+                        // "practical examples" section at the chapter's end.
+                        // chapter.body's own five paragraphs are unchanged
+                        // (still [intro, Counting Method, Cancelling Method,
+                        // Banaat/Daughters, chart-building]); only how they
+                        // are interleaved with the diagrams below changed.
+                        <>
+                          <Prose paragraphs={[chapter.body[0]]} />
 
-                      {chapter.id === "drawing-a-chart" ? (
-                        <div className="mt-5 space-y-6">
-                          <div>
+                          <div className="mt-5">
                             <p className="type-label uppercase tracking-widest text-sand/65">
                               The Counting Method
                             </p>
-                            <div className="mt-2">
+                            <div className="mt-3">
+                              <Prose paragraphs={[chapter.body[1]]} />
+                            </div>
+                            <div className="mt-4">
                               <CountingMethodDiagram />
                             </div>
                           </div>
-                          <div>
+
+                          <div className="mt-6">
                             <p className="type-label uppercase tracking-widest text-sand/65">
                               The Cancelling Method
                             </p>
-                            <div className="mt-2">
+                            <div className="mt-3">
+                              <Prose paragraphs={[chapter.body[2]]} />
+                            </div>
+                            <div className="mt-4">
                               <CancellingMethodDiagram />
                             </div>
                           </div>
-                          <div>
-                            <p className="type-label uppercase tracking-widest text-sand/65">
-                              Adding Stars: From Mothers to the Full Chart
-                            </p>
-                            <div className="mt-2">
-                              <AdditionSequenceDiagram />
+
+                          <div className="mt-6">
+                            <Prose paragraphs={chapter.body.slice(3)} />
+                            <div className="mt-4">
+                              <p className="type-label uppercase tracking-widest text-sand/65">
+                                Adding Stars: From Mothers to the Full Chart
+                              </p>
+                              <div className="mt-2">
+                                <AdditionSequenceDiagram />
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </>
+                      ) : chapter.body ? (
+                        <Prose paragraphs={chapter.body} />
                       ) : null}
 
                       {chapter.id === "bazdaaho-method" ? (

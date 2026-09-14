@@ -105,9 +105,9 @@ export const STAR_USE_ENTRIES: StarUseEntry[] = [
     house6Text:
       'If you found Mahadi in house six (6), it means little mental disorder. You do the sadaka of white colanut (1) and white hen (1), give them to a healthy man.',
     house2Text:
-      'If you found Mahadi in house (2), it means a lot of money will soon come. Do the same sadaka above and write يا زكي (37) times, Suratul Mulk (1) and the hatim below for him/her to be drinking and be rubbing every day.',
+      'If you found Mahadi in house (2), it means a lot of money will soon come. Do the same sadaka above and write يا زكي (37) times, Suratul Sarkhi (1) and the hatim below for him/her to be drinking and be rubbing every day.',
     invocation: { arabic: 'يا زكي', count: 37 },
-    recitations: ['Suratul Mulk (1 time)'],
+    recitations: ['Suratul Sarkhi (1 time)'],
     notes: [],
     sourceAmbiguity: null,
   },
@@ -169,14 +169,13 @@ export const STAR_USE_ENTRIES: StarUseEntry[] = [
     entryNumber: 8,
     sourcePage: 15,
     house6Text:
-      "If you found Ayuba in house six (6), it means jinni sickness spiritual or marriage. This normally caused the person difficulties in getting a stable relationship or marriage. Do the sadaka of a black hen. Kill it and cook food with it and share the food to the poor but don't taste or eat it pleas",
+      "If you found Ayuba in house six (6), it means jinni sickness spiritual or marriage. This normally caused the person difficulties in getting a stable relationship or marriage. Do the sadaka of a black hen. Kill it and cook food with it and share the food to the poor but don't taste or eat it please",
     house2Text:
       'Also, if you found Ayuba in house (2), it means there is darkness in your success, or life and things can never go well with you, specially business or money issues. Do the sadaka above and write يا باسط (312) times, Ayatul Kursiyu (7) times, Suratul Falaq (7) times, Suratul Nass (7) times and the hatim below for drinking and rubbing everyday.',
     invocation: { arabic: 'يا باسط', count: 312 },
     recitations: ['Ayatul Kursiyu (7 times)', 'Suratul Falaq (7 times)', 'Suratul Nass (7 times)'],
     notes: [],
-    sourceAmbiguity:
-      'The House 6 paragraph ends mid-sentence in the source ("…don\'t taste or eat it pleas") — printed exactly as it appears; the PDF does not complete the word "please" before turning to House 2.',
+    sourceAmbiguity: null,
   },
   {
     starId: 'kalla-allahu',
@@ -199,9 +198,9 @@ export const STAR_USE_ENTRIES: StarUseEntry[] = [
     house6Text:
       'If you found Sulemana in house six (6), It means sickness from jinni and shaitan. This normally happen to those that walk around mid-day or mid-night, odd times and quiet or fearing places. Also, cutting down some huge / big trees or setting them fire can also cause it. Do the sadaka of six (6) red colanuts, 6 pieces of pepe and a red hen.',
     house2Text:
-      "Also, if you found it in house (2), it means there is a spell on the person and his finances and money can not be stable in his/her hand. Do the sadaka of a local egg, get the egg and send it to a place where 3 paths meet each other. Make all your intentions and hit it in the middle of the paths and run away immediately. Make sure the water of the egg don't touch you. Write يا نور (256) times, Kul huwa Allahu (7) times and the hatim below for him/her to be drinking and rubbing the body everyday.",
+      "Also, if you found it in house (2), it means there is a spell on the person and his finances and money can not be stable in his/her hand. Do the sadaka of a local egg, get the egg and send it to a place where 3 paths meet each other. Make all your intentions and hit it in the middle of the paths and run away immediately. Make sure the water of the egg don't touch you. Write يا نور (256) times, Kul huwa Allahu (Ikhlas) (7) times and the hatim below for him/her to be drinking and rubbing the body everyday.",
     invocation: { arabic: 'يا نور', count: 256 },
-    recitations: ['Kul huwa Allahu (7 times)'],
+    recitations: ['Kul huwa Allahu (Ikhlas) (7 times)'],
     notes: [],
     sourceAmbiguity:
       'The source runs House 6 and House 2 together in one paragraph here; the split above follows the source\'s own "Also, if you found it in house (2)" transition sentence. "Kul huwa Allahu" is the source\'s own name for the recitation — it does not spell out "Suratul Ikhlas" here.',

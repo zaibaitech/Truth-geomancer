@@ -116,10 +116,19 @@ describe('star use entries — section 5 and 25: no invented text', () => {
   });
 
   it('reproduces the source\'s own incomplete sentences rather than completing them', () => {
-    const ayuba = getStarUseByStarId('ayuba')!;
-    expect(ayuba.house6Text).toMatch(/\bpleas$/);
     const nuhu = getStarUseByStarId('nuhu')!;
     expect(nuhu.house6Text).toMatch(/enemity sicknes$/);
+  });
+
+  it('corrects a confirmed PDF-extraction artifact (Ayuba\'s "pleas") rather than reproducing it', () => {
+    // Unlike Nuhu's and Usman's genuine source gaps (asserted elsewhere in
+    // this file), a closer look at the source page confirmed "pleas" was an
+    // extraction artifact, not the manuscript's own incompleteness — the word
+    // is "please". Corrected in place; no sourceAmbiguity note is carried for
+    // it, since there is no longer an ambiguity to flag.
+    const ayuba = getStarUseByStarId('ayuba')!;
+    expect(ayuba.house6Text).toMatch(/\bplease$/);
+    expect(ayuba.sourceAmbiguity).toBeNull();
   });
 
   it('reproduces the source\'s own broken surah reference for Usman rather than silently fixing it', () => {
@@ -129,10 +138,13 @@ describe('star use entries — section 5 and 25: no invented text', () => {
 
   it('marks every genuine source gap with a sourceAmbiguity note instead of smoothing over it', () => {
     const flagged = STAR_USE_ENTRIES.filter((e) => e.sourceAmbiguity !== null);
-    // Four entries run both houses in one paragraph (Umar, Ayuba, Kalla
-    // Allahu, Sulemana); three more carry a documented textual quirk
-    // (Hassan/Hussein, Ayuba's cut-off sentence, Nuhu's, Usman's, Musah's).
-    expect(flagged.length).toBeGreaterThanOrEqual(7);
+    // Three entries run both houses in one paragraph (Umar, Kalla Allahu,
+    // Sulemana); four more carry a documented textual quirk (Hassan/Hussein,
+    // Nuhu's cut-off sentence, Usman's broken surah name, Musah's uncounted
+    // recitation). Ayuba is deliberately not among them: its one flagged
+    // spot, "pleas", turned out to be a corrected extraction artifact rather
+    // than a genuine source gap, so it carries no sourceAmbiguity note.
+    expect(flagged.length).toBe(7);
   });
 });
 

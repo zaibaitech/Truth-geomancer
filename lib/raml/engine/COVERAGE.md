@@ -2753,20 +2753,31 @@ one entry per star, transcribed from the source PDF's own text layer rather
 than the supplied screenshots alone (the screenshots were used to check the
 hand-drawn Hatim, which has no text layer). The manuscript's own spellings
 are kept — "sadaka", "colanut", "enemity", "massan" — because this is a
-restoration, not a house-style rewrite. Four entries (Umar, Ayuba, Kalla
-Allahu, Sulemana) run House 6 and House 2 together in one paragraph in the
-source; each is split at the source's own transition sentence ("Also, if you
-found X in house (2)…"), not at an invented boundary — and each such entry
-says so in a `sourceAmbiguity` note. Genuine source oddities are reproduced
-rather than smoothed over: Ayuba's House 6 paragraph ends mid-word ("…don't
-taste or eat it pleas"), Nuhu's ends without a full stop, Usman's surah name
-is printed in the source itself as "Suratul...Alamnashiraha" with the gap,
-and Musah's closing surah has no stated repeat count — all four are
-reproduced exactly and flagged, not corrected. The sixteen Arabic invocations
-are each a standard, independently-identifiable Divine Name (Ya Tahir, Ya
-Rahim, Ya 'Alim, …); the only edits made to them close up a stray space the
-PDF's own text extraction introduced mid-word, never a transliteration or a
-guess.
+restoration, not a house-style rewrite. Three entries (Umar, Kalla Allahu,
+Sulemana) run House 6 and House 2 together in one paragraph in the source;
+each is split at the source's own transition sentence ("Also, if you found X
+in house (2)…"), not at an invented boundary — and each such entry says so
+in a `sourceAmbiguity` note. Genuine source oddities are reproduced rather
+than smoothed over: Nuhu's House 6 sentence ends without a full stop,
+Usman's surah name is printed in the source itself as
+"Suratul...Alamnashiraha" with the gap, and Musah's closing surah has no
+stated repeat count — all three are reproduced exactly and flagged, not
+corrected. The sixteen Arabic invocations are each a standard,
+independently-identifiable Divine Name (Ya Tahir, Ya Rahim, Ya 'Alim, …);
+the only edits made to them close up a stray space the PDF's own text
+extraction introduced mid-word, never a transliteration or a guess.
+
+**Two follow-up corrections, made after closer review of the source pages.**
+Ayuba's House 6 paragraph originally ended "…don't taste or eat it pleas",
+reproduced as printed and flagged with a `sourceAmbiguity` note explaining
+that the PDF's text layer appeared to cut the word short. A closer look at
+the source page confirmed this was exactly that — a PDF-extraction artifact,
+not the manuscript's own incompleteness — so it is now transcribed as
+"please" and the note is gone; there is no longer an ambiguity to flag.
+Separately, Sulemana's House 2 recitation is now named "Kul huwa Allahu
+(Ikhlas)" rather than "Kul huwa Allahu" alone, clarifying which surah the
+source's own short name refers to without changing the source's own
+wording, the Arabic invocation, or the stated count.
 
 **One naming discrepancy is documented, not resolved.** The symbol page
 (Chapter Three) pairs "Hassan & Hussein" as one entry; Chapter Four's own
@@ -2835,12 +2846,14 @@ which already had a per-star loop; it now shows the manuscript's own words
 instead of the paraphrase, with the Hatim beneath each entry, and a closing
 note explaining the unresolved mark once rather than sixteen times.
 
-`content/manuscripts/starUses.test.ts` (57 tests) checks: all sixteen
-entries present in the manuscript's own ①–⑯ order (not the symbol page's
-grouping); every entry names both houses and at least one sadaka, invocation
-and recitation; the Hassan/Hussein discrepancy is asserted rather than
-resolved; the four source oddities (Ayuba, Nuhu, Usman, Musah) are asserted
-byte-for-byte rather than corrected; every Hatim's centre figure equals its
+`content/manuscripts/starUses.test.ts` (58 tests, after the two follow-up
+corrections above) checks: all sixteen entries present in the manuscript's
+own ①–⑯ order (not the symbol page's grouping); every entry names both
+houses and at least one sadaka, invocation and recitation; the Hassan/Hussein
+discrepancy is asserted rather than resolved; the three remaining source
+oddities (Nuhu, Usman, Musah) are asserted byte-for-byte rather than
+corrected, and Ayuba's corrected "please" is asserted in its place; every
+Hatim's centre figure equals its
 star's own pattern; the three fixed corner cells read identically across all
 sixteen; the recurring hook mark is never assigned a value; the
 descending-sequence pattern is proven NOT to generalise to Yussif; and the

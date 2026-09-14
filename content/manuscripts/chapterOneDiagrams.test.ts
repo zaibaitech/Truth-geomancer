@@ -3,11 +3,16 @@ import { STARS, type Pattern } from "@/content/stars";
 import { addPatterns, addRows } from "@/lib/raml/casting";
 import {
   ADDITION_SEQUENCE,
+  BAZDAAHO_ALL_ACTIVE_VALIDATION,
   BAZDAAHO_ARRANGEMENT,
+  BAZDAAHO_CALCULATION_RULE_NOTE,
   BAZDAAHO_EG1_NOTE,
   BAZDAAHO_FORMULA_TABLE,
   BAZDAAHO_LINE_VALUES,
   BAZDAAHO_METHOD_INTRO,
+  BAZDAAHO_POSITION_16_NOTE,
+  BAZDAAHO_POSITION_AUDIT,
+  BAZDAAHO_SOURCE_CONFLICTS,
   BAZDAAHO_WORKED_EXAMPLES,
   bazdaahoNumberFromPattern,
   CANCEL_DIRECTION_LABEL,
@@ -297,17 +302,30 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       ]);
     });
 
-    it("uses the special Bazdaaho letter correspondence, not standard Abjad values", () => {
+    it("uses Bāʾ, Zāy, Dāl and Ḥāʾ -- their own standard Abjad numeral values, not a modern substitution", () => {
       expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.arabic)).toEqual([
         "ب",
         "ز",
         "د",
-        "هـ",
+        "ح",
       ]);
-      // Zāy is explicitly 7 in this correspondence, not its standard Abjad
-      // value -- this is the one letter the source is most explicit about.
+      // Zāy is 7 here, matching its own standard Abjad value -- not Jīm
+      // (ج), which this letter is sometimes mistaken for.
       const zay = BAZDAAHO_FORMULA_TABLE.find((l) => l.arabic === "ز");
       expect(zay?.value).toBe(7);
+      expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.arabic)).not.toContain("ج");
+    });
+
+    it("distinguishes the source's own literal printed glyph from the independently-verified letter, for the two rows where they differ", () => {
+      const [line1, line2, line3, line4] = BAZDAAHO_FORMULA_TABLE;
+      // Rows 1-2 print cleanly as Arabic in the source itself -- no
+      // separate "as printed" glyph is needed for them.
+      expect(line1.sourcePrintedAs).toBeUndefined();
+      expect(line2.sourcePrintedAs).toBeUndefined();
+      // Rows 3-4 do not print as clean Arabic script in the source; the
+      // literal printed character is preserved here rather than hidden.
+      expect(line3.sourcePrintedAs).toBe("Ↄ");
+      expect(line4.sourcePrintedAs).toBe("Z");
     });
 
     it("labels each row with the figure line and element it corresponds to", () => {
@@ -328,7 +346,7 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       expect(eg1.values).toEqual([2, 7, 8]);
       expect(eg1.workingLine).toContain("2 + 7 + 8 = 17");
       expect(eg1.result).toBe(1);
-      expect(BAZDAAHO_EG1_NOTE).toContain("two dots");
+      expect(BAZDAAHO_EG1_NOTE).toContain("two points");
       expect(BAZDAAHO_EG1_NOTE).toContain("contributes 0");
     });
 
@@ -350,6 +368,19 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       expect(BAZDAAHO_WORKED_EXAMPLES.map((e) => e.result)).toEqual([
         1, 2, 3, 4,
       ]);
+    });
+
+    it("states the calculation rule plainly: only single-point lines contribute", () => {
+      expect(BAZDAAHO_CALCULATION_RULE_NOTE).toContain("single-point");
+      expect(BAZDAAHO_CALCULATION_RULE_NOTE).toContain("contributes 0");
+      expect(BAZDAAHO_CALCULATION_RULE_NOTE).not.toContain(
+        "does not match the sum",
+      );
+    });
+
+    it("does not describe Eg. 1 as containing an arithmetic error", () => {
+      expect(BAZDAAHO_EG1_NOTE).not.toContain("does not match");
+      expect(BAZDAAHO_EG1_NOTE).not.toContain("error");
     });
   });
 
@@ -379,6 +410,99 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       const yussif = STARS.find((s) => s.name === "Yussif");
       expect(yussif!.pattern).toEqual([1, 1, 2, 1]);
       expect(bazdaahoNumberFromPattern(yussif!.pattern)).toBe(1);
+    });
+
+    it("validates the all-active case (2+7+4+8=21-16=5), clearly marked as independent verification, not a source example", () => {
+      expect(BAZDAAHO_ALL_ACTIVE_VALIDATION.values).toEqual([2, 7, 4, 8]);
+      expect(BAZDAAHO_ALL_ACTIVE_VALIDATION.workingLine).toContain(
+        "2 + 7 + 4 + 8 = 21",
+      );
+      expect(BAZDAAHO_ALL_ACTIVE_VALIDATION.result).toBe(5);
+      const ibrahim = STARS.find((s) => s.name === "Ibrahim");
+      expect(ibrahim!.pattern).toEqual([1, 1, 1, 1]);
+      expect(bazdaahoNumberFromPattern(ibrahim!.pattern)).toBe(5);
+      expect(ibrahim!.number).toBe(5);
+    });
+
+    it("does not print 21 as an error -- it is the expected total when all four lines are active", () => {
+      expect(BAZDAAHO_ALL_ACTIVE_VALIDATION.workingLine).not.toContain("error");
+    });
+
+    it("documents Musah's position-16 placement as a source-stated convention, not a derived '0 means 16' rule", () => {
+      expect(BAZDAAHO_POSITION_16_NOTE).toContain("0");
+      expect(BAZDAAHO_POSITION_16_NOTE).not.toContain("0 means 16");
+      expect(BAZDAAHO_POSITION_16_NOTE.toLowerCase()).toContain(
+        "source's own arrangement",
+      );
+    });
+  });
+
+  describe("Full 16-figure Bazdaaho validation", () => {
+    it("has exactly sixteen audited positions", () => {
+      expect(BAZDAAHO_POSITION_AUDIT).toHaveLength(16);
+    });
+
+    it("accounts for every position 1-16 exactly once, with no duplicate and no missing position", () => {
+      const positions = BAZDAAHO_POSITION_AUDIT.map((a) => a.position);
+      expect([...positions].sort((a, b) => a - b)).toEqual(
+        Array.from({ length: 16 }, (_, i) => i + 1),
+      );
+      expect(Array.from(new Set(positions))).toHaveLength(16);
+    });
+
+    it("gives every position a distinct four-line pattern -- no two positions share a pattern", () => {
+      const patternKeys = BAZDAAHO_POSITION_AUDIT.map((a) =>
+        a.pattern.join(""),
+      );
+      expect(Array.from(new Set(patternKeys))).toHaveLength(16);
+    });
+
+    it("matches every audited position to its existing canonical star in STARS by number and pattern -- no guessed mapping", () => {
+      for (const entry of BAZDAAHO_POSITION_AUDIT) {
+        const star = STARS.find((s) => s.number === entry.position);
+        expect(star).toBeDefined();
+        expect(star!.id).toBe(entry.starId);
+        expect(star!.name).toBe(entry.starName);
+        expect(star!.pattern).toEqual(entry.pattern);
+      }
+    });
+
+    it("reduces every position's own active-value total to exactly its own position number, for positions 1-15", () => {
+      for (const entry of BAZDAAHO_POSITION_AUDIT) {
+        if (entry.position === 16) continue;
+        expect(entry.reducedPosition).toBe(entry.position);
+      }
+    });
+
+    it("applies the >16 reduction only where the raw total actually exceeds 16", () => {
+      for (const entry of BAZDAAHO_POSITION_AUDIT) {
+        const expectedReduced =
+          entry.rawTotal > 16 ? entry.rawTotal - 16 : entry.rawTotal;
+        expect(entry.reducedPosition).toBe(expectedReduced);
+      }
+    });
+
+    it("gives position 16 (Musah) a raw total of 0, not derived from arithmetic to equal 16", () => {
+      const musah = BAZDAAHO_POSITION_AUDIT.find((a) => a.position === 16)!;
+      expect(musah.pattern).toEqual([2, 2, 2, 2]);
+      expect(musah.activeValues).toEqual([]);
+      expect(musah.rawTotal).toBe(0);
+      expect(musah.reducedPosition).toBe(0);
+    });
+
+    it("records the position-11 source-vs-canonical conflict explicitly, rather than silently choosing a resolution", () => {
+      expect(BAZDAAHO_SOURCE_CONFLICTS.length).toBeGreaterThan(0);
+      const conflict = BAZDAAHO_SOURCE_CONFLICTS.find((c) => c.position === 11);
+      expect(conflict).toBeDefined();
+      expect(conflict!.description).toContain("[2,1,2,2]");
+      expect(conflict!.description).toContain("[2,1,1,2]");
+      // The canonical mapping itself is untouched by the conflict record --
+      // Ali still owns position 11 in the audit table.
+      const position11 = BAZDAAHO_POSITION_AUDIT.find(
+        (a) => a.position === 11,
+      )!;
+      expect(position11.starName).toBe("Ali");
+      expect(position11.pattern).toEqual([2, 1, 1, 2]);
     });
   });
 

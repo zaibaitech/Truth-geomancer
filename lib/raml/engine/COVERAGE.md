@@ -3977,4 +3977,123 @@ corrected note's "contributes 0" wording present.
 **Committed, not pushed** — awaiting an explicit push instruction, per
 this session's established pattern.
 
+## Prompt 33 — Bazdaaho Method: source-faithful correction + calculation reconciliation
+
+A follow-up prompt gave the general derivation rule in full (a one-point
+line is active and contributes its letter's value; a two-point line is
+inactive and contributes 0) and a letter correspondence that named Line 4
+as Ḥāʾ (ح) rather than Prompt 32's Hāʾ (هـ). Rather than trust either
+prompt's letter claim over the other, the actual source PDF
+(`THE_MASTER_OF_GEOMANCY_Volume_1.PDF`, page 7 / printed page 6) was
+re-opened and read directly — both its text layer and a 12-24x zoomed
+render of the formula table and the full 1-16 arrangement diagram.
+
+**What the source page actually shows.** The formula table's third and
+fourth rows do not print clean Arabic script at all: row 3 prints a
+reversed-C shape ("Ↄ", matching no standard Arabic letterform) and row 4
+prints a plain Latin capital "Z" — confirmed both in the PDF's raw text
+layer and by direct visual inspection at high zoom. Rows 1-2 print
+cleanly as ب and ز. The independently-verified identity of rows 3-4 (Dāl
+د and Ḥāʾ ح) comes from a fact external to the PDF's own rendering: the
+values 4 and 8 are each the standard Abjad numeral value of exactly one
+Arabic letter (Dāl and Ḥāʾ respectively, matching Prompt 33's claim, not
+Prompt 32's Hāʾ) — and, notably, all four letters (ب=2, ز=7, د=4, ح=8) are
+themselves the ordinary Abjad numeral values for these letters, not a
+special departure from Abjad as Prompt 32 assumed. `BAZDAAHO_FORMULA_TABLE`
+now carries both: `arabic` (the verified letter) and `sourcePrintedAs`
+(the literal "Ↄ"/"Z", present only where it differs) — SOURCE MANUSCRIPT
+and INDEPENDENT VERIFICATION kept visibly distinct in both the data file's
+comments and the rendered UI note, per this prompt's explicit requirement.
+
+**Eg. 1's note rewritten, not just re-worded.** Prompt 30/32 had described
+Eg. 1's three-term sum as an unexplained discrepancy to "preserve."
+`BAZDAAHO_EG1_NOTE` now explains it: the omitted Dal term is the formula
+working correctly (a two-point line contributes 0), not an error. The
+worked examples' `values`/`workingLine`/`result` fields were already
+correct from Prompt 32 (Eg.1 `[2,7,8]`→17−16=1, Eg.2 `[2]`→2, Eg.3
+`[7,4,8]`→19−16=3, Eg.4 `[4]`→4) and needed no further change here.
+
+**New: the general rule as code, and a 21-value validation.**
+`bazdaahoNumberFromPattern(pattern)` (already added in Prompt 32) is
+unchanged. New `BAZDAAHO_ALL_ACTIVE_VALIDATION` demonstrates the
+all-active case (`[2,7,4,8]`→21−16=5, matching Ibrahim's own canonical
+number) — explicitly labelled "independent verification" in the UI, since
+the source page's own four worked examples never happen to show a fully
+active figure.
+
+**Full 1-16 re-verification against the source page's own arrangement
+diagram.** The arrangement diagram's sixteen four-line tally figures and
+their own printed position numerals were extracted directly from the PDF
+(word-level bounding boxes, clustered per column and cross-checked against
+30x-zoomed crops by eye) — not recreated from memory or assumed. Applying
+the active-value rule to the already-canonical `STARS` patterns reproduces
+every position's own number exactly for positions 1-15 (raw totals of 17,
+19 and 21 correctly reduce via -16; all other raw totals already equal
+their position with no reduction needed) — this exact table is now
+exported as `BAZDAAHO_POSITION_AUDIT`, built programmatically from `STARS`
+so it cannot drift out of sync. Position 16 (Musah, all-double) has no
+active line, so its raw total is 0; the formula's own -16 reduction never
+fires (0 is not >16). Musah's position as 16 is not derived from that
+arithmetic — it is read directly off the source page's own printed
+numeral beside that figure, documented as a SOURCE-SPECIFIC POSITIONING
+CONVENTION in `BAZDAAHO_POSITION_16_NOTE`, exactly as this prompt required
+rather than inventing a "0 means 16" rule.
+
+**Unresolved conflict found and reported, not silently resolved.**
+Independently re-reading all sixteen of the source page's own printed
+four-line figures against the app's canonical `STARS` patterns found one
+discrepancy: the source itself prints position 11's third line as two
+points (pattern `[2,1,2,2]`, raw total 7 — identical to position 7's own
+figure) rather than the single point the canonical Ali pattern
+(`[2,1,1,2]`, raw total 11) requires. Every other one of the sixteen
+source-printed patterns matches its own canonical `STARS` pattern exactly.
+Per this prompt's explicit instruction ("If there is a conflict... STOP
+and report the conflict. Do not silently choose one"), this is recorded
+in a new `BAZDAAHO_SOURCE_CONFLICTS` export and surfaced in the UI under
+the arrangement diagram — the canonical `STARS` mapping (load-bearing
+across the whole app, not just this page) is left completely unchanged,
+and the source page's print is reported as read, not corrected.
+
+**UI rebuilt per the requested structure.** `BazdaahoFormulaDiagram.tsx`:
+intro paragraph → FORMULA table (line label, dot glyph, letter, value,
+source-vs-verification note) → "How the calculation works" (plain-language
+rule, then each line's one-point/two-point contribution) → each worked
+example (actual four-line figure, each line's own dot-glyph and
+contribution shown beside it, the calculation line, and "Position N —
+StarName") → the corrected Eg.1 explanation → the 21-validation example,
+clearly marked independent verification. `BazdaahoArrangementDiagram.tsx`
+gained the position-16 note and the unresolved-conflict callout beneath
+the existing three-row arrangement.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`,
+`content/stars.ts`, `reading.ts`, `interpretation.ts` and
+`master-of-geomancy-vol1.ts` is empty — only `chapterOneDiagrams.ts`,
+`chapterOneDiagrams.test.ts`, `BazdaahoFormulaDiagram.tsx` and
+`BazdaahoArrangementDiagram.tsx` changed. `content/stars.ts` (the
+canonical mapping the conflict above concerns) is untouched.
+
+**Tests:** 2,329 passing (2,315 prior + 14 net new: letter/glyph
+distinction, calculation-rule wording, no-arithmetic-error assertions,
+21-validation, position-16 convention wording, and a new "Full 16-figure
+Bazdaaho validation" describe block — exactly 16 audited positions, no
+duplicate pattern, every entry matched to its canonical `STARS` star,
+every position 1-15 self-consistent under the active-value rule, position
+16's raw total asserted as 0 (not derived to 16), and the position-11
+conflict asserted present with both the source-read and canonical
+patterns explicit). `tsc --noEmit` clean, `next build` clean.
+
+**Browser-verified** at 390×844 across default/Large/Extra Large reader
+sizes: corrected letters present, old هـ absent, Jīm (ج) absent from the
+formula section specifically (ج legitimately appears elsewhere on this
+continuous-scroll page, in the unrelated Abjad reference table and other
+stars' invocation text), the misleading "does not match the sum" wording
+gone, Eg.1's three-term line present and the old four-term line absent,
+the 21-validation and position-16 note present, the position-11 conflict
+callout present, no horizontal overflow at any size. Screenshots confirm
+the formula table, per-line calculation breakdown and conflict callout
+all render cleanly and match the requested layout.
+
+**Not pushed, not deployed**, per this prompt's explicit instruction.
+
 

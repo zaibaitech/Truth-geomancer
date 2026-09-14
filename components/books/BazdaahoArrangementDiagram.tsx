@@ -1,5 +1,9 @@
 import { FigureGlyph } from "@/components/raml/FigureGlyph";
-import { BAZDAAHO_ARRANGEMENT } from "@/content/manuscripts/chapterOneDiagrams";
+import {
+  BAZDAAHO_ARRANGEMENT,
+  BAZDAAHO_POSITION_16_NOTE,
+  BAZDAAHO_SOURCE_CONFLICTS,
+} from "@/content/manuscripts/chapterOneDiagrams";
 import { STARS } from "@/content/stars";
 
 /** The complete Bazdaaho arrangement (page 6): all sixteen stars, in the
@@ -40,6 +44,23 @@ export function BazdaahoArrangementDiagram() {
           </div>
         </div>
       ))}
+
+      <p className="type-evidence italic text-sand/65">
+        {BAZDAAHO_POSITION_16_NOTE}
+      </p>
+
+      {BAZDAAHO_SOURCE_CONFLICTS.length > 0 ? (
+        <div className="rounded-xl border border-sand/20 bg-ink px-3 py-3">
+          <p className="type-label uppercase tracking-widest text-sand/65">
+            Unresolved source conflict
+          </p>
+          {BAZDAAHO_SOURCE_CONFLICTS.map((c) => (
+            <p key={c.position} className="mt-1.5 type-evidence text-sand/70">
+              Position {c.position}: {c.description}
+            </p>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

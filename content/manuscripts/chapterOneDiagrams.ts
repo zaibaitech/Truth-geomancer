@@ -376,18 +376,36 @@ export const CHART_HOUSE_GROUPS: ChartHouseGroup[] = [
   { label: "Reconciler", houseNumbers: [16] },
 ];
 
-/** The Bazdaaho formula's letter-to-value table (page 6): the source's own
- * four-letter correspondence, one letter per figure line, in line order.
- * This is a special Bazdaaho correspondence, not the standard modern Abjad
- * value for these letters — most notably Zāy here is 7, not its standard
- * Abjad value. rowLabel is the source's own "I"/"II" mark printed beside
- * each row — transcribed as given, not interpreted into a different
- * notation. lineLabel names which of the figure's four lines (and its
- * associated element) each letter corresponds to. */
+/** The Bazdaaho formula's letter-to-value table (page 6): one letter per
+ * figure line, in line order. The values (2, 7, 4, 8) are the standard
+ * Abjad numeral values of these same four letters — Bāʾ=2, Zāy=7, Dāl=4,
+ * Ḥāʾ=8 — not a modern substitution. rowLabel is the source's own "I"/"II"
+ * mark printed beside each row. lineLabel names which of the figure's four
+ * lines (and its associated element) each letter corresponds to.
+ *
+ * SOURCE MANUSCRIPT vs INDEPENDENT VERIFICATION: the PDF's own text layer
+ * (and its rendered page image, confirmed by direct visual inspection at
+ * high zoom) prints the first two rows correctly as Arabic letters — ب and
+ * ز — but prints the third row as "Ↄ" (a reversed-C shape matching no
+ * standard Arabic letterform) and the fourth row as a plain Latin "Z", not
+ * Arabic script at all. Both are reproduced in `sourcePrintedAs` exactly as
+ * printed — nothing here claims the manuscript itself prints د or ح for
+ * those two rows. `arabic` instead carries the independently-verified
+ * letter identity: it is a documented historical fact that the Abjad
+ * numeral value 4 belongs uniquely to Dāl (د) and the Abjad numeral value 8
+ * belongs uniquely to Ḥāʾ (ح) — no other Arabic letter carries either
+ * value — so those two values, already legible from the source's own
+ * printed "=4" and "=8", identify the letters even where the glyph itself
+ * did not extract or print cleanly. This is independent verification, not
+ * a claim about what the manuscript's own glyph shows. */
 export interface BazdaahoLetterValue {
   rowLabel: string;
+  /** Independently-verified letter identity (see file-level note above). */
   arabic: string;
   value: number;
+  /** What the source itself literally prints for this row, only where it
+   * differs from `arabic` — the manuscript's own "Ↄ" and "Z". */
+  sourcePrintedAs?: string;
   /** Which figure line this letter values, e.g. "Line 1 — Head / Fire". */
   lineLabel: string;
 }
@@ -399,9 +417,16 @@ export const BAZDAAHO_FORMULA_TABLE: BazdaahoLetterValue[] = [
     rowLabel: "II",
     arabic: "د",
     value: 4,
+    sourcePrintedAs: "Ↄ",
     lineLabel: "Line 3 — Waist / Water",
   },
-  { rowLabel: "I", arabic: "هـ", value: 8, lineLabel: "Line 4 — Feet / Earth" },
+  {
+    rowLabel: "I",
+    arabic: "ح",
+    value: 8,
+    sourcePrintedAs: "Z",
+    lineLabel: "Line 4 — Feet / Earth",
+  },
 ];
 
 /** The formula's per-line values in line order [Line1, Line2, Line3, Line4]
@@ -412,12 +437,14 @@ export const BAZDAAHO_LINE_VALUES: [number, number, number, number] = [
 ];
 
 /** The general Bazdaaho derivation rule (page 6): for each of a figure's
- * four lines, a line with ONE dot contributes its BAZDAAHO_LINE_VALUES
- * value; a line with TWO dots contributes 0. Sum the active values; if the
- * total exceeds 16, the figure number is total − 16. Implements exactly
- * the source-stated rule — a raw sum of 0 (Musah, whose pattern is all
- * two-dot lines) is returned as 0, not silently mapped to 16, since the
- * source states the subtraction only for totals greater than 16. */
+ * four lines, a line with ONE dot is active and contributes its
+ * BAZDAAHO_LINE_VALUES value; a line with TWO dots is inactive and
+ * contributes 0. Sum the active values; if the total exceeds 16, the
+ * figure number is total − 16. Implements exactly the source-stated rule —
+ * a raw sum of 0 (Musah, whose pattern is all two-dot lines) is returned
+ * as 0, not silently mapped to 16, since the source states the
+ * subtraction only for totals greater than 16. See BAZDAAHO_POSITION_16_NOTE
+ * for how Musah's own position is actually established. */
 export function bazdaahoNumberFromPattern(pattern: Pattern): number {
   const total = pattern.reduce(
     (sum, dots, i) => sum + (dots === 1 ? BAZDAAHO_LINE_VALUES[i] : 0),
@@ -425,6 +452,12 @@ export function bazdaahoNumberFromPattern(pattern: Pattern): number {
   );
   return total > 16 ? total - 16 : total;
 }
+
+/** The general rule, in the plain-language form users read before the
+ * worked examples: only a single-point line counts, a double-point line
+ * contributes nothing. */
+export const BAZDAAHO_CALCULATION_RULE_NOTE =
+  "Each line has a value, but only a single-point line contributes that value. A double-point line contributes 0. Add the values of the single-point lines only; if the total is greater than 16, subtract 16 to get the figure's number.";
 
 export interface BazdaahoWorkedExample {
   label: string; // "Eg. 1." etc
@@ -441,11 +474,12 @@ export interface BazdaahoWorkedExample {
 
 // Eg. 1's own printed working line adds only three of the four letter-
 // values (2, 7, 8), omitting the Line-3 (Dal) value entirely -- this is
-// the general derivation rule at work, not an omission: Eg.1's figure
-// (Yussif) has two dots on its third line, so per the rule that line
-// contributes 0 and drops out of the sum. See BAZDAAHO_EG1_NOTE.
+// the general derivation rule at work, not an omission or an arithmetic
+// error: Eg.1's figure (Yussif) has two dots on its third line, so per the
+// rule that line is inactive, contributes 0, and drops out of the sum.
+// See BAZDAAHO_EG1_NOTE.
 export const BAZDAAHO_EG1_NOTE =
-  "The source's own working line for Eg. 1 reads \"2 + 7 + 8 = 17 − 16 = 1, therefore it's 1\" — only three of the four letter-values appear because Eg. 1's figure has two dots on its third (Dal) line, which contributes 0 under the general rule: a two-dot line drops out of the sum rather than adding its value.";
+  "The values 2, 7, 4 and 8 are assigned to the four lines. A line contributes its value only when it contains a single point; a double-point line contributes 0. Eg. 1's third line has two points, so it contributes 0 and drops out of the sum: 2 + 7 + 0 + 8 = 17, and 17 − 16 = 1.";
 
 export const BAZDAAHO_WORKED_EXAMPLES: BazdaahoWorkedExample[] = [
   {
@@ -463,6 +497,20 @@ export const BAZDAAHO_WORKED_EXAMPLES: BazdaahoWorkedExample[] = [
   },
   { label: "Eg. 4.", values: [4], workingLine: "= 4", result: 4 },
 ];
+
+/** Not a source example — the source's own page prints only Eg. 1-4 above.
+ * This is independent verification of the general rule using the one
+ * figure whose all-four-lines-active pattern the source does not happen to
+ * demonstrate: Ibrahim, [1,1,1,1]. Every line is active, so the raw sum is
+ * the full 2+7+4+8=21, which the same >16 reduction brings to 5 — matching
+ * Ibrahim's own already-canonical Bazdaaho number in STARS. Shown in the UI
+ * clearly labelled as independent verification, not manuscript text. */
+export const BAZDAAHO_ALL_ACTIVE_VALIDATION: BazdaahoWorkedExample = {
+  label: "All four lines active",
+  values: [2, 7, 4, 8],
+  workingLine: "2 + 7 + 4 + 8 = 21 − 16 = 5",
+  result: 5,
+};
 
 /** The source's own transition sentence into the formula, quoted verbatim
  * (page 6): "It's a method of arranging the stars from Yussif to Musah as
@@ -489,8 +537,10 @@ export function starForBazdaahoResult(result: number): {
 /** The complete Bazdaaho arrangement (page 6): all sixteen stars, laid out
  * exactly as the source's own three rows show them — star numbers only,
  * left-to-right in the source's own printed order (not renumbered
- * ascending). Each row's figures are looked up from the existing STARS
- * array by number, never a second star-definition. */
+ * ascending). Verified directly against the source page: each numeral's
+ * own printed x-position was extracted from the PDF and confirms this
+ * left-to-right order exactly. Each row's figures are looked up from the
+ * existing STARS array by number, never a second star-definition. */
 export interface BazdaahoArrangementGroup {
   label: string;
   starNumbers: number[];
@@ -500,4 +550,91 @@ export const BAZDAAHO_ARRANGEMENT: BazdaahoArrangementGroup[] = [
   { label: "Stars 1–8", starNumbers: [8, 7, 6, 5, 4, 3, 2, 1] },
   { label: "Stars 9–12", starNumbers: [12, 11, 10, 9] },
   { label: "Stars 13–16", starNumbers: [14, 15, 13, 16] },
+];
+
+/** Musah (position 16) is the one position the active-value rule cannot
+ * derive on its own: its pattern is all-double lines, so every line is
+ * inactive and the raw sum is 0 — not "greater than 16", so the rule's own
+ * -16 reduction never fires for it. bazdaahoNumberFromPattern therefore
+ * returns 0 for Musah's pattern, not 16; nothing here invents a further
+ * "0 means 16" arithmetic step, because the source does not state one.
+ * Musah's position is instead a SOURCE-SPECIFIC POSITIONING CONVENTION:
+ * the manuscript's own arrangement diagram prints the numeral "16" directly
+ * beside the all-double figure (confirmed from the source page's own
+ * numeral placement, at the last position of its third printed row,
+ * alongside stars 14, 15 and 13) — the position is read off the source's
+ * own labelling, not derived from the formula. */
+export const BAZDAAHO_POSITION_16_NOTE =
+  "The all-double figure (Musah) has no active line, so the formula's own reduction rule — which only applies to totals greater than 16 — has nothing to reduce: the raw sum is 0, not 16. Musah's position as 16 comes directly from the source's own arrangement diagram, which prints the numeral \"16\" beside this figure — a positioning the source states, not one derived by extending the formula's arithmetic.";
+
+export interface BazdaahoPositionAudit {
+  position: number;
+  starId: string;
+  starName: string;
+  pattern: Pattern;
+  /** The values actually contributed (single-point lines only, in line
+   * order) — the double-point lines' 0 contributions are omitted, matching
+   * how the source's own worked examples print their addition. */
+  activeValues: number[];
+  rawTotal: number;
+  /** rawTotal minus 16 where rawTotal > 16, otherwise rawTotal unchanged —
+   * see bazdaahoNumberFromPattern. */
+  reducedPosition: number;
+}
+
+/** Every one of the sixteen Bazdaaho positions, derived from the existing,
+ * already-canonical STARS array (never a second figure-definition) and the
+ * general derivation rule above — built programmatically, not hand-typed,
+ * so it cannot drift from STARS. This was independently verified against
+ * the source's own arrangement diagram: every one of the sixteen four-line
+ * patterns extracted directly from the source page's own printed tally
+ * marks reduces, under the active-value rule, to exactly that position's
+ * own printed numeral — for all fifteen positions where the source's own
+ * printed figure was legible without ambiguity. See
+ * BAZDAAHO_SOURCE_CONFLICTS for the one position (11) where the source
+ * page's own printed image does not. */
+export const BAZDAAHO_POSITION_AUDIT: BazdaahoPositionAudit[] = STARS.slice()
+  .sort((a, b) => a.number - b.number)
+  .map((star) => {
+    const activeValues = star.pattern
+      .map((dots, i) => (dots === 1 ? BAZDAAHO_LINE_VALUES[i] : null))
+      .filter((v): v is number => v !== null);
+    const rawTotal = activeValues.reduce((a, b) => a + b, 0);
+    return {
+      position: star.number,
+      starId: star.id,
+      starName: star.name,
+      pattern: star.pattern,
+      activeValues,
+      rawTotal,
+      reducedPosition: bazdaahoNumberFromPattern(star.pattern),
+    };
+  });
+
+export interface BazdaahoSourceConflict {
+  position: number;
+  description: string;
+}
+
+/** Documented, UNRESOLVED conflicts between the source manuscript's own
+ * printed arrangement image and the app's existing canonical STARS
+ * mapping, found while independently re-verifying all sixteen positions
+ * pixel-by-pixel against the source PDF. Fifteen of the sixteen source-
+ * printed four-line patterns matched their own canonical STARS pattern
+ * exactly (each independently reduces, via the active-value rule, to its
+ * own printed position number). Position 11 did not: the source page
+ * prints that position's third line as two points, giving the pattern
+ * [2,1,2,2] (the same pattern already canonically assigned to position 7,
+ * Umar) rather than the canonical Ali pattern [2,1,1,2] the app already
+ * uses everywhere else, which is what the active-value rule requires to
+ * reduce to 11. This is recorded here rather than silently resolved either
+ * way: the app's canonical STARS numbering (load-bearing across the whole
+ * book, not just this page) is left unchanged, and the source page's own
+ * printed image is not altered or reinterpreted. */
+export const BAZDAAHO_SOURCE_CONFLICTS: BazdaahoSourceConflict[] = [
+  {
+    position: 11,
+    description:
+      "The source's own arrangement diagram prints position 11's third line with two points (pattern [2,1,2,2], raw total 7) — identical to position 7's own printed figure — rather than the single point the app's existing canonical Ali pattern ([2,1,1,2], raw total 11) requires. Every other one of the sixteen positions' source-printed pattern matches its own canonical STARS pattern exactly; this is the one exception. Not resolved here: the canonical mapping is left unchanged, and the source page's print is reproduced as read, not corrected.",
+  },
 ];

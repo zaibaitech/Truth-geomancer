@@ -111,7 +111,7 @@ interface RawHatim {
 // descent, and are kept exactly as supplied regardless).
 const RAW_HATIMS: RawHatim[] = [
   { starId: 'yussif', variable: [211, 215, 209] },
-  { starId: 'adam', variable: [22, 21, 20] },
+  { starId: 'adam', variable: [62, 61, 60] }, // corrected from an initial 22/21/20 after a second manuscript check
   { starId: 'mahadi', variable: [33, 32, 31] },
   { starId: 'iddris', variable: [111, 110, 109] },
   { starId: 'ibrahim', variable: [142, 145, 144] },

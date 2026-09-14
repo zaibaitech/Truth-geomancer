@@ -9,7 +9,7 @@ import { HATIM_DEFINITIONS, arabicIndicToLatin, getHatimByStarId, hatimCoverageT
 // authoritative list Prompt 23 supplied, not recomputed.
 const EXPECTED: Record<string, { tm: number; ml: number; br: number }> = {
   yussif: { tm: 211, ml: 215, br: 209 },
-  adam: { tm: 22, ml: 21, br: 20 },
+  adam: { tm: 62, ml: 61, br: 60 }, // corrected from an initial 22/21/20 after a second manuscript check
   mahadi: { tm: 33, ml: 32, br: 31 },
   iddris: { tm: 111, ml: 110, br: 109 },
   ibrahim: { tm: 142, ml: 145, br: 144 },

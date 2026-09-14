@@ -3227,5 +3227,38 @@ in both the visual grid and the screen-reader cell list.
 
 **Not deployed, not pushed** — per this prompt's explicit instruction.
 
+---
+
+## Prompt 24 — Adam Hatim correction
+
+**A single-star correction, applied directly.** A follow-up manuscript check
+found Adam's variable Hatim cells were 62/61/60, not the 22/21/20 recorded in
+Prompt 23. `content/manuscripts/hatim.ts`'s `RAW_HATIMS` entry for `adam` was
+updated to `[62, 61, 60]`; no other star's data was touched. Coverage stays
+128/128 verified — this is a correction to an already-verified cell, not a
+new one being resolved.
+
+**This changes Adam's pattern-diagnostic result.** With the new values,
+Adam's three cells now all imply N=66 (`62+4`, `61+5`, `60+6`) — exactly
+matching both the stated recitation count and the Abjad sum of الله. Adam
+moves from `not_confirmed` (previously implying an unexplained N=26) to
+`confirmed_by_source`, and its `valueReconciliation` entry moves from
+`'partial'` to full `'verified'` confidence, alongside Mahadi, Issah, Umar,
+Sulemana, Hassan & Hussein, and Musah (now seven stars, not six, whose
+stated count, Abjad sum, and Hatim-derived N all agree). Nuhu — which
+happened to share Adam's old, now-superseded 22/21/20 values — was left
+untouched, since the user's correction named only Adam; its own
+`not_confirmed` status (N=26, matching neither its stated nor Abjad value of
+66) stands unless it is independently re-checked.
+
+**Tests updated to match:** `hatimComplete.test.ts` (Adam's expected table),
+`reconciliation.test.ts` (Adam moved from the not-confirmed/partial groups
+into the confirmed-by-source/verified groups; the Nuhu-only assertions kept
+separate). Full suite: 2,255 tests passing (unchanged count — no test was
+added or removed, only their expected values). `tsc --noEmit` clean, `next
+build` clean.
+
+**Not deployed, not pushed.**
+
 
 

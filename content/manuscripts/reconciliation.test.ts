@@ -18,8 +18,9 @@ describe('Hatim N-4/N-5/N-6 pattern diagnostic — section 7: a check, never a g
     expect(JSON.stringify(HATIM_DEFINITIONS)).toBe(before);
   });
 
-  it('is CONFIRMED_BY_SOURCE for the nine stars whose three verified cells all imply the same N', () => {
+  it('is CONFIRMED_BY_SOURCE for the ten stars whose three verified cells all imply the same N', () => {
     const confirmed: Record<string, number> = {
+      adam: 66, // corrected from an initial 22/21/20 to 62/61/60 after a second manuscript check
       mahadi: 37,
       iddris: 115, // matches the STATED count (115), not the 258 Abjad sum
       issah: 129,
@@ -48,14 +49,12 @@ describe('Hatim N-4/N-5/N-6 pattern diagnostic — section 7: a check, never a g
     }
   });
 
-  it('is NOT_CONFIRMED for Adam and Nuhu — their three cells agree with each other, but on a number matching neither the stated count nor the Abjad sum', () => {
-    for (const starId of ['adam', 'nuhu']) {
-      const d = getPatternDiagnosticByStarId(starId)!;
-      expect(d.status, starId).toBe('not_confirmed');
-      expect(d.consistentN, starId).toBe(26);
-      expect(d.consistentN).not.toBe(d.sourceStatedValue);
-      expect(d.consistentN).not.toBe(d.abjadValue);
-    }
+  it('is NOT_CONFIRMED for Nuhu — its three cells agree with each other, but on a number (26) matching neither the stated count nor the Abjad sum (66)', () => {
+    const d = getPatternDiagnosticByStarId('nuhu')!;
+    expect(d.status).toBe('not_confirmed');
+    expect(d.consistentN).toBe(26);
+    expect(d.consistentN).not.toBe(d.sourceStatedValue);
+    expect(d.consistentN).not.toBe(d.abjadValue);
   });
 
   it('is CONFIRMED_BY_SOURCE for Umar and Ayuba, unchanged from Prompt 21/22 (already-verified cells untouched)', () => {
@@ -152,12 +151,10 @@ describe('Value reconciliation — section 9: sourceStatedValue, abjadValue and 
     expect(getValueReconciliationByStarId('yunus')!.valueConfidence).toBe('partial');
   });
 
-  it('Adam and Nuhu are "partial": stated count = Abjad, but the Hatim\'s own consistent N (26) matches neither', () => {
-    for (const starId of ['adam', 'nuhu']) {
-      const r = getValueReconciliationByStarId(starId)!;
-      expect(r.valueConfidence, starId).toBe('partial');
-      expect(r.hatimReferenceValue, starId).toBe(26);
-    }
+  it('Nuhu is "partial": stated count = Abjad (66), but the Hatim\'s own consistent N (26) matches neither', () => {
+    const r = getValueReconciliationByStarId('nuhu')!;
+    expect(r.valueConfidence).toBe('partial');
+    expect(r.hatimReferenceValue).toBe(26);
   });
 
   it('Ibrahim, Kalla Allahu and Usman are "partial": stated count = Abjad, but their Hatim cells conflict with each other', () => {
@@ -168,8 +165,8 @@ describe('Value reconciliation — section 9: sourceStatedValue, abjadValue and 
     }
   });
 
-  it('the six stars whose stated count, Abjad, and Hatim-derived N all agree report full "verified" confidence', () => {
-    const allAgree = ['mahadi', 'issah', 'umar', 'sulemana', 'hassan-hussein', 'musah'];
+  it('the seven stars whose stated count, Abjad, and Hatim-derived N all agree report full "verified" confidence', () => {
+    const allAgree = ['adam', 'mahadi', 'issah', 'umar', 'sulemana', 'hassan-hussein', 'musah'];
     for (const starId of allAgree) {
       const r = getValueReconciliationByStarId(starId)!;
       expect(r.valueConfidence, starId).toBe('verified');

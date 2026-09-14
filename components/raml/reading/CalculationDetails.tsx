@@ -21,7 +21,12 @@ import { METHOD_STATUS_LABEL } from '@/lib/raml/statusLanguage';
 export function CalculationDetails({ methods, detailedInterpretation }: { methods: ReadingMethodRow[]; detailedInterpretation?: string }) {
   return (
     <Card>
-      <p className="mb-3 type-section font-semibold text-sand-light">How this was determined</p>
+      {/* Deliberately no invented hierarchy between these methods in this
+          heading (Prompt 19, section 6) — the source never establishes one.
+          The outer disclosure control already says "How this was
+          determined"; repeating that exact phrase here would be the one
+          deliberate duplication this screen still had. */}
+      <p className="mb-3 type-section font-semibold text-sand-light">Verified Methods</p>
       <div className="space-y-4">
         {methods.map((m) => {
           const qualities = [m.resultFortune, m.resultDirection, m.resultElement].filter(Boolean) as string[];

@@ -4406,4 +4406,114 @@ only "N of 4 lines marked," never exposing the underlying tap count.
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
 
+## Prompt 38 — simplify, clarify and be transparent about the results screen
+
+The results screen showed every piece of computed evidence at once —
+Primary Indication, Supporting Indicators and Method Consistency, each a
+full card, all above the fold — before a reader ever learned the answer.
+This prompt redesigned the PRESENTATION only: what was asked, the
+synthesized answer, and whether verified methods agree now come first; the
+figure names, house combinations, quality labels and per-method audit trail
+all moved behind a single "How this was determined" disclosure that was
+already present, but previously only held the calculation working, not the
+consistency/supporting-indicator cards themselves.
+
+**New presentation-layer module.** `lib/raml/resultPresentation.ts` exports
+two pure functions, `computePrimaryStatus(result)` and
+`primaryAnswerText(result, status)`. Neither decides agreement — both only
+phrase what `reading.ts` already computed (`consensusLabel`, each method's
+own `counted`/`outcomeLabel`, `outcomeLabel`, `descriptiveAnswer`) into one
+of four states: `single` (one counted method — "Based on 1 verified
+method."), `agree` (all counted methods agree — "N verified methods
+agree."), `mostly_agree` (a real dominant answer exists but it isn't
+unanimous — the dominant answer still headlines, with a method-by-method
+breakdown alongside it for transparency), and `no_dominant` (a genuine
+conflict/disagreement — headline becomes "Mixed indications", never a
+side arbitrarily picked, with the same breakdown).
+
+**Rebuilt `OutcomeCard.tsx`** — now the ONE primary card: a "Reading"
+eyebrow, the headline answer, the plain-language status line, the existing
+`shortSummary` sentence, and — only in the `mostly_agree`/`no_dominant`
+states — a compact "Method 1 → answer" list built from the already-computed
+`methodResults`. Never a duplicate of the same answer shown twice, and never
+"Primary Indication" language — the source establishes no hierarchy between
+these methods, so none is invented.
+
+**`EngineReadingView.tsx` restructured.** The primary (always-visible)
+branch is now just `ReadingHeader` → `OutcomeCard` → the compact
+`VerificationNotice` line (kept secondary, one line with a link into the
+disclosure). `FigureCard`'s standalone "Primary indication" rendering was
+removed entirely — not deleted data, just no longer duplicated: the same
+figure/quality/outcome/interpretation already appears as that method's own
+card inside the disclosure's `CalculationDetails`. `MethodConsistencyCard`
+and `SupportingIndicators` moved from the primary section into the
+disclosure, alongside `CalculationDetails` and a new "Source verification
+notes" block (the same `verificationNotice` text, shown again in full once
+a reader has actually opened the evidence). `CalculationDetails.tsx`'s own
+internal heading was renamed from "How this was determined" (a literal
+duplicate of the outer disclosure button's own words) to "Verified
+Methods". A new compact, always-visible "Source" line was added directly
+below the disclosure, reusing `result.sourceReferences` — nothing invented,
+and only rendered when references exist.
+
+**`ResultSummaryCard.tsx` deliberately left untouched.** It already sits at
+the very bottom of the screen as a distinct-purpose "copy this reading
+elsewhere" utility (its own `aria-label="Copy this reading as text"`,
+tested), and its own copied text is intentionally more complete than what
+now shows on screen — that's a normal, honest distinction between "what I
+see here" and "what I take with me," not a duplication the prompt asked to
+remove.
+
+**Engine and calculation untouched.** `git diff --name-only` against
+`casting.ts`, `chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`
+and `reading.ts` itself is empty. `resultPresentation.ts` imports only the
+`ReadingResult` type and re-formats fields `reading.ts` already exposed;
+it contains no chart/casting/rule-engine imports or calls (verified
+directly by `resultsUi.test.ts`).
+
+**Tests (27 new):** `resultPresentation.test.ts` (9) unit-tests
+`computePrimaryStatus`/`primaryAnswerText` against hand-built
+`composeReading` fixtures covering all four states (agree, mostly_agree,
+no_dominant/conflict for both outcome and descriptive questions, single
+method for both kinds), plus a full real-engine sweep over every registered
+question on the fixture chart proving every non-insufficient status kind is
+reached at least once, the breakdown only ever shows for >1 counted method
+with no single answer, and no reading anywhere produces a percentage,
+"confidence", "probability" or "certain" word. `resultsUi.test.ts` (18)
+is a source-scanning structural suite (this app has no component-rendering
+harness) proving: the primary card says "Reading" and never "Primary
+Indication"/"Overall indication"; it never renders houses, figure names or
+`FigureGlyph`; `MethodConsistencyCard`/`SupportingIndicators` appear only
+after the disclosure's `id="reading-working"` marker, never before it;
+`CalculationDetails`, "Houses used", "Working" and "Result figure" remain
+inside the disclosure; the compact Source line and its
+`sourceReferences.length > 0` guard exist; `VerificationNotice` stays a
+non-`Card` one-liner; no changed file contains confidence/certainty
+language; and none of `casting.ts`/`chartModel.ts`/`ruleEngine.ts`/
+`operations.ts` reference the new presentation module. Full suite: 2386
+passing (2359 prior + 27 new). `tsc --noEmit` clean, `next build` clean.
+
+**Browser-verified** at 390×844 across a dozen real casts + real questions
+(search terms spanning money, travel, marriage, friendship, debt, lost
+items, pregnancy and legal conflict): every state appeared exactly as
+designed — `2 verified methods agree.` with no breakdown (travel, agree);
+`3 verified methods mostly agree.` with the dominant answer headlined and
+all three methods’ own results listed (marriage, money, children);
+`Based on 1 verified method.` (friendship, lost items, debts); `Verified
+methods give mixed indications.` with `Mixed indications` as the headline
+and each method's own differing answer listed (pregnancy); and the
+existing, untouched "Not enough source information" screen (court case,
+enemy/thief). The pre-existing "No automatic reading for this one" state
+(dream interpretation chapters) also still renders correctly, confirming
+nothing outside this prompt's scope regressed. Expanding "How this was
+determined" showed "Verified Methods" per-method cards (source quote,
+houses used, working, result figure, outcome), the Method Consistency
+breakdown, and "Source verification notes" — all present, none duplicated
+on the primary screen. No horizontal overflow at any card
+(`document.documentElement.scrollWidth === window.innerWidth === 390` on
+every screen tested).
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

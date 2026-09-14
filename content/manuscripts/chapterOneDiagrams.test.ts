@@ -3,8 +3,10 @@ import { STARS, type Pattern } from "@/content/stars";
 import { addPatterns, addRows } from "@/lib/raml/casting";
 import {
   ADDITION_SEQUENCE,
+  BAZDAAHO_ARRANGEMENT,
   BAZDAAHO_EG1_NOTE,
   BAZDAAHO_FORMULA_TABLE,
+  BAZDAAHO_METHOD_INTRO,
   BAZDAAHO_WORKED_EXAMPLES,
   CANCEL_DIRECTION_LABEL,
   CANCELLING_METHOD_CLOSING,
@@ -21,6 +23,7 @@ import {
   COUNTING_METHOD_EXAMPLES,
   PARITY_ADDITION_EXAMPLES,
   cancelledLineMark,
+  starForBazdaahoResult,
   starForCount,
 } from "@/content/manuscripts/chapterOneDiagrams";
 
@@ -275,15 +278,28 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
   });
 
   describe("Bazdaaho formula", () => {
-    it("has exactly the four letter-values the source table prints", () => {
+    it("quotes the source's own transition sentence into the formula, verbatim", () => {
+      expect(BAZDAAHO_METHOD_INTRO).toBe(
+        "It's a method of arranging the stars from Yussif to Musah as shown below, introduced by Sheikh Abu Abdullah Azanati, using the formula:",
+      );
+    });
+
+    it("has exactly the four letter-values the source table prints, each with its own row label", () => {
       expect(BAZDAAHO_FORMULA_TABLE).toHaveLength(4);
       expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.value)).toEqual([2, 7, 4, 8]);
+      expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.rowLabel)).toEqual([
+        "I",
+        "I",
+        "II",
+        "I",
+      ]);
     });
 
     it("flags the one glyph the extraction could not resolve, rather than guessing at it", () => {
       const flagged = BAZDAAHO_FORMULA_TABLE.filter((l) => l.note);
       expect(flagged).toHaveLength(1);
       expect(flagged[0].arabic).toBe("Ͻ");
+      expect(flagged[0].rowLabel).toBe("II");
     });
 
     it("has exactly the four worked examples the source prints", () => {
@@ -292,12 +308,63 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
 
     it("reproduces Eg. 1's own working line exactly, without silently correcting its arithmetic", () => {
       const eg1 = BAZDAAHO_WORKED_EXAMPLES[0];
-      // The table above lists 4 values (2,7,4,8) but Eg.1's own working
-      // line only adds 3 of them (2+7+8=17-16=1) -- reproduced as printed.
-      expect(eg1.values).toEqual([2, 7, 8]);
-      expect(eg1.workingLine).toContain("2 + 7 + 8 = 17");
+      // Eg. 1's own working line names all four table values (2,7,4,8) but
+      // states a total (17) that does not match their actual sum (21) --
+      // reproduced exactly as printed, not corrected.
+      expect(eg1.values).toEqual([2, 7, 4, 8]);
+      expect(eg1.workingLine).toContain("2 + 7 + 4 + 8 = 17");
       expect(eg1.result).toBe(1);
-      expect(BAZDAAHO_EG1_NOTE).toContain("three of the four table values");
+      expect(BAZDAAHO_EG1_NOTE).toContain("does not match the sum");
+    });
+
+    it("reproduces Eg. 3's own working line exactly", () => {
+      const eg3 = BAZDAAHO_WORKED_EXAMPLES[2];
+      expect(eg3.values).toEqual([7, 4, 8]);
+      expect(eg3.workingLine).toContain("7 + 4 + 8 = 19");
+      expect(eg3.result).toBe(3);
+    });
+
+    it("gives every worked example its actual resulting figure, looked up from the existing STARS array", () => {
+      for (const example of BAZDAAHO_WORKED_EXAMPLES) {
+        const { pattern } = starForBazdaahoResult(example.result);
+        const star = STARS.find((s) => s.number === example.result);
+        expect(star).toBeDefined();
+        expect(pattern).toEqual(star!.pattern);
+      }
+      // The four examples' results are exactly stars 1-4, in order.
+      expect(BAZDAAHO_WORKED_EXAMPLES.map((e) => e.result)).toEqual([
+        1, 2, 3, 4,
+      ]);
+    });
+  });
+
+  describe("Complete Bazdaaho arrangement (stars 1-16)", () => {
+    it("preserves the source's own three printed rows and their exact left-to-right order", () => {
+      expect(BAZDAAHO_ARRANGEMENT).toHaveLength(3);
+      expect(BAZDAAHO_ARRANGEMENT[0].starNumbers).toEqual([
+        8, 7, 6, 5, 4, 3, 2, 1,
+      ]);
+      expect(BAZDAAHO_ARRANGEMENT[1].starNumbers).toEqual([12, 11, 10, 9]);
+      expect(BAZDAAHO_ARRANGEMENT[2].starNumbers).toEqual([14, 15, 13, 16]);
+    });
+
+    it("represents every one of the sixteen stars exactly once -- no duplicate, no omission", () => {
+      const allNumbers = BAZDAAHO_ARRANGEMENT.flatMap((g) => g.starNumbers);
+      expect(allNumbers).toHaveLength(16);
+      expect(Array.from(new Set(allNumbers))).toHaveLength(16);
+      expect([...allNumbers].sort((a, b) => a - b)).toEqual(
+        Array.from({ length: 16 }, (_, i) => i + 1),
+      );
+    });
+
+    it("gives every star in the arrangement its existing canonical figure from STARS -- no second star-definition", () => {
+      for (const group of BAZDAAHO_ARRANGEMENT) {
+        for (const n of group.starNumbers) {
+          const star = STARS.find((s) => s.number === n);
+          expect(star).toBeDefined();
+          expect(star!.pattern).toHaveLength(4);
+        }
+      }
     });
   });
 });

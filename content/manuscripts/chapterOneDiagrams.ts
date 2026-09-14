@@ -380,8 +380,11 @@ export const CHART_HOUSE_GROUPS: ChartHouseGroup[] = [
  * the PDF's own clean text layer. One character could not be identified
  * with confidence — the source prints it as "Ͻ", which does not match a
  * standard Arabic letterform in the extracted text; it is reproduced
- * exactly as printed rather than guessed at, per the arabicLetterNote. */
+ * exactly as printed rather than guessed at, per the arabicLetterNote.
+ * rowLabel is the source's own "I"/"II" mark printed beside each row —
+ * transcribed as given, not interpreted into a different notation. */
 export interface BazdaahoLetterValue {
+  rowLabel: string;
   arabic: string;
   value: number;
   /** Present only for the one character the extraction could not resolve
@@ -390,14 +393,15 @@ export interface BazdaahoLetterValue {
 }
 
 export const BAZDAAHO_FORMULA_TABLE: BazdaahoLetterValue[] = [
-  { arabic: "ب", value: 2 },
-  { arabic: "ز", value: 7 },
+  { rowLabel: "I", arabic: "ب", value: 2 },
+  { rowLabel: "I", arabic: "ز", value: 7 },
   {
+    rowLabel: "II",
     arabic: "Ͻ",
     value: 4,
     note: "Printed exactly as it extracts from the source; this does not match a standard Arabic letterform, and none is substituted for it.",
   },
-  { arabic: "Z", value: 8 },
+  { rowLabel: "I", arabic: "Z", value: 8 },
 ];
 
 export interface BazdaahoWorkedExample {
@@ -406,29 +410,70 @@ export interface BazdaahoWorkedExample {
   values: number[];
   /** The source's own reduction line, exactly as printed, e.g. "2+7+8 = 17 – 16=1". */
   workingLine: string;
+  /** The example's resulting value — also that star's own Bazdaaho number
+   * (1-4 for these four examples), used only to look up its already-
+   * canonical figure in STARS via starForBazdaahoResult, never recomputed. */
   result: number;
 }
 
-// Eg. 1 sums all four letter-values (2+7+4+8=21-16=5) in the table above it,
-// but the source's own worked line only adds three of them and reaches a
-// different total (2+7+8=17-16=1) — reproduced exactly as printed rather
-// than corrected or recomputed; see BAZDAAHO_EG1_NOTE.
+// Eg. 1's own printed working line names all four letter-values (2, 7, 4, 8)
+// but its stated total is 17, not their actual sum (21) -- reproduced
+// exactly as printed rather than corrected or recomputed; see
+// BAZDAAHO_EG1_NOTE.
 export const BAZDAAHO_EG1_NOTE =
-  "The source's own working line for Eg. 1 reads \"2+7+8 = 17 – 16 = 1, therefore it's 1\" — three of the four table values, not four. Reproduced exactly as printed; nothing here recomputes or corrects it.";
+  "The source's own working line for Eg. 1 reads \"2 + 7 + 4 + 8 = 17 − 16 = 1, therefore it's 1\" — the stated total (17) does not match the sum of the four listed values (21). Reproduced exactly as printed; nothing here recomputes or corrects it.";
 
 export const BAZDAAHO_WORKED_EXAMPLES: BazdaahoWorkedExample[] = [
   {
     label: "Eg. 1.",
-    values: [2, 7, 8],
-    workingLine: "2 + 7 + 8 = 17 – 16 = 1, therefore it’s 1",
+    values: [2, 7, 4, 8],
+    workingLine: "2 + 7 + 4 + 8 = 17 − 16 = 1, therefore it’s 1",
     result: 1,
   },
   { label: "Eg. 2.", values: [2], workingLine: "= 2", result: 2 },
   {
     label: "Eg. 3.",
     values: [7, 4, 8],
-    workingLine: "= 7 + 4 + 8 = 19 – 16 = 3",
+    workingLine: "= 7 + 4 + 8 = 19 − 16 = 3",
     result: 3,
   },
   { label: "Eg. 4.", values: [4], workingLine: "= 4", result: 4 },
+];
+
+/** The source's own transition sentence into the formula, quoted verbatim
+ * (page 6): "It's a method of arranging the stars from Yussif to Musah as
+ * shown below, introduced by Sheikh Abu Abdullah Azanati, using the
+ * formula:" — the chapter's existing prose body already paraphrases this
+ * elsewhere; this is the literal sentence as printed, placed directly
+ * above the formula it introduces. */
+export const BAZDAAHO_METHOD_INTRO =
+  "It's a method of arranging the stars from Yussif to Musah as shown below, introduced by Sheikh Abu Abdullah Azanati, using the formula:";
+
+/** Looks up a Bazdaaho worked example's resulting star — the example's
+ * result value IS that star's own Bazdaaho number (STARS' existing
+ * canonical numbering, Yussif=1 ... Musah=16), so this reuses STARS
+ * directly rather than creating a second star-definition system. */
+export function starForBazdaahoResult(result: number): {
+  name: string;
+  pattern: Pattern;
+} {
+  const star = STARS.find((s) => s.number === result);
+  if (!star) throw new Error(`No star numbered ${result} in content/stars.ts`);
+  return { name: star.name, pattern: star.pattern };
+}
+
+/** The complete Bazdaaho arrangement (page 6): all sixteen stars, laid out
+ * exactly as the source's own three rows show them — star numbers only,
+ * left-to-right in the source's own printed order (not renumbered
+ * ascending). Each row's figures are looked up from the existing STARS
+ * array by number, never a second star-definition. */
+export interface BazdaahoArrangementGroup {
+  label: string;
+  starNumbers: number[];
+}
+
+export const BAZDAAHO_ARRANGEMENT: BazdaahoArrangementGroup[] = [
+  { label: "Stars 1–8", starNumbers: [8, 7, 6, 5, 4, 3, 2, 1] },
+  { label: "Stars 9–12", starNumbers: [12, 11, 10, 9] },
+  { label: "Stars 13–16", starNumbers: [14, 15, 13, 16] },
 ];

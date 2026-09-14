@@ -12,6 +12,7 @@ import { CancellingMethodDiagram } from "@/components/books/CancellingMethodDiag
 import { AdditionSequenceDiagram } from "@/components/books/AdditionSequenceDiagram";
 import { CompleteChartDiagram } from "@/components/books/CompleteChartDiagram";
 import { BazdaahoFormulaDiagram } from "@/components/books/BazdaahoFormulaDiagram";
+import { BazdaahoArrangementDiagram } from "@/components/books/BazdaahoArrangementDiagram";
 import { BOOKS, getBookById } from "@/content/books";
 import { COMPLETE_CHART_INTRO } from "@/content/manuscripts/chapterOneDiagrams";
 import {
@@ -238,12 +239,22 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                       ) : null}
 
                       {chapter.id === "bazdaaho-method" ? (
-                        <div className="mt-5">
-                          <p className="type-label uppercase tracking-widest text-sand/65">
-                            The Bazdaaho Formula
-                          </p>
-                          <div className="mt-2">
-                            <BazdaahoFormulaDiagram />
+                        <div className="mt-5 space-y-6">
+                          <div>
+                            <p className="type-label uppercase tracking-widest text-sand/65">
+                              The Bazdaaho Formula
+                            </p>
+                            <div className="mt-2">
+                              <BazdaahoFormulaDiagram />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="type-label uppercase tracking-widest text-sand/65">
+                              The Complete Bazdaaho Arrangement
+                            </p>
+                            <div className="mt-2">
+                              <BazdaahoArrangementDiagram />
+                            </div>
                           </div>
                         </div>
                       ) : null}

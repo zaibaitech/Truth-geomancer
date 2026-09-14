@@ -3716,5 +3716,101 @@ Adding Stars heading each appear exactly once.
 
 **Not pushed, not deployed** — per this prompt's explicit instruction.
 
+---
+
+## Prompt 30 — Restore the complete Bazdaaho Method from the manuscript
+
+**What was missing.** `BazdaahoFormulaDiagram` showed the formula as a
+four-column grid of letter/value cards and the four worked examples as
+bare arithmetic text ("= 2", "= 4") — no geomantic figure anywhere, and no
+representation at all of the arrangement the whole method exists to
+produce: the sixteen stars, Yussif to Musah, laid out in the source's own
+spatial rows. A reader saw the formula's inputs but never what it
+actually arranges.
+
+**Formula restoration.** `BAZDAAHO_FORMULA_TABLE` gained a `rowLabel`
+field carrying the source's own "I"/"II" row marks (I, I, II, I), and the
+diagram now renders it as four stacked rows (`rowLabel — glyph = value`)
+rather than a four-column grid, matching "a visual four-row mapping." The
+one previously-flagged glyph ("Ͻ") is unchanged and still marked
+unresolved, with its note unchanged; no glyph was substituted for it.
+
+**Four worked examples restoration.** Each example now shows its actual
+resulting figure (`FigureGlyph`, looked up via a new
+`starForBazdaahoResult()` — the example's `result` value is that star's
+own existing Bazdaaho number, so this reuses `STARS` directly, not a new
+lookup table) alongside its full source arithmetic. Eg. 1 was corrected to
+match this prompt's own restated source quote — `values` changed from
+`[2,7,8]` to `[2,7,4,8]` and `workingLine` to "2 + 7 + 4 + 8 = 17 − 16 = 1,
+therefore it's 1" (all four table values now named, exactly as quoted) —
+the arithmetic is still not corrected: the stated total (17) does not
+match the actual sum of those four values (21), preserved exactly as
+instructed rather than recomputed; `BAZDAAHO_EG1_NOTE` was reworded to
+describe the inconsistency from this angle. Eg. 3's working line
+("7 + 4 + 8 = 19 − 16 = 3") was already correct and is unchanged. Eg. 2
+and Eg. 4 are unchanged (`= 2`, `= 4`) — the source gives no fuller
+working for either.
+
+**Complete stars 1–16 arrangement restoration.** A new component,
+`BazdaahoArrangementDiagram.tsx`, and new data, `BAZDAAHO_ARRANGEMENT`,
+reproduce the source's three printed rows exactly as given in this
+prompt — top `[8,7,6,5,4,3,2,1]`, middle `[12,11,10,9]`, lower
+`[14,15,13,16]` — left-to-right order preserved, not resorted ascending.
+Every figure is looked up from the existing `STARS` array by number (no
+second star-definition system, per this prompt's explicit instruction).
+
+**Mobile design approach.** Each row's cards wrap via flexbox (`flex
+flex-wrap`, fixed card width) rather than a fixed-column grid, so the
+eight-star top row reflows to two rows of four on a 390px viewport without
+any card stretching or shrinking below a readable size — achieving the
+prompt's suggested "responsive two-stage presentation" through wrapping
+rather than a second, separate UI state, while every row keeps its own
+label ("Stars 1–8" / "Stars 9–12" / "Stars 13–16") and the source's
+row-grouping and internal ordering stay visible at every width.
+
+**Source-fidelity decisions.** The one unresolved glyph stays unresolved
+(no Arabic letter substituted). Eg. 1's arithmetic inconsistency is
+preserved, updated only because this prompt itself restated the source's
+own printed working line more completely (all four values, not three) —
+the correction is to fidelity, not away from it, and the "total doesn't
+match the sum" inconsistency is preserved either way. `BAZDAAHO_METHOD_INTRO`
+quotes the source's transition sentence into the formula verbatim,
+positioned directly above it, without replacing the chapter's own existing
+paraphrase in `master-of-geomancy-vol1.ts` (which was not flagged as
+invented this time, so left unchanged, unlike the Counting/Cancelling
+Method lead sentences in Prompts 28-29).
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` and `content/stars.ts` is empty. Every figure in both the
+formula's worked examples and the complete arrangement is read from the
+existing `STARS` array; nothing computes or infers a pattern.
+
+**Tests.** `chapterOneDiagrams.test.ts` gained: the intro quote; row
+labels (I/I/II/I); the unresolved glyph's row label; Eg. 1's corrected
+values/workingLine and the reworded note; Eg. 3's working line; every
+worked example's figure cross-checked against `STARS`, plus confirmation
+the four results are exactly stars 1-4 in order; the arrangement's three
+rows matching the prompt's exact given order; all sixteen stars
+represented exactly once (no duplicate, no omission); and every arranged
+star's figure existing in `STARS` with a valid four-line pattern. Full
+suite: 2,298 tests passing (2,292 prior + 6 new). `tsc --noEmit` clean,
+`next build` clean.
+
+**Browser-verified** at 390×844, Standard and Extra Large reader size: no
+horizontal overflow at either size. Marker-position checks on the
+rendered HTML confirm order — Chapter 2 heading → the formula's intro
+quote → "The Bazdaaho Formula" → the four-row formula table → Eg. 1
+(with its full four-value working line) → Eg. 2 → Eg. 3 → Eg. 4 → the
+Eg. 1 note → "The Complete Bazdaaho Arrangement" → Stars 1–8 → Stars 9–12
+→ Stars 13–16 → Chapter 3. Confirmed the Complete Chart section (Prompt
+29) still precedes Chapter 2 correctly. No duplicated sections: "Eg. 1.",
+the arrangement heading, and each row label appear exactly once as visible
+text (a second occurrence of each row label found only inside its own
+`aria-label` attribute, not a duplicate render).
+
+**Not pushed, not deployed**, consistent with this session's established
+practice of committing locally and pushing only on explicit request.
+
 
 

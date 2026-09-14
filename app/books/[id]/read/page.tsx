@@ -10,8 +10,10 @@ import { HatimDiagram } from "@/components/books/HatimDiagram";
 import { CountingMethodDiagram } from "@/components/books/CountingMethodDiagram";
 import { CancellingMethodDiagram } from "@/components/books/CancellingMethodDiagram";
 import { AdditionSequenceDiagram } from "@/components/books/AdditionSequenceDiagram";
+import { CompleteChartDiagram } from "@/components/books/CompleteChartDiagram";
 import { BazdaahoFormulaDiagram } from "@/components/books/BazdaahoFormulaDiagram";
 import { BOOKS, getBookById } from "@/content/books";
+import { COMPLETE_CHART_INTRO } from "@/content/manuscripts/chapterOneDiagrams";
 import {
   CHAPTERS,
   DEDICATION,
@@ -216,6 +218,18 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                               <div className="mt-2">
                                 <AdditionSequenceDiagram />
                               </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-6">
+                            <p className="type-label uppercase tracking-widest text-sand/65">
+                              The Complete Chart
+                            </p>
+                            <p className="mt-2 italic type-body text-sand-light">
+                              {COMPLETE_CHART_INTRO}
+                            </p>
+                            <div className="mt-3">
+                              <CompleteChartDiagram />
                             </div>
                           </div>
                         </>

@@ -3580,5 +3580,141 @@ examples.
 
 **Not pushed, not deployed** — per this prompt's explicit instruction.
 
+---
+
+## Prompt 29 — Redesign the Cancelling Method as a source-faithful practical tutorial
+
+**The gap.** The Cancelling Method diagram showed each example as four
+static tally-mark rows with no derived result — a reader saw the source's
+own typeset marks but not how they resolve into a line mark, a Mother
+Star, or the rest of the chart. There was also no complete-chart view, and
+the "In adding stars" chain showed abstract "H1 + H2 → H9" text chips
+rather than real figures.
+
+**How the Cancelling Method was improved.** `CancellingMethodDiagram.tsx`
+now shows, per line, a four-stage flow: the original line as a countable
+row of plain dots → the same dots grouped and cancelled in pairs (each
+"||" pair struck through, the lone surviving "|" left plain) → what
+remains (one or two dots) → that remainder restated as the line's formal
+mark (`DotRowGlyph`). All four stages display one value —
+`cancelledLineMark(tokens)`, a new pure function in
+`chapterOneDiagrams.ts` — derived purely from the odd/even parity of the
+already-verified tokens (a lone "|" survives → mark 1; all "||" → mark 2),
+the same convention already stated in the source and cross-tested
+elsewhere against `addRows()`. No token, dot count, or example was altered
+— `CANCELLING_METHOD_EXAMPLES` is byte-identical to Prompt 26.
+
+**How right-to-left cancellation is demonstrated.** Each line's
+"cancel in pairs" row carries the caption `CANCEL_DIRECTION_LABEL` ("Cancel
+pairs from right → left") and an accessible label stating the direction
+and outcome explicitly (`"Line N: pairs cancelled from right to left, one
+dot remains"`). The label is text, not animation-only, so it survives at
+any reader size or with animations disabled.
+
+**How the Mother Stars are shown.** Each example's four lines' marks are
+recomputed via `cancellingMotherPattern()` and stacked into that example's
+own "Mother Star N" (Eg. 1 → Mother Star 1 … Eg. 4 → Mother Star 4),
+rendered with the existing `FigureGlyph`. After all four, the source's own
+transition line is quoted verbatim as `CANCELLING_METHOD_CLOSING`: "So we
+have 4 stars as the umuhat (Mother stars) as shown above, from there, use
+the first 4 stars to get the second 4 (Banaat - Children stars) in
+geomancy."
+
+**How Banaat/Children Stars are demonstrated.** `AdditionSequenceDiagram`
+gained a "From Mothers to Daughters (Banaat)" section: the four Mother
+figures on the left, an arrow, the four Daughter figures on the right —
+`CHAPTER_ONE_DAUGHTERS`, produced by calling `deriveDaughters()` (the
+protected engine's own function, imported read-only from
+`lib/raml/casting.ts`) on the four Mother patterns above, not a hand
+re-derivation.
+
+**How H1-H16 are represented.** The same file's "In adding stars" section
+now shows all eight steps (H1+H2→H9 … H15+H1→H16) with real figures at
+every position, not text chips. `CHAPTER_ONE_ADDITION_STEPS` (new) carries
+each step's real input and result patterns, looked up from
+`CHAPTER_ONE_CHART` — the full sixteen-house chart built by calling
+`buildChart()` (the same protected function the live casting flow calls)
+on this chapter's own four Mother patterns. This is a deliberate,
+explicitly-instructed exception to this file's usual practice of keeping
+Chapter 1's educational data independent of the engine: the prompt asked
+for "the existing geomancy figure-combination logic" for this sequence, so
+`buildChart`/`deriveDaughters`/`addPatterns` are called directly rather
+than hand-duplicated. Each step's `resultPattern` is independently
+recomputed via `addPatterns()` and cross-checked in tests against the
+chart's own already-built house for that number.
+
+**Complete chart status.** A new component, `CompleteChartDiagram.tsx`,
+renders all sixteen houses from `CHAPTER_ONE_CHART`, grouped by the
+chapter's own existing terminology (`CHART_HOUSE_GROUPS`: Mothers —
+Umuhat, Daughters — Banaat, Nieces, Witnesses, Judge, Reconciler — no new
+terms). It is preceded by the source's own quoted line,
+`COMPLETE_CHART_INTRO`: "So we have the chat as follows:" (reproduced
+exactly as printed — "chat" is the source's own spelling, not corrected,
+since no general typo-correction policy is established for this file and
+the prompt's own fallback is to preserve source wording). Responsive: each
+group's cards wrap via flexbox rather than a fixed grid, so a two- or
+one-card group (Witnesses, Judge, Reconciler) never stretches oddly at any
+width.
+
+**Chapter 1 body text.** `content/manuscripts/master-of-geomancy-vol1.ts`'s
+Cancelling Method paragraph (`CHAPTERS[0].body[2]`) was reduced to the
+source's own literal lead sentence — "**The Cancelling Method.** You will
+make 4 straight lines with dots and start cancelling 2, 2, 2, from your
+right to the left as shown below." — replacing the earlier paraphrase,
+following the same precedent Prompt 28 set for the Counting Method's lead
+sentence. The detail it used to carry ("what's left over becomes the
+mark," "stack the four marks," "repeat for Mothers two, three and four")
+is not lost — it is now taught visually, by the diagram itself, exactly
+where the source teaches it.
+
+**`app/books/[id]/read/page.tsx`:** one new splice point added after the
+existing "Adding Stars" block, still inside the `drawing-a-chart` fragment
+— "The Complete Chart" heading, `COMPLETE_CHART_INTRO`, and
+`CompleteChartDiagram`. Ordering confirmed unchanged otherwise: Counting
+Method → Cancelling Method → Banaat/chart-building prose → Adding Stars →
+Complete Chart → Chapter 2 (Bazdaaho).
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` and `content/stars.ts` is empty. `casting.ts`'s
+`buildChart`/`deriveDaughters`/`addPatterns` are imported and called
+read-only from `chapterOneDiagrams.ts`, per this prompt's explicit
+instruction to reuse "the existing geomancy figure-combination logic" —
+this is a new dependency, not a modification. `components/raml/FigureGlyph.tsx`
+gained one new export, `DotRowGlyph` (a single-line dot glyph, extracted
+from `AdditionSequenceDiagram`'s previously-local component so
+`CancellingMethodDiagram` could reuse it); `FigureGlyph` itself is
+unchanged.
+
+**Tests.** `chapterOneDiagrams.test.ts` gained a new "Mothers to the
+complete chart (H1-H16)" describe block plus additional Cancelling Method
+tests: parity-derived line marks cross-checked against raw token-count
+odd/even for every line in every example; right-to-left direction wording;
+no invented numeric field on the example objects; all four Mother Stars
+valid; `deriveDaughters`' transpose (not addition) verified line-by-line;
+the full sixteen-house chart's first eight houses equal the Mothers then
+Daughters; all eight addition steps cross-checked against `addPatterns()`
+and against the chart's own built houses; the complete-chart intro quote;
+and every house 1-16 appearing in `CHART_HOUSE_GROUPS` exactly once. Full
+suite: 2,292 tests passing (2,283 prior + 9 new). One pre-existing
+low-contrast class (`text-sand/50` on three `aria-hidden` arrow
+separators) was caught by the existing AA-contrast guard and raised to
+`text-sand/65`, the established floor. `tsc --noEmit` clean, `next build`
+clean.
+
+**Browser-verified** at 390×844, Standard and Extra Large reader size: no
+horizontal overflow at either size. Marker-position checks on the
+rendered HTML confirm strict ordering — Counting Method → its closing line
+→ Cancelling Method heading → corrected lead sentence → Eg. 1 → its
+right-to-left label → Mother Star 1 → Eg. 2 → Mother Star 2 → Eg. 3 →
+Mother Star 3 → Eg. 4 → Mother Star 4 → the closing "umuhat" quote → the
+Banaat prose paragraph → the Adding Stars heading → Combining Two Lines →
+From Mothers to Daughters → In Adding Stars → The Complete Chart heading →
+its intro quote → the Mothers group → the Reconciler group. No duplicated
+examples: "Eg. 1.", each "Mother Star N", "The Complete Chart", and the
+Adding Stars heading each appear exactly once.
+
+**Not pushed, not deployed** — per this prompt's explicit instruction.
+
 
 

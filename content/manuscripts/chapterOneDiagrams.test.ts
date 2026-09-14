@@ -1,17 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { STARS } from "@/content/stars";
-import { addRows } from "@/lib/raml/casting";
+import { STARS, type Pattern } from "@/content/stars";
+import { addPatterns, addRows } from "@/lib/raml/casting";
 import {
   ADDITION_SEQUENCE,
   BAZDAAHO_EG1_NOTE,
   BAZDAAHO_FORMULA_TABLE,
   BAZDAAHO_WORKED_EXAMPLES,
+  CANCEL_DIRECTION_LABEL,
+  CANCELLING_METHOD_CLOSING,
   CANCELLING_METHOD_EXAMPLES,
+  CANCELLING_METHOD_MOTHER_PATTERNS,
+  CHAPTER_ONE_ADDITION_STEPS,
+  CHAPTER_ONE_CHART,
+  CHAPTER_ONE_DAUGHTERS,
+  CHART_HOUSE_GROUPS,
   CIRCLED_NUMBERS,
+  COMPLETE_CHART_INTRO,
   COUNTING_DIRECTION_NOTE,
   COUNTING_METHOD_CLOSING,
   COUNTING_METHOD_EXAMPLES,
   PARITY_ADDITION_EXAMPLES,
+  cancelledLineMark,
   starForCount,
 } from "@/content/manuscripts/chapterOneDiagrams";
 
@@ -119,14 +128,116 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       }
     });
 
-    it("does not assert an invented per-line remainder value", () => {
-      // Deliberately no numeric "result" field anywhere in this data --
-      // the source does not label one for the Cancelling Method examples,
-      // unlike the Counting Method's stated raw counts.
+    it("derives each line's mark purely from odd/even parity of its already-transcribed tokens", () => {
+      // Total dots (sum of token lengths) odd -> 1 dot; even -> 2 dots.
+      // This is the same parity rule stated in the source and cross-tested
+      // elsewhere in this file against addRows() -- not a new formula, and
+      // not a re-reading of the source (the tokens are unchanged).
+      for (const example of CANCELLING_METHOD_EXAMPLES) {
+        for (const line of example.lines) {
+          const total = line.reduce((sum, t) => sum + t.length, 0);
+          const expectedMark = total % 2 === 0 ? 2 : 1;
+          expect(cancelledLineMark(line)).toBe(expectedMark);
+        }
+      }
+    });
+
+    it("represents cancellation direction as right-to-left, per the source's own instruction", () => {
+      expect(CANCEL_DIRECTION_LABEL.toLowerCase()).toContain("right");
+      expect(CANCEL_DIRECTION_LABEL.toLowerCase()).toContain("left");
+      expect(CANCEL_DIRECTION_LABEL.toLowerCase()).toContain("pair");
+    });
+
+    it("does not invent a numeric field beyond what cancelledLineMark derives from the tokens", () => {
+      // The example objects themselves still carry only their source-
+      // transcribed label and tokens -- no stored "result"/"reducedValue"
+      // field competes with or overrides the derived mark.
       for (const example of CANCELLING_METHOD_EXAMPLES) {
         expect(example).not.toHaveProperty("result");
         expect(example).not.toHaveProperty("reducedValue");
       }
+    });
+
+    it("produces exactly four Mother Stars, one per worked example, each a valid four-line pattern", () => {
+      expect(CANCELLING_METHOD_MOTHER_PATTERNS).toHaveLength(4);
+      CANCELLING_METHOD_EXAMPLES.forEach((example, i) => {
+        const expected = example.lines.map(cancelledLineMark) as Pattern;
+        expect(CANCELLING_METHOD_MOTHER_PATTERNS[i]).toEqual(expected);
+        for (const dot of CANCELLING_METHOD_MOTHER_PATTERNS[i]) {
+          expect([1, 2]).toContain(dot);
+        }
+      });
+    });
+
+    it("reproduces the source's own closing line verbatim, introducing the Banaat", () => {
+      expect(CANCELLING_METHOD_CLOSING).toBe(
+        "So we have 4 stars as the umuhat (Mother stars) as shown above, from there, use the first 4 stars to get the second 4 (Banaat - Children stars) in geomancy.",
+      );
+    });
+  });
+
+  describe("Mothers to the complete chart (H1-H16)", () => {
+    it("builds the four Daughters by reading across the four Mothers' corresponding lines (deriveDaughters, not addition)", () => {
+      expect(CHAPTER_ONE_DAUGHTERS).toHaveLength(4);
+      for (let line = 0; line < 4; line++) {
+        expect(CHAPTER_ONE_DAUGHTERS[line]).toEqual([
+          CANCELLING_METHOD_MOTHER_PATTERNS[0][line],
+          CANCELLING_METHOD_MOTHER_PATTERNS[1][line],
+          CANCELLING_METHOD_MOTHER_PATTERNS[2][line],
+          CANCELLING_METHOD_MOTHER_PATTERNS[3][line],
+        ]);
+      }
+    });
+
+    it("builds a full sixteen-house chart whose first eight houses are the Mothers then the Daughters", () => {
+      expect(CHAPTER_ONE_CHART.houses).toHaveLength(16);
+      expect(CHAPTER_ONE_CHART.houses.map((h) => h.n)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      ]);
+      for (let i = 0; i < 4; i++) {
+        expect(CHAPTER_ONE_CHART.houses[i].pattern).toEqual(
+          CANCELLING_METHOD_MOTHER_PATTERNS[i],
+        );
+      }
+      for (let i = 0; i < 4; i++) {
+        expect(CHAPTER_ONE_CHART.houses[i + 4].pattern).toEqual(
+          CHAPTER_ONE_DAUGHTERS[i],
+        );
+      }
+    });
+
+    it("represents the full H9-H16 addition chain with real figures, each cross-checked against addPatterns()", () => {
+      expect(CHAPTER_ONE_ADDITION_STEPS).toHaveLength(8);
+      expect(CHAPTER_ONE_ADDITION_STEPS.map((s) => s.result)).toEqual([
+        9, 10, 11, 12, 13, 14, 15, 16,
+      ]);
+      const houseByNumber = (n: number) =>
+        CHAPTER_ONE_CHART.houses.find((h) => h.n === n)!.pattern;
+      for (const step of CHAPTER_ONE_ADDITION_STEPS) {
+        expect(step.inputPatterns[0]).toEqual(houseByNumber(step.inputs[0]));
+        expect(step.inputPatterns[1]).toEqual(houseByNumber(step.inputs[1]));
+        // resultPattern is recomputed via addPatterns (the same function
+        // buildChart uses internally) -- it must agree with the chart's
+        // own already-built house for that number.
+        expect(step.resultPattern).toEqual(
+          addPatterns(step.inputPatterns[0], step.inputPatterns[1]),
+        );
+        expect(step.resultPattern).toEqual(houseByNumber(step.result));
+      }
+    });
+
+    it("gives the complete chart the source's own introductory line, quoted verbatim", () => {
+      expect(COMPLETE_CHART_INTRO).toBe("So we have the chat as follows:");
+    });
+
+    it("groups every one of the sixteen houses exactly once, using the chapter's own terminology", () => {
+      const allNumbers = CHART_HOUSE_GROUPS.flatMap((g) => g.houseNumbers);
+      expect([...allNumbers].sort((a, b) => a - b)).toEqual(
+        Array.from({ length: 16 }, (_, i) => i + 1),
+      );
+      const labels = CHART_HOUSE_GROUPS.map((g) => g.label);
+      expect(labels.some((l) => l.includes("Mothers"))).toBe(true);
+      expect(labels.some((l) => l.includes("Daughters"))).toBe(true);
     });
   });
 

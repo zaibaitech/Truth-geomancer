@@ -41,7 +41,13 @@
 // "2+2=2, 1+2=1, 1+1=2" — already has its own place in the existing chapter
 // body and in the protected engine's addRows(); it is not re-derived here.)
 
-import { STARS, type Pattern } from "@/content/stars";
+import { STARS, type DotRow, type Pattern } from "@/content/stars";
+import {
+  addPatterns,
+  buildChart,
+  deriveDaughters,
+  type Chart,
+} from "@/lib/raml/casting";
 
 /** The circled line numbers the source prints beside each counting line
  * (①②③④), in drawing order. */
@@ -166,8 +172,11 @@ export const COUNTING_METHOD_CLOSING =
 /** One worked Cancelling Method example: four lines of typeset tally
  * tokens, exactly as the source prints them — a lone "|" for an uncancelled
  * mark, "||" for a cancelled pair. Transcribed verbatim from the PDF's own
- * text layer (page 5); no remainder value is computed or asserted here,
- * since the source itself does not label one at this point in the text. */
+ * text layer (page 5). Each example's four lines are the source's own
+ * worked demonstration of one Mother Star (Eg. 1 -> Mother Star 1, Eg. 2 ->
+ * Mother Star 2, and so on — "Repeat three more times for Mothers two,
+ * three and four."); see cancelledLineMark below for how each line's
+ * resulting mark is read off these same tokens. */
 export interface CancellingMethodExample {
   label: string; // "Eg. 1." etc, as printed
   lines: string[][]; // four lines, each an ordered array of '|' | '||' tokens
@@ -212,6 +221,53 @@ export const CANCELLING_METHOD_EXAMPLES: CancellingMethodExample[] = [
   },
 ];
 
+/** The remaining dot(s) after cancelling one line's already-transcribed
+ * tokens in pairs: a lone "|" survives uncancelled — an odd total, so the
+ * line's mark is a single dot; when every token is "||" (an even total,
+ * everything pairs off), the line's mark is two dots. This is the same
+ * odd/even convention already stated in the chapter's own prose ("What is
+ * left over — one dot, or two — becomes that line's mark") and cross-tested
+ * elsewhere in this file against the protected engine's addRows() via
+ * PARITY_ADDITION_EXAMPLES — applied here to the tokens already transcribed
+ * above, not to any new source reading or a different formula. Every line
+ * in every example carries at most one lone "|" token, so this is
+ * unambiguous. */
+export function cancelledLineMark(tokens: string[]): DotRow {
+  return tokens.includes("|") ? 1 : 2;
+}
+
+/** One example's four lines, each reduced by cancelledLineMark and stacked
+ * top-to-bottom — the example's own worked Mother Star. */
+export function cancellingMotherPattern(
+  example: CancellingMethodExample,
+): Pattern {
+  const [l1, l2, l3, l4] = example.lines.map(cancelledLineMark);
+  return [l1, l2, l3, l4];
+}
+
+/** The four Mother Stars, one per worked example, in order. */
+export const CANCELLING_METHOD_MOTHER_PATTERNS: [
+  Pattern,
+  Pattern,
+  Pattern,
+  Pattern,
+] = CANCELLING_METHOD_EXAMPLES.map(cancellingMotherPattern) as [
+  Pattern,
+  Pattern,
+  Pattern,
+  Pattern,
+];
+
+/** The direction the source states cancellation proceeds in, for every
+ * line: pairs are cancelled starting from the right-hand side, moving
+ * left. Restated as a short caption for the diagram, not a new rule. */
+export const CANCEL_DIRECTION_LABEL = "Cancel pairs from right → left";
+
+/** The source's own line after the four Cancelling Method examples,
+ * introducing the Banaat (Children stars) — quoted verbatim. */
+export const CANCELLING_METHOD_CLOSING =
+  "So we have 4 stars as the umuhat (Mother stars) as shown above, from there, use the first 4 stars to get the second 4 (Banaat - Children stars) in geomancy.";
+
 /** The book's own parity rule for combining two lines into one, restated
  * here as data for the diagram. Matches the protected engine's addRows()
  * exactly (same parity -> double dot, different parity -> single dot) and
@@ -241,6 +297,84 @@ export const ADDITION_SEQUENCE: { inputs: [number, number]; result: number }[] =
     { inputs: [13, 14], result: 15 },
     { inputs: [15, 1], result: 16 },
   ];
+
+// ----------------------------------------------------------------------
+// The complete Chapter 1 chart, built from the four Mother patterns above
+// using the SAME protected chart-building logic the live casting flow
+// uses — buildChart / deriveDaughters / addPatterns, imported read-only
+// from lib/raml/casting.ts and never reimplemented or modified here. This
+// is a deliberate exception to this file's usual practice of keeping
+// Chapter 1's educational data independent of the engine: this prompt
+// explicitly asks for "the existing geomancy figure-combination logic" for
+// the Mother -> Children -> H16 sequence and the complete chart, so the
+// protected, already-tested functions are called directly rather than
+// hand-duplicated a second time.
+
+/** The four Daughters (Banaat), derived from the four Mother patterns by
+ * reading across their corresponding lines — deriveDaughters is the same
+ * function the live casting flow uses, called here read-only. */
+export const CHAPTER_ONE_DAUGHTERS: Pattern[] = deriveDaughters(
+  CANCELLING_METHOD_MOTHER_PATTERNS,
+);
+
+/** The full sixteen-house chart built from this chapter's own four worked
+ * Mother Stars — buildChart, called read-only, exactly as the live casting
+ * flow calls it. */
+export const CHAPTER_ONE_CHART: Chart = buildChart(
+  CANCELLING_METHOD_MOTHER_PATTERNS,
+);
+
+function houseByNumber(n: number): Pattern {
+  const house = CHAPTER_ONE_CHART.houses.find((h) => h.n === n);
+  if (!house) throw new Error(`No house ${n} in the Chapter 1 chart`);
+  return house.pattern;
+}
+
+export interface ChartAdditionStep {
+  inputs: [number, number];
+  result: number;
+  inputPatterns: [Pattern, Pattern];
+  /** Recomputed here via addPatterns (the same function buildChart uses
+   * internally) so the diagram can show real figures at each step; always
+   * equal to houseByNumber(result) — see the cross-check in
+   * chapterOneDiagrams.test.ts. */
+  resultPattern: Pattern;
+}
+
+/** The "In adding stars" sequence (H1+H2->H9 ... H15+H1->H16), now carrying
+ * each step's real input and result figures from this chapter's own chart,
+ * not abstract placeholders. */
+export const CHAPTER_ONE_ADDITION_STEPS: ChartAdditionStep[] =
+  ADDITION_SEQUENCE.map((step) => {
+    const a = houseByNumber(step.inputs[0]);
+    const b = houseByNumber(step.inputs[1]);
+    return {
+      inputs: step.inputs,
+      result: step.result,
+      inputPatterns: [a, b],
+      resultPattern: addPatterns(a, b),
+    };
+  });
+
+export const COMPLETE_CHART_INTRO = "So we have the chat as follows:";
+
+export interface ChartHouseGroup {
+  label: string;
+  houseNumbers: number[];
+}
+
+/** The chart's sixteen houses, grouped by the chapter's own terminology
+ * (Umuhat/Mothers, Banaat/Daughters, Nieces, Witnesses, Judge, Reconciler
+ * — all already used in the chapter's existing prose body, not new terms
+ * introduced here) for the complete-chart diagram's labelling. */
+export const CHART_HOUSE_GROUPS: ChartHouseGroup[] = [
+  { label: "Mothers — Umuhat", houseNumbers: [1, 2, 3, 4] },
+  { label: "Daughters — Banaat", houseNumbers: [5, 6, 7, 8] },
+  { label: "Nieces", houseNumbers: [9, 10, 11, 12] },
+  { label: "Witnesses", houseNumbers: [13, 14] },
+  { label: "Judge", houseNumbers: [15] },
+  { label: "Reconciler", houseNumbers: [16] },
+];
 
 /** The Bazdaaho formula's letter-to-value table (page 6), transcribed from
  * the PDF's own clean text layer. One character could not be identified

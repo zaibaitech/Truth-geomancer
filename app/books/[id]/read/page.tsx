@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ContentGuard } from "@/components/books/ContentGuard";
 import { Prose } from "@/components/books/Prose";
+import { ChapterMethodPractice } from "@/components/books/ChapterMethodPractice";
 import { DreamInterpretationsBody } from "@/components/books/DreamInterpretationsBody";
 import { FigureGlyph } from "@/components/raml/FigureGlyph";
 import { HatimDiagram } from "@/components/books/HatimDiagram";
@@ -135,7 +136,10 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                         paragraphs={chapter.paragraphs}
                       />
                     ) : (
-                      <Prose paragraphs={chapter.paragraphs} />
+                      <ChapterMethodPractice
+                        chapterId={chapter.id}
+                        paragraphs={chapter.paragraphs}
+                      />
                     )}
                   </div>
                 </section>

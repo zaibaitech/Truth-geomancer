@@ -3,10 +3,16 @@
  * length was the only one the text-size control could not touch. It is on the
  * shared scale now; the justified measure and the 1.7 leading stay, because
  * they are what make a long passage readable rather than what make it big. */
-function renderInline(text: string, key: number) {
+/** One paragraph, exactly as the manuscript reader has always rendered it.
+ * Exported so a caller that needs to insert something BETWEEN specific
+ * paragraphs (e.g. a "Try this method" CTA right after its own source
+ * paragraph — see ChapterMethodPractice.tsx) can still use this identical
+ * markup instead of duplicating it, rather than being limited to `Prose`'s
+ * all-paragraphs-at-once shape. */
+export function ProseParagraph({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <p key={key} className="manuscript-paragraph mb-5 break-words text-justify type-body leading-[1.7] text-sand/80 hyphens-auto last:mb-0">
+    <p className="manuscript-paragraph mb-5 break-words text-justify type-body leading-[1.7] text-sand/80 hyphens-auto last:mb-0">
       {parts.map((part, i) =>
         part.startsWith('**') && part.endsWith('**') ? (
           <strong key={i} className="text-sand-light">
@@ -21,5 +27,11 @@ function renderInline(text: string, key: number) {
 }
 
 export function Prose({ paragraphs }: { paragraphs: string[] }) {
-  return <div>{paragraphs.map((p, i) => renderInline(p, i))}</div>;
+  return (
+    <div>
+      {paragraphs.map((p, i) => (
+        <ProseParagraph key={i} text={p} />
+      ))}
+    </div>
+  );
 }

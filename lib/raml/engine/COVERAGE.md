@@ -4516,4 +4516,140 @@ every screen tested).
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
 
+## Prompt 39 — "Try this method": an interactive practice walkthrough for source methods
+
+The Library showed each chapter's traditional methods as plain prose — a
+reader could read "Method 1: pick h1 and h8..." but had no way to see it
+worked on a real chart. This prompt added an additive, presentation-only
+practice experience that lets a reader launch, cast (or reuse a chart for),
+and walk through one specific verified method — never a second geomancy
+engine, never a rewrite of the source text.
+
+**Eligibility (`lib/raml/methodPractice.ts`, new).** A method gets a "Try
+this method" CTA under exactly one condition: `method.status === 'verified'`
+— the same bar `COMPARE_RESULTS`/`ruleEngine.ts` already use to decide
+whether a method counts toward a reading. `practicableMethodsForChapter()`
+resolves a chapter to its engine question via the existing
+`catalogEntry()`/`resolveEngineQuestionId()` (`questionCatalog.ts`,
+`questionAvailability.ts` — unchanged, just reused), then filters that
+question's own `methods[]`. A consolidated-duplicate chapter (e.g. a
+pregnancy chapter repeated verbatim elsewhere) gets no CTA of its own — only
+the chapter that actually owns the method does. The one new signal this
+file computes is WHERE a method's paragraph lives in the chapter's prose:
+every KM method paragraph begins with its own method's `label` verbatim
+("Method 1: …", confirmed across the transcription), so matching is an
+exact literal prefix check against already-known structured data — never
+prose-parsing, never an inferred house number, never a fabricated
+operation, per the prompt's own section 17.
+
+**Chapter rendering.** `components/books/ChapterMethodPractice.tsx` (new)
+replaces the bare `<Prose paragraphs={...}/>` call for ordinary KM chapters
+in `app/books/[id]/read/page.tsx`. `Prose.tsx` gained one new export,
+`ProseParagraph` (byte-identical markup, just split out of `Prose` so both
+components render the SAME paragraph piece) — the source text itself is
+untouched, unrewritten, unreordered; a "Try this method" pill link is
+inserted immediately after any paragraph matched to a practicable method,
+nothing else changes. A chapter with zero practicable methods (no engine
+question, or nothing verified) renders exactly as it did before this
+prompt.
+
+**Practice route and flow.** `app/raml/practice/[chapterId]/[methodId]/page.tsx`
+(new) renders `components/raml/practice/MethodPracticeFlow.tsx` (new), a
+small client-side stage machine: intro → (cast a chart | reuse the most
+recent one) → a step-by-step walkthrough → result. Every header says
+"Practicing Method N" (never "Your Reading"), keeping this a deliberately
+different experience from the synthesized Reading flow (section 11) —
+neither flow's code references the other. **Casting is entirely reused**:
+`CastingBoard` (unmodified) is rendered as-is for a fresh cast, and
+`buildChart()` is the same function `history.ts` already uses to
+reconstruct a chart from stored Mothers. **Chart reuse**
+(`mostRecentChart()`) reads the same `listReadings()`/`ReadingRecord` the
+History screen already reads — no new persistence, and every chart is
+structurally compatible with every verified method (16 houses, always),
+documented as such rather than silently assumed.
+
+**House selection** (`components/raml/practice/HouseSelector.tsx`, new)
+shows the SAME chart `ChartGrid` already renders, with the method's
+required houses (`ReadingMethodRow.housesUsed`) highlighted and tappable;
+tapping only ever toggles the component's own local `selected` set — it has
+no prop through which it could alter the chart's figures. Continue is
+disabled until every required house has been tapped.
+
+**Calculation and result — zero duplicate logic.** Once a chart exists, the
+flow calls `runReading(chart, questionId)` — the exact function the Reading
+flow itself calls — and reads out one method's own `ReadingMethodRow`
+(`housesUsed`, `calculationSteps`, `resultFigureName`/qualities,
+`outcomeLabel`, `interpretation`, `sourceQuote`). The walkthrough's step
+sequence is `['houses', ...calculationSteps, 'result']` — each working step
+is one of the engine's OWN already-computed calculation-trace strings
+(e.g. "H3 (Iddris) + H7 (Issah) + H11 (Musah) + H15 (Ibrahim) = Mahadi"),
+never a fabricated sub-grouping the source metadata doesn't structurally
+provide. The result screen shows the figure, its qualities, the outcome
+badge and the verdict's own interpretation text verbatim — "According to
+the source, this indicates: …" — with no confidence score, no
+"true"/"certain"/"guaranteed" language anywhere in the flow (asserted
+directly by a test). "Source method" names the book/chapter/method and a
+toggle reveals the exact `sourceQuote` used, completing
+SOURCE → PRACTICE → RESULT.
+
+**Unresolved methods never get a fake practice experience.** Money-method-4
+(Sirri Sa'ael, `status: 'uncertain'`) gets no CTA at all; visiting its
+practice URL directly resolves to a neutral "Source method — practice
+unavailable" card rather than attempting a calculation that would throw.
+
+**Engine untouched.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts` and every `questions/*.ts`
+file is empty — confirmed both by diff and by a dedicated test scanning
+those files for any reference to the new practice module.
+`methodPractice.ts` itself contains no `reduceCount`/`addRows`/
+`addPatterns`/`COMPARE_RESULTS`/`buildChartModel` calls — it reads metadata
+and calls `runReading()`, nothing else.
+
+**Tests (45 new):** `methodPractice.test.ts` (14) proves eligibility (only
+verified methods, in method order, each matched to its own paragraph by
+exact label prefix), that money-method-4 never appears, that multiple
+methods in one chapter each resolve to their own distinct, correctly
+matched context, that unresolved/unknown/consolidated-duplicate lookups all
+return null/empty rather than a guess, and `mostRecentChart()`'s
+reconstruction (including a from-scratch `MemoryStorage` localStorage
+stand-in, matching `history.test.ts`'s own pattern). `practiceUi.test.ts`
+(31) is a source-scanning structural suite (no component-rendering harness
+in this app) covering all of section 18's numbered cases: the CTA is
+metadata-driven not hard-coded; the original prose renders through the
+same `ProseParagraph`; every screen says "Practicing"; `CastingBoard` and
+`buildChart()` are reused unmodified; chart-reuse never mutates the chart;
+house selection highlights/validates via the real `housesUsed`; the working
+steps come from the real `calculationSteps`; the result is source-faithful
+with no certainty language; each method resolves independently by its own
+URL segment; the unresolved-method safety net exists; mobile type-scale/
+tap-target rules hold; and `CastingFlow.tsx`/`ResultTabs.tsx`/
+`EngineReadingView.tsx` never reference the new module. Full suite: 2386
+prior + 45 new = **2431 passing**. `tsc --noEmit` clean, `next build`
+clean (new route `/raml/practice/[chapterId]/[methodId]`, 5.22 kB).
+
+**Browser-verified** at 390×844: the money chapter (Chapter 2) shows
+exactly 3 "Try this method" CTAs (methods 1-3), none for method 4.
+Launching method 1 showed "PRACTICING METHOD 1 · Kanzul Mikban, Chapter 2",
+the 4-point "How this method works" intro, and the exact source quote.
+Casting through the real `CastingBoard` returned automatically to "STEP 1
+OF 3" — the houses stage — with Continue correctly disabled until all four
+required houses (H3, H7, H11, H15) were tapped, then correctly enabled.
+Stepping through showed the real computed working line, then "METHOD
+RESULT" with the actual figure (Mahadi, Good · Downward · Air), a
+Favourable badge and "According to the source, this indicates: You will
+get money today." — matching money-method-1's real source text exactly.
+"View source instructions" correctly revealed the identical quote.
+Launching method 2 after a chart already existed correctly offered
+"Practice with this chart", and choosing it skipped straight to a 4-step
+walkthrough (1 houses + 2 working steps + 1 result, matching method 2's own
+two-line calculation trace) using method 2's own distinct houses (H2, H11,
+H7) — never method 1's. Direct navigation to money-method-4's practice URL
+correctly showed "Source method — practice unavailable" instead of
+attempting a calculation. The existing Reading flow at `/raml` (a plain
+general cast) was verified unaffected, reaching its normal result screen.
+No horizontal overflow at any stage of any screen tested.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

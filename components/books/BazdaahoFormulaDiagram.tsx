@@ -9,9 +9,9 @@ import {
 
 /** The Bazdaaho formula's letter-to-value table (page 6), shown as the
  * source itself lays it out: four rows, each carrying the source's own
- * "I"/"II" row mark, its Arabic letter (or, for one row, the unresolved
- * glyph "Ͻ" — flagged, not guessed at), and its value. A grid of four
- * equal columns would flatten that row structure; this keeps it as rows. */
+ * "I"/"II" row mark, its Arabic letter, its line/element label, and its
+ * value. A grid of four equal columns would flatten that row structure;
+ * this keeps it as rows. */
 function FormulaTable() {
   return (
     <div className="rounded-xl border border-sand/10 bg-ink px-3 py-3">
@@ -32,14 +32,38 @@ function FormulaTable() {
             </span>
             <span className="type-label text-sand/65">=</span>
             <span className="type-body text-sand-light">{letter.value}</span>
+            <span className="type-evidence text-sand/65">
+              {letter.lineLabel}
+            </span>
           </div>
         ))}
       </div>
-      {BAZDAAHO_FORMULA_TABLE.some((l) => l.note) ? (
-        <p className="mt-2 type-evidence italic text-sand/65">
-          {BAZDAAHO_FORMULA_TABLE.find((l) => l.note)?.note}
-        </p>
-      ) : null}
+    </div>
+  );
+}
+
+/** The general derivation rule (page 6): each line contributes its letter's
+ * value only when the line has one dot; a two-dot line contributes 0. The
+ * active values are summed, and reduced by 16 if the total exceeds 16. */
+function SystemRule() {
+  return (
+    <div className="rounded-xl border border-sand/10 bg-ink px-3 py-3">
+      <p className="type-label uppercase tracking-widest text-sand/65">
+        How a figure's number is found
+      </p>
+      <div className="mt-2 space-y-1.5">
+        {BAZDAAHO_FORMULA_TABLE.map((letter, i) => (
+          <p key={i} className="type-body text-sand/80">
+            {letter.lineLabel}: one dot →{" "}
+            <span className="text-sand-light">+{letter.value}</span>; two dots →{" "}
+            <span className="text-sand-light">+0</span>
+          </p>
+        ))}
+      </div>
+      <p className="mt-2 type-body text-sand/80">
+        Add the active values. If the total is greater than 16, the figure
+        number is the total minus 16.
+      </p>
     </div>
   );
 }
@@ -67,14 +91,13 @@ function WorkedExample({
   );
 }
 
-/** The Bazdaaho formula and its four worked examples (source page 6),
- * reproduced exactly as printed: the source's own transition sentence, its
- * four-row letter-value formula (including one glyph the extraction could
- * not resolve, flagged rather than guessed at), and each example's actual
- * resulting figure alongside its source arithmetic — including Eg. 1's own
- * working line, whose stated total does not match the sum of the four
- * values it lists. Neither the glyph nor the arithmetic is corrected here;
- * see chapterOneDiagrams.ts. */
+/** The Bazdaaho formula and its four worked examples (source page 6): the
+ * source's own transition sentence, its four-row letter-value formula, the
+ * general per-line derivation rule the formula follows, and each example's
+ * actual resulting figure alongside its source arithmetic — including
+ * Eg. 1's own working line, which sums only three of the four values
+ * because its figure's third line has two dots and so contributes 0 under
+ * the rule. See chapterOneDiagrams.ts. */
 export function BazdaahoFormulaDiagram() {
   return (
     <div className="space-y-4">
@@ -83,6 +106,8 @@ export function BazdaahoFormulaDiagram() {
       </p>
 
       <FormulaTable />
+
+      <SystemRule />
 
       <div className="space-y-2.5">
         {BAZDAAHO_WORKED_EXAMPLES.map((ex, i) => (

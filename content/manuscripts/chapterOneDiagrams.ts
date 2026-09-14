@@ -376,37 +376,60 @@ export const CHART_HOUSE_GROUPS: ChartHouseGroup[] = [
   { label: "Reconciler", houseNumbers: [16] },
 ];
 
-/** The Bazdaaho formula's letter-to-value table (page 6), transcribed from
- * the PDF's own clean text layer. One character could not be identified
- * with confidence — the source prints it as "Ͻ", which does not match a
- * standard Arabic letterform in the extracted text; it is reproduced
- * exactly as printed rather than guessed at, per the arabicLetterNote.
- * rowLabel is the source's own "I"/"II" mark printed beside each row —
- * transcribed as given, not interpreted into a different notation. */
+/** The Bazdaaho formula's letter-to-value table (page 6): the source's own
+ * four-letter correspondence, one letter per figure line, in line order.
+ * This is a special Bazdaaho correspondence, not the standard modern Abjad
+ * value for these letters — most notably Zāy here is 7, not its standard
+ * Abjad value. rowLabel is the source's own "I"/"II" mark printed beside
+ * each row — transcribed as given, not interpreted into a different
+ * notation. lineLabel names which of the figure's four lines (and its
+ * associated element) each letter corresponds to. */
 export interface BazdaahoLetterValue {
   rowLabel: string;
   arabic: string;
   value: number;
-  /** Present only for the one character the extraction could not resolve
-   * to a standard letterform with confidence. */
-  note?: string;
+  /** Which figure line this letter values, e.g. "Line 1 — Head / Fire". */
+  lineLabel: string;
 }
 
 export const BAZDAAHO_FORMULA_TABLE: BazdaahoLetterValue[] = [
-  { rowLabel: "I", arabic: "ب", value: 2 },
-  { rowLabel: "I", arabic: "ز", value: 7 },
+  { rowLabel: "I", arabic: "ب", value: 2, lineLabel: "Line 1 — Head / Fire" },
+  { rowLabel: "I", arabic: "ز", value: 7, lineLabel: "Line 2 — Chest / Air" },
   {
     rowLabel: "II",
-    arabic: "Ͻ",
+    arabic: "د",
     value: 4,
-    note: "Printed exactly as it extracts from the source; this does not match a standard Arabic letterform, and none is substituted for it.",
+    lineLabel: "Line 3 — Waist / Water",
   },
-  { rowLabel: "I", arabic: "Z", value: 8 },
+  { rowLabel: "I", arabic: "هـ", value: 8, lineLabel: "Line 4 — Feet / Earth" },
 ];
+
+/** The formula's per-line values in line order [Line1, Line2, Line3, Line4]
+ * — the same four values as BAZDAAHO_FORMULA_TABLE, kept separately for the
+ * general derivation rule below. */
+export const BAZDAAHO_LINE_VALUES: [number, number, number, number] = [
+  2, 7, 4, 8,
+];
+
+/** The general Bazdaaho derivation rule (page 6): for each of a figure's
+ * four lines, a line with ONE dot contributes its BAZDAAHO_LINE_VALUES
+ * value; a line with TWO dots contributes 0. Sum the active values; if the
+ * total exceeds 16, the figure number is total − 16. Implements exactly
+ * the source-stated rule — a raw sum of 0 (Musah, whose pattern is all
+ * two-dot lines) is returned as 0, not silently mapped to 16, since the
+ * source states the subtraction only for totals greater than 16. */
+export function bazdaahoNumberFromPattern(pattern: Pattern): number {
+  const total = pattern.reduce(
+    (sum, dots, i) => sum + (dots === 1 ? BAZDAAHO_LINE_VALUES[i] : 0),
+    0,
+  );
+  return total > 16 ? total - 16 : total;
+}
 
 export interface BazdaahoWorkedExample {
   label: string; // "Eg. 1." etc
-  /** The letter-values added, e.g. [2,7,4,8] for Eg.1. */
+  /** The letter-values added, e.g. [2,7,8] for Eg.1 (Line 3's two-dot
+   * line contributes 0 and is omitted, per the general derivation rule). */
   values: number[];
   /** The source's own reduction line, exactly as printed, e.g. "2+7+8 = 17 – 16=1". */
   workingLine: string;
@@ -416,18 +439,19 @@ export interface BazdaahoWorkedExample {
   result: number;
 }
 
-// Eg. 1's own printed working line names all four letter-values (2, 7, 4, 8)
-// but its stated total is 17, not their actual sum (21) -- reproduced
-// exactly as printed rather than corrected or recomputed; see
-// BAZDAAHO_EG1_NOTE.
+// Eg. 1's own printed working line adds only three of the four letter-
+// values (2, 7, 8), omitting the Line-3 (Dal) value entirely -- this is
+// the general derivation rule at work, not an omission: Eg.1's figure
+// (Yussif) has two dots on its third line, so per the rule that line
+// contributes 0 and drops out of the sum. See BAZDAAHO_EG1_NOTE.
 export const BAZDAAHO_EG1_NOTE =
-  "The source's own working line for Eg. 1 reads \"2 + 7 + 4 + 8 = 17 − 16 = 1, therefore it's 1\" — the stated total (17) does not match the sum of the four listed values (21). Reproduced exactly as printed; nothing here recomputes or corrects it.";
+  "The source's own working line for Eg. 1 reads \"2 + 7 + 8 = 17 − 16 = 1, therefore it's 1\" — only three of the four letter-values appear because Eg. 1's figure has two dots on its third (Dal) line, which contributes 0 under the general rule: a two-dot line drops out of the sum rather than adding its value.";
 
 export const BAZDAAHO_WORKED_EXAMPLES: BazdaahoWorkedExample[] = [
   {
     label: "Eg. 1.",
-    values: [2, 7, 4, 8],
-    workingLine: "2 + 7 + 4 + 8 = 17 − 16 = 1, therefore it’s 1",
+    values: [2, 7, 8],
+    workingLine: "2 + 7 + 8 = 17 − 16 = 1, therefore it’s 1",
     result: 1,
   },
   { label: "Eg. 2.", values: [2], workingLine: "= 2", result: 2 },

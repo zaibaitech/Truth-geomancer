@@ -6,8 +6,10 @@ import {
   BAZDAAHO_ARRANGEMENT,
   BAZDAAHO_EG1_NOTE,
   BAZDAAHO_FORMULA_TABLE,
+  BAZDAAHO_LINE_VALUES,
   BAZDAAHO_METHOD_INTRO,
   BAZDAAHO_WORKED_EXAMPLES,
+  bazdaahoNumberFromPattern,
   CANCEL_DIRECTION_LABEL,
   CANCELLING_METHOD_CLOSING,
   CANCELLING_METHOD_EXAMPLES,
@@ -295,26 +297,39 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       ]);
     });
 
-    it("flags the one glyph the extraction could not resolve, rather than guessing at it", () => {
-      const flagged = BAZDAAHO_FORMULA_TABLE.filter((l) => l.note);
-      expect(flagged).toHaveLength(1);
-      expect(flagged[0].arabic).toBe("Ͻ");
-      expect(flagged[0].rowLabel).toBe("II");
+    it("uses the special Bazdaaho letter correspondence, not standard Abjad values", () => {
+      expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.arabic)).toEqual([
+        "ب",
+        "ز",
+        "د",
+        "هـ",
+      ]);
+      // Zāy is explicitly 7 in this correspondence, not its standard Abjad
+      // value -- this is the one letter the source is most explicit about.
+      const zay = BAZDAAHO_FORMULA_TABLE.find((l) => l.arabic === "ز");
+      expect(zay?.value).toBe(7);
+    });
+
+    it("labels each row with the figure line and element it corresponds to", () => {
+      expect(BAZDAAHO_FORMULA_TABLE.map((l) => l.lineLabel)).toEqual([
+        "Line 1 — Head / Fire",
+        "Line 2 — Chest / Air",
+        "Line 3 — Waist / Water",
+        "Line 4 — Feet / Earth",
+      ]);
     });
 
     it("has exactly the four worked examples the source prints", () => {
       expect(BAZDAAHO_WORKED_EXAMPLES).toHaveLength(4);
     });
 
-    it("reproduces Eg. 1's own working line exactly, without silently correcting its arithmetic", () => {
+    it("reproduces Eg. 1's own working line exactly: three values, its third (two-dot) line dropping out", () => {
       const eg1 = BAZDAAHO_WORKED_EXAMPLES[0];
-      // Eg. 1's own working line names all four table values (2,7,4,8) but
-      // states a total (17) that does not match their actual sum (21) --
-      // reproduced exactly as printed, not corrected.
-      expect(eg1.values).toEqual([2, 7, 4, 8]);
-      expect(eg1.workingLine).toContain("2 + 7 + 4 + 8 = 17");
+      expect(eg1.values).toEqual([2, 7, 8]);
+      expect(eg1.workingLine).toContain("2 + 7 + 8 = 17");
       expect(eg1.result).toBe(1);
-      expect(BAZDAAHO_EG1_NOTE).toContain("does not match the sum");
+      expect(BAZDAAHO_EG1_NOTE).toContain("two dots");
+      expect(BAZDAAHO_EG1_NOTE).toContain("contributes 0");
     });
 
     it("reproduces Eg. 3's own working line exactly", () => {
@@ -335,6 +350,35 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       expect(BAZDAAHO_WORKED_EXAMPLES.map((e) => e.result)).toEqual([
         1, 2, 3, 4,
       ]);
+    });
+  });
+
+  describe("Bazdaaho general derivation rule", () => {
+    it("holds the source's own four line-values in line order", () => {
+      expect(BAZDAAHO_LINE_VALUES).toEqual([2, 7, 4, 8]);
+    });
+
+    it("derives the correct Bazdaaho number for every star numbered 1-15 from its own pattern", () => {
+      for (const star of STARS) {
+        if (star.number === 16) continue;
+        expect(bazdaahoNumberFromPattern(star.pattern)).toBe(star.number);
+      }
+    });
+
+    it("does not invent a >16 reduction for a raw sum of 0 (Musah, whose pattern is all two-dot lines)", () => {
+      const musah = STARS.find((s) => s.name === "Musah");
+      expect(musah).toBeDefined();
+      expect(musah!.pattern).toEqual([2, 2, 2, 2]);
+      // The source states the -16 reduction only for totals greater than
+      // 16; a raw sum of 0 is not >16, so it is returned as-is rather than
+      // silently mapped to 16.
+      expect(bazdaahoNumberFromPattern(musah!.pattern)).toBe(0);
+    });
+
+    it("matches Eg. 1's own working line: Yussif's two-dot third line drops the Dal (4) term", () => {
+      const yussif = STARS.find((s) => s.name === "Yussif");
+      expect(yussif!.pattern).toEqual([1, 1, 2, 1]);
+      expect(bazdaahoNumberFromPattern(yussif!.pattern)).toBe(1);
     });
   });
 

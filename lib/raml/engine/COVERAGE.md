@@ -3903,5 +3903,78 @@ intro sentence all confirmed present verbatim in the rendered page.
 
 **Not pushed, not deployed**, per this prompt's explicit instruction.
 
+## Prompt 32 — Bazdaaho formula: source-corrected letters and the general derivation rule
+
+Prompt 30's Bazdaaho formula table carried two unresolved letters (a
+third row transcribed as the un-matchable glyph "Ͻ", and a fourth row
+transcribed as a placeholder Latin "Z") because the earlier extraction
+could not confidently read the source's own Arabic for those two rows.
+A follow-up prompt supplied the source-supported correspondence directly
+— Line 1 (Head/Fire) Bāʾ (ب) = 2, Line 2 (Chest/Air) Zāy (ز) = 7, Line 3
+(Waist/Water) Dāl (د) = 4, Line 4 (Feet/Earth) Hāʾ (هـ) = 8 — and,
+critically, the general rule the formula itself implements: for each of
+a figure's four lines, a one-dot line contributes its letter's value and
+a two-dot line contributes 0; sum the active values, and if the total
+exceeds 16, the figure number is the total minus 16.
+
+**Letters corrected.** `BAZDAAHO_FORMULA_TABLE` (`chapterOneDiagrams.ts`)
+now reads د for the third row and هـ for the fourth, replacing the
+unresolved "Ͻ" and placeholder "Z"; the now-obsolete `note` field and its
+"unresolved glyph" UI branch (`BazdaahoFormulaDiagram.tsx`) are removed.
+Zāy (row 2) was deliberately left at value 7, per this prompt's explicit
+instruction not to substitute the standard modern Abjad value. Each row
+also now carries a `lineLabel` ("Line 1 — Head / Fire", etc.), rendered
+alongside the letter and value.
+
+**Eg. 1 reverted and correctly explained.** Prompt 30 had set Eg. 1's
+worked example to a four-term form (`2+7+4+8=17-16=1`) based on an
+imprecise restatement of the source's own working line, which is in fact
+three-term (`2+7+8=17-16=1`) — the Line-3 (Dal) term is absent because
+Eg. 1's figure (Yussif, pattern `[1,1,2,1]`) has two dots on that line,
+which the general rule makes contribute 0. `BAZDAAHO_WORKED_EXAMPLES[0]`
+and `BAZDAAHO_EG1_NOTE` were both corrected: the note now *explains* the
+omitted term via the rule rather than describing it as an unexplained
+arithmetic mismatch to merely preserve. Eg. 2/3/4 needed no changes —
+independently verified as already consistent with the rule.
+
+**General rule added and verified against all 16 stars.**
+`BAZDAAHO_LINE_VALUES` (`[2,7,4,8]`) and `bazdaahoNumberFromPattern()`
+implement exactly the stated rule — no invented completion. Applying it
+to every pattern in the existing `STARS` array reproduces that star's own
+`.number` for all 15 non-Musah stars. Star #16 (Musah, pattern
+`[2,2,2,2]`, all two-dot lines) is an edge case the literal rule text
+does not cover: a raw sum of 0 is not "greater than 16", so the function
+returns 0 rather than silently mapping it to 16 — this is asserted
+explicitly in the test suite rather than smoothed over. A new "How a
+figure's number is found" subsection in `BazdaahoFormulaDiagram.tsx`
+shows the per-line one-dot/two-dot contribution and the reduction step,
+built from the same `BAZDAAHO_FORMULA_TABLE` data — no new star-figure
+definitions, no engine changes.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`lib/raml/engine/chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts`, `content/stars.ts` and `master-of-geomancy-vol1.ts` is empty
+— only `chapterOneDiagrams.ts`, `chapterOneDiagrams.test.ts` and
+`BazdaahoFormulaDiagram.tsx` changed.
+
+**Tests** (`chapterOneDiagrams.test.ts`): the corrected four letters and
+their special (non-Abjad) correspondence, with Zāy=7 asserted explicitly;
+the four `lineLabel`s; Eg. 1's reverted three-term form and its corrected
+note wording; `BAZDAAHO_LINE_VALUES`; the general rule matched against
+all 15 non-Musah stars; Musah's raw-sum-of-0 edge case asserted as 0, not
+16; and Eg. 1's own figure (Yussif) re-derived by the general rule to
+confirm it matches the worked example — 5 net new tests (plus several
+existing Bazdaaho assertions revised in place for the corrected data).
+Full suite: 2,315 tests passing (2,310 prior + 5 new). `tsc --noEmit`
+clean, `next build` clean.
+
+**Browser-verified** at 390×844: the corrected letters (د, هـ) present,
+the old unresolved glyph and placeholder absent, all four line labels
+present, the new system-rule subsection present, Eg. 1's three-term
+working line present and the old four-term line absent, and the
+corrected note's "contributes 0" wording present.
+
+**Committed, not pushed** — awaiting an explicit push instruction, per
+this session's established pattern.
 
 

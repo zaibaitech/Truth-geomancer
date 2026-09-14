@@ -585,14 +585,17 @@ export interface BazdaahoPositionAudit {
 /** Every one of the sixteen Bazdaaho positions, derived from the existing,
  * already-canonical STARS array (never a second figure-definition) and the
  * general derivation rule above — built programmatically, not hand-typed,
- * so it cannot drift from STARS. This was independently verified against
- * the source's own arrangement diagram: every one of the sixteen four-line
- * patterns extracted directly from the source page's own printed tally
- * marks reduces, under the active-value rule, to exactly that position's
- * own printed numeral — for all fifteen positions where the source's own
- * printed figure was legible without ambiguity. See
- * BAZDAAHO_SOURCE_CONFLICTS for the one position (11) where the source
- * page's own printed image does not. */
+ * so it cannot drift from STARS. This is also what every user-facing
+ * Bazdaaho diagram in this app renders: the reconciled canonical figures,
+ * never the source page's own apparently-inconsistent print for position
+ * 11 (see BAZDAAHO_SOURCE_RECONCILIATION_NOTES). This was independently
+ * verified against the source's own arrangement diagram: every one of the
+ * sixteen four-line patterns extracted directly from the source page's own
+ * printed tally marks reduces, under the active-value rule, to exactly
+ * that position's own printed numeral — for all fifteen positions where
+ * the source's own printed figure was legible without ambiguity. See
+ * BAZDAAHO_SOURCE_RECONCILIATION_NOTES for the one position (11) where the
+ * source page's own printed image does not, and how it was resolved. */
 export const BAZDAAHO_POSITION_AUDIT: BazdaahoPositionAudit[] = STARS.slice()
   .sort((a, b) => a.number - b.number)
   .map((star) => {
@@ -611,30 +614,56 @@ export const BAZDAAHO_POSITION_AUDIT: BazdaahoPositionAudit[] = STARS.slice()
     };
   });
 
-export interface BazdaahoSourceConflict {
+export interface BazdaahoSourceReconciliationNote {
   position: number;
-  description: string;
+  /** The source page's own apparent print for this position — reported
+   * with careful, non-committal language (see the note text below): never
+   * asserted as a proven typographical error, since the source itself does
+   * not confirm that. */
+  sourcePrintedPattern: Pattern;
+  /** What the source-printed pattern calculates to under the verified
+   * Bazdaaho rule. */
+  sourceCalculatedResult: number;
+  /** The canonical STARS pattern this app uses for the position instead,
+   * and what that pattern calculates to. */
+  canonicalPattern: Pattern;
+  canonicalCalculatedResult: number;
+  /** Source/developer documentation only — deliberately not surfaced
+   * prominently to ordinary readers of the chapter (the app has no
+   * separate source/transcription disclosure area for it to live in
+   * instead); see BazdaahoArrangementDiagram.tsx, which renders only the
+   * reconciled canonical figures. */
+  note: string;
 }
 
-/** Documented, UNRESOLVED conflicts between the source manuscript's own
- * printed arrangement image and the app's existing canonical STARS
- * mapping, found while independently re-verifying all sixteen positions
- * pixel-by-pixel against the source PDF. Fifteen of the sixteen source-
- * printed four-line patterns matched their own canonical STARS pattern
- * exactly (each independently reduces, via the active-value rule, to its
- * own printed position number). Position 11 did not: the source page
- * prints that position's third line as two points, giving the pattern
- * [2,1,2,2] (the same pattern already canonically assigned to position 7,
- * Umar) rather than the canonical Ali pattern [2,1,1,2] the app already
- * uses everywhere else, which is what the active-value rule requires to
- * reduce to 11. This is recorded here rather than silently resolved either
- * way: the app's canonical STARS numbering (load-bearing across the whole
- * book, not just this page) is left unchanged, and the source page's own
- * printed image is not altered or reinterpreted. */
-export const BAZDAAHO_SOURCE_CONFLICTS: BazdaahoSourceConflict[] = [
-  {
-    position: 11,
-    description:
-      "The source's own arrangement diagram prints position 11's third line with two points (pattern [2,1,2,2], raw total 7) — identical to position 7's own printed figure — rather than the single point the app's existing canonical Ali pattern ([2,1,1,2], raw total 11) requires. Every other one of the sixteen positions' source-printed pattern matches its own canonical STARS pattern exactly; this is the one exception. Not resolved here: the canonical mapping is left unchanged, and the source page's print is reproduced as read, not corrected.",
-  },
-];
+/** Reconciliation of the one position (11) where independently re-reading
+ * all sixteen of the source page's own printed arrangement figures
+ * pixel-by-pixel found an apparent disagreement with the app's existing
+ * canonical STARS mapping. Fifteen of the sixteen source-printed four-line
+ * patterns matched their own canonical STARS pattern exactly (each
+ * independently reduces, via the active-value rule, to its own printed
+ * position number). Position 11's did not: the source page appears to
+ * print that position's third line with two points, giving the pattern
+ * [2,1,2,2] — the same pattern already canonically assigned to position 7
+ * — which calculates to 7, not 11, and duplicates position 7's own figure.
+ * The canonical Ali pattern [2,1,1,2] the app already uses everywhere else
+ * calculates to exactly 11, matching a one-to-one 1-16 arrangement. The
+ * app therefore uses [2,1,1,2] (Ali) for position 11 throughout — this
+ * was already true of BAZDAAHO_POSITION_AUDIT and every UI diagram before
+ * this reconciliation was written down, since both are built from the
+ * canonical STARS array, never from a re-transcription of the source
+ * image — while position 7 keeps its own existing canonical figure
+ * unchanged. This is careful, not certain, language: the source scan is
+ * described as "appears to print" rather than declared a confirmed
+ * transcription error, since the source does not explicitly confirm one. */
+export const BAZDAAHO_SOURCE_RECONCILIATION_NOTES: BazdaahoSourceReconciliationNote[] =
+  [
+    {
+      position: 11,
+      sourcePrintedPattern: [2, 1, 2, 2],
+      sourceCalculatedResult: 7,
+      canonicalPattern: [2, 1, 1, 2],
+      canonicalCalculatedResult: 11,
+      note: "Position 11: the manuscript scan appears to print [2,1,2,2]. Under the verified Bazdaaho rule this calculates to 7 and duplicates position 7. The canonical Ali figure [2,1,1,2] calculates to 11. The app therefore uses [2,1,1,2] for position 11 while recording the manuscript discrepancy.",
+    },
+  ];

@@ -12,7 +12,7 @@ import {
   BAZDAAHO_METHOD_INTRO,
   BAZDAAHO_POSITION_16_NOTE,
   BAZDAAHO_POSITION_AUDIT,
-  BAZDAAHO_SOURCE_CONFLICTS,
+  BAZDAAHO_SOURCE_RECONCILIATION_NOTES,
   BAZDAAHO_WORKED_EXAMPLES,
   bazdaahoNumberFromPattern,
   CANCEL_DIRECTION_LABEL,
@@ -490,19 +490,83 @@ describe("Chapter One diagram data (source restoration, page 4-6)", () => {
       expect(musah.reducedPosition).toBe(0);
     });
 
-    it("records the position-11 source-vs-canonical conflict explicitly, rather than silently choosing a resolution", () => {
-      expect(BAZDAAHO_SOURCE_CONFLICTS.length).toBeGreaterThan(0);
-      const conflict = BAZDAAHO_SOURCE_CONFLICTS.find((c) => c.position === 11);
-      expect(conflict).toBeDefined();
-      expect(conflict!.description).toContain("[2,1,2,2]");
-      expect(conflict!.description).toContain("[2,1,1,2]");
-      // The canonical mapping itself is untouched by the conflict record --
-      // Ali still owns position 11 in the audit table.
-      const position11 = BAZDAAHO_POSITION_AUDIT.find(
-        (a) => a.position === 11,
-      )!;
-      expect(position11.starName).toBe("Ali");
-      expect(position11.pattern).toEqual([2, 1, 1, 2]);
+    it("matches every position to the expected star name 1-16, using only the existing canonical STARS identities", () => {
+      const EXPECTED_NAMES: Record<number, string> = {
+        1: "Yussif",
+        2: "Adam",
+        3: "Mahadi",
+        4: "Iddris",
+        5: "Ibrahim",
+        6: "Issah",
+        7: "Umar",
+        8: "Ayuba",
+        9: "Kalla Allahu",
+        10: "Sulemana",
+        11: "Ali",
+        12: "Nuhu",
+        13: "Hassan & Hussein",
+        14: "Yunus",
+        15: "Usman",
+        16: "Musah",
+      };
+      for (const [position, name] of Object.entries(EXPECTED_NAMES)) {
+        const entry = BAZDAAHO_POSITION_AUDIT.find(
+          (a) => a.position === Number(position),
+        );
+        expect(entry).toBeDefined();
+        expect(entry!.starName).toBe(name);
+      }
+    });
+
+    describe("Position 11 (Ali) reconciliation", () => {
+      it("uses the canonical Ali pattern [2,1,1,2], which calculates 7+4=11", () => {
+        const ali = BAZDAAHO_POSITION_AUDIT.find((a) => a.position === 11)!;
+        expect(ali.starName).toBe("Ali");
+        expect(ali.pattern).toEqual([2, 1, 1, 2]);
+        expect(ali.activeValues).toEqual([7, 4]);
+        expect(ali.rawTotal).toBe(11);
+        expect(ali.reducedPosition).toBe(11);
+      });
+
+      it("confirms the source-printed pattern [2,1,2,2] calculates to 7 and so must not be assigned to position 11", () => {
+        expect(bazdaahoNumberFromPattern([2, 1, 2, 2])).toBe(7);
+        const ali = BAZDAAHO_POSITION_AUDIT.find((a) => a.position === 11)!;
+        expect(ali.pattern).not.toEqual([2, 1, 2, 2]);
+      });
+
+      it("leaves position 7 (Umar) on its own existing canonical figure, unaffected by the position-11 reconciliation", () => {
+        const umar = BAZDAAHO_POSITION_AUDIT.find((a) => a.position === 7)!;
+        expect(umar.starName).toBe("Umar");
+        expect(umar.pattern).toEqual([2, 1, 2, 2]);
+        expect(umar.rawTotal).toBe(7);
+        expect(umar.reducedPosition).toBe(7);
+      });
+
+      it("records the reconciliation with careful, non-committal language, not a claimed proven error", () => {
+        expect(BAZDAAHO_SOURCE_RECONCILIATION_NOTES.length).toBeGreaterThan(0);
+        const reconciliation = BAZDAAHO_SOURCE_RECONCILIATION_NOTES.find(
+          (r) => r.position === 11,
+        );
+        expect(reconciliation).toBeDefined();
+        expect(reconciliation!.sourcePrintedPattern).toEqual([2, 1, 2, 2]);
+        expect(reconciliation!.sourceCalculatedResult).toBe(7);
+        expect(reconciliation!.canonicalPattern).toEqual([2, 1, 1, 2]);
+        expect(reconciliation!.canonicalCalculatedResult).toBe(11);
+        expect(reconciliation!.note).toContain("appears to print");
+        expect(reconciliation!.note.toLowerCase()).not.toContain(
+          "typographical error",
+        );
+        expect(reconciliation!.note.toLowerCase()).not.toContain(
+          "proven error",
+        );
+      });
+    });
+
+    it("gives no two canonical stars the same Bazdaaho position -- a true one-to-one 1-16 arrangement", () => {
+      const positions = BAZDAAHO_POSITION_AUDIT.map((a) => a.position);
+      expect(new Set(positions).size).toBe(BAZDAAHO_POSITION_AUDIT.length);
+      const starIds = BAZDAAHO_POSITION_AUDIT.map((a) => a.starId);
+      expect(new Set(starIds).size).toBe(BAZDAAHO_POSITION_AUDIT.length);
     });
   });
 

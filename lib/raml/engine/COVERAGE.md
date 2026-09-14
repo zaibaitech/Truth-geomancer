@@ -4096,4 +4096,84 @@ all render cleanly and match the requested layout.
 
 **Not pushed, not deployed**, per this prompt's explicit instruction.
 
+## Prompt 34 — resolve the Bazdaaho position-11 source conflict
+
+Prompt 33 found and reported, rather than resolved, one discrepancy:
+the source page's own arrangement diagram appears to print position 11's
+figure as [2,1,2,2] (calculates to 7, duplicating position 7), while the
+app's existing canonical Ali pattern is [2,1,1,2] (calculates to exactly
+11). This prompt asked for that conflict to be resolved for ordinary
+users — using the canonical figure, never the apparent source error — with
+a careful, non-committal reconciliation note kept for developers only.
+
+**No canonical data changed.** `BAZDAAHO_POSITION_AUDIT` and
+`BAZDAAHO_ARRANGEMENT` were already built entirely from the existing,
+unmodified `STARS` array (never a re-transcription of the source image),
+so position 11 was already rendering Ali's own canonical [2,1,1,2] figure
+in every diagram before this prompt — the "resolution" this prompt asks
+for was already the effective behavior. What needed to change was the
+*documentation and its visibility*, not the data.
+
+**Renamed and rewritten:** `BAZDAAHO_SOURCE_CONFLICTS` (framed as an open,
+unresolved question) is now `BAZDAAHO_SOURCE_RECONCILIATION_NOTES` — each
+entry states the source-printed pattern and what it calculates to, the
+canonical pattern and what it calculates to, and a note using careful
+language ("appears to print", never "typographical error" or "proven
+error", since the source itself does not confirm one). The note text
+matches this prompt's own suggested wording closely: "Position 11: the
+manuscript scan appears to print [2,1,2,2]. Under the verified Bazdaaho
+rule this calculates to 7 and duplicates position 7. The canonical Ali
+figure [2,1,1,2] calculates to 11. The app therefore uses [2,1,1,2] for
+position 11 while recording the manuscript discrepancy."
+
+**Removed from the user-facing UI.** `BazdaahoArrangementDiagram.tsx`'s
+prominent bordered "Unresolved source conflict" callout is gone entirely
+— the app has no separate source/transcription disclosure area for this
+note to live in instead, so per this prompt's explicit instruction it is
+not shown prominently to ordinary readers at all; it remains as
+source/developer documentation in `chapterOneDiagrams.ts`, exercised only
+by tests. The position-16 note (a legitimate explanation of a source
+convention, not a flagged conflict) stays visible, as before. Each
+arrangement card now also shows its star's name beneath its number (e.g.
+"11" / "Ali"), so position 11 visibly reads "11 — Ali" with its
+[2,1,1,2] figure, per this prompt's explicit requirement.
+
+**Full 1-16 re-validation**, run against the unchanged canonical `STARS`
+data: all sixteen positions match the exact name list this prompt gave
+(1 Yussif ... 16 Musah), every position's active-value calculation
+(single-point line → its value; double-point line → 0; -16 if >16)
+reduces to exactly its own position number, no two positions share a
+pattern or a star, and Ali/position 11 specifically calculates 7+4=11
+while the source-printed [2,1,2,2] is confirmed to calculate 7 and is
+asserted to never be assigned to position 11. Position 7 (Umar,
+[2,1,2,2], raw 7) is asserted unchanged. No other conflict was found.
+
+**Engine and scope.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts` and
+`content/stars.ts` is empty — only `chapterOneDiagrams.ts`,
+`chapterOneDiagrams.test.ts` and `BazdaahoArrangementDiagram.tsx` changed.
+
+**Tests:** 2,334 passing (2,329 prior + 5 net new): the full expected
+1-16 name mapping, a dedicated "Position 11 (Ali) reconciliation"
+sub-block (canonical pattern and calculation, confirmation that
+[2,1,2,2] calculates to 7 and is not assigned to position 11, position 7
+left unaffected, and the reconciliation note's careful-language wording),
+and a one-to-one-arrangement regression test (no two canonical stars
+share a Bazdaaho position, by both position number and star id).
+`tsc --noEmit` clean, `next build` clean.
+
+**Browser-verified** at 390×844 across default/Large/Extra Large reader
+sizes: the "Unresolved source conflict" heading is gone; the raw
+[2,1,2,2] text and "appears to print" reconciliation prose do not appear
+anywhere in the Bazdaaho arrangement section (a legitimate, unrelated
+appearance of [2,1,2,2] elsewhere on the page, in an unrelated Hatim
+diagram for Umar's own canonical figure, was confirmed unrelated and
+excluded from the check); position 11's card shows "Ali" and its
+[2,1,1,2] figure; position 7 still shows "Umar"; the position-16 note is
+still present; no horizontal overflow at any size. A screenshot confirms
+all sixteen arrangement cards, including position 11, render cleanly
+with both number and star name.
+
+**Not pushed, not deployed**, per this prompt's explicit instruction.
+
 

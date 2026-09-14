@@ -191,18 +191,18 @@ describe('Hatim diagrams — section 19 G-L: structure, cells, centre figure, no
     }
   });
 
-  it('leaves the recurring unresolved hook mark under review everywhere it appears, never assigns it a value', () => {
+  it('no longer leaves the recurring hook mark under review — Prompt 23 supplied its manuscript value (4) for every star', () => {
     for (const hatim of HATIM_DEFINITIONS) {
-      expect(hatim.border.bottomMiddle.status).toBe('review');
+      expect(hatim.border.bottomMiddle).toEqual({ status: 'verified', text: '٤' });
     }
   });
 
-  it('marks fullyVerified false for every diagram (none has all eight cells confirmed)', () => {
+  it('marks fullyVerified true for every diagram, now that all eight cells are manuscript-supplied (Prompt 23)', () => {
     for (const hatim of HATIM_DEFINITIONS) {
       const cells = Object.values(hatim.border);
       const allVerified = cells.every((c) => c.status === 'verified');
       expect(hatim.fullyVerified).toBe(allVerified);
-      expect(hatim.fullyVerified).toBe(false);
+      expect(hatim.fullyVerified).toBe(true);
     }
   });
 
@@ -234,12 +234,11 @@ describe('Hatim diagrams — section 19 G-L: structure, cells, centre figure, no
     expect(ml - br).not.toBe(1);
   });
 
-  it('reports an honest, non-trivial coverage tally rather than claiming full verification', () => {
+  it('reports full coverage now that Prompt 23 supplied every previously-under-review cell', () => {
     const tally = hatimCoverageTally();
     expect(tally.totalCells).toBe(16 * 8);
-    expect(tally.verifiedCells).toBeGreaterThanOrEqual(3 * 8 + 4 * 3); // 3 constants x16 + 3 stars' 3 variable cells + Mahadi's TM
-    expect(tally.verifiedCells).toBeLessThan(tally.totalCells);
-    expect(tally.reviewCells).toBeGreaterThan(0);
+    expect(tally.verifiedCells).toBe(tally.totalCells);
+    expect(tally.reviewCells).toBe(0);
   });
 });
 

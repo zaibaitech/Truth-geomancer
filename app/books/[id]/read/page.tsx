@@ -12,6 +12,7 @@ import { CHAPTERS, INTRODUCTION } from '@/content/manuscripts/master-of-geomancy
 import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
 import { getStarUseByStarId } from '@/content/manuscripts/starUses';
 import { getHatimByStarId } from '@/content/manuscripts/hatim';
+import { getAbjadValidationByStarId, abjadStatusLabel } from '@/content/manuscripts/abjad';
 import { STARS, ELEMENT_LABEL, ELEMENT_OCCUPATIONS, type Element } from '@/content/stars';
 
 const ELEMENTS: Element[] = ['fire', 'air', 'water', 'sand'];
@@ -95,17 +96,17 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                       <div className="mt-4 space-y-4">
                         <p className="rounded-xl border border-sand/10 bg-ink px-3 py-2.5 type-evidence text-sand/70">
                           The paragraphs below are the manuscript’s own wording for each star, restored
-                          from the source pages, followed by its hand-drawn Hatim. Where a Hatim mark
-                          could not be read with confidence it says “under review” rather than guessing —
-                          see{' '}
+                          from the source pages, followed by its hand-drawn Hatim. Every bordering cell of
+                          all sixteen Hatim diagrams is a manuscript-verified value — see{' '}
                           <a href="#stars-in-the-chart-notes" className="underline underline-offset-2 text-clay-light">
                             the note at the end of this chapter
                           </a>
-                          .
+                          {' '}for how each cell was confirmed.
                         </p>
                         {STARS.map((star) => {
                           const use = getStarUseByStarId(star.id);
                           const hatim = getHatimByStarId(star.id);
+                          const abjad = getAbjadValidationByStarId(star.id);
                           return (
                             <Card key={star.id} id={star.id} className="scroll-mt-16">
                               <div className="flex items-center gap-3">
@@ -138,6 +139,25 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                                       Source note: {use.sourceAmbiguity}
                                     </p>
                                   ) : null}
+                                  {use.invocation ? (
+                                    <div className="rounded-lg border border-sand/10 bg-ink px-3 py-2.5">
+                                      <p className="type-label uppercase tracking-widest text-sand/65">Divine Name</p>
+                                      <p className="type-body text-sand-light" dir="rtl" lang="ar">
+                                        {use.invocation.arabic}
+                                      </p>
+                                      <p className="mt-1 type-label text-sand/65">
+                                        Source value: {use.invocation.count} (source-derived — repeated as a recitation, not
+                                        computed by this app)
+                                        {abjad ? (
+                                          <>
+                                            {' '}
+                                            · Abjad check: {abjadStatusLabel(abjad)}
+                                          </>
+                                        ) : null}
+                                      </p>
+                                      {abjad?.note ? <p className="mt-1 type-evidence text-sand/65">{abjad.note}</p> : null}
+                                    </div>
+                                  ) : null}
                                 </div>
                               ) : (
                                 <div className="mt-3">
@@ -162,13 +182,13 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                           );
                         })}
                         <p id="stars-in-the-chart-notes" className="scroll-mt-16 type-evidence text-sand/65">
-                          A hand-drawn hooked mark recurs, unchanged, in the bottom-middle cell of every
-                          one of the sixteen Hatim diagrams, and inside some stars’ own variable cells too.
-                          It resembles either the Arabic-Indic numeral ٦ or the letter ك, but nothing in the
-                          source glosses it, so no value is assigned to it here. Cells marked “under review”
-                          contain that mark, or another hand-written figure that could not be read with
-                          confidence from the source photographs — they are not blank, and no number was
-                          guessed to fill them.
+                          Three bordering cells (٣/3, ١/1, ٢/2) are identical across all sixteen diagrams and were the
+                          first confirmed, by shape alone. The remaining five cells per diagram — including the
+                          hooked mark that recurs in the bottom-middle cell of every diagram, which earlier passes
+                          could not confidently read from photographs — were confirmed directly against the
+                          original manuscript. No cell’s value was calculated from another star, from an Abjad
+                          sum, or from the numerical pattern some diagrams happen to share (see the Divine Name
+                          note above each Hatim); every number shown is a manuscript-read value.
                         </p>
                       </div>
                     ) : null}

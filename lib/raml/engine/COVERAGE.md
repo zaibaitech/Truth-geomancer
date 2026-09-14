@@ -2871,3 +2871,436 @@ horizontal overflow, no clipped text, no oversized or overlapping grid
 cells, no JS errors, no failed requests. The Hatim grid scales with the
 reader-size preference like the rest of the chapter (324px wide at Large and
 Extra-large on a 390px viewport, unclipped) since it is CSS, not an image.
+
+---
+
+## Prompt 20 — Abjad validation and a numeral display toggle (audit, no new image evidence)
+
+**What this prompt supplied, and what it didn't.** A follow-up brief re-stated
+the Prompt 19 restoration requirements and included a working table of
+Divine-Name/value pairs and a specific Hatim reading for Yussif (3/211/1,
+210/center/5, 2/4/209) as "source-audit targets... not permission to blindly
+hard-code them." No new manuscript photographs or scans came with it — this
+repository still has no image assets for the sixteen Hatim diagrams (checked:
+only `public/covers/master-of-geomancy-vol-1.jpg`, the book's cover). Per the
+brief's own section 5 ("do not silently change 211/210/209 to \[anything]...
+first determine what the original manuscript actually shows") and section 15
+("do not silently 'correct' manuscript values"), nothing in `hatim.ts` was
+changed on the strength of this table alone. The existing Yussif reading
+(٢١١ / ٢١٥ / ٢٠٩ — topMiddle / middleLeft / bottomRight), produced in Prompt
+19 from an actual high-magnification pass over the source photograph, is kept
+exactly as it was.
+
+**What is new, and doesn't need a photograph: Abjad validation
+(`content/manuscripts/abjad.ts`).** A diagnostic-only module computes the
+classical Abjad-kabir letter sum of each star's Divine Name (the calling
+participle "يا" is stripped first) and compares it to the manuscript's own
+stated repeat count from `starUses.ts`, reporting `match` or `discrepancy` —
+never overwriting either number. Running it against all sixteen invocations
+found:
+
+- **Eleven matches** — Adam (الله=66), Mahadi (زكي=37), Issah (لطيف=129),
+  Ibrahim (عليم=150), Umar (جبار=206), Kalla Allahu (هادي=20), Sulemana
+  (نور=256), Nuhu (وكيل=66), Hassan & Hussein (حليم=88), Usman (كافي=111),
+  Musah (جامع=114) — the bare name's Abjad sum equals the manuscript's stated
+  count exactly, for all eleven.
+- **Five discrepancies, each documented rather than resolved:**
+  - **Yussif** — طاهر sums to 215, not the stated recitation count of 251.
+    215 is exactly the source-verified Hatim middle-left cell (٢١٥). Both
+    numbers (251 the recitation count, 215 the Hatim cell) are genuinely
+    different figures in the source and both are kept.
+  - **Ayuba** — باسط sums to 72, not the stated 312. 312 is exactly what the
+    source-verified Hatim geometry is built from (308/307/306 = 312−4/−5/−6).
+    Both numbers are kept; only the bare name's Abjad is flagged as not
+    matching 312.
+  - **Iddris** — رحيم sums to 258, not the stated 115. No alternative
+    reading was found anywhere else in the source; reported as an open,
+    unresolved source/math discrepancy.
+  - **Ali** — سالم sums to 131, not the stated 370. The Prompt 20 brief itself
+    flags Ali's Divine Name as needing verification against the exact
+    manuscript spelling; this is reported as unresolved, not inferred.
+  - **Yunus** — the invocation combines two names ("يا حي يا قيوم"). The
+    stated count (18) equals حي ("Al-Hayy") alone, not قيوم alone (156) nor
+    the combined phrase (174). Reported as a partial match, not asserted
+    either way.
+
+None of this changes `starUses.ts`'s transcribed counts or `hatim.ts`'s
+verified/review cells — it is a read-only cross-check layered on top of both,
+exposed in the reader alongside each star's Divine Name and surfaced as
+"Abjad check: match" or "Abjad check: source/math discrepancy" with the
+specific note for the five discrepancies above.
+
+**A numeral display toggle (`HatimDiagram.tsx`).** Per section 7 of the
+restoration brief ("preserve the original manuscript numeral glyphs... may
+additionally provide Latin equivalents... but the source glyph must remain
+available"), the Hatim diagram now has an "Original / Arabic + Latin / Latin"
+control (`role="radiogroup"`, default "Original"). `arabicIndicToLatin()` in
+`hatim.ts` converts the stored Arabic-Indic digits to Latin digits for
+display only — the stored `HatimCell.text` values are never rewritten, and
+switching modes is purely a rendering choice. The screen-reader `sr-only`
+list always states both forms regardless of the visual toggle, so a
+non-visual reader isn't limited to whichever mode is currently selected.
+
+**The Divine Name is now shown in the reader**, next to each star's House 6/
+House 2 text: the manuscript's own Arabic invocation, its stated repeat
+count labelled "(source-derived...)", and the Abjad check result. This
+answers section 12's "view the Divine Name and source numerical value" /
+"understand that the value is source-derived" requirements, which Prompt 19
+had transcribed into data but not yet surfaced as a distinct UI element.
+
+**Guided drawing order (section 8): still not implemented, on purpose.**
+Nothing in the manuscript text restored in Prompt 19, and nothing supplied
+with this prompt, establishes a stroke-by-stroke drawing sequence for any of
+the sixteen Hatim diagrams. Per the brief's own instruction ("if the
+manuscript does not explicitly establish the order, do not pretend that an
+inferred order is authoritative... leave the guided order disabled"), no
+`drawingOrder` field or "Show drawing order" control was added. This remains
+unresolved, not guessed.
+
+**Tests.** `content/manuscripts/abjad.test.ts` (13 tests) covers: one
+validation per star; the calling-particle strip; the Abjad-kabir sum
+function against two known values; the eleven matches; the five
+discrepancies each carrying a note; that the manuscript's stated count is
+never mutated; Yussif's 215-vs-251 split and its cross-check against the
+existing verified Hatim cell; an explicit assertion that this session does
+NOT overwrite the source-verified 211/215/209 reading with the unverified
+211/210/209 working table supplied this prompt; Ayuba's 72-vs-312 split
+against its Hatim geometry; Umar's clean match on both fronts; and Yunus's
+partial-name match. `starUses.test.ts`'s existing 57 tests are unchanged and
+still pass. Full suite: 2,211 tests passing (up from Prompt 19's 2,198),
+`tsc --noEmit` clean, `next build` clean (19 static routes generated,
+including both book readers).
+
+**Files changed:** `content/manuscripts/abjad.ts` (new),
+`content/manuscripts/abjad.test.ts` (new), `content/manuscripts/hatim.ts`
+(added `arabicIndicToLatin`; no existing cell value changed),
+`components/books/HatimDiagram.tsx` (numeral toggle; now a client component),
+`app/books/[id]/read/page.tsx` (Divine Name + Abjad check surfaced per
+star). `casting.ts`, `chartModel.ts`, `ruleEngine.ts`, `operations.ts`,
+`types.ts` untouched.
+
+**Still unresolved, honestly.** The Hatim border's 70 "under review" cells
+from Prompt 19 are unchanged — this prompt had no new image evidence to
+re-inspect them with, and none was invented. Yussif's specific 211/210/209
+vs 211/215/209 question (section 5) is not "solved" here; it is documented,
+cross-checked against an independent Abjad calculation (which favours 215,
+not 210), and left exactly as Prompt 19 verified it, pending an actual
+re-inspection of the source photograph.
+
+---
+
+## Prompt 21 — Hawatim source reconciliation & unresolved-cell audit
+
+**What was investigated first, before any file was touched.** A repo-wide
+search for manuscript scans (`find` for `.png/.jpg/.jpeg/.tif*/.pdf/.heic/.webp`
+outside `node_modules`/`.next`), other git branches, and any `docs/`/`assets/`
+folder found nothing beyond the two book-cover jpgs already known from
+Prompt 20 and a single app icon. No new manuscript evidence exists in this
+repository. Every finding below therefore comes from re-analysing the
+numbers Prompts 19–20 already established — `starUses.ts`'s transcribed
+counts, `hatim.ts`'s verified cells, and `abjad.ts`'s Abjad sums — against
+each other more rigorously, not from a new image pass.
+
+**The Yussif/Usman conflation this prompt warned about does not exist in the
+data.** `starUses.ts` has always had Yussif → يا طاهر (251) and Usman → يا
+كافي (111) as two separate entries; a test now asserts this explicitly
+(`reconciliation.test.ts`, "Usman — identity/value distinction").
+
+**The N-4/N-5/N-6 formula was tested against every verified cell, not
+assumed.** New module `content/manuscripts/hatimPattern.ts` computes, per
+star, the N implied by each already-verified `topMiddle`/`middleLeft`/
+`bottomRight` cell (`cell + 4`, `cell + 5`, `cell + 6` respectively) and
+checks whether they agree with each other and with a manuscript-stated
+number, never writing a value into `hatim.ts`:
+
+- **Umar** — all three verified cells agree on N=206, matching both the
+  stated recitation count and the Abjad sum exactly → `confirmed_by_source`.
+- **Ayuba** — all three verified cells agree on N=312 — the manuscript's
+  *stated recitation count*, not its bare-name Abjad sum (72) →
+  `confirmed_by_source`. This is the clearest evidence found this session
+  that the Hatim's construction number is the stated count, not the Abjad
+  value, in the one case where the two numbers actually differ and full
+  data exists to tell them apart.
+- **Mahadi** — only `topMiddle` (33) is verified; consistent with N=37
+  (stated = Abjad, so it doesn't disambiguate) → `partially_confirmed`.
+- **Yussif** — genuinely new finding: its three verified cells do **not**
+  agree with each other. `topMiddle` (211) and `bottomRight` (209) both
+  imply N=215 (matching the Abjad sum of طاهر), but `middleLeft` (215) —
+  taken as a raw cell value — implies N=220 under the same formula, not
+  215. Two of three cells point to N=215; the third does not fit that N at
+  all → `conflicting`. This means 215 is not simply "N−5" the way Umar's
+  and Ayuba's middle-left cells are; it is either the Abjad sum written
+  directly, or a still-unexplained fourth number. **No value was changed.**
+  The existing verified reading (211/215/209) stands; the pattern's
+  disagreement with itself is documented, not resolved by picking a side.
+- **The other twelve stars** have no verified variable cells at all →
+  `untestable`. The pattern is not assumed to hold for them merely because
+  it fits four other stars.
+
+**The five Abjad discrepancies, examined individually (section 5):**
+
+- **Iddris** (رحيم, stated 115 vs Abjad 258) — no alternate spelling,
+  recitation-vs-Abjad explanation, or Hatim cross-check was found anywhere
+  in the transcribed source. Still `SOURCE VALUE ≠ ABJAD`, with the note now
+  explicitly stating **SOURCE VALUE MEANING UNRESOLVED** rather than
+  implying an explanation exists.
+- **Ayuba** (باسط, stated 312 vs Abjad 72) — now has a source-backed
+  explanation via the pattern diagnostic above: 312 is exactly what the
+  Hatim is built from. Reported as `SOURCE VALUE ≠ ABJAD` but with
+  `valueConfidence: 'verified'` in the new reconciliation model, because the
+  *relationship* between the two numbers is understood, unlike Iddris.
+- **Ali** (سالم, stated 370 vs Abjad 131) — the brief's own repeated
+  instruction not to infer from transliteration is honoured: this star is
+  the one place a **SOURCE SPELLING UNRESOLVED** label is used (an explicit,
+  documented flag — `SPELLING_UNCERTAIN` in `abjad.ts` — not derived from
+  arithmetic), because no source image exists to confirm سالم is the
+  manuscript's actual spelling.
+- **Yunus** (يا حي يا قيوم, stated 18) — `abjad.ts` no longer hard-codes this
+  as a special case; a new generic `findPartialMatch()` checks every word of
+  a multi-word phrase for one whose bare Abjad equals the stated count, and
+  finds حي (18) — any future multi-name entry would be caught the same way.
+  Status upgraded from a plain `discrepancy` to `partial_match`, with its own
+  **PARTIAL MATCH** label.
+- **Yussif** — see the pattern-diagnostic finding above; unchanged
+  conclusion (`SOURCE VALUE ≠ ABJAD`), now with a fuller explanation of
+  *why* 215 only partly reconciles with the Hatim's own cells.
+
+**Data model improvement (section 9).** `content/manuscripts/
+valueReconciliation.ts` is new: for each star it exposes
+`sourceStatedValue`, `abjadValue`, `hatimReferenceValue` (the N the Hatim's
+own verified cells agree on — `null` when untestable or conflicting),
+`abjadStatus` (the precise label below), `valueMeaning`, and
+`valueConfidence` (`'verified' | 'partial' | 'unresolved'`) — kept as three
+distinct fields rather than one collapsed "value", per the brief. No global
+type in `stars.ts` or `hatim.ts` was touched; this is a derived, read-only
+combination of the three existing canonical sources.
+
+**Precise status wording, never "verified" for a discrepancy (section 10).**
+`abjad.ts` gained `abjadStatusLabel()`, returning exactly one of: `MATCH`,
+`PARTIAL MATCH`, `SOURCE VALUE ≠ ABJAD`, or `SOURCE SPELLING UNRESOLVED` (the
+fifth requested wording, "SOURCE VALUE MEANING UNRESOLVED", is used in the
+explanatory note text for Iddris specifically, where even the *relationship*
+between the two numbers — not just their equality — is unresolved). The
+reader UI (`app/books/[id]/read/page.tsx`) now shows this exact label next
+to each star's Divine Name instead of the looser "match / source-math
+discrepancy" wording Prompt 20 shipped.
+
+**Numerals, drawing order, and centre figures: untouched, on purpose.** The
+three numeral modes, the absence of any `drawingOrder` field, and each
+star's own four-line centre figure were all re-checked against this
+prompt's own instructions and left exactly as Prompt 20 (numerals) and
+Prompt 19 (drawing order, centre figures) established them — no new evidence
+justified a change to any of the three.
+
+**Tests.** `reconciliation.test.ts` (new, 15 tests) covers the pattern
+diagnostic's five status outcomes with real numbers (not asserted in the
+abstract), the Yussif/Usman identity distinction, Ayuba's
+stated-count-not-Abjad finding, Iddris/Ali staying unresolved, Yunus staying
+partial, and that neither new module mutates `hatim.ts` or touches the
+engine. `abjad.test.ts` (2 new tests, 15 total) covers the generic
+partial-match detection and the four precise status labels. Full suite:
+**2,228 tests passing** (up from Prompt 20's 2,211), `tsc --noEmit` clean,
+`next build` clean (19 static routes, unchanged).
+
+**Files changed:** `content/manuscripts/hatimPattern.ts` (new),
+`content/manuscripts/valueReconciliation.ts` (new),
+`content/manuscripts/reconciliation.test.ts` (new), `content/manuscripts/
+abjad.ts` (generic partial-match detection, `abjadStatusLabel()`, refined
+notes — no manuscript value changed), `content/manuscripts/abjad.test.ts`
+(updated for the refined status model), `app/books/[id]/read/page.tsx` (uses
+`abjadStatusLabel()` instead of the looser Prompt 20 wording). `hatim.ts`,
+`starUses.ts`, `stars.ts`, `casting.ts`, `chartModel.ts`, `ruleEngine.ts`,
+`operations.ts`, `types.ts` all untouched.
+
+**What remains unresolved, on purpose.** All 70 "under review" Hatim cells
+are exactly as Prompt 19 left them — this session found no new evidence for
+any of them and invented none. Iddris's and Ali's discrepancies remain fully
+unresolved. Yussif's own three verified cells do not fully reconcile with
+each other even under closer analysis; that is reported as a genuine
+conflict, not smoothed into a single answer. Per section 18 of this prompt:
+"70 cells remain unresolved because the available source evidence does not
+establish them" is the accurate, and intended, outcome here.
+
+**Not deployed, not pushed** — per this prompt's explicit instruction.
+
+---
+
+## Prompt 23 — final Hawatim manuscript corrections (128/128 cells complete)
+
+**What changed.** The user personally checked the original manuscript and
+supplied authoritative values for all 70 previously-"under review" cells
+across the sixteen Hatim diagrams, plus confirmed the recurring
+`middleRight`/`bottomMiddle` cells are the digits 5 and 4 in every diagram.
+Per this prompt's explicit instruction, these are treated as direct
+manuscript verification: implemented exactly as given, with no
+recalculation, no Abjad substitution, and no smoothing of numerically
+irregular entries (Ibrahim 142/145/144, Ali 322/325/324, Usman 108/102/105 —
+none of these fit the N-4/N-5/N-6 descent, and are stored exactly as
+supplied). `content/manuscripts/hatim.ts` was rewritten around an explicit,
+literal `RAW_HATIMS` table (one `[topMiddle, middleLeft, bottomRight]` triple
+per star) rather than a formula — `fullyVerified` is now computed from
+whether every cell in a star's own border is `status: 'verified'`, not
+hard-coded.
+
+**Coverage: 70 under review → 0 under review, 58/128 verified → 128/128
+verified.** `hatimCoverageTally()` now reports `{ verifiedCells: 128,
+reviewCells: 0, totalCells: 128 }`, asserted exactly in
+`content/manuscripts/hatimComplete.test.ts` (a new, exhaustive test file
+that checks all sixteen stars' complete 3×3 tables against the supplied
+list, verbatim).
+
+**The N-4/N-5/N-6 pattern is proven, with real data, to NOT be universal —
+exactly as this prompt's section 6 required.** With all sixteen diagrams now
+fully populated, `hatimPattern.ts`'s diagnostic was run against every star
+for the first time (previously only 4 of 16 had enough verified cells to
+test). Result: only 9 of 16 stars have their three cells agree on a single N
+(`confirmed_by_source`) — Mahadi, Iddris, Issah, Umar, Ayuba, Sulemana,
+Hassan & Hussein, Yunus, Musah. Two stars' cells agree with each other but on
+a number matching neither the stated count nor the Abjad sum (`not_confirmed`
+— Adam and Nuhu, both N=26 against a stated/Abjad value of 66). **Five
+stars' own three cells do not even agree with each other** (`conflicting`) —
+Yussif, Ibrahim, Kalla Allahu, Ali, and Usman — which is the clearest
+possible proof that the formula was never applied as a generation rule: if
+it had been, every star's three cells would trivially agree by construction.
+Ibrahim (146/150/150), Ali (326/330/330), and Usman (107/111/112 — all three
+different) are recorded as explicit regression tests in
+`reconciliation.test.ts` and `hatimComplete.test.ts`.
+
+**Two Abjad discrepancies gained a stronger explanation; two did not.**
+Because Iddris's cells are now verified (111/110/109), its pattern
+diagnostic resolves to N=115 — exactly the manuscript's stated recitation
+count, not its 258 Abjad sum. This is the same relationship already found
+for Ayuba (N=312, stated, not the 72 Abjad sum), and `valueReconciliation.ts`
+was generalized (no longer a `starId === 'ayuba'` special case) to recognise
+this pattern for any star: **Iddris moved from `valueConfidence: 'unresolved'`
+to `'verified'`.** Ali's cells conflict with each other too (326/330/330 vs
+their own outlier), so there is no equivalent fallback confirmation — Ali
+remains `'unresolved'`, exactly as before. Yussif's cells still conflict with
+each other (see Prompt 21/22), so it also stays `'unresolved'`.
+
+**Divine Name / Abjad values were not touched.** `sourceStatedValue`,
+`abjadValue`, `abjadStatus` (MATCH / PARTIAL MATCH / SOURCE VALUE ≠ ABJAD /
+SOURCE SPELLING UNRESOLVED) are unchanged for all sixteen stars — only
+`hatimReferenceValue` and `valueMeaning`/`valueConfidence` shift, and only
+where the newly-supplied Hatim cells provide genuine new cross-check
+evidence (Iddris; Adam and Nuhu moved from "not yet verified enough to
+cross-check" to "partial" now that their conflicting-with-stated N is known).
+
+**Center figures, numeral display, and drawing order: unchanged.** Each
+star's own four-line pattern remains the centre figure; the Original/Arabic
++ Latin/Latin toggle still renders the same stored Arabic-Indic text through
+`arabicIndicToLatin()`, never mutating it (asserted in
+`hatimComplete.test.ts`); no `drawingOrder` field exists and none was added —
+nothing in the newly-supplied values establishes a stroke sequence.
+
+**UI text updated to stop describing cells as unverified.** The
+`stars-in-the-chart` chapter's two explanatory paragraphs (the intro note and
+the closing note after all sixteen cards) previously described the Hatim
+cells as partially unread and named the recurring hook mark as unresolved;
+both were rewritten to state that all bordering cells are now
+manuscript-confirmed, without changing anything about how a stat is
+rendered.
+
+**Tests.** `hatimComplete.test.ts` (new, 23 tests): all sixteen stars'
+complete tables asserted exactly against the supplied list; 128/128
+coverage; `fullyVerified` true for all sixteen; the Ibrahim/Ali/Usman
+non-formula regression proof; numeral-conversion never mutates stored data;
+centre figures and "Intentions" label unchanged; no engine coupling.
+`reconciliation.test.ts` (19 tests, up from 15) rewritten for the new
+9-confirmed/2-not-confirmed/5-conflicting pattern breakdown and the Iddris
+upgrade. `starUses.test.ts`'s three Hatim-coverage assertions were updated
+(bottom-middle is now verified as ٤, `fullyVerified` is true, coverage is
+128/0) — none of its other 54 assertions changed. `abjad.test.ts` unchanged
+(16 Divine-Name/Abjad relationships are untouched by this prompt). Full
+suite: **2,255 tests passing** (up from Prompt 21/22's 2,228), `tsc --noEmit`
+clean, `next build` clean (19 static routes, unchanged).
+
+**Files changed:** `content/manuscripts/hatim.ts` (rewritten around an
+explicit `RAW_HATIMS` table; all 70 previously-review cells now verified),
+`content/manuscripts/valueReconciliation.ts` (generalized the
+stated-count-confirms-Hatim branch beyond the Ayuba special case),
+`content/manuscripts/abjad.ts` (updated the Iddris/Ayuba/Ali explanatory
+notes to reflect the new Hatim evidence — no value changed),
+`content/manuscripts/hatimComplete.test.ts` (new),
+`content/manuscripts/reconciliation.test.ts` (rewritten for the new data),
+`content/manuscripts/starUses.test.ts` (three assertions updated),
+`app/books/[id]/read/page.tsx` (two explanatory paragraphs updated).
+`starUses.ts`, `stars.ts`, `hatimPattern.ts`, `HatimDiagram.tsx`,
+`casting.ts`, `chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`
+all untouched — the pattern diagnostic's own logic did not need to change to
+correctly classify the new data.
+
+**Browser verification.** Checked at 390×844px (mobile) and with
+`data-reader-size="xlarge"`: zero occurrences of "under review" anywhere on
+the page (down from the prior state), no horizontal overflow
+(`scrollWidth === clientWidth === 375`), all three numeral modes render
+correctly, and the three explicitly-flagged regression cases (Ibrahim
+142/145/144, Ali 322/325/324, Usman 108/102/105) render exactly as supplied
+in both the visual grid and the screen-reader cell list.
+
+**Not deployed, not pushed** — per this prompt's explicit instruction.
+
+---
+
+## Prompt 24 — Adam Hatim correction
+
+**A single-star correction, applied directly.** A follow-up manuscript check
+found Adam's variable Hatim cells were 62/61/60, not the 22/21/20 recorded in
+Prompt 23. `content/manuscripts/hatim.ts`'s `RAW_HATIMS` entry for `adam` was
+updated to `[62, 61, 60]`; no other star's data was touched. Coverage stays
+128/128 verified — this is a correction to an already-verified cell, not a
+new one being resolved.
+
+**This changes Adam's pattern-diagnostic result.** With the new values,
+Adam's three cells now all imply N=66 (`62+4`, `61+5`, `60+6`) — exactly
+matching both the stated recitation count and the Abjad sum of الله. Adam
+moves from `not_confirmed` (previously implying an unexplained N=26) to
+`confirmed_by_source`, and its `valueReconciliation` entry moves from
+`'partial'` to full `'verified'` confidence, alongside Mahadi, Issah, Umar,
+Sulemana, Hassan & Hussein, and Musah (now seven stars, not six, whose
+stated count, Abjad sum, and Hatim-derived N all agree). Nuhu — which
+happened to share Adam's old, now-superseded 22/21/20 values — was left
+untouched, since the user's correction named only Adam; its own
+`not_confirmed` status (N=26, matching neither its stated nor Abjad value of
+66) stands unless it is independently re-checked.
+
+**Tests updated to match:** `hatimComplete.test.ts` (Adam's expected table),
+`reconciliation.test.ts` (Adam moved from the not-confirmed/partial groups
+into the confirmed-by-source/verified groups; the Nuhu-only assertions kept
+separate). Full suite: 2,255 tests passing (unchanged count — no test was
+added or removed, only their expected values). `tsc --noEmit` clean, `next
+build` clean.
+
+**Not deployed, not pushed.**
+
+---
+
+## Prompt 25 — Ibrahim Hatim correction
+
+**A single-cell correction.** A further manuscript check found Ibrahim's
+`topMiddle` cell was 146, not the 142 recorded in Prompt 23; `middleLeft`
+(145) and `bottomRight` (144) are unchanged. `RAW_HATIMS`'s `ibrahim` entry
+was updated to `[146, 145, 144]`.
+
+**This resolves Ibrahim's own pattern conflict.** With 142, Ibrahim's three
+cells implied N=146/150/150 — a real disagreement (`conflicting`). With 146,
+all three now imply N=150 exactly (`146+4`, `145+5`, `144+6`), matching both
+Ibrahim's stated recitation count and its Abjad sum (عليم = 150). Ibrahim
+moves from `conflicting`/`'partial'` to `confirmed_by_source`/`'verified'` —
+now 11 of 16 stars confirm a single N (up from 9), and only four (Yussif,
+Kalla Allahu, Ali, Usman) still conflict with themselves. Ali (322/325/324)
+and Usman (108/102/105) remain the standing proof that the N-4/N-5/N-6
+pattern is not a universal generator — Ibrahim is no longer part of that
+proof, since its corrected values do fit.
+
+**Tests updated:** `hatimComplete.test.ts` (Ibrahim's expected table, and
+the non-formula regression test narrowed to Ali/Usman only),
+`reconciliation.test.ts` (Ibrahim moved between groups in four separate
+assertions). Full suite: 2,256 tests passing. `tsc --noEmit` and `next
+build` clean. Verified live in-browser: Ibrahim's Hatim renders ٣/١٤٦/١ ·
+١٤٥/Intentions/٥ · ٢/٤/١٤٤.
+
+**Not deployed, not pushed.**
+
+
+

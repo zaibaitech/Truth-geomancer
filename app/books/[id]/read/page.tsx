@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { X } from "lucide-react";
+import { Play, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ContentGuard } from "@/components/books/ContentGuard";
@@ -204,6 +204,12 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                             <div className="mt-4">
                               <CountingMethodDiagram />
                             </div>
+                            <Link
+                              href="/books/master-of-geomancy-vol-1/practice/counting-method"
+                              className="mt-3 flex min-h-[44px] w-fit items-center gap-1.5 rounded-full border border-clay/30 px-3.5 py-1.5 type-evidence font-medium text-clay-light"
+                            >
+                              <Play size={13} aria-hidden /> Try the Counting Method
+                            </Link>
                           </div>
 
                           <div className="mt-6">
@@ -216,6 +222,12 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
                             <div className="mt-4">
                               <CancellingMethodDiagram />
                             </div>
+                            <Link
+                              href="/books/master-of-geomancy-vol-1/practice/cancelling-method"
+                              className="mt-3 flex min-h-[44px] w-fit items-center gap-1.5 rounded-full border border-clay/30 px-3.5 py-1.5 type-evidence font-medium text-clay-light"
+                            >
+                              <Play size={13} aria-hidden /> Try the Cancelling Method
+                            </Link>
                           </div>
 
                           <div className="mt-6">

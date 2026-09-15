@@ -67,8 +67,10 @@ function CancelToken({ token }: { token: string }) {
  * remainder restated as the line's formal mark. All four stages show the
  * same underlying value derived from the tokens already transcribed in
  * chapterOneDiagrams.ts (see cancelledLineMark) — nothing here computes a
- * new number, only displays the existing one in four ways. */
-function CancellingLineFlow({
+ * new number, only displays the existing one in four ways. Exported
+ * (Prompt 22) so CancellingMethodPractice.tsx can reveal one line at a time
+ * instead of duplicating this markup. */
+export function CancellingLineFlow({
   tokens,
   lineIndex,
 }: {

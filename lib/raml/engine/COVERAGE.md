@@ -4775,4 +4775,149 @@ visible above the bottom navigation bar.
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
 
+## Prompt 22 — "Try this method" for The Master of Geomancy
+
+Extended the Kanzul Mikban "Try this method" learning philosophy to The
+Master of Geomancy, Volume 1 — scoped, per the prompt's own explicit
+"Implementation Strategy," to the two foundational casting procedures the
+book actually describes as step-by-step methods: the Counting Method and
+the Cancelling Method. Nothing else in the book was made interactive this
+prompt; see the audit below for why.
+
+**Audit (source: `content/manuscripts/master-of-geomancy-vol1.ts` Chapter
+1, "How to Draw a Chart in Geomancy," and its existing worked-example data
+in `content/manuscripts/chapterOneDiagrams.ts`):**
+
+| Passage | Classification | Reasoning |
+|---|---|---|
+| The Counting Method (body[1] + its 2 worked examples) | **A — verified/executable** | The source's own hand-drawn worked examples were already verified in an earlier prompt (six-for-six match against the canonical `STARS` array); every raw count, its stated reduction, and the resulting figure are already stored as data. |
+| The Cancelling Method (body[2] + its 4 worked examples) | **A — verified/executable** | The source's typeset tally marks were transcribed verbatim from the PDF's text layer; `cancelledLineMark`/`cancellingMotherPattern` already derive each line's mark and each example's Mother Star from those exact tokens, already cross-checked against the book's own stated parity rule. |
+| Banaat/Daughters + full chart-building (body[3]-[4], "Adding Stars") | **D — already implemented, descriptive here** | `CHAPTER_ONE_DAUGHTERS`/`CHAPTER_ONE_CHART`/`CHAPTER_ONE_ADDITION_STEPS` already call the real, protected `deriveDaughters`/`buildChart`/`addPatterns` read-only, and are already displayed step-by-step by the existing `AdditionSequenceDiagram`/`CompleteChartDiagram`. Deferred to a later prompt per the task's own conservative "expand only after the architecture is proven" instruction — not implemented as a tap-through walkthrough this prompt. |
+| The Bazdaaho Method (Chapter 2, arranging Yussif→Musah) | **B — source descriptive, not a procedure a user performs** | `BAZDAAHO_FORMULA_TABLE`/`BAZDAAHO_POSITION_AUDIT` are a verified REFERENCE table (which letter-value identifies which position), not a sequence of steps a reader carries out on their own chart. Its existing static diagrams already serve the lookup/reference purpose; turning a reference table into a tap-through "practice" would not clearly serve "learn by doing." Kept reading-only. |
+| Stars/elements/Buruji/spiritual-strength/causes/sadaqah chapters (3, 5-10) | **B — descriptive, already served by directories** | Reference material and simple house-combination recipes already fully explained in prose; not casting PROCEDURES in the sense sections 3-6 describe. Out of scope for this prompt. |
+
+**"Try this method" CTAs (2 added, both type A):** a small pill link —
+"▶ Try the Counting Method" / "▶ Try the Cancelling Method" — placed
+immediately after each method's existing static diagram
+(`CountingMethodDiagram`/`CancellingMethodDiagram`) in
+`app/books/[id]/read/page.tsx`. No CTA was added anywhere else in the
+chapter; the addition-sequence, complete-chart and Bazdaaho sections remain
+exactly as they were.
+
+**Architecture — a small isolated adapter, not the Kanzul Mikban practice
+machinery.** The KM "Try this method" flow (`MethodPracticeFlow.tsx`) is
+built entirely around `MethodDefinition`/`ReadingMethodRow` — a chart run
+through `runReading()` against a registered question. Chapter 1's two
+casting methods have no `MethodDefinition` at all (they describe HOW a
+chart is cast, not a question answered from one), so forcing them through
+that machinery would misrepresent what they are. Per the prompt's own
+section 2 ("if a source procedure is fundamentally different... create a
+small isolated adapter"), two new, purpose-built components were added
+instead — `components/books/practice/CountingMethodPractice.tsx` and
+`CancellingMethodPractice.tsx` — matching the KM practice screens'
+established visual language (Card, `type-*` scale, "Practicing" header,
+Continue/Back, min-h-[48px] tap targets) but built on the book's own
+already-verified worked-example data, never on `MethodDefinition`.
+
+**Why CastingBoard itself was not reused, and why that is the correct call
+here (not an oversight).** The Counting Method's worked examples reduce
+each of FOUR INDEPENDENT raw counts (10, 12, 14, 18→2) directly to a whole
+Mother Star via mod-16-then-lookup (`starForCount`) — a coarser, different
+operation from `CastingBoard`'s own per-LINE mechanism (`reduceCount`:
+subtract 16, then take parity, to produce ONE dot within a four-line
+figure). These are not the same procedure; reusing `CastingBoard` for the
+Counting Method would silently substitute a different rule than the one
+the source page actually demonstrates. The Cancelling Method's line-level
+"cancel pairs, see what remains" IS mathematically equivalent to
+`reduceCount`'s parity test — but `CastingBoard` deliberately never
+exposes a line's raw tap count to its caller (Prompt 17's own anti-
+gamification principle, reinforced by this very prompt's section 7: "the
+user should not be encouraged to consciously control... the number of
+dots"), so there is no raw count available to visualize as cancelled pairs
+after a real cast. Both practice flows instead walk the source's own
+already-transcribed, already-verified worked examples — genuinely
+interactive (tap-to-reveal each of 4 lines, tap to see another example),
+zero risk, and pedagogically exact to what each page actually teaches.
+
+**How the Counting Method works interactively:** intro (source quote from
+`chapter.body[1]`, a 4-point "how this works" list, Start) → four lines,
+one at a time, each rendered via the EXISTING, now-exported
+`CountingLineRow` (the same markup the static diagram uses: circled
+number, literal dot row, the source's own reduction arithmetic, the
+resulting figure) → result, via the existing `ResultOrderStrip` (the
+source's own "4 3 2 1" display order) plus the source's closing line
+("This first 4 is called umuhat mother stars."). "Try the other example"
+cycles to the source's second worked example. Zero new calculation:
+`COUNTING_METHOD_EXAMPLES`/`starForCount` are imported, never
+reimplemented.
+
+**How the Cancelling Method works interactively:** intro (source quote
+from `chapter.body[2]`, its own 4-point list, Start) → four lines, one at
+a time, each rendered via the EXISTING, now-exported `CancellingLineFlow`
+(original dot count → pairs cancelled right-to-left → what remains → the
+line's mark) → result, showing that example's Mother Star
+(`cancellingMotherPattern`, imported) and the source's closing line about
+the Banaat/Children stars. "Try the next Mother Star" cycles through all
+four worked examples. A regression test confirms `cancellingMotherPattern`
+applied to each example matches the already-tested, already-exported
+`CANCELLING_METHOD_MOTHER_PATTERNS` exactly.
+
+**Mother → Children → chart construction: not implemented this prompt**,
+per the task's own explicit conservative sequencing (classified D above —
+already exists as a read-only, real-engine-backed static diagram; a
+progressive/interactive version is a natural, low-risk future extension of
+the same pattern, deferred until the two foundational experiences are
+proven in production).
+
+**Bazdaaho: not made interactive**, because it is a reference/lookup table
+(source classification B), not a procedure — see the audit table above.
+
+**Tests (27 new):** `masterPracticeUi.test.ts` is a source-scanning
+structural suite (same technique as `practiceUi.test.ts` — no component-
+rendering harness in this app) proving: both CTAs exist exactly once, each
+immediately after its own diagram, and nowhere else (the addition-sequence
+and Bazdaaho sections were explicitly checked and contain none); each
+practice route renders only its own component; Counting and Cancelling
+import only their own diagram pieces, never the other's; neither
+component reimplements a reduction (`% 2`/`- 16` arithmetic is asserted
+absent from the JS, present only inside quoted source text) — both import
+and reuse the existing pure functions instead;
+`cancellingMotherPattern(example)` is cross-checked against
+`CANCELLING_METHOD_MOTHER_PATTERNS` for all four examples; both source
+quotes are asserted to come from `chapter.body[1]`/`[2]` with only the
+`**` markdown stripped, never paraphrased; source attribution and a link
+back to the chapter are present on both screens; neither screen ever says
+"Your Reading"; the existing KM practice module/flow, `CastingFlow`,
+`ResultTabs` and `EngineReadingView` are confirmed to never reference the
+new components; and mobile type-scale/tap-target conventions hold. Full
+suite: 2440 prior + 27 new = **2467 passing**. `tsc --noEmit` clean,
+`next build` clean (two new static routes,
+`/books/master-of-geomancy-vol-1/practice/counting-method` 1.89 kB and
+`.../cancelling-method` 2 kB).
+
+**Browser-verified** at 390×844: both CTAs present on the chapter page
+(and confirmed absent from the addition-sequence/Bazdaaho sections).
+Counting Method: Start → 4 lines revealed in sequence (circled number,
+dot row, arithmetic, figure) → "RESULTING STARS — 4 3 2 1" with four real
+figures → the source's own closing line. Cancelling Method: Start → 4
+lines, each showing "Original line — N dots" → "CANCEL PAIRS FROM RIGHT →
+LEFT" → "Remaining — one/two dot(s)" → "Line mark" → result screen with
+the assembled Mother Star figure and the Banaat/Children closing line;
+"Try the next Mother Star" correctly advanced to the second worked
+example. No horizontal overflow at any screen; Continue/Back/"Try the
+other" buttons stayed fully visible above the bottom navigation.
+
+**Engine confirmation.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`, `reading.ts`
+and every `questions/*.ts` file is empty. `content/manuscripts/
+chapterOneDiagrams.ts` itself was not modified at all — only two existing,
+private helper components (`CountingLineRow`/`ResultOrderStrip` in
+`CountingMethodDiagram.tsx`, `CancellingLineFlow` in
+`CancellingMethodDiagram.tsx`) were exported (one `export` keyword each)
+so the new practice screens could reuse their exact markup instead of
+duplicating it — no rendering or calculation change to either diagram.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

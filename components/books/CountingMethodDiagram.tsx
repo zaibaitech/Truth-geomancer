@@ -37,8 +37,10 @@ function CountingMarks({ count }: { count: number }) {
  * looked up from the existing STARS data, never redrawn or recomputed. The
  * star's name is exposed only as screen-reader-only text on the figure,
  * never as visible text: the source labels this line by its circled number,
- * not by a star's personal name (Prompt 28's source-fidelity correction). */
-function CountingLineRow({
+ * not by a star's personal name (Prompt 28's source-fidelity correction).
+ * Exported (Prompt 22) so CountingMethodPractice.tsx can reveal the same
+ * lines one at a time instead of duplicating this markup. */
+export function CountingLineRow({
   line,
   lineIndex,
 }: {
@@ -74,7 +76,7 @@ function CountingLineRow({
  * right to left). Each figure is the same lookup CountingLineRow already
  * uses for that line, shown a second time only because the source itself
  * shows it a second time as a small standalone result strip. */
-function ResultOrderStrip({ example }: { example: CountingMethodExample }) {
+export function ResultOrderStrip({ example }: { example: CountingMethodExample }) {
   return (
     <div className="mt-3 border-t border-sand/10 pt-3">
       <p className="type-label uppercase tracking-widest text-sand/65">

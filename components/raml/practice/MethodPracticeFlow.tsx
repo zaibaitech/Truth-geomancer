@@ -17,6 +17,18 @@ import type { Pattern } from '@/content/stars';
 type Stage = 'intro' | 'casting' | 'walkthrough';
 type WalkthroughStep = 'houses' | 'working' | 'result';
 
+// Prompt 21 — descriptive stage labels, not a raw step count. Keyed by STAGE
+// KIND rather than stepIndex: a method with more than one working line (see
+// money-method-2) still shows the same "See the calculation" label for each
+// of its working steps, because the underlying stage hasn't changed, only
+// where inside it the reader is. This is presentation-only wording; the
+// actual number and order of steps still comes entirely from `steps` below.
+const STAGE_LABEL: Record<WalkthroughStep, string> = {
+  houses: 'Step 1 · Select the houses',
+  working: 'Step 2 · See the calculation',
+  result: 'Step 3 · See the result',
+};
+
 /**
  * The practice screen (Prompt 20). Deliberately a different experience from
  * the Reading flow (section 11): every header on this screen says
@@ -37,6 +49,10 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedHouses, setSelectedHouses] = useState<Set<number>>(new Set());
   const [showSource, setShowSource] = useState(false);
+  // Set only right after finishing THIS session's own casting stage — never
+  // set when an existing chart was reused, since nothing was just cast in
+  // that path. Drives the one-line "Chart ready" transition (section 9).
+  const [justCast, setJustCast] = useState(false);
 
   const row = useMemo(() => {
     if (!chart || !practicable) return null;
@@ -76,6 +92,7 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
     setChart(existing.chart);
     setSelectedHouses(new Set());
     setStepIndex(0);
+    setJustCast(false);
     setStage('walkthrough');
   }
 
@@ -83,6 +100,7 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
     setChart(buildChart(mothers));
     setSelectedHouses(new Set());
     setStepIndex(0);
+    setJustCast(true);
     setStage('walkthrough');
   }
 
@@ -186,7 +204,8 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   const steps: WalkthroughStep[] = ['houses', ...Array<WalkthroughStep>(workingCount).fill('working'), 'result'];
   const current = steps[stepIndex] ?? 'result';
   const requiredHouses = Array.from(new Set(row.housesUsed));
-  const housesConfirmed = requiredHouses.every((h) => selectedHouses.has(h));
+  const selectedRequiredCount = requiredHouses.filter((h) => selectedHouses.has(h)).length;
+  const housesConfirmed = selectedRequiredCount === requiredHouses.length;
 
   function next() {
     setStepIndex((i) => Math.min(i + 1, steps.length - 1));
@@ -200,13 +219,28 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
       {header}
       <div className="space-y-4 px-4 pb-6">
         <p role="status" className="type-meta uppercase tracking-widest text-sand/65">
-          Step {stepIndex + 1} of {steps.length}
+          {STAGE_LABEL[current]}
         </p>
 
         {current === 'houses' ? (
           <>
-            <p className="type-body text-sand/80">
-              Tap {requiredHouses.map((h) => `H${h}`).join(' and ')} — the houses this method uses.
+            {justCast ? (
+              <p className="type-body text-sand-light">
+                <span className="font-medium">Chart ready.</span> Now follow the houses specified by this method.
+              </p>
+            ) : null}
+            <div>
+              <p className="type-meta uppercase tracking-widest text-sand/65">Select the houses used by this method</p>
+              <p className="mt-1.5 type-body font-medium text-sand-light">
+                {requiredHouses.map((h) => `H${h}`).join(' · ')}
+              </p>
+              <p className="mt-1 type-meta text-sand/65">Tap each house to select it.</p>
+            </div>
+            {/* A compact, always-current count — never assumes four houses;
+                every total comes straight from this method's own
+                requiredHouses (Prompt 21, section 3). */}
+            <p role="status" className="type-meta text-sand/65">
+              {selectedRequiredCount} of {requiredHouses.length} {requiredHouses.length === 1 ? 'house' : 'houses'} selected
             </p>
             <HouseSelector chart={chart} required={requiredHouses} selected={selectedHouses} onToggle={toggleHouse} />
           </>
@@ -214,8 +248,9 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
 
         {current === 'working' ? (
           <Card>
-            <p className="type-meta uppercase tracking-widest text-sand/65">Working</p>
+            <p className="type-meta uppercase tracking-widest text-sand/65">Source operation</p>
             <p className="mt-2 type-evidence text-sand-light">{row.calculationSteps[stepIndex - 1]}</p>
+            <p className="mt-2 type-meta text-sand/65">This is the operation specified by {method.label}.</p>
           </Card>
         ) : null}
 

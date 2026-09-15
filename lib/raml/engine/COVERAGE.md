@@ -4652,4 +4652,127 @@ No horizontal overflow at any stage of any screen tested.
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
 
+## Prompt 40 — clearer mobile UX for the practice-flow instructions
+
+A small refinement pass on Prompt 39's practice flow, requested after the
+feature itself was confirmed working: the instructions inside each stage
+were generic ("Step 1 of 3") or terse ("Tap H1 and H8 and H9 and H11 — the
+houses this method uses."). Nothing about the state machine, the number of
+stages, the casting flow, or any calculation changed — only wording and two
+small always-derived-from-real-data additions (a selection counter, a
+one-line transition after casting) inside `MethodPracticeFlow.tsx`. No
+other file was touched.
+
+**Descriptive stage labels (section 1).** `steps[stepIndex]` still decides
+which screen renders exactly as before; only the label shown for it
+changed, via a small lookup keyed by stage KIND, not position:
+`STAGE_LABEL = { houses: 'Step 1 · Select the houses', working: 'Step 2 ·
+See the calculation', result: 'Step 3 · See the result' }`. A method whose
+working stage has more than one line (money-method-2) still shows "Step 2 ·
+See the calculation" for each of its working steps — the stage hasn't
+changed, only where inside it the reader is. The casting stage is untouched
+and still shows `CastingBoard`'s own "1st Draw"/"2nd Draw" progress,
+unrelated to this counter, per the prompt's own explicit instruction not to
+merge them.
+
+**House-selection instruction (sections 2-4).** Replaced the single
+sentence with three lines: an eyebrow ("Select the houses used by this
+method"), the actual required houses joined with " · " —
+`requiredHouses.map((h) => \`H${h}\`).join(' · ')`, still built from
+`row.housesUsed`, never hard-coded — and a plain "Tap each house to select
+it." `HouseSelector.tsx` itself is untouched: the chart, the figures, and
+the existing highlight/tap behavior are exactly as they were.
+
+**Selection progress (section 3).** A new one-line, always-current counter:
+`{selectedRequiredCount} of {requiredHouses.length} houses selected`, where
+`selectedRequiredCount` is `requiredHouses.filter((h) =>
+selectedHouses.has(h)).length` — the same `selectedHouses` set the Continue
+gate already used, just also rendered. Verified against a 4-house method
+(travel-method-1) and a 3-house method (money-method-2): the total in the
+copy matched each method's own real house count both times, never
+defaulting to 4. Continue's gating logic (`housesConfirmed`) is
+behaviorally identical — the boolean is now computed from the same count
+rather than a separate `.every()` call, but decides the exact same thing.
+
+**Working screen (sections 5-6).** Heading changed from "Working" to
+"Source operation"; the calculation line itself —
+`row.calculationSteps[stepIndex - 1]` — is byte-for-byte unchanged, still
+read straight from the engine's own trace, never reconstructed or
+reformatted in the UI. One caption was added below it: "This is the
+operation specified by {method.label}." — built only from the method's own
+already-known label, no new interpretation.
+
+**Result screen (sections 7-8): untouched.** No lines in this section of
+the component changed. The figure, qualities, outcome badge, "According to
+the source, this indicates: …" verdict text, and the "Source method" /
+"View source instructions" toggle are exactly what Prompt 39 shipped.
+
+**Casting → practice transition (section 9).** A one-line, conditionally
+shown message — "Chart ready. Now follow the houses specified by this
+method." — appears at the top of the houses stage, but ONLY when the chart
+was just produced by THIS session's own casting (`justCast`, set `true` in
+`onCastComplete`, `false` in `useExistingChart`). No new page or stage: it
+renders inline inside the existing houses step, confirmed absent when a
+chart was reused instead.
+
+**Sections 10-14 (chart reuse, Library CTA, mobile, navigation, source
+fidelity): no code changed.** "Practice with this chart" / "Cast a chart"
+logic in `MethodPracticeFlow.tsx` is untouched (only the two new
+`setJustCast` calls were added alongside the existing `setChart`/
+`setSelectedHouses`/`setStepIndex` calls). `ChapterMethodPractice.tsx` (the
+Library CTA) was not touched. Back/Continue button logic, the
+"Back to the chapter" link, and browser back navigation are unchanged.
+`methodPractice.ts`, `HouseSelector.tsx`, `runReading()`, every
+`MethodDefinition`, and the whole geomancy engine are untouched — `git
+diff --name-only` shows exactly two files changed:
+`MethodPracticeFlow.tsx` and its test file.
+
+**Tests (9 net new, plus 2 existing tests updated for the intentional
+wording change):** `practiceUi.test.ts` grew from 31 to 40 tests. The two
+tests that asserted the OLD "Step N of M" text and the OLD
+`requiredHouses.every(...)` gating expression were updated to assert the
+new `STAGE_LABEL`/`selectedRequiredCount` implementations instead (same
+guarantees, new wording) — this is an intentional change this prompt asked
+for, not a regression. A new "Prompt 21 — clearer mobile UX" block adds 7
+tests: the house instruction is never hard-coded to H1/H8/H9/H11; the
+required-house list is built from `requiredHouses.map(...)`, not a fixed
+string; the selection copy never assumes exactly four houses; the working
+heading reads "Source operation" with the calculation line untouched; the
+educational caption is method-labelled and adds no new interpretation; the
+"Chart ready" transition is wired to `justCast` and proven absent from the
+chart-reuse path; and the transition renders inside the existing houses
+step rather than a new one. One more test confirms the result card's
+heading, badge wiring and verdict phrasing are unchanged. The
+never-fabricates-certainty check was re-scoped to rendered JSX text only
+(the same technique `questionCatalog.test.ts`'s "status language" check
+already uses), because the literal code token `setJustCast(true)` is not
+prose and was never meant to be caught by that rule. Full suite: 2431 prior
++ 9 net new = **2440 passing**. `tsc --noEmit` clean, `next build` clean
+(practice route 5.22 kB → 5.39 kB).
+
+**Browser-verified** at 390×844 on `travel-method-1` (Kanzul Mikban Chapter
+1, houses H1/H8/H9/H11 — the same method and houses the prompt's own
+example used): intro unchanged; after casting, the houses stage showed
+"STEP 1 · SELECT THE HOUSES", the "Chart ready" transition, "SELECT THE
+HOUSES USED BY THIS METHOD" with "H1 · H8 · H9 · H11", "Tap each house to
+select it.", and the counter advancing "0 of 4" → "1 of 4" → "2 of 4" →
+"3 of 4" → "4 of 4 houses selected" as each required house was tapped,
+Continue disabled until the last tap; the working stage showed "STEP 2 ·
+SEE THE CALCULATION", "SOURCE OPERATION", the real computed line "H1 (Ali)
++ H8 (Musah) + H9 (Adam) + H11 (Sulemana) = Mahadi", and "This is the
+operation specified by Method 1."; the result stage showed "STEP 3 · SEE
+THE RESULT" with the same result card as before (Mahadi, Good · Downward ·
+Air, Favourable, "You will return peacefully, but without money.",
+SOURCE METHOD). Back from the result screen correctly returned to the
+working stage. Separately, `money-method-2` (3 houses: H2, H7, H11) was
+practiced via "Practice with this chart" (an existing chart reused, not
+re-cast): the counter correctly read "0 of 3" → "3 of 3 houses selected"
+— never assuming four — and the "Chart ready" line was correctly absent,
+since no casting had just happened on that path. No horizontal overflow at
+any stage of either run; both screenshots showed the Continue button fully
+visible above the bottom navigation bar.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

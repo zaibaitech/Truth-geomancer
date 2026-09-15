@@ -107,8 +107,14 @@ describe('6. House selection — required houses are highlighted and tappable, c
 
   it('gates Continue on every required house actually being selected', () => {
     expect(FLOW).toContain('housesConfirmed');
-    expect(FLOW).toMatch(/requiredHouses\.every\(\(h\) => selectedHouses\.has\(h\)\)/);
+    expect(FLOW).toMatch(/selectedRequiredCount === requiredHouses\.length/);
     expect(FLOW).toMatch(/disabled=\{current === 'houses' && !housesConfirmed\}/);
+  });
+
+  it('drives the live selection count from the same required-houses list, not a hard-coded total', () => {
+    expect(FLOW).toContain('selectedRequiredCount');
+    expect(FLOW).toMatch(/requiredHouses\.filter\(\(h\) => selectedHouses\.has\(h\)\)\.length/);
+    expect(FLOW).toMatch(/\{selectedRequiredCount\} of \{requiredHouses\.length\}/);
   });
 
   it('derives the required houses from the same computed reading, never a hand-typed list', () => {
@@ -128,8 +134,55 @@ describe('7. Calculation — reuses the existing engine, never a duplicate imple
     expect(FLOW).toMatch(/Array<WalkthroughStep>\(workingCount\)\.fill\('working'\)/);
   });
 
-  it('shows a step counter, as the prompt asks, built only from real computed step counts', () => {
-    expect(FLOW).toMatch(/Step \{stepIndex \+ 1\} of \{steps\.length\}/);
+  it('shows a descriptive stage label (Prompt 21) rather than a bare step count, keyed off the real stage sequence', () => {
+    expect(FLOW).toContain('STAGE_LABEL[current]');
+    expect(FLOW).toContain("houses: 'Step 1 · Select the houses'");
+    expect(FLOW).toContain("working: 'Step 2 · See the calculation'");
+    expect(FLOW).toContain("result: 'Step 3 · See the result'");
+    // Never a raw numeric counter left over from before this prompt.
+    expect(FLOW).not.toMatch(/Step \{stepIndex \+ 1\} of \{steps\.length\}/);
+  });
+});
+
+describe('Prompt 21 — clearer mobile UX for the practice flow', () => {
+  it('gives the house-selection stage its own heading and a plain tap instruction, never hard-coding H1/H8/H9/H11', () => {
+    expect(FLOW).toContain('Select the houses used by this method');
+    expect(FLOW).toContain('Tap each house to select it.');
+    expect(FLOW).not.toMatch(/H1.*H8.*H9.*H11/);
+  });
+
+  it('lists the required houses dynamically from requiredHouses, never a fixed string', () => {
+    expect(FLOW).toMatch(/\{requiredHouses\.map\(\(h\) => `H\$\{h\}`\)\.join\(' · '\)\}/);
+  });
+
+  it('never assumes a method needs exactly four houses anywhere in the selection copy', () => {
+    expect(FLOW).not.toMatch(/of 4 houses selected/);
+    expect(FLOW).not.toContain("'4 of 4'");
+  });
+
+  it('labels the working stage "Source operation" and keeps the calculation line untouched', () => {
+    expect(FLOW).toContain('Source operation');
+    expect(FLOW).toMatch(/\{row\.calculationSteps\[stepIndex - 1\]\}/);
+    expect(FLOW).not.toContain('>Working<');
+  });
+
+  it('adds only a method-labelled educational caption under the working stage — no new interpretation', () => {
+    expect(FLOW).toMatch(/This is the operation specified by \{method\.label\}\./);
+  });
+
+  it('announces a chart-ready transition only right after this session’s own casting, never when reusing a chart', () => {
+    expect(FLOW).toContain('justCast');
+    expect(FLOW).toContain('Chart ready.');
+    const reuseFn = FLOW.slice(FLOW.indexOf('function useExistingChart'), FLOW.indexOf('function onCastComplete'));
+    const castFn = FLOW.slice(FLOW.indexOf('function onCastComplete'), FLOW.indexOf('function toggleHouse'));
+    expect(reuseFn).toContain('setJustCast(false)');
+    expect(castFn).toContain('setJustCast(true)');
+  });
+
+  it('never turns the transition into a second full page — it renders inside the existing houses step', () => {
+    const housesBlock = FLOW.slice(FLOW.indexOf("current === 'houses' ?"), FLOW.indexOf("current === 'working' ?"));
+    expect(housesBlock).toContain('justCast');
+    expect(housesBlock).toContain('HouseSelector');
   });
 });
 
@@ -140,16 +193,30 @@ describe('8. Result — source-faithful, no fabricated certainty', () => {
     expect(FLOW).toContain('row.interpretation');
   });
 
+  it('keeps the result card exactly as it was — heading, badge and phrasing untouched by this prompt', () => {
+    expect(FLOW).toContain('Method result');
+    expect(FLOW).toContain('According to the source, this indicates:');
+    expect(FLOW).toMatch(/OUTCOME_TONE\[row\.outcome\]/);
+  });
+
   it('links the result back to the exact source quote used for the calculation, toggle-revealed', () => {
     expect(FLOW).toContain('row.sourceQuote');
     expect(FLOW).toContain('View source instructions');
     expect(FLOW).toContain('showSource');
   });
 
-  it('never claims certainty, truth or a guarantee anywhere in the practice flow', () => {
+  it('never claims certainty, truth or a guarantee anywhere text is actually shown to a reader', () => {
+    // Scoped to rendered JSX text (not the whole file) so a legitimate code
+    // token like `setJustCast(true)` can't trip this — the same technique
+    // questionCatalog.test.ts's "status language" check uses.
     const forbidden = /\btrue\b|\bguaranteed?\b|\bcertain(ty)?\b|\bdefinitely\b|\d+%|confidence|probability/i;
     for (const src of [FLOW, SELECTOR, CHAPTER_CTA]) {
-      expect(src).not.toMatch(forbidden);
+      const rendered = src
+        .split('\n')
+        .filter((line) => !line.trim().startsWith('//') && !line.trim().startsWith('*'))
+        .join('\n');
+      const text = rendered.match(/>[^<>{}]+</g)?.join(' ') ?? '';
+      expect(text).not.toMatch(forbidden);
     }
   });
 });

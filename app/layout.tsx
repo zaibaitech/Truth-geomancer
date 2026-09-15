@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { cinzel, inter } from '@/lib/fonts';
 import { READER_SIZE_BOOTSTRAP } from '@/lib/raml/readerSize';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -37,6 +39,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="overflow-x-hidden bg-ink font-body text-sand-light">
         <div className="mx-auto flex h-[100dvh] max-w-md flex-col overflow-x-hidden bg-ink lg:max-w-3xl">
+          <ServiceWorkerRegister />
+          <OfflineIndicator />
           {/* data-app-scroll: the app scrolls this container, not the window,
               so anything that needs to reset scroll position must target it. */}
           <div data-app-scroll className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-4">

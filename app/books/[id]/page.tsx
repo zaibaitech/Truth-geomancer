@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Badge } from '@/components/ui/Badge';
 import { BookCover } from '@/components/books/BookCover';
 import { ChapterList } from '@/components/books/ChapterList';
+import { OfflineDownloadControl } from '@/components/books/OfflineDownloadControl';
 import { BOOKS, getBookById } from '@/content/books';
 import { getChapterList } from '@/lib/books/chapters';
 
@@ -35,12 +36,15 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
         <p className="mt-4 type-body leading-relaxed text-sand/70">{book.description}</p>
 
         {book.status === 'readable' ? (
-          <Link
-            href={`/books/${book.id}/read`}
-            className="mt-5 block rounded-xl bg-clay px-4 py-3 text-center type-body font-semibold text-ink"
-          >
-            Start Reading
-          </Link>
+          <>
+            <Link
+              href={`/books/${book.id}/read`}
+              className="mt-5 block rounded-xl bg-clay px-4 py-3 text-center type-body font-semibold text-ink"
+            >
+              Start Reading
+            </Link>
+            <OfflineDownloadControl bookId={book.id} />
+          </>
         ) : (
           <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center type-body text-sand/65">
             This volume is not yet available.

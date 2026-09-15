@@ -1,0 +1,108 @@
+// Truth Geomancer service worker (Prompt 23 — offline-first audit).
+//
+// This app has no backend at all: every book's chapters, every star and
+// figure, the whole geomancy engine, and every interactive practice flow
+// are already compiled into the client JS bundle at build time — nothing
+// here is fetched from an API. The ONLY thing a network request is for is
+// the Next.js App Router's own page/asset responses. So this worker has one
+// job: keep the small app shell always available, and let a reader
+// explicitly cache a whole book so its exact pages are readable with no
+// network at all — never silently caching things a reader never asked for.
+//
+// Cache versioning: bump APP_VERSION when this worker's own precache list
+// or strategy changes. Bumping it retires the OLD shell/runtime caches on
+// the next activate (see below) without touching a reader's per-book
+// downloads at all — those live in their own caches, named and owned by
+// lib/offline/bookCache.ts, and are never deleted by a version bump here.
+const APP_VERSION = 'v1';
+const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
+const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
+
+// The app shell: the tab-bar destinations and the icons/manifest the shell
+// itself needs, so the app opens and its navigation works with no network
+// at all. Deliberately excludes book content — a reader opts into that
+// separately via "Download for offline".
+const SHELL_URLS = [
+  '/',
+  '/books',
+  '/raml',
+  '/raml/history',
+  '/search',
+  '/settings',
+  '/more',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/apple-icon.png',
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then((cache) =>
+      // Best-effort per URL: one bad entry must never fail the whole install.
+      Promise.allSettled(SHELL_URLS.map((url) => cache.add(url))),
+    ),
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(
+        names
+          // Only ever retire THIS worker's own shell/runtime caches by
+          // version. Never touch a "tg-book-*" cache — those are a
+          // reader's explicit downloads, versioned and removed only by
+          // lib/offline/bookCache.ts.
+          .filter(
+            (name) =>
+              (name.startsWith('tg-shell-') || name.startsWith('tg-runtime-')) &&
+              name !== SHELL_CACHE &&
+              name !== RUNTIME_CACHE,
+          )
+          .map((name) => caches.delete(name)),
+      ),
+    ),
+  );
+  self.clients.claim();
+});
+
+// Cache-first, falling back to network, falling back to the cached app
+// shell for a navigation that has nothing cached at all. Cache-first suits
+// this app well: book content changes rarely (a new deploy gets a new
+// APP_VERSION and fresh hashed asset URLs automatically), and a reader who
+// explicitly downloaded a book should get instant, reliable pages from it
+// rather than a race against the network. Every successful network
+// response is opportunistically saved to the runtime cache too, so pages a
+// reader merely visits (never explicitly downloaded) still tend to work
+// offline afterward — a bonus, never a promise: only "Available offline"
+// (lib/offline/bookCache.ts) is ever presented to a reader as guaranteed.
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  // Never intercept the worker's own script or Next's dev-only endpoints.
+  if (url.pathname === '/sw.js' || url.pathname.startsWith('/_next/webpack-hmr')) return;
+
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches
+              .open(RUNTIME_CACHE)
+              .then((cache) => cache.put(request, copy))
+              .catch(() => {});
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match('/').then((shell) => shell || Response.error()),
+        );
+    }),
+  );
+});

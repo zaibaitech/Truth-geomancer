@@ -4920,4 +4920,132 @@ duplicating it — no rendering or calculation change to either diagram.
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
 
+## Prompt 23 — Offline-first audit and PWA layer
+
+**Phase 1 audit.** This app has no backend at all: no `fetch()`, no
+`"use server"`, no API routes, no database, no auth, no analytics or
+third-party scripts (`package.json` lists only `lucide-react`, `next`,
+`react`, `react-dom`). Every book's chapters, every star/figure, the whole
+geomancy engine, and every interactive practice flow are plain TypeScript
+compiled into the client bundle at build time — there is no "fetch content"
+step to make offline-safe. `app/manifest.ts` already existed (full PWA
+manifest, unmodified). `lib/fonts.ts` uses `next/font/google`, which
+self-hosts font files at build time — zero runtime request, already
+offline-safe. `app/search/page.tsx` is pure client-side in-memory filtering
+over bundled data — already offline-safe. `lib/raml/history.ts`,
+`readerSize.ts` and `recentIntentions.ts` are the only three files using
+browser storage, all client-only and already offline-safe by nature.
+
+The one real architectural gap: Next.js App Router does a network
+round-trip on client-side navigation even to a page that needs no server
+data, so a service worker is required to make navigation itself reliable
+offline. `/raml/practice/[chapterId]/[methodId]` was `ƒ Dynamic`
+(server-rendered per request despite needing zero server data) — a real
+offline risk, since a worker could otherwise serve cached HTML for the
+wrong chapter/method pair. Fixed by adding `generateStaticParams()`
+(reusing `practicableMethodsForChapter`, the same eligibility function the
+chapter's own CTA uses, so the two can never drift), converting the route
+to `● SSG` with 182 pre-rendered paths. `/raml/history/[id]` genuinely
+cannot be statically generated — reading ids are runtime-random — and is
+documented as the one honest OFFLINE-CONDITIONAL gap; it doesn't block the
+core flow because a cast's result renders inline on `/raml` via
+`CastingResultView` and the flow never navigates to that route.
+
+**Phase 2 — offline foundation.**
+- `public/sw.js` (new): hand-rolled service worker, no new dependency.
+  Precaches a small, explicit app-shell URL list (tab-bar destinations
+  only — deliberately excludes book content). Cache-first, falling back to
+  network, falling back to the cached shell for an uncached navigation.
+  `install` is best-effort per URL (`Promise.allSettled`, one bad entry
+  never fails the whole install). `activate` deletes only stale
+  `tg-shell-*`/`tg-runtime-*` caches by comparing against the current
+  `APP_VERSION` — it never touches a `tg-book-*` cache, so a shell update
+  can never disturb a reader's own book downloads.
+- `lib/offline/bookCache.ts` (new): explicit, reader-initiated book
+  caching directly against Cache Storage, versioned independently
+  (`tg-book-<id>-v1`) from the shell/runtime caches so bumping one never
+  disturbs the other. `downloadBookOffline` is all-or-nothing in its
+  reported result (`ok: false` if any URL fails) but never rolls back what
+  did succeed, so a retry only re-fetches the failures. All three exported
+  functions degrade to safe no-op/false results when Cache Storage is
+  unavailable (SSR, unsupported browser) rather than throwing.
+- `lib/offline/bookOfflineUrls.ts` (new): the exact URL list "Download for
+  offline" fetches per book — Kanzul Mikban's own two pages plus one URL
+  per practicable method (reusing `practicableMethodsForChapter`, 184 URLs
+  total); Master of Geomancy's two pages plus its two fixed practice
+  routes. An unknown book id gets only its own detail page — never an
+  assumption about content that doesn't exist.
+- `components/books/OfflineDownloadControl.tsx` (new): the
+  `DOWNLOAD FOR OFFLINE` → `✓ Available offline` control. Checks
+  `isBookAvailableOffline` on mount rather than assuming; shows an
+  explicit "This book hasn't been downloaded for offline use yet" message
+  when offline and uncached; reports partial-download failure by count,
+  never a false success; listens for `online`/`offline` to update its own
+  messaging without a reload.
+- `components/pwa/ServiceWorkerRegister.tsx` and
+  `components/pwa/OfflineIndicator.tsx` (new): registration is
+  feature-detected and its failure swallowed so it can never block the
+  app; the indicator shows a subtle, reassuring banner ("Offline · Your
+  books and saved readings remain available.") while offline and a brief
+  "Back online" on reconnect. Both mounted in `app/layout.tsx`.
+  `OfflineDownloadControl` is wired into `app/books/[id]/page.tsx`, gated
+  on `book.status === 'readable'` — the same condition that already gates
+  the existing "Start Reading" link.
+
+**Phases 3-5 — reading, practice, and history offline.** No new code was
+needed for these beyond the Phase 2 foundation: because the engine and all
+content are already client-side, once the shell and a book's own pages are
+cached, chapter reading, the Master of Geomancy Counting/Cancelling
+practice, and the Kanzul Mikban "Try this method" flow (cast or reuse a
+chart, select houses, see the calculation, see the result) all run with no
+network involved — confirmed by the Phase 6 real-browser pass below, not
+assumed. `lib/raml/history.ts` already reads/writes only `localStorage`,
+so local reading history was already fully offline-safe; no cloud sync
+exists in this app, so none was invented — history remains "saved on this
+device" only, and that is reported here rather than silently left
+undocumented.
+
+**Tests (section 19).** `lib/offline/bookOfflineUrls.test.ts` (7 tests),
+`lib/offline/bookCache.test.ts` (6 tests), and `lib/raml/offlineUi.test.ts`
+(17 tests, source-scanning the service worker and new components — the
+established pattern for this Vitest config, which has no jsdom) — 30 new
+tests. Full suite: 2467 → 2497 tests, all passing. `npx tsc --noEmit`:
+clean. `npm run build`: succeeds, 203 static pages, the practice route
+confirmed `● SSG` with 182 paths.
+
+**Phase 6 — real offline browser verification (mandatory).** Ran a
+Playwright script against a production build (`next start -p 3100`,
+390×844 viewport) with the network actually disabled via
+`context.setOffline(true)`, not simulated:
+- **(A) Master of Geomancy**: downloaded while online → service worker
+  confirmed active → network disabled → book detail page reopens showing
+  "Available offline" → chapter reader renders its source text → "Try the
+  Counting Method" launches and the walkthrough reaches its Mother Stars
+  result → "Try the Cancelling Method" launches and reaches its Mother
+  Star result — all offline.
+- **(B) Kanzul Mikban**: downloaded while online → network disabled →
+  chapter reads with its "Try this method" CTA present → the static
+  practice route loads → casting completes (16 taps, client-side engine,
+  no network) → required houses selected → the source operation
+  (calculation step) renders → the method result renders → "Back to the
+  chapter" returns — all offline.
+- **(C) Local history**: `/raml` and `/raml/history` both render offline
+  (the latter reads only from `localStorage`).
+- **(D) Network restoration**: the offline banner clears and normal
+  online navigation resumes after `context.setOffline(false)`.
+
+20/20 checks passed. Screenshots and the verification script were deleted
+from the repo after the run, per this session's established scratch-file
+convention.
+
+**Engine confirmation.** `git diff --name-only` against `casting.ts`,
+`chartModel.ts`, `ruleEngine.ts`, `operations.ts`, `types.ts`, `reading.ts`
+and every `questions/*.ts` file is empty. The only engine-adjacent file
+touched was `app/raml/practice/[chapterId]/[methodId]/page.tsx`, and only
+to add `generateStaticParams()` — a build-time routing concern with zero
+effect on any calculation.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.
+
 

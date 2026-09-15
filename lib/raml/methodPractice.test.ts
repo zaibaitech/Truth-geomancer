@@ -11,7 +11,13 @@ import {
   practicableMethodsForChapter,
 } from './methodPractice';
 import { QUESTION_REGISTRY } from './engine/questions';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// Prompt 27: the full chapter text is now server-only. A test file runs in
+// Node, never in a client bundle, so importing it directly here to exercise
+// the paragraph-matching path is safe and appropriate — this is exactly
+// the kind of "authorized, server-side caller" the new optional
+// `paragraphs` parameter is designed for (see methodPractice.ts's own
+// module comment).
+import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import { saveReading } from './history';
 import type { Pattern } from '@/content/stars';
 
@@ -22,9 +28,12 @@ const TRAVEL_CHAPTER = 'traveling-business-and-if-you-will-return-from';
 // 1. A method with executable house selections gets a practicable entry
 // ---------------------------------------------------------------------------
 
+const MONEY_PARAGRAPHS = KM_CHAPTERS.find((c) => c.id === MONEY_CHAPTER)!.paragraphs;
+const TRAVEL_PARAGRAPHS = KM_CHAPTERS.find((c) => c.id === TRAVEL_CHAPTER)!.paragraphs;
+
 describe('practicableMethodsForChapter — eligible methods', () => {
-  it('lists every verified method for the money chapter, in method order, each matched to its own paragraph', () => {
-    const methods = practicableMethodsForChapter(MONEY_CHAPTER);
+  it('lists every verified method for the money chapter, in method order, each matched to its own paragraph when paragraphs are supplied', () => {
+    const methods = practicableMethodsForChapter(MONEY_CHAPTER, MONEY_PARAGRAPHS);
     expect(methods.map((m) => m.method.id)).toEqual(['money-method-1', 'money-method-2', 'money-method-3']);
     expect(methods.map((m) => m.paragraphIndex)).toEqual([0, 1, 2]);
     for (const m of methods) {
@@ -32,6 +41,12 @@ describe('practicableMethodsForChapter — eligible methods', () => {
       expect(m.questionId).toBe(MONEY_CHAPTER);
       expect(m.chapterId).toBe(MONEY_CHAPTER);
     }
+  });
+
+  it('gives every method paragraphIndex: null when the caller supplies no paragraphs — the shape a client-side caller (e.g. MethodPracticeFlow) gets, with no chapter text in its own import graph', () => {
+    const methods = practicableMethodsForChapter(MONEY_CHAPTER);
+    expect(methods.map((m) => m.method.id)).toEqual(['money-method-1', 'money-method-2', 'money-method-3']);
+    expect(methods.every((m) => m.paragraphIndex === null)).toBe(true);
   });
 
   it('never includes a non-verified method (money-method-4, Sirri Sa’ael) — no fake practice CTA', () => {
@@ -45,10 +60,11 @@ describe('practicableMethodsForChapter — eligible methods', () => {
   // 2/3/9. Multiple methods in one chapter — each launches its OWN context
   // ---------------------------------------------------------------------
   it('gives each method of a multi-method chapter its own distinct, correctly matched context', () => {
-    const methods = practicableMethodsForChapter(TRAVEL_CHAPTER);
+    const methods = practicableMethodsForChapter(TRAVEL_CHAPTER, TRAVEL_PARAGRAPHS);
     expect(methods.length).toBeGreaterThanOrEqual(2);
     const ids = methods.map((m) => m.method.id);
     expect(new Set(ids).size).toBe(ids.length); // no duplicates
+    expect(new Set(methods.map((m) => m.paragraphIndex)).size).toBe(ids.length); // no shared paragraph
     for (const m of methods) {
       // Selecting "money-method-2" must never resolve to method 1's houses.
       const found = findPracticableMethod(TRAVEL_CHAPTER, m.method.id);
@@ -58,11 +74,10 @@ describe('practicableMethodsForChapter — eligible methods', () => {
   });
 
   it('matches each paragraph to the method whose own label literally prefixes it — never a guess', () => {
-    const chapter = KM_CHAPTERS.find((c) => c.id === MONEY_CHAPTER)!;
-    const methods = practicableMethodsForChapter(MONEY_CHAPTER);
+    const methods = practicableMethodsForChapter(MONEY_CHAPTER, MONEY_PARAGRAPHS);
     for (const m of methods) {
       expect(m.paragraphIndex).not.toBeNull();
-      expect(chapter.paragraphs[m.paragraphIndex!].startsWith(`${m.method.label}:`)).toBe(true);
+      expect(MONEY_PARAGRAPHS[m.paragraphIndex!].startsWith(`${m.method.label}:`)).toBe(true);
     }
   });
 });

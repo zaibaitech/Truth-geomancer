@@ -8,7 +8,24 @@
 // is matched to its method definition by an exact, literal prefix
 // ("Method 1:") against that method's own already-known `label` — never by
 // guessing from the surrounding words.
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+//
+// PROMPT 27 EDIT (protected-content migration): this module used to import
+// the full, protected Kanzul Mikban chapter text (`KM_CHAPTERS`, every
+// chapter's complete paragraphs) just to (a) confirm a chapter id exists
+// and (b) look up its `.number` for `chapterSourceLabel`. Neither needs the
+// actual chapter text, so both now read the public `KM_CHAPTER_META`
+// export instead. Paragraph MATCHING (`findParagraphIndex`, needed only by
+// the book reader's inline CTA placement) is now something the CALLER
+// supplies explicitly via an optional `paragraphs` argument, rather than
+// this module fetching it itself — the caller that actually has authorized
+// access to the chapter text (the server-rendered reader) already holds
+// it; a caller that doesn't need paragraph matching (e.g.
+// MethodPracticeFlow.tsx, a 'use client' component) simply omits it and
+// gets `paragraphIndex: null`, with no chapter text ever entering its
+// import graph. This is a structural fix, not a policy change: every
+// method's own `status === 'verified'` gate, and every other output shape,
+// is unchanged.
+import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 import { QUESTION_REGISTRY } from './engine/questions';
 import type { MethodDefinition } from './engine/types';
 import { catalogEntry } from './questionCatalog';
@@ -20,9 +37,10 @@ export interface PracticableMethod {
   chapterId: string;
   method: MethodDefinition;
   /** Index into the chapter's own `paragraphs` array whose text is this
-   * method's source paragraph, or null when no paragraph could be matched
-   * (the CTA then has nowhere safe to attach inline and is simply omitted
-   * there — see ChapterMethodPractice.tsx). */
+   * method's source paragraph, or null when no paragraph could be matched,
+   * OR when the caller didn't supply `paragraphs` at all (see module
+   * comment) — the CTA then has nowhere safe to attach inline and is
+   * simply omitted there (see ChapterMethodPractice.tsx). */
   paragraphIndex: number | null;
 }
 
@@ -56,8 +74,15 @@ function findParagraphIndex(paragraphs: string[], method: MethodDefinition): num
  * a chapter with no engine question, no verified methods, or that resolves
  * (via a consolidated duplicate) to a question whose own chapter is
  * elsewhere — a duplicate passage is still text-only here; its canonical
- * chapter is where the practice CTA belongs. */
-export function practicableMethodsForChapter(chapterId: string): PracticableMethod[] {
+ * chapter is where the practice CTA belongs.
+ *
+ * `paragraphs` is optional: pass the chapter's own paragraph array (from
+ * an authorized, server-side source) to get real `paragraphIndex` values
+ * for inline CTA placement; omit it to get every practicable method with
+ * `paragraphIndex: null` — the right shape for a caller that only needs
+ * method ids/definitions (e.g. offline URL enumeration, the practice
+ * route itself) and must never receive the protected chapter text. */
+export function practicableMethodsForChapter(chapterId: string, paragraphs?: string[]): PracticableMethod[] {
   const entry = catalogEntry(chapterId);
   if (!entry || entry.engineQuestionId === null) return [];
   // A consolidated duplicate resolves to another chapter's question; only
@@ -68,14 +93,13 @@ export function practicableMethodsForChapter(chapterId: string): PracticableMeth
 
   const question = QUESTION_REGISTRY[entry.engineQuestionId];
   if (!question) return [];
-  const chapter = KM_CHAPTERS.find((c) => c.id === chapterId);
-  if (!chapter) return [];
+  if (!KM_CHAPTER_META.some((c) => c.id === chapterId)) return [];
 
   return question.methods.filter(isPracticable).map((method) => ({
     questionId: question.id,
     chapterId,
     method,
-    paragraphIndex: findParagraphIndex(chapter.paragraphs, method),
+    paragraphIndex: paragraphs ? findParagraphIndex(paragraphs, method) : null,
   }));
 }
 
@@ -84,8 +108,8 @@ export function practicableMethodsForChapter(chapterId: string): PracticableMeth
  * method that exists but is not `verified` — so the practice screen can
  * show its own honest "not available" state instead of ever executing an
  * unverified method. */
-export function findPracticableMethod(chapterId: string, methodId: string): PracticableMethod | null {
-  return practicableMethodsForChapter(chapterId).find((m) => m.method.id === methodId) ?? null;
+export function findPracticableMethod(chapterId: string, methodId: string, paragraphs?: string[]): PracticableMethod | null {
+  return practicableMethodsForChapter(chapterId, paragraphs).find((m) => m.method.id === methodId) ?? null;
 }
 
 /** Book + chapter number, formatted the same way the rest of the app does
@@ -93,7 +117,7 @@ export function findPracticableMethod(chapterId: string, methodId: string): Prac
  * this module only ever deals with Kanzul Mikban chapters (the only book
  * with engine-backed methods) — never a calculation, just a label. */
 export function chapterSourceLabel(chapterId: string): string {
-  const chapter = KM_CHAPTERS.find((c) => c.id === chapterId);
+  const chapter = KM_CHAPTER_META.find((c) => c.id === chapterId);
   return chapter?.number != null ? `Kanzul Mikban, Chapter ${chapter.number}` : 'Kanzul Mikban';
 }
 

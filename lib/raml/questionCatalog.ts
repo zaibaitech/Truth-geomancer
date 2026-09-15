@@ -14,7 +14,7 @@
 // The short one is the product's, the long one is the book's — both are kept,
 // neither is invented here.
 import { CATEGORIES, INTENTIONS, type CategoryId } from '@/content/intentions';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 import { QUESTION_REGISTRY } from './engine/questions';
 import { getQuestionAvailability, resolveEngineQuestionId, type QuestionAvailability } from './questionAvailability';
 
@@ -102,7 +102,7 @@ function categoryLabelFor(id: CategoryId | null): string | null {
 
 function chapterNumberFor(chapterId: string | undefined): number | null {
   if (!chapterId) return null;
-  return KM_CHAPTERS.find((c) => c.id === chapterId)?.number ?? null;
+  return KM_CHAPTER_META.find((c) => c.id === chapterId)?.number ?? null;
 }
 
 function buildEntry(intentionId: string, sourceTitle: string, intentionCategory: CategoryId | null): CatalogEntry {
@@ -115,7 +115,7 @@ function buildEntry(intentionId: string, sourceTitle: string, intentionCategory:
   // The chapter shown is this ENTRY's own chapter, not the canonical
   // question's — a consolidated duplicate is still its own passage in the
   // book, and saying otherwise would misattribute it.
-  const ownChapterId = KM_CHAPTERS.find((c) => c.id === intentionId)?.id ?? definition?.chapterId;
+  const ownChapterId = KM_CHAPTER_META.find((c) => c.id === intentionId)?.id ?? definition?.chapterId;
   const chapterNumber = chapterNumberFor(ownChapterId);
 
   const text = `${title} ${sourceTitle}`.toLowerCase();

@@ -9,16 +9,19 @@ import {
   COUNTING_DIRECTION_NOTE,
   COUNTING_METHOD_CLOSING,
 } from '@/content/manuscripts/chapterOneDiagrams';
-import { CHAPTERS } from '@/content/manuscripts/master-of-geomancy-vol1';
+import { MASTER_CHAPTER_META, COUNTING_METHOD_QUOTE } from '@/content/manuscripts/masterOfGeomancyMeta';
 
 type Stage = 'intro' | 'lines' | 'result';
 
-const CHAPTER = CHAPTERS.find((c) => c.id === 'drawing-a-chart')!;
+// Prompt 27: only the chapter's number (public metadata) and this one
+// quote (see masterOfGeomancyMeta.ts's own comment) are needed here —
+// never the full chapter body.
+const CHAPTER = MASTER_CHAPTER_META.find((c) => c.id === 'drawing-a-chart')!;
 // The chapter's own second paragraph, "**The Counting Method.** You will
 // make 4 straight lines with dots as shown below." — the ** markers are
 // this content layer's own bold-inline syntax (see Prose.tsx), stripped
 // here for a plain quoted excerpt rather than re-parsed as markup.
-const SOURCE_QUOTE = CHAPTER.body![1].replace(/\*\*/g, '');
+const SOURCE_QUOTE = COUNTING_METHOD_QUOTE.replace(/\*\*/g, '');
 
 /**
  * "Try the Counting Method" (Prompt 22). Walks the source's own two worked

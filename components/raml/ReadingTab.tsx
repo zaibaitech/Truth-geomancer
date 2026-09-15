@@ -1,11 +1,17 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { MethodVerdictCard } from './MethodVerdictCard';
 import type { Chart } from '@/lib/raml/casting';
-import { extractHouseRefs } from '@/lib/raml/houseRefs';
 import { getIntentionById, getCategoryById } from '@/content/intentions';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// PROMPT 27 (protected-content migration): this component used to render
+// every paragraph of the matched chapter(s) verbatim as a fallback when no
+// verdict was computed — a full, uncontrolled chapter-text dump reachable
+// from any free cast. That fallback is removed below (see the render
+// logic): only a COMPUTED verdict (from getMethodVerdicts, itself already
+// an accepted smaller exposure — see lib/access/README.md) is ever shown
+// here now, never the chapter's raw prose. The import below still needs
+// `.number`/`.title`, which the public metadata export carries.
+import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import { getMethodVerdicts } from '@/lib/raml/methodVerdicts';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
 import { NO_AUTOMATIC_READING_EXPLANATION, NO_AUTOMATIC_READING_HEADING } from '@/lib/raml/statusLanguage';
@@ -53,7 +59,8 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
 
       {chapters.map((ch) => {
         const verdicts = getMethodVerdicts(ch.id, chart);
-        const hasAnyVerdict = !!verdicts && verdicts.some((v) => v !== null);
+        const computed = (verdicts ?? []).filter((v): v is NonNullable<typeof v> => v !== null);
+        const hasAnyVerdict = computed.length > 0;
 
         return (
           <Card key={ch.id}>
@@ -63,34 +70,27 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
             </p>
 
             {hasAnyVerdict ? (
-              <p className="mb-3 type-meta font-medium uppercase tracking-widest text-sand/65">
-                Your reading result
+              <>
+                <p className="mb-3 type-meta font-medium uppercase tracking-widest text-sand/65">
+                  Your reading result
+                </p>
+                <div className="space-y-3">
+                  {computed.map((verdict, i) => (
+                    <MethodVerdictCard key={i} verdict={verdict} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              // PROMPT 27: this chapter's own raw paragraph text is
+              // deliberately never shown here — only a COMPUTED result is.
+              // No result was computable for this cast, so nothing from
+              // the chapter's protected text is rendered at all; the link
+              // below is the only way to read the method's own wording.
+              <p className="type-body text-sand/65">
+                This chapter’s method couldn’t be automatically computed for this chart — open the
+                full chapter to read its wording and apply it yourself.
               </p>
-            ) : null}
-
-            <div className="space-y-3">
-              {ch.paragraphs.map((p, i) => {
-                const verdict = verdicts?.[i];
-                if (verdict) {
-                  return <MethodVerdictCard key={i} verdict={verdict} />;
-                }
-                const houses = extractHouseRefs(p);
-                return (
-                  <div key={i}>
-                    {houses.length > 0 ? (
-                      <div className="mb-1.5 flex flex-wrap gap-1">
-                        {houses.map((n) => (
-                          <Badge key={n} tone="sand">
-                            H{n} {chart.houses[n - 1].star.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : null}
-                    <p className="type-body text-sand/70">{p}</p>
-                  </div>
-                );
-              })}
-            </div>
+            )}
 
             {hasAnyVerdict ? (
               <p className="mt-3 type-label text-sand/65">

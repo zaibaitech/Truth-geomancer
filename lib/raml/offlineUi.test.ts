@@ -16,11 +16,23 @@ const practicePage = readFileSync('app/raml/practice/[chapterId]/[methodId]/page
 
 // ---------------------------------------------------------------------------
 // Section 19 item 1/6: offline content resolution / offline practice route
+//
+// PROMPT 27 UPDATE (protected-content migration): this route is
+// deliberately NO LONGER statically generated. Prompt 23's static-params
+// approach assumed the same content for every requester, which stopped
+// being true once method access became entitlement-gated — the correct
+// response now genuinely differs per session, which a build-time static
+// page cannot represent. See lib/offline/bookOfflineUrls.ts's own comment
+// for what this means for the existing offline-download feature
+// (unaffected — an unauthorized download attempt is simply never cached,
+// via lib/offline/bookCache.ts's pre-existing "only cache success"
+// behavior, unchanged).
 // ---------------------------------------------------------------------------
-describe('the method-practice route is statically generated (section 19 items 1, 6)', () => {
-  it('exports generateStaticParams so a service worker never serves the wrong chapter/method pair', () => {
-    expect(practicePage).toMatch(/export function generateStaticParams/);
-    expect(practicePage).toMatch(/practicableMethodsForChapter/);
+describe('the method-practice route is entitlement-gated and rendered per-request (section 19 items 1, 6; superseding the Prompt 23 static-generation test)', () => {
+  it('checks entitlement server-side before rendering the practice flow, and no longer statically pre-renders every chapter/method pair', () => {
+    expect(practicePage).not.toMatch(/export function generateStaticParams/);
+    expect(practicePage).toMatch(/canAccessForUser/);
+    expect(practicePage).toMatch(/findPracticableMethod/);
   });
 });
 

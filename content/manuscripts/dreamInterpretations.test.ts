@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STARS } from "@/content/stars";
-import { KM_CHAPTERS } from "@/content/manuscripts/kanzul-mikban";
+import { KM_CHAPTERS } from "@/lib/server/content/kanzulMikban";
 import {
   DREAM_INTERPRETATION_FIGURES,
   getDreamInterpretationPattern,

@@ -5,7 +5,7 @@ import {
   DEDICATION_TITLE,
   INTRODUCTION,
   INTRODUCTION_TITLE,
-} from "@/content/manuscripts/master-of-geomancy-vol1";
+} from "./masterOfGeomancy";
 
 describe("Book opening: Dedication and Introduction (source restoration)", () => {
   it("keeps the Dedication and Introduction as data separate from CHAPTERS -- neither is a chapter", () => {

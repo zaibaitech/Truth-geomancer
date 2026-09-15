@@ -20,7 +20,14 @@
 // short, honestly-derived note on how it relates to the overall reading.
 
 import { CATEGORIES } from '@/content/intentions';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// Prompt 27 (protected-content migration): swapped from the full
+// content/manuscripts/kanzul-mikban.ts (now server-only, relocated to
+// lib/server/content/kanzulMikban.ts) to the public metadata-only
+// export — this file only ever reads `.number` for a source label
+// (sourceLabelFor below); it never touched chapter/paragraph text, so
+// this is a same-shape import swap with zero effect on any calculation
+// or reading composition.
+import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import type { Element, Pattern } from '@/content/stars';
 import type {
   EngineResult,

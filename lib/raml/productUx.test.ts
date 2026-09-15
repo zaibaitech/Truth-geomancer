@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { INTENTIONS } from '@/content/intentions';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import { QUESTION_REGISTRY } from './engine/questions';
 import { runReading } from './engine';
 import { OUTCOME_LABEL } from './engine/reading';

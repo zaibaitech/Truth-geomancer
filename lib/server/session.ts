@@ -5,17 +5,23 @@
 // duplicate.
 //
 // IMPORTANT: `cookies().set()` may only be called from a Server Action or
-// a Route Handler (a Next.js rule, not one invented here) — calling
-// getCurrentUser() from a plain Server Component render will throw. This
-// module is not called from anywhere in this task (Prompt 26, Phase 9:
-// nothing is wired into a route yet), so it is intentionally exercised by
-// Prompt 27's route wiring rather than by this repo's unit tests — the
-// pure logic it wraps (token hashing, lookup, creation) IS fully unit
-// tested in identity.test.ts, which is the part that actually decides
-// access.
+// a Route Handler (a Next.js rule, not one invented here) — getCurrentUser()
+// below relies on that write and so must only ever be called from a Route
+// Handler/Server Action (the chapter-content API route is the one caller).
+// Prompt 27 also needs an access check from plain Server Component page
+// renders (the book reader, the practice pages), which cannot write a
+// cookie — those call getCurrentUserIfPresent() instead, a read-only
+// counterpart that never creates a user or a cookie. See its own comment
+// for why returning null for "no cookie yet" is exact, not an
+// approximation. The pure logic both wrap (token hashing, lookup,
+// creation) is fully unit tested in identity.test.ts, which is the part
+// that actually decides access; this file's own cookie-I/O is exercised
+// by the Prompt 27 real-server verification pass (see the final report)
+// rather than a unit test, since it needs a real Next.js request context
+// to run at all.
 import { cookies } from 'next/headers';
 import { getDb } from './db';
-import { getOrCreateUser, type User } from './identity';
+import { getOrCreateUser, getUserByToken, touchLastSeen, type User } from './identity';
 
 const SESSION_COOKIE = 'tg_uid';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -58,4 +64,32 @@ export function getCurrentUser(): User {
   }
 
   return user;
+}
+
+/** Read-only counterpart to getCurrentUser(), safe to call from a plain
+ * Server Component page render — which Next.js forbids from writing a
+ * cookie at all, so getCurrentUser()'s store.set() call would throw
+ * there. This function never calls it: it only ever reads the existing
+ * cookie and, if present, looks up (never creates) the matching user.
+ *
+ * Returning null for "no session cookie yet" is exact, not an
+ * approximation: the ONLY way a real user acquires anything worth
+ * checking access for is through a flow (a purchase/grant endpoint) that
+ * is necessarily a Route Handler or Server Action — see
+ * security.test.ts's "client cannot grant or revoke entitlements" suite —
+ * and any such flow already persists a session cookie via
+ * getCurrentUser() before or while granting. So a visitor with no cookie
+ * at all has, by construction, no entitlement to find, and a Server
+ * Component gating on `getCurrentUserIfPresent() === null` behaves
+ * identically to one that could create-and-check a fresh anonymous user,
+ * without needing to write a cookie it structurally cannot write.
+ */
+export function getCurrentUserIfPresent(): User | null {
+  const token = cookies().get(SESSION_COOKIE)?.value ?? null;
+  if (!token) return null;
+  const db = getDb();
+  const user = getUserByToken(db, token);
+  if (!user) return null;
+  const lastSeenAt = touchLastSeen(db, user.id);
+  return { ...user, lastSeenAt };
 }

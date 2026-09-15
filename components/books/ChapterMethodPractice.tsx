@@ -14,7 +14,7 @@ import { practicableMethodsForChapter } from '@/lib/raml/methodPractice';
  * replaced, just routed through the same per-paragraph piece.
  */
 export function ChapterMethodPractice({ chapterId, paragraphs }: { chapterId: string; paragraphs: string[] }) {
-  const methods = practicableMethodsForChapter(chapterId);
+  const methods = practicableMethodsForChapter(chapterId, paragraphs);
   const byParagraph = new Map(methods.filter((m) => m.paragraphIndex !== null).map((m) => [m.paragraphIndex, m]));
 
   return (

@@ -1,3 +1,17 @@
+// SERVER-ONLY. Relocated here from
+// content/manuscripts/master-of-geomancy-vol1.ts by the Prompt 27
+// protected-content migration — this is the complete, paid Master of
+// Geomancy prose text (chapter bodies, Dedication, Introduction), and
+// must never be imported by any client-reachable module again. See
+// lib/server/contentService.ts (the one place this should be read from)
+// and lib/access/README.md's content-delivery section.
+// content/manuscripts/masterOfGeomancyMeta.ts carries the public
+// id/number/title/kind subset — everything that does NOT require the
+// actual chapter text. Directory chapters (stars/element/sadaqah) have no
+// `body` here; their substance comes from content/stars.ts and sibling
+// manuscript files, deliberately out of scope for this migration — see
+// the Prompt 27 final report's "Known limitations."
+
 export type ChapterKind =
   | "prose"
   | "stars-directory"

@@ -7,6 +7,7 @@ import { ContentGuard } from "@/components/books/ContentGuard";
 import { Prose } from "@/components/books/Prose";
 import { ChapterMethodPractice } from "@/components/books/ChapterMethodPractice";
 import { DreamInterpretationsBody } from "@/components/books/DreamInterpretationsBody";
+import { BookAccessGate } from "@/components/books/BookAccessGate";
 import { FigureGlyph } from "@/components/raml/FigureGlyph";
 import { HatimDiagram } from "@/components/books/HatimDiagram";
 import { CountingMethodDiagram } from "@/components/books/CountingMethodDiagram";
@@ -15,16 +16,9 @@ import { AdditionSequenceDiagram } from "@/components/books/AdditionSequenceDiag
 import { CompleteChartDiagram } from "@/components/books/CompleteChartDiagram";
 import { BazdaahoFormulaDiagram } from "@/components/books/BazdaahoFormulaDiagram";
 import { BazdaahoArrangementDiagram } from "@/components/books/BazdaahoArrangementDiagram";
-import { BOOKS, getBookById } from "@/content/books";
+import { getBookById } from "@/content/books";
 import { COMPLETE_CHART_INTRO } from "@/content/manuscripts/chapterOneDiagrams";
-import {
-  CHAPTERS,
-  DEDICATION,
-  DEDICATION_TITLE,
-  INTRODUCTION,
-  INTRODUCTION_TITLE,
-} from "@/content/manuscripts/master-of-geomancy-vol1";
-import { KM_CHAPTERS } from "@/content/manuscripts/kanzul-mikban";
+import { DEDICATION_TITLE, INTRODUCTION_TITLE } from "@/content/manuscripts/masterOfGeomancyMeta";
 import { getStarUseByStarId } from "@/content/manuscripts/starUses";
 import { getHatimByStarId } from "@/content/manuscripts/hatim";
 import { divineNameSourceLine } from "@/content/manuscripts/divineNameDisplay";
@@ -34,12 +28,24 @@ import {
   ELEMENT_OCCUPATIONS,
   type Element,
 } from "@/content/stars";
+// PROMPT 27 (protected-content migration): the actual chapter/Dedication/
+// Introduction TEXT now comes from the server-only content service —
+// never from a statically imported module — and is resolved per request,
+// after an entitlement check, inside this Server Component. This page is
+// therefore no longer statically generated (generateStaticParams removed
+// below): its output genuinely differs by requester (authorized vs not),
+// so it cannot be correctly pre-rendered once for everyone. See
+// lib/access/README.md's content-delivery section for the full reasoning
+// and lib/offline/bookOfflineUrls.ts's own comment for what this means
+// for the existing offline-download feature (unaffected, no file there
+// was changed).
+import { canAccessForUser } from "@/lib/server/accessService";
+import { getCurrentUserIfPresent } from "@/lib/server/session";
+import { getDb } from "@/lib/server/db";
+import { KM_CHAPTERS } from "@/lib/server/content/kanzulMikban";
+import { CHAPTERS, DEDICATION, INTRODUCTION } from "@/lib/server/content/masterOfGeomancy";
 
 const ELEMENTS: Element[] = ["fire", "air", "water", "sand"];
-
-export function generateStaticParams() {
-  return BOOKS.map((b) => ({ id: b.id }));
-}
 
 // A book is one continuous vertical document, not a page per chapter — every
 // chapter is a <section> stacked in reading order in the SAME scrollable
@@ -86,29 +92,55 @@ function OpeningPage({ eyebrow, title }: { eyebrow: string; title: string }) {
   );
 }
 
+function ReaderHeader({ book }: { book: { id: string; title: string } }) {
+  return (
+    <div className="flex items-center justify-between border-b border-sand/10 px-4 py-3">
+      <div className="min-w-0">
+        <p className="type-label uppercase tracking-widest text-sand/65">
+          Reading
+        </p>
+        <h1 className="truncate font-logo text-lg leading-snug text-sand-light">
+          {book.title}
+        </h1>
+      </div>
+      <Link
+        href={`/books/${book.id}`}
+        aria-label="Close"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/15 text-sand/65"
+      >
+        <X size={16} />
+      </Link>
+    </div>
+  );
+}
+
 export default function BookReaderPage({ params }: { params: { id: string } }) {
   const book = getBookById(params.id);
   if (!book) notFound();
 
+  // PROMPT 27: the ONE access decision for this whole book — every
+  // chapter below is either fully readable (this call returned true) or
+  // not rendered at all (BookAccessGate instead). No per-paragraph or
+  // per-chapter check is needed because a book grant covers the whole
+  // book (lib/access/products.ts); this still goes through the exact
+  // same canAccess() decision function every other protected-content path
+  // uses, never a second rule.
+  const user = getCurrentUserIfPresent();
+  const db = getDb();
+  const authorized = user !== null && canAccessForUser(db, user.id, { kind: "book", bookId: book.id });
+
+  if (!authorized) {
+    return (
+      <div className="flex flex-col">
+        <ReaderHeader book={book} />
+        <BookAccessGate bookTitle={book.title} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b border-sand/10 px-4 py-3">
-        <div className="min-w-0">
-          <p className="type-label uppercase tracking-widest text-sand/65">
-            Reading
-          </p>
-          <h1 className="truncate font-logo text-lg leading-snug text-sand-light">
-            {book.title}
-          </h1>
-        </div>
-        <Link
-          href={`/books/${book.id}`}
-          aria-label="Close"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sand/15 text-sand/65"
-        >
-          <X size={16} />
-        </Link>
-      </div>
+      <ReaderHeader book={book} />
 
       <ContentGuard
         watermarkText={`TRUTH GEOMANCER · ${book.title.toUpperCase()}`}

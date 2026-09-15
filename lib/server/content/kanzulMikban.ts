@@ -1,3 +1,12 @@
+// SERVER-ONLY. Relocated here from content/manuscripts/kanzul-mikban.ts by
+// the Prompt 27 protected-content migration — this is the complete,
+// paid Kanzul Mikban book text, and must never be imported by any
+// client-reachable module again. See lib/server/contentService.ts (the
+// one place this should be read from) and lib/access/README.md's content-
+// delivery section. content/manuscripts/kanzulMikbanMeta.ts carries the
+// public id/number/title subset for navigation, search, and source
+// labels — everything that does NOT require the actual chapter text.
+//
 // Transcribed from the source manuscript "Kanzul Mikban" (‘Ilm al-Raml),
 // a compiled notebook of ~150 question-specific geomantic reading methods.
 // Chapter numbers follow the author's own hand-numbering on the manuscript

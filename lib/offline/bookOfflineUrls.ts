@@ -6,23 +6,43 @@
 // same eligibility function the chapter's own "Try this method" CTA already
 // uses — so this list can never drift from which methods actually have a
 // working practice route.
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+//
+// PROMPT 27 EDIT (protected-content migration) — the one change Phase 12
+// explicitly required documenting before making: this file's only import
+// of the full Kanzul Mikban content (`KM_CHAPTERS`, with every chapter's
+// complete paragraph text) has been swapped for the public metadata-only
+// `KM_CHAPTER_META` export. This file never read anything but `.id` from
+// that array, so the swap changes nothing about which URLs are generated
+// — it only removes the transitive path that was pulling the entire
+// protected book text into this module (and, through it, into
+// OfflineDownloadControl.tsx's client bundle, since that component is
+// 'use client'). public/sw.js and lib/offline/bookCache.ts were NOT
+// touched — neither needed to change, and the caching mechanics below are
+// unaffected. The generated URL LIST is byte-identical to before.
+//
+// Also note: the practice route (`/raml/practice/[chapterId]/[methodId]`)
+// is, as of Prompt 27, entitlement-gated and rendered per-request rather
+// than statically pre-rendered (see that route's own page.tsx) — a
+// necessary consequence of protecting method access, not a change made
+// here. An unentitled visitor's download attempt against these URLs now
+// receives a 401/403, which lib/offline/bookCache.ts's existing
+// "only cache a successful (2xx) response" behavior already refuses to
+// cache — no change needed there either. See lib/access/README.md's
+// offline section for the full reasoning.
+import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 import { practicableMethodsForChapter } from '@/lib/raml/methodPractice';
 
-/** Kanzul Mikban's own chapter reader plus every verified method's practice
- * route (now statically generated — see app/raml/practice/[chapterId]/
- * [methodId]/page.tsx — so each of these is a fixed, known URL, never a
- * dynamically-rendered one a service worker could serve for the wrong
- * chapter/method pair). */
+/** Kanzul Mikban's own chapter reader plus every verified method's
+ * practice route. */
 function kanzulMikbanUrls(): string[] {
-  const practiceUrls = KM_CHAPTERS.flatMap((chapter) =>
+  const practiceUrls = KM_CHAPTER_META.flatMap((chapter) =>
     practicableMethodsForChapter(chapter.id).map((m) => `/raml/practice/${chapter.id}/${m.method.id}`),
   );
   return ['/books/kanzul-mikban', '/books/kanzul-mikban/read', ...practiceUrls];
 }
 
 /** The Master of Geomancy's chapter reader plus its two foundational
- * casting-method practice routes (Prompt 22) — both static, fixed URLs. */
+ * casting-method practice routes (Prompt 22) — both fixed URLs. */
 function masterOfGeomancyUrls(): string[] {
   const base = '/books/master-of-geomancy-vol-1';
   return [

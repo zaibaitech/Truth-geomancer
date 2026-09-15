@@ -4,7 +4,10 @@
 // access module (access.ts) and a future admin UI have real, non-fake
 // data to operate over, built entirely from facts already established
 // elsewhere in the codebase.
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// Prompt 27: only chapter ids are needed to enumerate methods — the public
+// metadata export carries them, so this catalogue never needs the full,
+// protected chapter text in its own import graph.
+import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import { practicableMethodsForChapter } from '@/lib/raml/methodPractice';
 import type { Product } from './types';
 

@@ -20,8 +20,21 @@
 // with an honest note that the book's own wording doesn't cover it, rather
 // than forcing a guess.
 
-import type { KmChapter } from '@/content/manuscripts/kanzul-mikban';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// PROMPT 27 NOTE (protected-content migration): this module genuinely
+// parses every KM chapter's full paragraph text to auto-derive verdicts
+// (getParsedMethods, below, iterates the whole corpus on first call) —
+// unlike every other consumer fixed in this migration, it cannot be
+// reduced to a metadata-only import, because the computation itself
+// requires the source text. It remains reachable from a client component
+// (ReadingTab.tsx, via methodVerdicts.ts) and therefore still puts the
+// full Kanzul Mikban text into the client bundle. This is a real,
+// documented residual exposure — see the Prompt 27 final report's "Known
+// limitations" — left in place rather than broken, pending a dedicated
+// follow-up (e.g. moving verdict computation server-side) that is out of
+// this task's safe scope. The import path below points at the relocated
+// server-only content module purely so the build keeps working correctly.
+import type { KmChapter } from '@/lib/server/content/kanzulMikban';
+import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 
 export type Axis =
   | { kind: 'updown' }

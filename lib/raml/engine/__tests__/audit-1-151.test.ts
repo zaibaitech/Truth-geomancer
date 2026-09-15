@@ -10,7 +10,7 @@
 import { describe, expect, it } from 'vitest';
 import { QUESTION_REGISTRY } from '../questions';
 import { runEngine, runReading } from '../index';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import { fixtureChart } from './fixtures';
 
 const chart = fixtureChart();

@@ -11,7 +11,10 @@ import { buildChart, type Chart } from '@/lib/raml/casting';
 import { runReading } from '@/lib/raml/engine';
 import { OUTCOME_TONE } from '@/lib/raml/engine/reading';
 import { findPracticableMethod, mostRecentChart, chapterSourceLabel } from '@/lib/raml/methodPractice';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+// Prompt 27: only `.title` is read here (line ~122's chapter subheading) —
+// the public metadata export carries it, so the full chapter text never
+// needs to enter this client component's import graph.
+import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import type { Pattern } from '@/content/stars';
 
 type Stage = 'intro' | 'casting' | 'walkthrough';

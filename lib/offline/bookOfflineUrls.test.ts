@@ -4,7 +4,7 @@
 // eligibility.
 import { describe, expect, it } from 'vitest';
 import { offlineUrlsForBook } from './bookOfflineUrls';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
+import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import { practicableMethodsForChapter } from '@/lib/raml/methodPractice';
 
 describe('offlineUrlsForBook — Kanzul Mikban', () => {

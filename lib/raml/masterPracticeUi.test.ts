@@ -14,7 +14,8 @@ import {
   CANCELLING_METHOD_MOTHER_PATTERNS,
   cancellingMotherPattern,
 } from '@/content/manuscripts/chapterOneDiagrams';
-import { CHAPTERS } from '@/content/manuscripts/master-of-geomancy-vol1';
+import { CHAPTERS } from '@/lib/server/content/masterOfGeomancy';
+import { COUNTING_METHOD_QUOTE, CANCELLING_METHOD_QUOTE } from '@/content/manuscripts/masterOfGeomancyMeta';
 
 function repoFile(relative: string): string {
   return readFileSync(path.resolve(__dirname, '..', '..', relative), 'utf8');
@@ -130,15 +131,23 @@ describe('8. Source text is unchanged — the practice screens quote the chapter
   const chapter = CHAPTERS.find((c) => c.id === 'drawing-a-chart')!;
 
   it('the Counting Method practice quotes chapter.body[1] with only the ** markup stripped', () => {
-    expect(COUNTING_PRACTICE).toContain("CHAPTER.body![1].replace(/\\*\\*/g, '')");
+    // Prompt 27 (protected-content migration): the component now quotes a
+    // dedicated public constant (COUNTING_METHOD_QUOTE) rather than
+    // importing the full chapter body — but that constant is itself
+    // byte-identical to chapter.body[1], asserted directly below.
+    expect(COUNTING_PRACTICE).toContain('COUNTING_METHOD_QUOTE.replace(/\\*\\*/g, \'\')');
     expect(chapter.body![1]).toContain('The Counting Method');
     expect(chapter.body![1]).toContain('You will make 4 straight lines with dots');
+    // The public quote constant must stay byte-identical to the real
+    // server-only chapter body it was extracted from.
+    expect(COUNTING_METHOD_QUOTE).toBe(chapter.body![1]);
   });
 
   it('the Cancelling Method practice quotes chapter.body[2] with only the ** markup stripped', () => {
-    expect(CANCELLING_PRACTICE).toContain("CHAPTER.body![2].replace(/\\*\\*/g, '')");
+    expect(CANCELLING_PRACTICE).toContain('CANCELLING_METHOD_QUOTE.replace(/\\*\\*/g, \'\')');
     expect(chapter.body![2]).toContain('The Cancelling Method');
     expect(chapter.body![2]).toContain('cancelling 2, 2, 2');
+    expect(CANCELLING_METHOD_QUOTE).toBe(chapter.body![2]);
   });
 
   it('neither practice component contains a rewritten or paraphrased version of the source sentence', () => {

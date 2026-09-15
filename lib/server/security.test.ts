@@ -48,12 +48,26 @@ describe('client cannot grant or revoke entitlements', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('no app/ route or API handler exists yet that could expose these functions (Prompt 26, Phase 9)', () => {
+  it('no app/ route imports the entitlement/preview MUTATION functions (Prompt 27 supersedes Prompt 26 Phase 9: routes now legitimately import lib/server/ for read-only access decisions and authorized content — that is expected and correct — but grantEntitlement/revokeEntitlement/consumePreviewUse must remain unreachable from any route)', () => {
     const appFiles = listFilesRecursive('app');
     const offenders = appFiles.filter((f) => {
       const source = readFileSync(f, 'utf-8');
-      return /lib\/server\//.test(source) || /from ['"]@\/lib\/server/.test(source);
+      return /grantEntitlement|revokeEntitlement|consumePreviewUse/.test(source);
     });
+    expect(offenders).toEqual([]);
+  });
+
+  it('every app/ route that imports lib/server/ does so only for a documented read-only purpose: identity resolution, the access decision, or already-authorized content — confirmed by which lib/server/ modules are actually imported', () => {
+    const ALLOWED_SERVER_MODULES = ['session', 'accessService', 'db', 'contentService', 'content/kanzulMikban', 'content/masterOfGeomancy'];
+    const appFiles = listFilesRecursive('app');
+    const offenders: string[] = [];
+    for (const f of appFiles) {
+      const source = readFileSync(f, 'utf-8');
+      const modules = Array.from(source.matchAll(/from ['"]@\/lib\/server\/([^'"]+)['"]/g), (m) => m[1]);
+      for (const mod of modules) {
+        if (!ALLOWED_SERVER_MODULES.includes(mod)) offenders.push(`${f} (imports lib/server/${mod})`);
+      }
+    }
     expect(offenders).toEqual([]);
   });
 

@@ -10,16 +10,19 @@ import {
   CANCELLING_METHOD_CLOSING,
   cancellingMotherPattern,
 } from '@/content/manuscripts/chapterOneDiagrams';
-import { CHAPTERS } from '@/content/manuscripts/master-of-geomancy-vol1';
+import { MASTER_CHAPTER_META, CANCELLING_METHOD_QUOTE } from '@/content/manuscripts/masterOfGeomancyMeta';
 
 type Stage = 'intro' | 'lines' | 'result';
 
-const CHAPTER = CHAPTERS.find((c) => c.id === 'drawing-a-chart')!;
+// Prompt 27: only the chapter's number (public metadata) and this one
+// quote (see masterOfGeomancyMeta.ts's own comment) are needed here —
+// never the full chapter body.
+const CHAPTER = MASTER_CHAPTER_META.find((c) => c.id === 'drawing-a-chart')!;
 // The chapter's own third paragraph, "**The Cancelling Method.** You will
 // make 4 straight lines with dots and start cancelling 2, 2, 2, from your
 // right to the left as shown below." — ** markers stripped for a plain
 // quote, same convention as CountingMethodPractice.tsx.
-const SOURCE_QUOTE = CHAPTER.body![2].replace(/\*\*/g, '');
+const SOURCE_QUOTE = CANCELLING_METHOD_QUOTE.replace(/\*\*/g, '');
 
 /**
  * "Try the Cancelling Method" (Prompt 22). Walks one of the source's own

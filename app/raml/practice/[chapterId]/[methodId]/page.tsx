@@ -1,31 +1,51 @@
+import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { MethodPracticeFlow } from '@/components/raml/practice/MethodPracticeFlow';
-import { KM_CHAPTERS } from '@/content/manuscripts/kanzul-mikban';
-import { practicableMethodsForChapter } from '@/lib/raml/methodPractice';
+import { BookAccessGate } from '@/components/books/BookAccessGate';
+import { findPracticableMethod } from '@/lib/raml/methodPractice';
+import { canAccessForUser } from '@/lib/server/accessService';
+import { getCurrentUserIfPresent } from '@/lib/server/session';
+import { getDb } from '@/lib/server/db';
 
-// Prompt 23 (offline): this route needs no per-request server data — every
-// value it renders is resolved client-side from bundled content and the
-// user's own cast chart — so there is no reason for it to be dynamically
-// server-rendered per request. Its param space is small and fully known at
-// build time (one entry per verified, practicable method), so statically
-// generating every combination removes the one real offline risk a dynamic
-// route would carry here: a service worker serving a cached response for
-// the WRONG chapter/method pair. Reuses the same eligibility function the
-// chapter CTA already uses — never a second list of "which methods exist".
-export function generateStaticParams() {
-  return KM_CHAPTERS.flatMap((chapter) =>
-    practicableMethodsForChapter(chapter.id).map((m) => ({
-      chapterId: chapter.id,
-      methodId: m.method.id,
-    })),
-  );
-}
+// PROMPT 27 (protected-content migration): this route is no longer
+// statically generated. It used to be (Prompt 23) because nothing it
+// rendered depended on the requester — that stopped being true the moment
+// method access became entitlement-gated: the correct response now
+// genuinely differs per session (practice flow vs. BookAccessGate), which
+// a build-time static page cannot represent. See
+// lib/offline/bookOfflineUrls.ts's own comment for what this means for
+// the existing offline-download feature (unaffected — an unentitled
+// download attempt now gets a 401/403-equivalent unauthorized render,
+// which the existing cache-on-success-only logic in lib/offline/
+// bookCache.ts already refuses to cache, with no change needed there).
 
 export default function MethodPracticePage({
   params,
 }: {
   params: { chapterId: string; methodId: string };
 }) {
+  const practicable = findPracticableMethod(params.chapterId, params.methodId);
+  if (!practicable) notFound();
+
+  const user = getCurrentUserIfPresent();
+  const db = getDb();
+  const authorized =
+    user !== null &&
+    canAccessForUser(db, user.id, {
+      kind: 'method',
+      bookId: 'kanzul-mikban',
+      methodId: params.methodId,
+    });
+
+  if (!authorized) {
+    return (
+      <div>
+        <Header title="Practice a method" />
+        <BookAccessGate bookTitle="Kanzul Mikban" />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Header title="Practice a method" />

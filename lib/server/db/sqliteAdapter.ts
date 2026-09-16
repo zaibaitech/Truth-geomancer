@@ -102,6 +102,26 @@ CREATE TABLE IF NOT EXISTS email_login_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_email_login_tokens_email
   ON email_login_tokens(email);
+
+-- Prompt 52: same additive table as
+-- lib/server/db/migrations/0003_rate_limit_buckets.sql, in SQLite's
+-- dialect, kept parallel for the same reason every other table here is.
+-- SQLite's node:sqlite (bundled SQLite >= 3.35) supports the same
+-- INSERT ... ON CONFLICT ... DO UPDATE ... RETURNING syntax
+-- PostgresRateLimiter relies on, so the identical SQL text in
+-- rateLimit.ts's check() runs unchanged against either adapter.
+CREATE TABLE IF NOT EXISTS rate_limit_buckets (
+  scope TEXT NOT NULL,
+  key_hash TEXT NOT NULL,
+  window_start TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (scope, key_hash, window_start)
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limit_buckets_expires_at
+  ON rate_limit_buckets(expires_at);
 `;
 
 class SqliteDb implements Db {

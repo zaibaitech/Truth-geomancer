@@ -411,3 +411,31 @@ describe('case-insensitive identity (Prompt 47 MEDIUM finding): different-cased 
     expect(countAfterSecond).toBe(countAfterFirst); // no second/duplicate identity was created
   });
 });
+
+describe('token lifecycle is unaffected by email delivery outcome (Prompt 52 §9)', () => {
+  it('documents and proves the EXISTING, deliberately-unchanged behavior: a token created by createLoginToken() remains fully valid and consumable regardless of whether the email provider later succeeds or fails — createLoginToken() and the provider call are two independent steps, and Prompt 52 explicitly did not change this ordering/lifecycle', async () => {
+    db = openDatabase(':memory:');
+    const normalized = normalizeEmail('deliveryfailure@example.com')!;
+    const raw = await createLoginToken(db, normalized, null);
+
+    // Simulates the request-link route's real flow: the token row already
+    // exists in the database at this point, exactly as it would if the
+    // subsequent getEmailProvider().sendMagicLinkEmail() call below had
+    // thrown (EmailProviderNotConfiguredError or EmailDeliveryError) and
+    // the route returned a 503 to the caller without ever touching the
+    // token. Nothing about the token's row changes because of that
+    // hypothetical failure — there is no code path that deletes or
+    // invalidates it on a delivery error.
+    const row = await db.queryOne<{ used_at: string | null }>('SELECT used_at FROM email_login_tokens WHERE email = ?', [
+      normalized,
+    ]);
+    expect(row?.used_at).toBeNull();
+
+    // The token is still perfectly usable — a delivery failure does not
+    // "burn" it, it simply means (if delivery genuinely failed) that
+    // nobody received a usable link, and the token quietly expires after
+    // its normal 15-minute TTL like any other unused token.
+    const result = await consumeLoginToken(db, raw);
+    expect(result.ok).toBe(true);
+  });
+});

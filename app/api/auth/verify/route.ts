@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/server/db';
 import { consumeLoginToken } from '@/lib/server/emailAuth';
 import { setAuthenticatedSessionCookie } from '@/lib/server/emailSession';
+import { PostgresRateLimiter, VERIFY_IP_LIMIT, extractClientIp } from '@/lib/server/rateLimit';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -21,12 +22,26 @@ export async function GET(request: Request) {
   const token = url.searchParams.get('token');
   const redirectTo = new URL('/settings', url.origin);
 
+  const db = getDb();
+
+  // Prompt 52 §17: defense-in-depth against brute-forcing the 256-bit
+  // token space — the token's own construction (random, hashed at rest,
+  // single-use, 15-minute TTL) is the primary control; this only slows a
+  // guessing attempt down further. Every GET counts toward the limit,
+  // including a missing/malformed token, since an attacker probing this
+  // endpoint is exactly what this limiter exists to slow.
+  const ipLimiter = new PostgresRateLimiter(db, 'verify:ip', VERIFY_IP_LIMIT.maxAttempts, VERIFY_IP_LIMIT.windowMs);
+  const ipAllowed = await ipLimiter.check(extractClientIp(request));
+  if (!ipAllowed) {
+    redirectTo.searchParams.set('auth_error', 'rate-limited');
+    return NextResponse.redirect(redirectTo, { headers: NO_STORE_HEADERS });
+  }
+
   if (!token) {
     redirectTo.searchParams.set('auth_error', 'missing-token');
     return NextResponse.redirect(redirectTo, { headers: NO_STORE_HEADERS });
   }
 
-  const db = getDb();
   const result = await consumeLoginToken(db, token);
 
   if (!result.ok) {

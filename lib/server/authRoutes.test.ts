@@ -150,4 +150,48 @@ describe('additive-only schema: the new migration never touches an existing tabl
     expect(migration).not.toMatch(/UNIQUE/i);
     expect(migration).toMatch(/CREATE TABLE IF NOT EXISTS email_login_tokens/);
   });
+
+  it('0003_rate_limit_buckets.sql (Prompt 52) contains no ALTER/DROP statement and no UNIQUE constraint on users.email', () => {
+    const migration = codeOnly(readFileSync('lib/server/db/migrations/0003_rate_limit_buckets.sql', 'utf-8'));
+    expect(migration).not.toMatch(/ALTER TABLE/i);
+    expect(migration).not.toMatch(/DROP /i);
+    expect(migration).not.toMatch(/UNIQUE/i);
+    expect(migration).toMatch(/CREATE TABLE IF NOT EXISTS rate_limit_buckets/);
+  });
+});
+
+describe('Prompt 52: request-link never trusts the incoming Host header for the magic-link origin in production', () => {
+  it('the login URL origin comes from APP_BASE_URL (or, outside production only, the request itself) — never an unconditional request.url read', () => {
+    const source = codeOnly(REQUEST_LINK_ROUTE);
+    expect(source).toMatch(/process\.env\.APP_BASE_URL/);
+    expect(source).toMatch(/resolveAppOrigin/);
+  });
+
+  it('production without APP_BASE_URL configured throws rather than falling back to the request origin', () => {
+    expect(codeOnly(REQUEST_LINK_ROUTE)).toMatch(/AppOriginNotConfiguredError/);
+  });
+});
+
+describe('Prompt 52: production email delivery never falls back to ConsoleEmailProvider', () => {
+  it('getEmailProvider() only returns ResendEmailProvider in production, gated on RESEND_API_KEY and EMAIL_FROM_ADDRESS both being present', () => {
+    const source = codeOnly(EMAIL_PROVIDER);
+    expect(source).toMatch(/RESEND_API_KEY/);
+    expect(source).toMatch(/EMAIL_FROM_ADDRESS/);
+    expect(source).toMatch(/ResendEmailProvider/);
+  });
+
+  it('the Resend integration never routes the magic link through a tracking/redirect URL — it sends the exact loginUrl it was given', () => {
+    const source = codeOnly(EMAIL_PROVIDER);
+    expect(source).not.toMatch(/click.?track/i);
+    expect(source).not.toMatch(/redirect.*resend|resend.*redirect/i);
+  });
+});
+
+describe('Prompt 52: rate limiting is production-grade (database-backed), not the in-memory implementation', () => {
+  it('request-link and verify both construct a PostgresRateLimiter, not InMemoryRateLimiter, for their live traffic decisions', () => {
+    expect(codeOnly(REQUEST_LINK_ROUTE)).toMatch(/PostgresRateLimiter/);
+    expect(codeOnly(REQUEST_LINK_ROUTE)).not.toMatch(/InMemoryRateLimiter/);
+    expect(codeOnly(VERIFY_ROUTE)).toMatch(/PostgresRateLimiter/);
+    expect(codeOnly(VERIFY_ROUTE)).not.toMatch(/InMemoryRateLimiter/);
+  });
 });

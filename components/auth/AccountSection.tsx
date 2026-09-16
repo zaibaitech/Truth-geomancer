@@ -19,6 +19,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   used: 'That sign-in link has already been used. Request a new one below.',
   conflict: 'We couldn’t automatically sign you in with that email — please contact support.',
   'already-linked': 'That device is already linked to a different email.',
+  'rate-limited': 'Too many attempts. Please wait and try again shortly.',
 };
 
 export function AccountSection() {

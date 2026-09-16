@@ -14,7 +14,21 @@
 // the next activate (see below) without touching a reader's per-book
 // downloads at all — those live in their own caches, named and owned by
 // lib/offline/bookCache.ts, and are never deleted by a version bump here.
-const APP_VERSION = 'v1';
+// PROMPT 34 — bumped v1 -> v2. A stale `tg-runtime-v1` cache could hold a
+// full, ungated Master of Geomancy reader response cached during an
+// earlier deployment window (before the entitlement gate — and later, the
+// opportunistic-cache exclusion below — existed for /books/*/read). Since
+// `caches.match(request)` in the fetch handler below is checked before any
+// network/server round-trip, that stale entry would keep being served
+// forever to that visitor's browser regardless of any server-side fix,
+// because it shared this exact cache name and so was never retired by the
+// activate handler's own version-based cleanup. Bumping the version forces
+// every visiting browser to install a fresh SHELL_CACHE/RUNTIME_CACHE pair
+// and purge the old one on next activate (see the `activate` handler
+// below) — this is the only way to retroactively clear a leak that already
+// happened, not a hypothetical safeguard for a future one (that part is
+// the read-side guard added in the fetch handler below).
+const APP_VERSION = 'v2';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 
@@ -126,6 +140,28 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   // Never intercept the worker's own script or Next's dev-only endpoints.
   if (url.pathname === '/sw.js' || url.pathname.startsWith('/_next/webpack-hmr')) return;
+
+  // PROMPT 34: the same predicate that already excluded these paths from
+  // opportunistic WRITES now also excludes them from cache READS — every
+  // request for an entitlement-gated path (a protected book reader/
+  // practice route, the protected-content/practice APIs) always goes to
+  // the network, so the server's canAccessForUser() check runs on every
+  // single request, never short-circuited by a cache entry. This applies
+  // even to an entry this worker itself never wrote (e.g. one left over
+  // from before this exclusion existed at all, or from any future
+  // regression) — closing that off structurally, not just for the one
+  // incident the version bump above already cleared. Cache Storage
+  // remains reachable for these paths only through the reader's own
+  // explicit, server-verified "Download for offline" action
+  // (lib/offline/bookCache.ts), which writes into its own book-specific
+  // cache, never RUNTIME_CACHE, and is read by that feature's own code,
+  // never by this generic fetch handler.
+  if (!shouldOpportunisticallyCache(url.pathname)) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/').then((shell) => shell || Response.error())),
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(request).then((cached) => {

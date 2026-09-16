@@ -102,6 +102,44 @@ describe('31: generic visitors cannot populate protected caches', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Prompt 34 — a real production leak: a `tg-runtime-v1` entry cached before
+// this exclusion existed at all (or before it was ever version-bumped) kept
+// being served to that visitor's browser forever, since `caches.match()`
+// ran before any server round-trip and the cache name never changed, so
+// the activate handler's own cleanup never retired it. Two independent
+// fixes, both verified below: (1) the version bump itself, so every
+// existing stale cache gets purged on next activate; (2) a read-side
+// guard, so no future regression (or any entry this worker never wrote)
+// can ever be served for a gated path again — every request for one of
+// these paths always goes to the network.
+// ---------------------------------------------------------------------------
+describe('34: a stale/leftover cache entry can never be served for a gated path again', () => {
+  it('APP_VERSION was bumped past v1, so any pre-existing tg-runtime-v1/tg-shell-v1 cache is retired by the existing activate-handler cleanup', () => {
+    expect(SW).toMatch(/const APP_VERSION = '(?!v1')/);
+  });
+
+  it('the fetch handler never reaches caches.match(request) for a gated path — it returns via a plain network fetch before that call is reached', () => {
+    const fetchBlock = SW.slice(SW.indexOf("addEventListener('fetch'"));
+    const guardIdx = fetchBlock.indexOf('!shouldOpportunisticallyCache(url.pathname)');
+    const matchIdx = fetchBlock.indexOf('caches.match(request)');
+    expect(guardIdx).toBeGreaterThan(-1);
+    expect(matchIdx).toBeGreaterThan(-1);
+    expect(guardIdx).toBeLessThan(matchIdx);
+    // The guard branch itself must `return` before falling into the
+    // cache-first block below it.
+    const guardBlock = fetchBlock.slice(guardIdx, matchIdx);
+    expect(guardBlock).toMatch(/return;/);
+  });
+
+  it('the read-side guard uses the exact same predicate as the write-side exclusion — no separate, divergent list to drift out of sync', () => {
+    const fetchBlock = SW.slice(SW.indexOf("addEventListener('fetch'"));
+    const occurrences = fetchBlock.match(/shouldOpportunisticallyCache\(url\.pathname\)/g) ?? [];
+    // Once for the read-side guard, once for the write-side gate below it.
+    expect(occurrences.length).toBe(2);
+  });
+});
+
 describe('offline manifest never stores a session token, secret, password, or payment detail', () => {
   it('the manifest type/read/write functions only ever touch bookId, contentVersion, authorizedAt, accessType', () => {
     const codeOnly = OFFLINE_MANIFEST.split('\n')

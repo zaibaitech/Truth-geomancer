@@ -25,7 +25,14 @@ export function CastingFlow() {
   const [saved, setSaved] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (step === 'ask') setRecent(describeHistory(listReadings().slice(0, 3)));
+    if (step !== 'ask') return;
+    let cancelled = false;
+    describeHistory(listReadings().slice(0, 3)).then((e) => {
+      if (!cancelled) setRecent(e);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [step]);
 
   // Each step replaces a tall screen with another tall screen, but the app

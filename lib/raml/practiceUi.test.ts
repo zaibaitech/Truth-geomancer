@@ -123,10 +123,25 @@ describe('6. House selection — required houses are highlighted and tappable, c
 });
 
 describe('7. Calculation — reuses the existing engine, never a duplicate implementation', () => {
-  it('calls runReading(), the exact function the Reading flow uses, and reads one method’s own row', () => {
-    expect(FLOW).toContain("import { runReading } from '@/lib/raml/engine'");
-    expect(FLOW).toMatch(/runReading\(chart, practicable\.questionId\)/);
-    expect(FLOW).toMatch(/methodResults\.find\(\(m\) => m\.id === practicable\.method\.id\)/);
+  // PROMPT 27C (server-side reading execution migration): MethodPracticeFlow
+  // no longer calls runReading() in the browser — that pulled the ENTIRE
+  // engine (every question's protected source text) into the client bundle
+  // just for this screen. It now fetches from the server practice route,
+  // which calls the SAME, unchanged runReading() and does the SAME
+  // methodResults.find((m) => m.id === method.id) match — just server-side.
+  // See lib/server/raml/practiceService.ts.
+  const PRACTICE_SERVICE = repoFile('lib/server/raml/practiceService.ts');
+
+  it('the client fetches the computed row from the gated server practice route, never calling the engine itself', () => {
+    expect(FLOW).not.toMatch(/from ['"]@\/lib\/raml\/engine['"]/);
+    expect(FLOW).toMatch(/fetch\('\/api\/raml\/practice'/);
+    expect(FLOW).toMatch(/practiceData\?\.row/);
+  });
+
+  it('the server practice service calls the exact same runReading() the Reading flow uses, and reads one method’s own row', () => {
+    expect(PRACTICE_SERVICE).toContain("import { runReading } from '@/lib/raml/engine'");
+    expect(PRACTICE_SERVICE).toMatch(/runReading\(chart, question\.id\)/);
+    expect(PRACTICE_SERVICE).toMatch(/methodResults\.find\(\(m\) => m\.id === method\.id\)/);
   });
 
   it('walks the already-computed calculationSteps array as the step sequence, never inventing sub-steps', () => {

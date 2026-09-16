@@ -16,10 +16,24 @@
 //    reading whose question no longer exists is reported as such instead of
 //    being answered with some other question's rule.
 //
-// It is local-only: this file reads and writes one localStorage key and makes
-// no network call of any kind.
+// STORAGE (reads/writes the one localStorage key) remains entirely local-
+// only, exactly as before. REPLAY no longer is: PROMPT 27C moved the actual
+// recomputation (describeReading/describeHistory, below) to the server
+// reading route, because re-running the engine locally required bundling
+// the ENTIRE question corpus — every question's protected source text, not
+// just the one being viewed — into the client, which is the leak this
+// migration closes. A saved reading still stores only the four Mothers +
+// questionId (idea 1 above is completely unchanged: nothing is cached,
+// nothing can go stale) — describeReading now fetches the recomputed
+// result instead of calling the engine in-process. The one real,
+// deliberate behavior change: viewing a past reading's full result now
+// needs connectivity; see the 'network-required' HistoryStateKind below,
+// which is an honest, explicit state (never a fabricated result) for
+// exactly that case — offline visitors still see their history LIST
+// (title/date/question, all locally known), just not a REPLAYED verdict
+// until they're back online. See the Prompt 27C final report's "Offline
+// verification" section for the full reasoning.
 import { buildChart, type Chart } from './casting';
-import { runReading } from './engine';
 import type { ReadingResult } from './engine/reading';
 import { catalogEntry } from './questionCatalog';
 import { summariseReading } from './readingSummary';
@@ -152,7 +166,11 @@ export type HistoryStateKind =
   | 'not-defined-in-source'
   | 'no-automatic-reading'
   | 'general'
-  | 'unreconstructable';
+  | 'unreconstructable'
+  // Prompt 27C: distinct from 'unreconstructable' — the saved reading is
+  // completely intact and WILL show its real result again once the server
+  // reading route is reachable; nothing about it was lost or invalidated.
+  | 'network-required';
 
 export interface HistoryEntry {
   record: ReadingRecord;
@@ -184,6 +202,9 @@ export interface HistoryEntry {
 export const UNRECONSTRUCTABLE_MESSAGE =
   'This reading can no longer be reconstructed from the saved information.';
 
+export const NETWORK_REQUIRED_MESSAGE =
+  "This reading's result couldn't be recalculated right now — check your connection and try again. Nothing was lost.";
+
 function insufficientStateFor(result: ReadingResult): { kind: HistoryStateKind; label: string } {
   const statuses = new Set(result.methodResults.filter((m) => m.status !== 'verified').map((m) => m.status));
   if (statuses.size === 1 && statuses.has('needs_review')) {
@@ -195,9 +216,29 @@ function insufficientStateFor(result: ReadingResult): { kind: HistoryStateKind; 
   return { kind: 'insufficient', label: 'Insufficient information' };
 }
 
+/** Fetches the recomputed reading result for a chart+question from the
+ * server reading route (the same one ResultTabs/ReadingTab use) — never
+ * calls the engine in-process. Returns null on any failure (offline, the
+ * route unreachable, a malformed response) so the caller can show an
+ * honest 'network-required' state rather than a guessed result. */
+async function fetchReadingResult(chart: Chart, intentionId: string): Promise<ReadingResult | null> {
+  try {
+    const res = await fetch('/api/raml/reading', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intentionId, chart }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { result: ReadingResult };
+    return data.result;
+  } catch {
+    return null;
+  }
+}
+
 /** Rebuilds one saved reading from its chart and question. The chart is always
  * rebuilt from the stored Mothers — a history entry is never re-cast. */
-export function describeReading(record: ReadingRecord): HistoryEntry {
+export async function describeReading(record: ReadingRecord): Promise<HistoryEntry> {
   const entry = catalogEntry(record.questionId);
   const intentionText = record.intentionText ?? null;
 
@@ -272,8 +313,7 @@ export function describeReading(record: ReadingRecord): HistoryEntry {
   // The catalogue already resolves a consolidated duplicate to the engine
   // question that implements its rule; the entry keeps its OWN chapter for
   // provenance (Prompt 16, section 17).
-  const result = entry.engineQuestionId ? runReading(chart, entry.engineQuestionId) : null;
-  if (!result) {
+  if (!entry.engineQuestionId) {
     return {
       ...base,
       title: entry.title,
@@ -284,6 +324,22 @@ export function describeReading(record: ReadingRecord): HistoryEntry {
       result: null,
       chart,
       unavailableReason: UNRECONSTRUCTABLE_MESSAGE,
+      haystack: [entry.title, entry.sourceTitle, sourceLabel, intentionText ?? ''].join(' ').toLowerCase(),
+    };
+  }
+
+  const result = await fetchReadingResult(chart, entry.engineQuestionId);
+  if (!result) {
+    return {
+      ...base,
+      title: entry.title,
+      sourceLabel,
+      stateKind: 'network-required',
+      stateLabel: 'Reconnect to view',
+      interpretation: null,
+      result: null,
+      chart,
+      unavailableReason: NETWORK_REQUIRED_MESSAGE,
       haystack: [entry.title, entry.sourceTitle, sourceLabel, intentionText ?? ''].join(' ').toLowerCase(),
     };
   }
@@ -317,8 +373,8 @@ export function describeReading(record: ReadingRecord): HistoryEntry {
   };
 }
 
-export function describeHistory(records: ReadingRecord[]): HistoryEntry[] {
-  return records.map(describeReading);
+export function describeHistory(records: ReadingRecord[]): Promise<HistoryEntry[]> {
+  return Promise.all(records.map(describeReading));
 }
 
 /** Local search over saved readings only — question, the user's own words,
@@ -337,9 +393,14 @@ export function filterHistory(entries: HistoryEntry[], filter: HistoryFilter): H
   if (filter === 'all') return entries;
   if (filter === 'unresolved') {
     return entries.filter((e) =>
-      ['insufficient', 'source-detail-missing', 'not-defined-in-source', 'no-automatic-reading', 'unreconstructable'].includes(
-        e.stateKind,
-      ),
+      [
+        'insufficient',
+        'source-detail-missing',
+        'not-defined-in-source',
+        'no-automatic-reading',
+        'unreconstructable',
+        'network-required',
+      ].includes(e.stateKind),
     );
   }
   return entries.filter((e) => e.stateKind === filter);

@@ -66,6 +66,9 @@ describe('client cannot grant or revoke entitlements', () => {
       'content/kanzulMikban',
       'content/masterOfGeomancy',
       'readingVerdictService',
+      'raml/readingService',
+      'raml/practiceService',
+      'raml/chartValidation',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

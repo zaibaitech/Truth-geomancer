@@ -345,9 +345,19 @@ describe('interface contracts', () => {
   });
 
   it('routes a consolidated duplicate to the engine instead of the fallback parser', () => {
+    // PROMPT 27C: ResultTabs no longer calls runReading() itself (that
+    // pulled the whole engine into the client bundle) — it still resolves
+    // a consolidated duplicate to its canonical engine question id via
+    // resolveEngineQuestionId, then fetches that question's computed
+    // result from the server reading route. See
+    // lib/server/raml/readingService.ts, which calls the SAME
+    // runReading() unchanged, server-side.
     const tabs = repoFile('components/raml/ResultTabs.tsx');
     expect(tabs).toContain('resolveEngineQuestionId');
-    expect(tabs).toMatch(/runReading\(chart, resolveEngineQuestionId\(intentionId\)\)/);
+    expect(tabs).toMatch(/intentionId:\s*resolvedEngineId/);
+    expect(tabs).toMatch(/fetch\('\/api\/raml\/reading'/);
+    const readingService = repoFile('lib/server/raml/readingService.ts');
+    expect(readingService).toMatch(/runReading\(chart, intentionId\)/);
   });
 
   it('never claims a chart was read for material that has no automatic reading', () => {

@@ -11,10 +11,16 @@
 // invariants stay in source-reconciliation.test.ts and productUx.test.ts.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { buildChart } from './casting';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildChart, type Chart } from './casting';
 import { runReading } from './engine';
 import { FIXTURE_MOTHERS } from './engine/__tests__/fixtures';
+// Prompt 27C: describeReading now fetches its result from the server
+// reading route instead of calling runReading() in-process (see
+// history.ts's own header for why). Stubbing fetch to call the SAME
+// server-side function the real route handler calls keeps these tests
+// exercising real engine output, not a fabricated mock response.
+import { getReadingResult } from '@/lib/server/raml/readingService';
 import {
   HISTORY_STORAGE_KEY,
   MAX_HISTORY,
@@ -92,6 +98,29 @@ function uninstall() {
 }
 
 afterEach(uninstall);
+
+// ---------------------------------------------------------------------------
+// Prompt 27C: fetch stub for describeReading's server round-trip. Computes
+// the response with the SAME function the real /api/raml/reading route
+// calls (getReadingResult, which wraps runReading unchanged) — a stub only
+// in the sense that no real HTTP request crosses the network, never in the
+// sense of a fabricated result.
+// ---------------------------------------------------------------------------
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    async (url: string, init?: RequestInit) => {
+      if (url !== '/api/raml/reading') throw new Error(`unexpected fetch in history.test.ts: ${url}`);
+      const body = JSON.parse(init!.body as string) as { intentionId: string; chart: Chart };
+      const result = getReadingResult(body.chart, body.intentionId);
+      if (!result) return new Response(JSON.stringify({ error: 'Not covered by the engine.' }), { status: 404 });
+      return new Response(JSON.stringify({ result }), { status: 200 });
+    },
+  );
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const MOTHERS = FIXTURE_MOTHERS;
 const OTHER_MOTHERS: [Pattern, Pattern, Pattern, Pattern] = [
@@ -191,74 +220,74 @@ describe('saving a completed reading', () => {
 // ---------------------------------------------------------------------------
 
 describe('replay', () => {
-  it('reconstructs exactly the reading the user originally saw', () => {
+  it('reconstructs exactly the reading the user originally saw', async () => {
     for (const questionId of Object.values(STATE_FIXTURES)) {
       if (questionId === 'general' || questionId === 'dreams-and-their-interpretations') continue;
       // The result as the user saw it, at casting time.
       const original = runReading(buildChart(MOTHERS), questionId)!;
       // The result as history rebuilds it, from storage alone.
       const roundTripped = parseHistory(serializeHistory([record({ questionId })]))[0];
-      const replayed = describeReading(roundTripped).result;
+      const replayed = (await describeReading(roundTripped)).result;
       expect(replayed, questionId).toEqual(original);
     }
   });
 
-  it('replays the chart that was saved, not a new one', () => {
+  it('replays the chart that was saved, not a new one', async () => {
     // buildChart stamps its own createdAt, so the houses are what identify a
     // chart. (That stamp is never shown to a reader — the date on a history
     // entry comes from the record, not from the rebuilt chart.)
-    const a = describeReading(record({ mothers: MOTHERS })).chart!;
-    const b = describeReading(record({ mothers: OTHER_MOTHERS })).chart!;
+    const a = (await describeReading(record({ mothers: MOTHERS }))).chart!;
+    const b = (await describeReading(record({ mothers: OTHER_MOTHERS }))).chart!;
     expect(a.houses).toEqual(buildChart(MOTHERS).houses);
     expect(b.houses).toEqual(buildChart(OTHER_MOTHERS).houses);
     expect(a.houses).not.toEqual(b.houses);
   });
 
-  it('is stable across repeated openings', () => {
+  it('is stable across repeated openings', async () => {
     const r = record();
-    expect(describeReading(r).result).toEqual(describeReading(r).result);
+    expect((await describeReading(r)).result).toEqual((await describeReading(r)).result);
   });
 
-  it('reports every result state in the reader’s own words', () => {
+  it('reports every result state in the reader’s own words', async () => {
     for (const [expected, questionId] of Object.entries(STATE_FIXTURES)) {
-      const entry = describeReading(record({ questionId }));
+      const entry = await describeReading(record({ questionId }));
       expect(entry.stateKind, questionId).toBe(expected);
       expect(entry.stateLabel.trim().length, questionId).toBeGreaterThan(0);
       expect(entry.stateLabel, questionId).not.toMatch(/needs_review|insufficient_data|resultKind|uncertain$/);
     }
   });
 
-  it('shows the actual answer for a descriptive reading rather than good/bad', () => {
-    const entry = describeReading(record({ questionId: STATE_FIXTURES.descriptive }));
+  it('shows the actual answer for a descriptive reading rather than good/bad', async () => {
+    const entry = await describeReading(record({ questionId: STATE_FIXTURES.descriptive }));
     expect(entry.stateLabel).toBe('Much trees');
     expect(entry.result!.descriptiveAnswer).toBe('Much trees');
   });
 
-  it('says “Mixed / Conflicting indications” for a conflict', () => {
-    expect(describeReading(record({ questionId: STATE_FIXTURES.mixed })).stateLabel).toBe(
+  it('says “Mixed / Conflicting indications” for a conflict', async () => {
+    expect((await describeReading(record({ questionId: STATE_FIXTURES.mixed }))).stateLabel).toBe(
       'Mixed / Conflicting indications',
     );
   });
 
-  it('separates “source detail missing” from “not defined in the source”', () => {
-    expect(describeReading(record({ questionId: STATE_FIXTURES['source-detail-missing'] })).stateLabel).toBe(
+  it('separates “source detail missing” from “not defined in the source”', async () => {
+    expect((await describeReading(record({ questionId: STATE_FIXTURES['source-detail-missing'] }))).stateLabel).toBe(
       'Source detail missing',
     );
-    expect(describeReading(record({ questionId: STATE_FIXTURES['not-defined-in-source'] })).stateLabel).toBe(
+    expect((await describeReading(record({ questionId: STATE_FIXTURES['not-defined-in-source'] }))).stateLabel).toBe(
       'Not defined in the source',
     );
   });
 
-  it('fails safely — and silently produces no answer — when the question is gone', () => {
-    const entry = describeReading(record({ questionId: 'a-question-that-no-longer-exists' }));
+  it('fails safely — and silently produces no answer — when the question is gone', async () => {
+    const entry = await describeReading(record({ questionId: 'a-question-that-no-longer-exists' }));
     expect(entry.stateKind).toBe('unreconstructable');
     expect(entry.result).toBeNull();
     expect(entry.interpretation).toBeNull();
     expect(entry.unavailableReason).toBe(UNRECONSTRUCTABLE_MESSAGE);
   });
 
-  it('keeps a general reading openable as the chart it was', () => {
-    const entry = describeReading(record({ questionId: 'general' }));
+  it('keeps a general reading openable as the chart it was', async () => {
+    const entry = await describeReading(record({ questionId: 'general' }));
     expect(entry.title).toBe('General reading');
     expect(entry.chart).toEqual(buildChart(MOTHERS));
     expect(entry.result).toBeNull();
@@ -271,8 +300,8 @@ describe('replay', () => {
 // ---------------------------------------------------------------------------
 
 describe('what a history entry says about itself', () => {
-  it('never lets the user’s own words stand in for the traditional question', () => {
-    const entry = describeReading(
+  it('never lets the user’s own words stand in for the traditional question', async () => {
+    const entry = await describeReading(
       record({ questionId: 'business-profit-and-loss', intentionText: 'I am thinking of opening a shop' }),
     );
     expect(entry.title).toBe('Business, profit, and loss');
@@ -280,23 +309,23 @@ describe('what a history entry says about itself', () => {
     expect(entry.title).not.toContain('shop');
   });
 
-  it('keeps the chapter the reading was actually taken from', () => {
-    expect(describeReading(record({ questionId: 'if-you-will-win-a-case-in-court' })).sourceLabel).toBe(
+  it('keeps the chapter the reading was actually taken from', async () => {
+    expect((await describeReading(record({ questionId: 'if-you-will-win-a-case-in-court' }))).sourceLabel).toBe(
       'Kanzul Mikban, Chapter 19',
     );
   });
 
-  it('keeps a consolidated entry’s own chapter, and says which method answered it', () => {
-    const entry = describeReading(record({ questionId: 'if-a-sick-person-has-long-life-repeated' }));
-    const canonical = describeReading(record({ questionId: 'if-a-sick-person-has-long-life-or' }));
+  it('keeps a consolidated entry’s own chapter, and says which method answered it', async () => {
+    const entry = await describeReading(record({ questionId: 'if-a-sick-person-has-long-life-repeated' }));
+    const canonical = await describeReading(record({ questionId: 'if-a-sick-person-has-long-life-or' }));
     // Same rule, so the same verdict — but not the same provenance.
     expect(entry.stateLabel).toBe(canonical.stateLabel);
     expect(entry.sourceLabel).not.toBe(canonical.sourceLabel);
     expect(entry.consolidatedNote).toBeTruthy();
   });
 
-  it('marks source material that never had an automatic reading', () => {
-    const entry = describeReading(record({ questionId: STATE_FIXTURES['no-automatic-reading'] }));
+  it('marks source material that never had an automatic reading', async () => {
+    const entry = await describeReading(record({ questionId: STATE_FIXTURES['no-automatic-reading'] }));
     expect(entry.stateKind).toBe('no-automatic-reading');
     expect(entry.result).toBeNull();
     expect(entry.unavailableReason).toBeNull(); // it is a limit of the book, not of the save
@@ -309,7 +338,7 @@ describe('what a history entry says about itself', () => {
 // ---------------------------------------------------------------------------
 
 describe('storage safety', () => {
-  it('treats empty, malformed and non-array storage as an empty history', () => {
+  it('treats empty, malformed and non-array storage as an empty history', async () => {
     expect(parseHistory(null)).toEqual([]);
     expect(parseHistory('')).toEqual([]);
     expect(parseHistory('{ not json')).toEqual([]);
@@ -379,9 +408,9 @@ describe('storage safety', () => {
     expect(saveReading({ questionId: 'general', mothers: MOTHERS }).persisted).toBe(false);
   });
 
-  it('describes a whole corrupt history without throwing', () => {
+  it('describes a whole corrupt history without throwing', async () => {
     install(new MemoryStorage())!.setItem(HISTORY_STORAGE_KEY, '[[[');
-    expect(describeHistory(listReadings())).toEqual([]);
+    expect(await describeHistory(listReadings())).toEqual([]);
   });
 });
 
@@ -410,8 +439,8 @@ describe('migration from the pre-history records', () => {
     expect(toRecord({ ...legacy, intentionId: undefined })!.questionId).toBe('general');
   });
 
-  it('replays a migrated casting into a full reading', () => {
-    const entry = describeReading(toRecord(legacy)!);
+  it('replays a migrated casting into a full reading', async () => {
+    const entry = await describeReading(toRecord(legacy)!);
     expect(entry.title).toBe('Business, profit, and loss');
     expect(entry.intentionText).toBe('Will the shop work out?');
     expect(entry.result).toEqual(runReading(buildChart(MOTHERS), 'business-profit-and-loss'));
@@ -475,14 +504,21 @@ describe('deleting', () => {
 // ---------------------------------------------------------------------------
 
 describe('search and filters', () => {
-  const entries = describeHistory([
-    record({ id: '1', questionId: STATE_FIXTURES.favourable, intentionText: 'rent due friday' }),
-    record({ id: '2', questionId: STATE_FIXTURES.unfavourable }),
-    record({ id: '3', questionId: STATE_FIXTURES.mixed }),
-    record({ id: '4', questionId: STATE_FIXTURES.descriptive }),
-    record({ id: '5', questionId: STATE_FIXTURES['source-detail-missing'] }),
-    record({ id: '6', questionId: STATE_FIXTURES['not-defined-in-source'] }),
-  ]);
+  let entries: Awaited<ReturnType<typeof describeHistory>>;
+  // beforeEach, not beforeAll: the module-level fetch stub is itself
+  // installed in a (outer) beforeEach, which vitest runs before this
+  // nested one on every test — a nested beforeAll would run first, before
+  // fetch is stubbed.
+  beforeEach(async () => {
+    entries = await describeHistory([
+      record({ id: '1', questionId: STATE_FIXTURES.favourable, intentionText: 'rent due friday' }),
+      record({ id: '2', questionId: STATE_FIXTURES.unfavourable }),
+      record({ id: '3', questionId: STATE_FIXTURES.mixed }),
+      record({ id: '4', questionId: STATE_FIXTURES.descriptive }),
+      record({ id: '5', questionId: STATE_FIXTURES['source-detail-missing'] }),
+      record({ id: '6', questionId: STATE_FIXTURES['not-defined-in-source'] }),
+    ]);
+  });
 
   it('returns everything for an empty query', () => {
     expect(searchHistory(entries, '').length).toBe(entries.length);
@@ -521,8 +557,19 @@ describe('search and filters', () => {
 // ---------------------------------------------------------------------------
 
 describe('history stays on the device', () => {
-  it('sends nothing anywhere', () => {
-    for (const file of ['lib/raml/history.ts', 'app/raml/history/page.tsx', 'app/raml/history/[id]/page.tsx', 'components/raml/HistoryCard.tsx']) {
+  it('sends nothing to a third party — history.ts fetches only the same-origin server reading route, never an external host', () => {
+    // PROMPT 27C: describeReading() now fetches its recomputed result from
+    // this app's own /api/raml/reading route instead of calling the engine
+    // in-process (see history.ts's own updated header for why: the engine
+    // pulled the full protected question corpus into the client bundle).
+    // "Local-only" always meant "nothing leaves the device to a THIRD
+    // PARTY" — a same-origin call to this app's own server was never what
+    // that guarantee was about; it stays true here.
+    const historySource = repoFile('lib/raml/history.ts');
+    expect(historySource).toMatch(/fetch\('\/api\/raml\/reading'/);
+    expect(historySource).not.toMatch(/XMLHttpRequest|WebSocket|sendBeacon|navigator\.send|axios/);
+    expect(historySource).not.toMatch(/fetch\(\s*['"`]https?:\/\//);
+    for (const file of ['app/raml/history/page.tsx', 'app/raml/history/[id]/page.tsx', 'components/raml/HistoryCard.tsx']) {
       expect(repoFile(file), file).not.toMatch(/fetch\(|XMLHttpRequest|WebSocket|sendBeacon|navigator\.send|axios|https?:\/\//);
     }
   });

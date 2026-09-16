@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -8,14 +8,32 @@ import { CastingBoard } from '../CastingBoard';
 import { HouseSelector } from './HouseSelector';
 import { FigureGlyph } from '../FigureGlyph';
 import { buildChart, type Chart } from '@/lib/raml/casting';
-import { runReading } from '@/lib/raml/engine';
-import { OUTCOME_TONE } from '@/lib/raml/engine/reading';
+import { OUTCOME_TONE, type ReadingMethodRow } from '@/lib/raml/engine/reading';
 import { findPracticableMethod, mostRecentChart, chapterSourceLabel } from '@/lib/raml/methodPractice';
 // Prompt 27: only `.title` is read here (line ~122's chapter subheading) —
 // the public metadata export carries it, so the full chapter text never
 // needs to enter this client component's import graph.
 import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import type { Pattern } from '@/content/stars';
+
+// PROMPT 27C (server-side reading execution migration): this component used
+// to call runReading()/read practicable.method.source.quote directly,
+// which pulled the ENTIRE engine — every question's protected source text,
+// not just this one method's — into the client bundle just because this
+// screen exists. Both the quote and the computed walkthrough row now come
+// from the gated server practice route instead — see
+// the server practice service (Prompt 27C). The page-level entitlement gate
+// (app/raml/practice/[chapterId]/[methodId]/page.tsx) still decides
+// whether this component renders at all; this route re-checks the SAME
+// entitlement independently, so the quote/result can never reach an
+// unauthorized request even if that page-level gate were ever bypassed.
+interface PracticeApiResult {
+  questionId: string;
+  label: string;
+  sourceQuote: string;
+  sourceLabel: string;
+  row: ReadingMethodRow | null;
+}
 
 type Stage = 'intro' | 'casting' | 'walkthrough';
 type WalkthroughStep = 'houses' | 'working' | 'result';
@@ -57,11 +75,33 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   // that path. Drives the one-line "Chart ready" transition (section 9).
   const [justCast, setJustCast] = useState(false);
 
-  const row = useMemo(() => {
-    if (!chart || !practicable) return null;
-    const reading = runReading(chart, practicable.questionId);
-    return reading?.methodResults.find((m) => m.id === practicable.method.id) ?? null;
-  }, [chart, practicable]);
+  const [practiceData, setPracticeData] = useState<PracticeApiResult | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    if (!practicable) return;
+    let cancelled = false;
+    setPracticeData(null);
+    setLoadFailed(false);
+    fetch('/api/raml/practice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chapterId, methodId, chart: chart ?? undefined }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('request failed'))))
+      .then((data: PracticeApiResult) => {
+        if (!cancelled) setPracticeData(data);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapterId, methodId, chart, !!practicable]);
+
+  const row = practiceData?.row ?? null;
 
   if (!practicable || !chapter) {
     // Section 14: never a fake practice experience — an unverified,
@@ -143,7 +183,13 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
 
           <Card>
             <p className="type-meta uppercase tracking-widest text-sand/65">Source</p>
-            <p className="mt-1.5 type-quote italic leading-relaxed text-sand/80">“{method.source.quote}”</p>
+            {practiceData ? (
+              <p className="mt-1.5 type-quote italic leading-relaxed text-sand/80">“{practiceData.sourceQuote}”</p>
+            ) : loadFailed ? (
+              <p className="mt-1.5 type-body text-sand/65">The source wording couldn’t be loaded — check your connection and try again.</p>
+            ) : (
+              <p className="mt-1.5 type-body text-sand/65">Loading the source wording…</p>
+            )}
             <p className="mt-1.5 type-meta text-sand/65">{sourceLabel} · {method.label}</p>
           </Card>
 
@@ -187,16 +233,35 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   // stage === 'walkthrough'
   if (!chart) return null; // unreachable: walkthrough only follows chart being set
 
-  if (!row || !row.counted || row.resultPattern === null) {
-    // A verified method's calculation should never fail — this is a defensive
-    // backstop, never a state the app tries to talk its way around.
+  if (!practiceData && !loadFailed) {
     return (
       <div>
         {header}
         <div className="px-4 pb-6">
           <Card>
-            <p className="type-body font-semibold text-sand-light">This method couldn’t be computed for this chart.</p>
-            <p className="mt-1.5 type-body text-sand/70">Nothing was assumed or filled in — no result is shown.</p>
+            <p className="type-body text-sand/65">Calculating your practice result…</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!row || !row.counted || row.resultPattern === null) {
+    // A verified method's calculation should never fail — this is a defensive
+    // backstop, never a state the app tries to talk its way around. A
+    // genuine network failure gets the same honest, non-fabricating
+    // treatment: no result is shown rather than a guessed one.
+    return (
+      <div>
+        {header}
+        <div className="px-4 pb-6">
+          <Card>
+            <p className="type-body font-semibold text-sand-light">
+              {loadFailed ? "This method's result couldn't be loaded." : "This method couldn’t be computed for this chart."}
+            </p>
+            <p className="mt-1.5 type-body text-sand/70">
+              {loadFailed ? 'Check your connection and try again.' : 'Nothing was assumed or filled in — no result is shown.'}
+            </p>
           </Card>
         </div>
       </div>

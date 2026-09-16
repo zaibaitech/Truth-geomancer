@@ -69,7 +69,8 @@ describe('practicableMethodsForChapter — eligible methods', () => {
       // Selecting "money-method-2" must never resolve to method 1's houses.
       const found = findPracticableMethod(TRAVEL_CHAPTER, m.method.id);
       expect(found?.method.id).toBe(m.method.id);
-      expect(found?.method.source.quote).toBe(m.method.source.quote);
+      expect(found?.method.label).toBe(m.method.label);
+      expect(found?.method.sourceChapterId).toBe(m.method.sourceChapterId);
     }
   });
 

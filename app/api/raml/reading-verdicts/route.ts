@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import type { Chart, ChartHouse } from '@/lib/raml/casting';
 import { getReadingVerdictsForIntention } from '@/lib/server/readingVerdictService';
+import { isValidChart } from '@/lib/server/raml/chartValidation';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -11,22 +11,6 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // corpus-harvesting oracle. This route stays deliberately ungated (no
 // session/entitlement check) — see readingVerdictService.ts's own header
 // for the explicit, confirmed product decision this reflects.
-function isValidChartHouse(h: unknown): h is ChartHouse {
-  if (typeof h !== 'object' || h === null) return false;
-  const house = h as Record<string, unknown>;
-  if (typeof house.n !== 'number' || house.n < 1 || house.n > 16) return false;
-  if (!Array.isArray(house.pattern) || house.pattern.length !== 4) return false;
-  if (!house.pattern.every((d) => d === 1 || d === 2)) return false;
-  if (typeof house.star !== 'object' || house.star === null) return false;
-  const star = house.star as Record<string, unknown>;
-  return typeof star.id === 'string' && typeof star.name === 'string';
-}
-
-function isValidChart(c: unknown): c is Chart {
-  if (typeof c !== 'object' || c === null) return false;
-  const chart = c as Record<string, unknown>;
-  return Array.isArray(chart.houses) && chart.houses.length === 16 && chart.houses.every(isValidChartHouse);
-}
 
 export async function POST(request: Request) {
   let body: unknown;

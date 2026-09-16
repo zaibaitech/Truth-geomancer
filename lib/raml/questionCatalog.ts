@@ -15,7 +15,15 @@
 // neither is invented here.
 import { CATEGORIES, INTENTIONS, type CategoryId } from '@/content/intentions';
 import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
-import { QUESTION_REGISTRY } from './engine/questions';
+// Prompt 27C (server-side reading execution migration): this catalogue used
+// to import the engine's own QUESTION_REGISTRY just for title/category/
+// chapter/method-count metadata — none of which needs the registry's
+// embedded source quotes or calculate()/evaluate() functions. Reading the
+// precomputed public metadata instead means this file (imported by the
+// client-side question picker) no longer pulls the full engine — and every
+// question's protected source text — into the browser bundle. See
+// lib/raml/questionRegistryMeta.ts's own header for how it was generated.
+import { QUESTION_REGISTRY_META } from './questionRegistryMeta';
 import { getQuestionAvailability, resolveEngineQuestionId, type QuestionAvailability } from './questionAvailability';
 
 export interface CatalogEntry {
@@ -108,7 +116,7 @@ function chapterNumberFor(chapterId: string | undefined): number | null {
 function buildEntry(intentionId: string, sourceTitle: string, intentionCategory: CategoryId | null): CatalogEntry {
   const availability = getQuestionAvailability(intentionId);
   const engineQuestionId = availability.kind === 'no-automatic-reading' ? null : resolveEngineQuestionId(intentionId);
-  const definition = engineQuestionId ? QUESTION_REGISTRY[engineQuestionId] : undefined;
+  const definition = engineQuestionId ? QUESTION_REGISTRY_META[engineQuestionId] : undefined;
 
   const title = definition?.title ?? sourceTitle;
   const categoryId = intentionCategory ?? ((definition?.categoryId as CategoryId | undefined) ?? null);

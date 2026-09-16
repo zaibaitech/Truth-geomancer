@@ -32,8 +32,15 @@ export default function SavedReadingPage({ params }: { params: { id: string } })
       setState('missing');
       return;
     }
-    setEntry(describeReading(record));
-    setState('found');
+    let cancelled = false;
+    describeReading(record).then((e) => {
+      if (cancelled) return;
+      setEntry(e);
+      setState('found');
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [params.id]);
 
   function handleDelete() {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { StarCard } from './StarCard';
@@ -11,7 +11,17 @@ import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
 import { getIntentionById } from '@/content/intentions';
 import { getQuestionAvailability, resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
-import { runReading } from '@/lib/raml/engine';
+// PROMPT 27C (server-side reading execution migration): this component used
+// to call runReading() directly, which pulled the ENTIRE engine — every
+// question's protected source text, not just the one being answered — into
+// the client bundle just because the Overview tab exists. QUESTION_REGISTRY_META
+// (public: id/title/category/chapter/method-count only) still lets this
+// component decide LOCALLY whether the engine covers a question at all
+// (exactly what runReading()'s own null-return used to decide); the actual
+// computed result now comes from the server reading route — see
+// the server reading service (Prompt 27C).
+import { QUESTION_REGISTRY_META } from '@/lib/raml/questionRegistryMeta';
+import type { ReadingResult } from '@/lib/raml/engine/reading';
 import {
   findBuruji,
   spiritualStrength,
@@ -27,6 +37,40 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
   const hasReading = !!intentionId && (getIntentionById(intentionId)?.chapterIds.length ?? 0) > 0;
   const tabs: Tab[] = hasReading ? ['Your Reading', ...BASE_TABS] : [...BASE_TABS];
   const [tab, setTab] = useState<Tab>(hasReading ? 'Your Reading' : 'Overview');
+
+  // A few picker entries are the SAME question the engine already answers
+  // under another id (a chapter and a fragment repeating one rule). Run the
+  // engine's own question for those rather than dropping to the fallback
+  // parser. See lib/raml/questionAvailability.ts.
+  const availability = intentionId ? getQuestionAvailability(intentionId) : null;
+  const resolvedEngineId = intentionId ? resolveEngineQuestionId(intentionId) : null;
+  const engineCovers = !!(resolvedEngineId && QUESTION_REGISTRY_META[resolvedEngineId]);
+
+  const [engineResult, setEngineResult] = useState<ReadingResult | null>(null);
+  const [engineLoadFailed, setEngineLoadFailed] = useState(false);
+
+  useEffect(() => {
+    if (!engineCovers || !resolvedEngineId) return;
+    let cancelled = false;
+    setEngineResult(null);
+    setEngineLoadFailed(false);
+    fetch('/api/raml/reading', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intentionId: resolvedEngineId, chart }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('request failed'))))
+      .then((data: { result: ReadingResult }) => {
+        if (!cancelled) setEngineResult(data.result);
+      })
+      .catch(() => {
+        if (!cancelled) setEngineLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedEngineId, engineCovers, chart]);
 
   const judge = chart.houses[14];
   const self = chart.houses[0];
@@ -57,26 +101,30 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
 
       <div className="space-y-4 px-4">
         {tab === 'Your Reading' && intentionId ? (
-          (() => {
-            // A few picker entries are the SAME question the engine already
-            // answers under another id (a chapter and a fragment repeating one
-            // rule). Run the engine's own question for those rather than
-            // dropping to the fallback parser. See lib/raml/questionAvailability.ts.
-            const availability = getQuestionAvailability(intentionId);
-            const reading = runReading(chart, resolveEngineQuestionId(intentionId));
-            return reading ? (
+          engineCovers ? (
+            engineResult ? (
               <>
-                {availability.kind === 'consolidated' ? (
+                {availability?.kind === 'consolidated' ? (
                   <p className="rounded-xl border border-sand/10 bg-ink-card px-3 py-2.5 type-evidence text-sand/70">
                     {availability.note}
                   </p>
                 ) : null}
-                <EngineReadingView result={reading} userQuestion={userQuestion} />
+                <EngineReadingView result={engineResult} userQuestion={userQuestion} />
               </>
+            ) : engineLoadFailed ? (
+              <Card>
+                <p className="type-body text-sand/65">
+                  Your reading couldn’t be calculated — check your connection and try again.
+                </p>
+              </Card>
             ) : (
-              <ReadingTab chart={chart} intentionId={intentionId} />
-            );
-          })()
+              <Card>
+                <p className="type-body text-sand/65">Calculating your reading…</p>
+              </Card>
+            )
+          ) : (
+            <ReadingTab chart={chart} intentionId={intentionId} />
+          )
         ) : null}
 
         {tab === 'Overview' ? (

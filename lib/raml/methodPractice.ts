@@ -26,8 +26,18 @@
 // method's own `status === 'verified'` gate, and every other output shape,
 // is unchanged.
 import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
-import { QUESTION_REGISTRY } from './engine/questions';
-import type { MethodDefinition } from './engine/types';
+// Prompt 27C (server-side reading execution migration): this module used to
+// import the engine's own QUESTION_REGISTRY (every question's full
+// MethodDefinition, including its protected source.quote and its
+// calculate()/evaluate() functions) just to check a method's id/label/
+// verified-status — none of which needs the quote or the functions. Reading
+// the precomputed public metadata instead means every client-reachable
+// caller of this module (MethodPracticeFlow.tsx, lib/access/products.ts,
+// lib/offline/bookOfflineUrls.ts) no longer pulls the full engine into its
+// import graph. A caller that genuinely needs the quote and a live
+// computed result (MethodPracticeFlow.tsx) now fetches it from the server
+// practice route instead — see lib/server/raml/practiceService.ts.
+import { QUESTION_REGISTRY_META, type PublicMethodMeta } from './questionRegistryMeta';
 import { catalogEntry } from './questionCatalog';
 import { listReadings, type ReadingRecord } from './history';
 import { buildChart, type Chart } from './casting';
@@ -35,7 +45,7 @@ import { buildChart, type Chart } from './casting';
 export interface PracticableMethod {
   questionId: string;
   chapterId: string;
-  method: MethodDefinition;
+  method: PublicMethodMeta;
   /** Index into the chapter's own `paragraphs` array whose text is this
    * method's source paragraph, or null when no paragraph could be matched,
    * OR when the caller didn't supply `paragraphs` at all (see module
@@ -54,7 +64,7 @@ export interface PracticableMethod {
  * (e.g. "which direction") computes through the exact same, fully
  * structured pipeline as a verified outcome method — excluding it would be
  * arbitrary, not safety. */
-function isPracticable(method: MethodDefinition): boolean {
+function isPracticable(method: PublicMethodMeta): boolean {
   return method.status === 'verified';
 }
 
@@ -64,7 +74,7 @@ function isPracticable(method: MethodDefinition): boolean {
  * transcription, e.g. "Method 1: After drawing the chart, pick h1 and
  * h8..."). If a future chapter's wording ever doesn't follow this, the
  * method simply gets no inline CTA rather than a guessed one. */
-function findParagraphIndex(paragraphs: string[], method: MethodDefinition): number | null {
+function findParagraphIndex(paragraphs: string[], method: PublicMethodMeta): number | null {
   const prefix = `${method.label}:`;
   const i = paragraphs.findIndex((p) => p.trimStart().startsWith(prefix));
   return i === -1 ? null : i;
@@ -91,7 +101,7 @@ export function practicableMethodsForChapter(chapterId: string, paragraphs?: str
   // belong to it.
   if (entry.engineQuestionId !== chapterId) return [];
 
-  const question = QUESTION_REGISTRY[entry.engineQuestionId];
+  const question = QUESTION_REGISTRY_META[entry.engineQuestionId];
   if (!question) return [];
   if (!KM_CHAPTER_META.some((c) => c.id === chapterId)) return [];
 

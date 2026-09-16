@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, CircleHelp, CircleSlash, Split, Compass, Sparkles, FileText, TriangleAlert, Trash2 } from 'lucide-react';
+import { Check, CircleHelp, CircleSlash, Split, Compass, Sparkles, FileText, TriangleAlert, WifiOff, Trash2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { HistoryEntry, HistoryStateKind } from '@/lib/raml/history';
 
@@ -16,6 +16,7 @@ const STATE_ICON: Record<HistoryStateKind, LucideIcon> = {
   'no-automatic-reading': FileText,
   general: Sparkles,
   unreconstructable: TriangleAlert,
+  'network-required': WifiOff,
 };
 
 // Tone is an accent only. Every badge also carries its own words and an icon,
@@ -31,6 +32,7 @@ const STATE_TONE: Record<HistoryStateKind, string> = {
   'no-automatic-reading': 'border-sand/15 text-sand/70',
   general: 'border-sand/20 text-sand/70',
   unreconstructable: 'border-clay/30 text-clay-light',
+  'network-required': 'border-sand/15 text-sand/70',
 };
 
 export function HistoryStateBadge({ entry }: { entry: HistoryEntry }) {

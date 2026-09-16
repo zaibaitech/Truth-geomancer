@@ -40,7 +40,13 @@ export default function HistoryPage() {
 
   useEffect(() => {
     setAvailable(isHistoryAvailable());
-    setEntries(describeHistory(listReadings()));
+    let cancelled = false;
+    describeHistory(listReadings()).then((e) => {
+      if (!cancelled) setEntries(e);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const visible = useMemo(() => {

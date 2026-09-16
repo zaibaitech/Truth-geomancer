@@ -31,6 +31,7 @@ export function PaymentRequestActions({ requestId }: { requestId: string }) {
         return;
       }
       router.refresh();
+      setBusy(null);
     } catch {
       setError('Could not reach the server.');
       setBusy(null);

@@ -38,13 +38,13 @@ export type PracticeMethodResult =
  * optional: omitted for the intro screen (before a chart exists — quote/
  * label/sourceLabel only), supplied once the user has cast one (adds the
  * computed walkthrough row). Both cases require the same entitlement. */
-export function getPracticeMethodForUser(
+export async function getPracticeMethodForUser(
   db: Db,
   userId: string,
   chapterId: string,
   methodId: string,
   chart: Chart | null,
-): PracticeMethodResult {
+): Promise<PracticeMethodResult> {
   const entry = catalogEntry(chapterId);
   if (!entry || entry.engineQuestionId === null || entry.engineQuestionId !== chapterId) {
     return { ok: false, reason: 'unknown-method' };
@@ -53,7 +53,7 @@ export function getPracticeMethodForUser(
   const method = question?.methods.find((m) => m.id === methodId && m.status === 'verified');
   if (!question || !method) return { ok: false, reason: 'unknown-method' };
 
-  if (!canAccessForUser(db, userId, { kind: 'method', bookId: 'kanzul-mikban', methodId })) {
+  if (!(await canAccessForUser(db, userId, { kind: 'method', bookId: 'kanzul-mikban', methodId }))) {
     return { ok: false, reason: 'unauthorized' };
   }
 

@@ -1,129 +1,70 @@
-// Server-only database handle (Prompt 26 — backend/identity/entitlement
-// foundation). Uses Node's built-in `node:sqlite` — no new npm
-// dependency, no external service, no credentials to leak. This is a
-// deliberate, documented choice; see lib/access/README.md "Database
-// engine chosen, and its limits" for why this is a development/
-// single-instance implementation rather than a production-scale one, and
-// what a real deployment needs instead.
+// Server-only database composition root (Prompt 26; replaced by Prompt
+// 31C's Neon Postgres migration). Production no longer uses node:sqlite —
+// see lib/server/db/postgresAdapter.ts. The original production incident
+// (`Error: ENOENT: no such file or directory, mkdir '.data'`, diagnosed in
+// Prompt 31A/31B) was this file unconditionally trying to open a local
+// SQLite file at a path that does not exist on Vercel's serverless
+// filesystem (which is read-only outside `/tmp`, and `/tmp` itself is
+// ephemeral per-invocation — not a fix, just a different way to lose
+// data). See lib/access/README.md's "Database engine chosen, and its
+// limits" section for the full history.
 //
-// This module must never be imported by client ('use client') code: it
-// imports 'node:sqlite', a Node.js built-in that does not exist in a
-// browser bundle, so doing so would fail to build. It is not imported by
-// anything outside lib/server/ in this task (see Phase 9 — nothing is
-// wired into a route yet).
-import { mkdirSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname } from 'node:path';
-import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
+// This module now only decides WHICH adapter a caller gets — every actual
+// database operation goes through the shared, provider-agnostic `Db`
+// interface (./db/types.ts). Nothing outside lib/server/db/ imports
+// `@neondatabase/serverless` or `node:sqlite` directly.
+import { createPostgresDb } from './db/postgresAdapter';
+import { createSqliteDb } from './db/sqliteAdapter';
+import type { Db } from './db/types';
 
-// Loaded via `require` rather than a static `import` specifier: Vite's
-// SSR/test runner (vite-node) normalizes `node:`-prefixed builtins by
-// their un-prefixed name when deciding what to externalize, but
-// `node:sqlite` — unlike long-standing builtins such as `node:fs` — has
-// no un-prefixed registration in Node itself, so a static import trips
-// that mismatch under Vitest even though it runs fine under plain `node`.
-// A plain `require()` call is untouched by that rewriting and resolves
-// directly through Node's own module loader in both contexts.
-const require = createRequire(import.meta.url);
-const { DatabaseSync } = require('node:sqlite') as typeof import('node:sqlite');
+export type { Db } from './db/types';
 
-export type Db = DatabaseSyncType;
-
-/** File path for the real (non-test) database. Overridable via
- * `TG_DB_PATH` — e.g. set to `:memory:` to run the whole app against a
- * throwaway in-process database. Defaults to a gitignored local file so a
- * dev server's data survives across requests within one run. */
-const DEFAULT_DB_PATH = process.env.TG_DB_PATH ?? '.data/truth-geomancer.db';
-
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  session_token_hash TEXT NOT NULL UNIQUE,
-  email TEXT,
-  created_at TEXT NOT NULL,
-  last_seen_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS entitlements (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  product_id TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('active', 'revoked')),
-  granted_at TEXT NOT NULL,
-  revoked_at TEXT,
-  source TEXT NOT NULL CHECK (source IN ('manual-payment', 'promo'))
-);
-CREATE INDEX IF NOT EXISTS idx_entitlements_user_status
-  ON entitlements(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_entitlements_user_product_status
-  ON entitlements(user_id, product_id, status);
-
--- PRIMARY KEY(user_id, preview_id) is the constraint that prevents a
--- duplicate/conflicting usage row per user+preview (Prompt 26, Phase 3).
-CREATE TABLE IF NOT EXISTS preview_usage (
-  user_id TEXT NOT NULL REFERENCES users(id),
-  preview_id TEXT NOT NULL,
-  uses_consumed INTEGER NOT NULL DEFAULT 0,
-  status TEXT NOT NULL CHECK (status IN ('available', 'exhausted')),
-  PRIMARY KEY (user_id, preview_id)
-);
-
--- Prompt 28: a PaymentRequest is a CLAIM, never an entitlement — see
--- lib/access/types.ts's own comment. reviewed_at/reviewed_by/admin_note
--- stay NULL until an admin acts; grantEntitlement() is only ever called
--- from the approval transaction in lib/server/paymentRequests.ts, never
--- from this table's own writes.
-CREATE TABLE IF NOT EXISTS payment_requests (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  product_id TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
-  payment_reference TEXT NOT NULL,
-  user_note TEXT,
-  admin_note TEXT,
-  submitted_at TEXT NOT NULL,
-  reviewed_at TEXT,
-  reviewed_by TEXT
-);
--- Administrative queue: "all pending requests, oldest first".
-CREATE INDEX IF NOT EXISTS idx_payment_requests_status_submitted
-  ON payment_requests(status, submitted_at);
--- User's own history: "my requests, most recent first".
-CREATE INDEX IF NOT EXISTS idx_payment_requests_user_submitted
-  ON payment_requests(user_id, submitted_at);
-
--- Prompt 28, Phase 7: the server-authoritative admin identity. A row here
--- exists only after a caller proved knowledge of TG_ADMIN_SECRET (see
--- lib/server/adminAuth.ts) — the table stores only a hash of the resulting
--- session token, mirroring users.session_token_hash, never the secret
--- itself or the raw token.
-CREATE TABLE IF NOT EXISTS admin_sessions (
-  token_hash TEXT PRIMARY KEY,
-  created_at TEXT NOT NULL
-);
-`;
-
-/** Opens (creating if necessary) a database at `path` with the schema
- * applied. Pass `':memory:'` for an isolated, throwaway database — every
- * test in this module's test suite does exactly that, so tests never
- * share or pollute state with each other or with a real local database
- * file. */
-export function openDatabase(path: string = DEFAULT_DB_PATH): Db {
-  if (path !== ':memory:') {
-    mkdirSync(dirname(path), { recursive: true });
-  }
-  const db = new DatabaseSync(path);
-  db.exec('PRAGMA foreign_keys = ON');
-  db.exec(SCHEMA);
-  return db;
+/** Opens an isolated, ephemeral database for tests — always the local
+ * SQLite-backed adapter (lib/server/db/sqliteAdapter.ts), matching every
+ * existing test's own `openDatabase(':memory:')` call. Never touches
+ * Postgres and never reaches production code: nothing in app/ or in any
+ * non-test lib/server/ module calls this — only *.test.ts files do. */
+export function openDatabase(path: string = ':memory:'): Db {
+  return createSqliteDb(path);
 }
 
 let sharedDb: Db | null = null;
 
-/** The process-wide handle for real (non-test) use, opened lazily so
- * merely importing this module never has a filesystem side effect on its
- * own. Not called from anywhere in this task yet (see module comment). */
+/**
+ * The process-wide handle every route/page/service uses for real
+ * (non-test) work.
+ *
+ * PRODUCTION: backed by Neon Postgres via the `DATABASE_URL` environment
+ * variable (see lib/server/db/postgresAdapter.ts). There is deliberately
+ * NO filesystem fallback in production: if `DATABASE_URL` is unset while
+ * `NODE_ENV === 'production'`, this throws immediately with a clear
+ * message rather than silently attempting the old, broken local-file
+ * path — the same fail-closed pattern this codebase already uses
+ * elsewhere (e.g. lib/server/adminAuth.ts's verifyAdminSecret returning
+ * false, never a default admin secret, when TG_ADMIN_SECRET is unset).
+ *
+ * LOCAL DEVELOPMENT (no `DATABASE_URL`, `NODE_ENV !== 'production'`):
+ * falls back to a local SQLite file (default `.data/truth-geomancer.db`,
+ * gitignored; overridable via `TG_DB_PATH`) so `npm run dev` keeps
+ * working without needing a live Postgres connection. This path is never
+ * reachable in production — see the check below.
+ */
 export function getDb(): Db {
-  if (!sharedDb) sharedDb = openDatabase();
+  if (sharedDb) return sharedDb;
+
+  const connectionString = process.env.DATABASE_URL;
+  if (connectionString) {
+    sharedDb = createPostgresDb(connectionString);
+    return sharedDb;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'DATABASE_URL is not configured. Production requires a persistent Neon Postgres ' +
+        "connection — see lib/access/README.md, 'Database engine chosen, and its limits'.",
+    );
+  }
+
+  sharedDb = createSqliteDb(process.env.TG_DB_PATH ?? '.data/truth-geomancer.db');
   return sharedDb;
 }

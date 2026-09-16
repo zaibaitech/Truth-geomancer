@@ -43,6 +43,7 @@ import { canAccessForUser } from "@/lib/server/accessService";
 import { getCurrentUserIfPresent } from "@/lib/server/session";
 import { getDb } from "@/lib/server/db";
 import { getProductAccessStatus } from "@/lib/server/purchaseStatus";
+import { getPreviewStatusForUser } from "@/lib/server/previewService";
 import { KM_CHAPTERS } from "@/lib/server/content/kanzulMikban";
 import { CHAPTERS, DEDICATION, INTRODUCTION } from "@/lib/server/content/masterOfGeomancy";
 
@@ -115,7 +116,7 @@ function ReaderHeader({ book }: { book: { id: string; title: string } }) {
   );
 }
 
-export default function BookReaderPage({ params }: { params: { id: string } }) {
+export default async function BookReaderPage({ params }: { params: { id: string } }) {
   const book = getBookById(params.id);
   if (!book) notFound();
 
@@ -126,16 +127,17 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
   // book (lib/access/products.ts); this still goes through the exact
   // same canAccess() decision function every other protected-content path
   // uses, never a second rule.
-  const user = getCurrentUserIfPresent();
+  const user = await getCurrentUserIfPresent();
   const db = getDb();
-  const authorized = user !== null && canAccessForUser(db, user.id, { kind: "book", bookId: book.id });
+  const authorized = user !== null && (await canAccessForUser(db, user.id, { kind: "book", bookId: book.id }));
 
   if (!authorized) {
-    const status = user !== null ? getProductAccessStatus(db, user.id, book.id) : "none";
+    const status = user !== null ? await getProductAccessStatus(db, user.id, book.id) : "none";
+    const previewStatus = user !== null ? await getPreviewStatusForUser(db, user.id, book.id) : "available";
     return (
       <div className="flex flex-col">
         <ReaderHeader book={book} />
-        <BookAccessGate bookTitle={book.title} productId={book.id} status={status} />
+        <BookAccessGate bookTitle={book.title} productId={book.id} status={status} previewStatus={previewStatus} />
       </div>
     );
   }

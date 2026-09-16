@@ -77,6 +77,47 @@ self.addEventListener('activate', (event) => {
 // reader merely visits (never explicitly downloaded) still tend to work
 // offline afterward — a bonus, never a promise: only "Available offline"
 // (lib/offline/bookCache.ts) is ever presented to a reader as guaranteed.
+// Prompt 30, Phase 12 — a real vulnerability this audit found: the
+// opportunistic "cache every successful same-origin GET" behavior below
+// used to apply to EVERY response, including protected, entitlement-gated
+// ones (/api/books/*, the book reader at /books/*/read, Kanzul method
+// practice at /raml/practice/*, Master's practice pages). Cache Storage
+// has no concept of WHO a cached response was for — once a response for
+// a given URL is in RUNTIME_CACHE, `caches.match()` above serves it to
+// ANY future request for that exact URL on this browser, entitled or not,
+// with no server round-trip at all. That means an entitled visitor merely
+// LOADING their purchased book (no explicit download click needed) would
+// silently leave a reusable, protected-content-bearing cache entry behind
+// for whoever uses this browser next. The list below excludes every such
+// path from automatic/opportunistic caching — the ONLY way protected book
+// content may still end up in Cache Storage is the reader's own explicit
+// "Download for offline" action (lib/offline/bookCache.ts), which writes
+// into its own book-specific cache, never RUNTIME_CACHE, and only after
+// the server has independently verified entitlement for THAT request.
+//
+// This does not, and cannot, prevent a DIFFERENT anonymous identity later
+// sharing the SAME physical browser from finding and reading an
+// explicitly-downloaded book cache that a previous, legitimately-entitled
+// visitor left behind — Cache Storage is device-scoped, and this app's
+// identity model has no stronger per-user isolation to offer within a
+// single browser profile. See the Prompt 30 final report's "Anonymous
+// identity limitations" section for the honest, complete statement of
+// what is and is not enforced here.
+const NO_OPPORTUNISTIC_CACHE_PREFIXES = ['/api/', '/raml/practice/'];
+
+function isProtectedBookPath(pathname) {
+  // /books/<id>/read and /books/<id>/practice/<method> — the book listing
+  // (/books) and a book's own detail page (/books/<id>) are public
+  // metadata, never excluded.
+  return /^\/books\/[^/]+\/(read|practice\/)/.test(pathname);
+}
+
+function shouldOpportunisticallyCache(pathname) {
+  if (NO_OPPORTUNISTIC_CACHE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return false;
+  if (isProtectedBookPath(pathname)) return false;
+  return true;
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
@@ -91,7 +132,7 @@ self.addEventListener('fetch', (event) => {
       if (cached) return cached;
       return fetch(request)
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && shouldOpportunisticallyCache(url.pathname)) {
             const copy = response.clone();
             caches
               .open(RUNTIME_CACHE)

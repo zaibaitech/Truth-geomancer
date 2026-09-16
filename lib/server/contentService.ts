@@ -12,11 +12,12 @@
 // No access RULE is invented here — getChapterForUser only ever asks
 // canAccessForUser() the same book/method questions any other caller
 // would, then either returns the real content or a plain, honest refusal.
+import { createHash } from 'node:crypto';
 import { BOOKS, getBookById, type Book } from '@/content/books';
 import { KM_CHAPTER_META, type KmChapterMeta } from '@/content/manuscripts/kanzulMikbanMeta';
 import { MASTER_CHAPTER_META, type MasterChapterMeta } from '@/content/manuscripts/masterOfGeomancyMeta';
-import { KM_CHAPTERS } from './content/kanzulMikban';
-import { CHAPTERS as MASTER_CHAPTERS, DEDICATION, INTRODUCTION } from './content/masterOfGeomancy';
+import { KM_CHAPTERS, type KmChapter } from './content/kanzulMikban';
+import { CHAPTERS as MASTER_CHAPTERS, DEDICATION, INTRODUCTION, type Chapter as MasterChapter } from './content/masterOfGeomancy';
 import { canAccessForUser } from './accessService';
 import type { Db } from './db';
 
@@ -67,25 +68,84 @@ export type ChapterContentResult =
  * messages — and so neither path can accidentally leak protected text in
  * an error string.
  */
-export function getChapterForUser(db: Db, userId: string, bookId: string, chapterId: string): ChapterContentResult {
+export async function getChapterForUser(db: Db, userId: string, bookId: string, chapterId: string): Promise<ChapterContentResult> {
   const productId = productIdForBook(bookId);
   if (!productId) return { ok: false, reason: 'unknown-book' };
 
   if (bookId === 'kanzul-mikban') {
     const chapter = KM_CHAPTERS.find((c) => c.id === chapterId);
     if (!chapter) return { ok: false, reason: 'unknown-chapter' };
-    if (!canAccessForUser(db, userId, { kind: 'book', bookId })) return { ok: false, reason: 'unauthorized' };
+    if (!(await canAccessForUser(db, userId, { kind: 'book', bookId }))) return { ok: false, reason: 'unauthorized' };
     return { ok: true, bookId, chapterId, chapter };
   }
 
   if (bookId === 'master-of-geomancy-vol-1') {
     const chapter = MASTER_CHAPTERS.find((c) => c.id === chapterId);
     if (!chapter) return { ok: false, reason: 'unknown-chapter' };
-    if (!canAccessForUser(db, userId, { kind: 'book', bookId })) return { ok: false, reason: 'unauthorized' };
+    if (!(await canAccessForUser(db, userId, { kind: 'book', bookId }))) return { ok: false, reason: 'unauthorized' };
     return { ok: true, bookId, chapterId, chapter };
   }
 
   return { ok: false, reason: 'unknown-book' };
+}
+
+// ---------------------------------------------------------------------------
+// Content versioning (Prompt 30, Phase 7) — deterministic, never random.
+// A plain SHA-256 hash of the actual protected content, computed once at
+// module load: the version changes automatically and exactly when the
+// underlying text changes (a real edit to kanzulMikban.ts/
+// masterOfGeomancy.ts), and stays byte-identical across restarts/
+// deployments otherwise. No git commit hash, timestamp, or filesystem path
+// is used — nothing here leaks server/repo internals, only a content
+// fingerprint the client can compare against what it has cached.
+// ---------------------------------------------------------------------------
+function contentVersion(data: unknown): string {
+  return createHash('sha256').update(JSON.stringify(data)).digest('hex').slice(0, 12);
+}
+
+const KANZUL_CONTENT_VERSION = contentVersion(KM_CHAPTERS);
+const MASTER_CONTENT_VERSION = contentVersion({ DEDICATION, INTRODUCTION, MASTER_CHAPTERS });
+
+export type BookOfflineContentResult =
+  | {
+      ok: true;
+      bookId: string;
+      contentVersion: string;
+      dedicationTitle?: string;
+      dedication?: string;
+      introductionTitle?: string;
+      introduction?: string[];
+      chapters: KmChapter[] | MasterChapter[];
+    }
+  | { ok: false; reason: 'unknown-book' | 'unauthorized' };
+
+/**
+ * The whole-book counterpart to getChapterForUser() (Prompt 30, Phase 5/6)
+ * — same access rule (canAccessForUser(), never duplicated), same
+ * server-only content source (KM_CHAPTERS/MASTER_CHAPTERS, never copied
+ * elsewhere), just returning every chapter in one authorized response
+ * instead of one at a time, for the explicit "Download for offline" action.
+ */
+export async function getBookContentForUser(db: Db, userId: string, bookId: string): Promise<BookOfflineContentResult> {
+  const productId = productIdForBook(bookId);
+  if (!productId) return { ok: false, reason: 'unknown-book' };
+  if (!(await canAccessForUser(db, userId, { kind: 'book', bookId }))) return { ok: false, reason: 'unauthorized' };
+
+  if (bookId === 'kanzul-mikban') {
+    return { ok: true, bookId, contentVersion: KANZUL_CONTENT_VERSION, chapters: KM_CHAPTERS };
+  }
+
+  // bookId === 'master-of-geomancy-vol-1'
+  return {
+    ok: true,
+    bookId,
+    contentVersion: MASTER_CONTENT_VERSION,
+    dedicationTitle: 'Dedication',
+    dedication: DEDICATION,
+    introductionTitle: 'What is Geomancy?',
+    introduction: INTRODUCTION,
+    chapters: MASTER_CHAPTERS,
+  };
 }
 
 export type BookOpeningResult =
@@ -94,8 +154,8 @@ export type BookOpeningResult =
 
 /** The Master of Geomancy's Dedication and Introduction — not chapters,
  * but still protected book text — gated the same way as any chapter. */
-export function getMasterOpeningForUser(db: Db, userId: string): BookOpeningResult {
-  if (!canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })) {
+export async function getMasterOpeningForUser(db: Db, userId: string): Promise<BookOpeningResult> {
+  if (!(await canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' }))) {
     return { ok: false, reason: 'unauthorized' };
   }
   return {

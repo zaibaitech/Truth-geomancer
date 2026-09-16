@@ -5,18 +5,27 @@ import { Badge } from '@/components/ui/Badge';
 import { BookCover } from '@/components/books/BookCover';
 import { ChapterList } from '@/components/books/ChapterList';
 import { OfflineDownloadControl } from '@/components/books/OfflineDownloadControl';
-import { BOOKS, getBookById } from '@/content/books';
+import { getBookById } from '@/content/books';
 import { getChapterList } from '@/lib/books/chapters';
+import { getCurrentUserIfPresent } from '@/lib/server/session';
+import { getDb } from '@/lib/server/db';
+import { canAccessForUser } from '@/lib/server/accessService';
 
-export function generateStaticParams() {
-  return BOOKS.map((b) => ({ id: b.id }));
-}
-
-export default function BookDetailPage({ params }: { params: { id: string } }) {
+// Prompt 30: this page is no longer statically generated — whether the
+// offline-download control renders at all now depends on the requester's
+// own entitlement (Phase 20: "only show when active entitlement = true"),
+// which a build-time static page cannot represent. Same reasoning Prompt
+// 27 already applied to the book reader/practice pages themselves; this
+// page's own book description/cover/chapter list stay exactly as public
+// as before, only the offline-download affordance is now gated.
+export default async function BookDetailPage({ params }: { params: { id: string } }) {
   const book = getBookById(params.id);
   if (!book) notFound();
 
   const chapters = getChapterList(book.id);
+  const user = await getCurrentUserIfPresent();
+  const db = user ? getDb() : null;
+  const entitled = user !== null && db !== null && (await canAccessForUser(db, user.id, { kind: 'book', bookId: book.id }));
 
   return (
     <div>
@@ -43,7 +52,15 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             >
               Start Reading
             </Link>
-            <OfflineDownloadControl bookId={book.id} />
+            <OfflineDownloadControl bookId={book.id} entitled={entitled} />
+            {!entitled ? (
+              <Link
+                href={`/purchase/${book.id}`}
+                className="mt-3 block type-meta text-sand/65 underline underline-offset-2"
+              >
+                Purchase to enable offline download
+              </Link>
+            ) : null}
           </>
         ) : (
           <div className="mt-5 rounded-xl border border-sand/15 px-4 py-3 text-center type-body text-sand/65">

@@ -12,7 +12,7 @@ const VALID_STATUSES: PaymentRequestStatus[] = ['pending', 'approved', 'rejected
 // supplied value. Returns ALL users' requests, which is exactly what an
 // admin (and only an admin) is authorized to see.
 export async function GET(request: Request) {
-  if (!isCurrentUserAdmin()) {
+  if (!(await isCurrentUserAdmin())) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
 
@@ -22,6 +22,6 @@ export async function GET(request: Request) {
   }
 
   const db = getDb();
-  const requests = listPaymentRequestsForAdmin(db, statusParam as PaymentRequestStatus | undefined);
+  const requests = await listPaymentRequestsForAdmin(db, statusParam as PaymentRequestStatus | undefined);
   return NextResponse.json({ requests }, { headers: NO_STORE_HEADERS });
 }

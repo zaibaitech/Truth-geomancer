@@ -11,13 +11,13 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // accepts a userId/productId from the request body (the request id in the
 // URL already pins both, via the existing payment_requests row).
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
-  const reviewerId = currentAdminReviewerId();
+  const reviewerId = await currentAdminReviewerId();
   if (!reviewerId) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
 
   const db = getDb();
-  const result = approvePaymentRequest(db, params.id, reviewerId);
+  const result = await approvePaymentRequest(db, params.id, reviewerId);
 
   if (!result.ok) {
     const status = result.reason === 'not-found' ? 404 : 409;

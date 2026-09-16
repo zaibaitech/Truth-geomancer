@@ -17,9 +17,9 @@ import { KANZUL_PRODUCT } from '@/lib/access/products';
 import type { FreePreview } from '@/lib/access/types';
 
 let db: Db;
-afterEach(() => {
+afterEach(async () => {
   try {
-    db?.close();
+    await db?.close();
   } catch {
     // Not open for a test that never called openDatabase(); nothing to clean up.
   }
@@ -72,6 +72,7 @@ describe('client cannot grant or revoke entitlements', () => {
       'paymentRequests',
       'adminSession',
       'purchaseStatus',
+      'previewService',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];
@@ -96,26 +97,26 @@ describe('client cannot grant or revoke entitlements', () => {
 });
 
 describe('client cannot choose another user’s identity', () => {
-  it('resolving a user always requires a token that hashes to a stored row — a chosen id string is never accepted as one', () => {
+  it('resolving a user always requires a token that hashes to a stored row — a chosen id string is never accepted as one', async () => {
     db = openDatabase(':memory:');
-    const real = getOrCreateUser(db, null);
-    grantEntitlement(db, real.user.id, KANZUL_PRODUCT.id, 'manual-payment');
+    const real = await getOrCreateUser(db, null);
+    await grantEntitlement(db, real.user.id, KANZUL_PRODUCT.id, 'manual-payment');
 
     // An attacker who merely GUESSES or invents a value (never the real
     // random 256-bit token) can only ever land on "no session" — proven
     // in identity.test.ts's tamper-resistance suite. Restated here at the
     // access-decision level: a fabricated identity gets zero of the real
     // user's access.
-    const impersonationAttempt = getOrCreateUser(db, 'userId=' + real.user.id);
+    const impersonationAttempt = await getOrCreateUser(db, 'userId=' + real.user.id);
     expect(impersonationAttempt.user.id).not.toBe(real.user.id);
-    expect(canAccessForUser(db, impersonationAttempt.user.id, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    expect(await canAccessForUser(db, impersonationAttempt.user.id, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 });
 
 describe('client cannot modify usesConsumed directly', () => {
   it('consumePreviewUse is the only exported way to change uses_consumed — no setter/raw-write function is exported', async () => {
     const source = readFileSync('lib/server/previews.ts', 'utf-8');
-    const exportedFns = Array.from(source.matchAll(/export function (\w+)/g), (m) => m[1]);
+    const exportedFns = Array.from(source.matchAll(/export (?:async )?function (\w+)/g), (m) => m[1]);
     expect(exportedFns.sort()).toEqual(['consumePreviewUse', 'getPreviewUsage'].sort());
   });
 
@@ -126,19 +127,19 @@ describe('client cannot modify usesConsumed directly', () => {
     // supplied usesConsumed argument — confirmed by there being no
     // parameter named anything like `usesConsumed` on either exported
     // function's signature.
-    expect(source).toMatch(/export function consumePreviewUse\(db: Db, userId: string, preview: FreePreview\)/);
+    expect(source).toMatch(/export async function consumePreviewUse\(db: Db, userId: string, preview: FreePreview\)/);
     expect(source).not.toMatch(/usesConsumed:\s*number\)/); // no writer takes a raw count
   });
 });
 
 describe('server functions never trust a caller-supplied product grant or status', () => {
-  it('canAccessForUser ignores any client-shaped resource fields beyond bookId/methodId/featureKey — status/productId in the DB are the only source of truth', () => {
+  it('canAccessForUser ignores any client-shaped resource fields beyond bookId/methodId/featureKey — status/productId in the DB are the only source of truth', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
+    const userId = (await getOrCreateUser(db, null)).user.id;
     // No entitlement granted at all — access must be false regardless of
     // what a resource object claims about itself.
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
-    expect(getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
   });
 });
 
@@ -155,19 +156,19 @@ describe('no secrets or credentials appear in the new server modules', () => {
 });
 
 describe('preview usage stays structurally separate from entitlement (restated at the security-test level)', () => {
-  it('consuming a preview cannot be used as a backdoor to gain canAccess()=true for the book', () => {
+  it('consuming a preview cannot be used as a backdoor to gain canAccess()=true for the book', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
+    const userId = (await getOrCreateUser(db, null)).user.id;
     const preview: FreePreview = {
       id: 'dev-preview-security-check',
       target: { kind: 'method', bookId: 'kanzul-mikban', methodId: 'own-house-in-life-method-1' },
       maxUses: 1,
       active: true,
     };
-    consumePreviewUse(db, userId, preview);
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    await consumePreviewUse(db, userId, preview);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
     expect(
-      canAccessForUser(db, userId, { kind: 'method', bookId: 'kanzul-mikban', methodId: 'own-house-in-life-method-1' }),
+      await canAccessForUser(db, userId, { kind: 'method', bookId: 'kanzul-mikban', methodId: 'own-house-in-life-method-1' }),
     ).toBe(false);
   });
 });

@@ -6,20 +6,23 @@ import { canAccessForUser } from '@/lib/server/accessService';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { getProductAccessStatus } from '@/lib/server/purchaseStatus';
+import { getPreviewStatusForUser } from '@/lib/server/previewService';
 
 // PROMPT 27: gated the same way as the Kanzul practice route — see that
 // route's own comment for the offline-download implication (unaffected).
-export default function CountingMethodPracticePage() {
-  const user = getCurrentUserIfPresent();
+export default async function CountingMethodPracticePage() {
+  const user = await getCurrentUserIfPresent();
   const db = getDb();
-  const authorized = user !== null && canAccessForUser(db, user.id, { kind: 'feature', featureKey: MASTER_COUNTING_METHOD_FEATURE });
+  const authorized =
+    user !== null && (await canAccessForUser(db, user.id, { kind: 'feature', featureKey: MASTER_COUNTING_METHOD_FEATURE }));
 
   if (!authorized) {
-    const status = user !== null ? getProductAccessStatus(db, user.id, MASTER_PRODUCT.id) : 'none';
+    const status = user !== null ? await getProductAccessStatus(db, user.id, MASTER_PRODUCT.id) : 'none';
+    const previewStatus = user !== null ? await getPreviewStatusForUser(db, user.id, MASTER_PRODUCT.id) : 'available';
     return (
       <div>
         <Header title="Practice a method" />
-        <BookAccessGate bookTitle="The Master of Geomancy" productId={MASTER_PRODUCT.id} status={status} />
+        <BookAccessGate bookTitle="The Master of Geomancy" productId={MASTER_PRODUCT.id} status={status} previewStatus={previewStatus} />
       </div>
     );
   }

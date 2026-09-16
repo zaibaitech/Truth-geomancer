@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
 
-  const ok = loginAdmin(secret);
+  const ok = await loginAdmin(secret);
   if (!ok) {
     return NextResponse.json({ error: 'Invalid administrator secret.' }, { status: 401, headers: NO_STORE_HEADERS });
   }

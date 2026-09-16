@@ -450,7 +450,11 @@ describe('navigation contracts', () => {
   });
 
   it('adds no dependency to filter 153 records', () => {
+    // '@neondatabase/serverless' was added by Prompt 31C's Neon Postgres
+    // migration (an unrelated, justified production-database dependency,
+    // not something this filtering feature itself needed) — everything
+    // else in this list predates that migration and this feature alike.
     const pkg = JSON.parse(repoFile('package.json')) as { dependencies: Record<string, string> };
-    expect(Object.keys(pkg.dependencies).sort()).toEqual(['lucide-react', 'next', 'react', 'react-dom']);
+    expect(Object.keys(pkg.dependencies).sort()).toEqual(['@neondatabase/serverless', 'lucide-react', 'next', 'react', 'react-dom']);
   });
 });

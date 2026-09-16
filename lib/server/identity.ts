@@ -50,25 +50,26 @@ export function generateSessionToken(): string {
  * unknown, or tampered token. This function is the entire trust boundary
  * for identity: nothing anywhere in this codebase resolves a user from a
  * caller-supplied id — only from a token that must match a stored hash. */
-export function getUserByToken(db: Db, token: string): User | null {
-  const row = db.prepare('SELECT * FROM users WHERE session_token_hash = ?').get(hashToken(token)) as
-    | UserRow
-    | undefined;
+export async function getUserByToken(db: Db, token: string): Promise<User | null> {
+  const row = await db.queryOne<UserRow>('SELECT * FROM users WHERE session_token_hash = ?', [hashToken(token)]);
   return row ? rowToUser(row) : null;
 }
 
-export function createAnonymousUser(db: Db, token: string): User {
+export async function createAnonymousUser(db: Db, token: string): Promise<User> {
   const now = new Date().toISOString();
   const id = randomUUID();
-  db.prepare(
-    'INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, NULL, ?, ?)',
-  ).run(id, hashToken(token), now, now);
+  await db.execute('INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, NULL, ?, ?)', [
+    id,
+    hashToken(token),
+    now,
+    now,
+  ]);
   return { id, email: null, createdAt: now, lastSeenAt: now };
 }
 
-export function touchLastSeen(db: Db, userId: string): string {
+export async function touchLastSeen(db: Db, userId: string): Promise<string> {
   const now = new Date().toISOString();
-  db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(now, userId);
+  await db.execute('UPDATE users SET last_seen_at = ? WHERE id = ?', [now, userId]);
   return now;
 }
 
@@ -87,15 +88,15 @@ export interface ResolvedIdentity {
  * in lib/access/README.md — it grants no entitlement by itself and
  * carries no personal data (the optional `email` column exists for a
  * future real-account upgrade path, never populated by this function). */
-export function getOrCreateUser(db: Db, token: string | null): ResolvedIdentity {
+export async function getOrCreateUser(db: Db, token: string | null): Promise<ResolvedIdentity> {
   if (token) {
-    const existing = getUserByToken(db, token);
+    const existing = await getUserByToken(db, token);
     if (existing) {
-      const lastSeenAt = touchLastSeen(db, existing.id);
+      const lastSeenAt = await touchLastSeen(db, existing.id);
       return { user: { ...existing, lastSeenAt }, token, isNew: false };
     }
   }
   const newToken = generateSessionToken();
-  const user = createAnonymousUser(db, newToken);
+  const user = await createAnonymousUser(db, newToken);
   return { user, token: newToken, isNew: true };
 }

@@ -18,10 +18,11 @@ function rowToUsage(row: PreviewUsageRow): PreviewUsage {
   return { userId: row.user_id, previewId: row.preview_id, usesConsumed: row.uses_consumed, status: row.status };
 }
 
-export function getPreviewUsage(db: Db, userId: string, previewId: string): PreviewUsage | null {
-  const row = db.prepare('SELECT * FROM preview_usage WHERE user_id = ? AND preview_id = ?').get(userId, previewId) as
-    | PreviewUsageRow
-    | undefined;
+export async function getPreviewUsage(db: Db, userId: string, previewId: string): Promise<PreviewUsage | null> {
+  const row = await db.queryOne<PreviewUsageRow>('SELECT * FROM preview_usage WHERE user_id = ? AND preview_id = ?', [
+    userId,
+    previewId,
+  ]);
   return row ? rowToUsage(row) : null;
 }
 
@@ -39,56 +40,51 @@ export type PreviewConsumeResult =
  * the same way products.ts stays authoritative for products
  * (accessService.ts).
  *
- * Wrapped in an explicit `BEGIN IMMEDIATE` transaction: this takes
- * SQLite's write lock up front, before the read, rather than only at the
- * eventual write — closing the classic "two requests both read
- * usesConsumed=0, both write usesConsumed=1" race window entirely. A
- * second call that arrives while the first is mid-transaction blocks
- * until the first commits or rolls back, then sees the first call's
- * result and is evaluated against it — so `maxUses` can never be
- * exceeded no matter how many calls arrive back to back. (This
- * serialization is per-database-file; a real multi-instance production
- * deployment needs the equivalent transactional guarantee from whatever
- * hosted database replaces this one — see lib/access/README.md.)
+ * Wrapped in `db.transaction()` (lib/server/db/types.ts): every read and
+ * write below happens on one connection/session, and either all of it
+ * commits or none of it does — the async equivalent of the old explicit
+ * `BEGIN IMMEDIATE` transaction. Against the SQLite test/dev adapter that
+ * still means a whole-database write lock taken up front. Against the
+ * production Postgres adapter it means SERIALIZABLE isolation with
+ * automatic retry (see lib/server/db/postgresAdapter.ts's own comment) —
+ * a different mechanism, but the same guarantee: two concurrent calls for
+ * the same (userId, preview.id) can never both observe
+ * `uses_consumed = 0` and both commit a write, so `maxUses` can never be
+ * exceeded no matter how many calls arrive concurrently.
  */
-export function consumePreviewUse(db: Db, userId: string, preview: FreePreview): PreviewConsumeResult {
+export async function consumePreviewUse(db: Db, userId: string, preview: FreePreview): Promise<PreviewConsumeResult> {
   if (!preview.active) return { ok: false, reason: 'inactive-preview' };
 
-  db.exec('BEGIN IMMEDIATE');
-  try {
-    const row = db
-      .prepare('SELECT * FROM preview_usage WHERE user_id = ? AND preview_id = ?')
-      .get(userId, preview.id) as PreviewUsageRow | undefined;
+  return db.transaction(async (tx) => {
+    const row = await tx.queryOne<PreviewUsageRow>('SELECT * FROM preview_usage WHERE user_id = ? AND preview_id = ?', [
+      userId,
+      preview.id,
+    ]);
     const current = row ? row.uses_consumed : 0;
 
     if (current >= preview.maxUses) {
-      db.exec('ROLLBACK');
-      return { ok: false, reason: 'exhausted' };
+      return { ok: false, reason: 'exhausted' } as const;
     }
 
     const next = current + 1;
     const status: PreviewUsage['status'] = next >= preview.maxUses ? 'exhausted' : 'available';
 
     if (row) {
-      db.prepare('UPDATE preview_usage SET uses_consumed = ?, status = ? WHERE user_id = ? AND preview_id = ?').run(
+      await tx.execute('UPDATE preview_usage SET uses_consumed = ?, status = ? WHERE user_id = ? AND preview_id = ?', [
         next,
         status,
         userId,
         preview.id,
-      );
+      ]);
     } else {
-      db.prepare('INSERT INTO preview_usage (user_id, preview_id, uses_consumed, status) VALUES (?, ?, ?, ?)').run(
+      await tx.execute('INSERT INTO preview_usage (user_id, preview_id, uses_consumed, status) VALUES (?, ?, ?, ?)', [
         userId,
         preview.id,
         next,
         status,
-      );
+      ]);
     }
 
-    db.exec('COMMIT');
-    return { ok: true, usage: { userId, previewId: preview.id, usesConsumed: next, status } };
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
-  }
+    return { ok: true, usage: { userId, previewId: preview.id, usesConsumed: next, status } } as const;
+  });
 }

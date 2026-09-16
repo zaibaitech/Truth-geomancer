@@ -29,9 +29,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
 
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
   const db = getDb();
-  const result = createPaymentRequest(db, user.id, productId, paymentReference, userNote);
+  const result = await createPaymentRequest(db, user.id, productId, paymentReference, userNote);
 
   if (!result.ok) {
     const status = result.reason === 'already-entitled' ? 409 : 400;
@@ -49,8 +49,8 @@ export async function POST(request: Request) {
 // Lists ONLY the current session's own requests — never accepts a userId
 // query parameter or any other client-supplied identity (Phase 11).
 export async function GET() {
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
   const db = getDb();
-  const requests = getPaymentRequestsForUser(db, user.id);
+  const requests = await getPaymentRequestsForUser(db, user.id);
   return NextResponse.json({ requests }, { headers: NO_STORE_HEADERS });
 }

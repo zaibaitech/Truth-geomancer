@@ -1,7 +1,7 @@
 // Prompt 27C, Phase 13 — security and behavioral-equivalence tests for the
 // Kanzul method-practice server migration. Numbered per the prompt's own
 // Phase 13 list (SERVER AUTHORIZATION 6-10, RESULT SECURITY 11-15,
-// BEHAVIORAL EQUIVALENCE 17).
+// BEHAVIORAL EQUIVALENCE 17). Updated for Prompt 31C's async Db interface.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -18,9 +18,9 @@ const METHOD = 'money-method-1';
 const chart = fixtureChart();
 
 let db: Db;
-afterEach(() => {
+afterEach(async () => {
   try {
-    db?.close();
+    await db?.close();
   } catch {
     // Not open for a test that never called openDatabase(); nothing to clean up.
   }
@@ -41,20 +41,20 @@ function listFilesRecursive(dir: string): string[] {
 // SERVER AUTHORIZATION
 // ---------------------------------------------------------------------------
 describe('6: unauthorized reading request is denied where access is required', () => {
-  it('an anonymous user with no entitlement gets reason: unauthorized, never a quote or row', () => {
+  it('an anonymous user with no entitlement gets reason: unauthorized, never a quote or row', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result).toEqual({ ok: false, reason: 'unauthorized' });
   });
 });
 
 describe('7: authorized Kanzul request succeeds', () => {
-  it('a user with an active Kanzul entitlement gets the quote, label, and computed row', () => {
+  it('a user with an active Kanzul entitlement gets the quote, label, and computed row', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.label).toBeTruthy();
@@ -62,11 +62,11 @@ describe('7: authorized Kanzul request succeeds', () => {
     expect(result.row).not.toBeNull();
   });
 
-  it('omitting the chart (intro screen) still succeeds, with row null', () => {
+  it('omitting the chart (intro screen) still succeeds, with row null', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, null);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, null);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.row).toBeNull();
@@ -75,31 +75,31 @@ describe('7: authorized Kanzul request succeeds', () => {
 });
 
 describe('8: revoked entitlement is denied', () => {
-  it('a since-revoked Kanzul entitlement no longer grants access', () => {
+  it('a since-revoked Kanzul entitlement no longer grants access', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    const { entitlement } = grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    revokeEntitlement(db, entitlement.id);
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    const { entitlement } = await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    await revokeEntitlement(db, entitlement.id);
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result).toEqual({ ok: false, reason: 'unauthorized' });
   });
 });
 
 describe('9: cross-user entitlement cannot authorize another user', () => {
-  it("user B's request is denied even though user A holds a valid Kanzul entitlement", () => {
+  it("user B's request is denied even though user A holds a valid Kanzul entitlement", async () => {
     db = openDatabase(':memory:');
-    const userA = getOrCreateUser(db, null).user.id;
-    const userB = getOrCreateUser(db, 'a-different-real-session-token').user.id;
-    grantEntitlement(db, userA, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userB, CHAPTER, METHOD, chart);
+    const userA = (await getOrCreateUser(db, null)).user.id;
+    const userB = (await getOrCreateUser(db, 'a-different-real-session-token')).user.id;
+    await grantEntitlement(db, userA, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userB, CHAPTER, METHOD, chart);
     expect(result).toEqual({ ok: false, reason: 'unauthorized' });
   });
 });
 
 describe('10: forged userId cannot authorize access', () => {
-  it('a userId string that matches no real user resolves to unauthorized, never a crash or a bypass', () => {
+  it('a userId string that matches no real user resolves to unauthorized, never a crash or a bypass', async () => {
     db = openDatabase(':memory:');
-    const result = getPracticeMethodForUser(db, 'not-a-real-user-id', CHAPTER, METHOD, chart);
+    const result = await getPracticeMethodForUser(db, 'not-a-real-user-id', CHAPTER, METHOD, chart);
     expect(result).toEqual({ ok: false, reason: 'unauthorized' });
   });
 });
@@ -108,20 +108,20 @@ describe('10: forged userId cannot authorize access', () => {
 // RESULT SECURITY
 // ---------------------------------------------------------------------------
 describe('11: unauthorized response contains no protected source text', () => {
-  it('the unauthorized result object has no quote, label, or row field at all', () => {
+  it('the unauthorized result object has no quote, label, or row field at all', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(JSON.stringify(result)).not.toMatch(/sourceQuote|calculationSteps|After drawing the chart/);
   });
 });
 
 describe('12: authorized response contains only the necessary result', () => {
-  it('the authorized result has exactly the documented field set', () => {
+  it('the authorized result has exactly the documented field set', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(Object.keys(result).sort()).toEqual(['label', 'ok', 'questionId', 'row', 'sourceLabel', 'sourceQuote'].sort());
@@ -137,11 +137,11 @@ describe('13: response does not contain the complete question corpus', () => {
 });
 
 describe('14: response does not contain all MethodDefinitions', () => {
-  it('an authorized response only ever describes the ONE requested method, never the full question', () => {
+  it('an authorized response only ever describes the ONE requested method, never the full question', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     // Single label/quote, not an array of every method in the question.
@@ -161,11 +161,11 @@ describe('15: response does not contain complete Kanzul chapters', () => {
 // BEHAVIORAL EQUIVALENCE (17: method-practice results remain identical)
 // ---------------------------------------------------------------------------
 describe('17: the practice service computes the exact same row runReading() itself produces', () => {
-  it('row equals the matching methodResults entry from a direct runReading() call', () => {
+  it('row equals the matching methodResults entry from a direct runReading() call', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
-    const result = getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const result = await getPracticeMethodForUser(db, userId, CHAPTER, METHOD, chart);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const direct = runReading(chart, CHAPTER)!;

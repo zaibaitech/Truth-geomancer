@@ -2,7 +2,7 @@
 // — PAYMENT REQUEST CREATION, DUPLICATES, APPROVAL, REJECTION, ACCESS
 // INTEGRATION, PROTECTED CONTENT, and Phase 16 — TRANSACTIONAL SAFETY).
 // Real ':memory:' database per test, never a mock — see entitlements.test.ts
-// for why.
+// for why. Updated for Prompt 31C's async Db interface.
 import { afterEach, describe, expect, it } from 'vitest';
 import { canAccessForUser } from './accessService';
 import { openDatabase, type Db } from './db';
@@ -19,79 +19,79 @@ import {
 import { KANZUL_PRODUCT, MASTER_PRODUCT, BUNDLE_PRODUCT } from '@/lib/access/products';
 
 let db: Db;
-afterEach(() => {
+afterEach(async () => {
   try {
-    db?.close();
+    await db?.close();
   } catch {
     // Not open for a test that never called openDatabase(); nothing to clean up.
   }
 });
 
-function makeUser(): string {
-  return getOrCreateUser(db, null).user.id;
+async function makeUser(): Promise<string> {
+  return (await getOrCreateUser(db, null)).user.id;
 }
 
 // ---------------------------------------------------------------------------
 // PAYMENT REQUEST CREATION (1-7)
 // ---------------------------------------------------------------------------
 describe('payment request creation', () => {
-  it('1: current server identity can submit a payment request', () => {
+  it('1: current server identity can submit a payment request', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const result = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-001');
+    const userId = await makeUser();
+    const result = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-001');
     expect(result.ok).toBe(true);
   });
 
-  it('2: submitted request belongs to the current server identity', () => {
+  it('2: submitted request belongs to the current server identity', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const result = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-002');
+    const userId = await makeUser();
+    const result = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-002');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.request.userId).toBe(userId);
   });
 
-  it('3: the function signature itself has no path for a caller-chosen user id — createPaymentRequest always writes the userId it was called with, and the API route (tested separately) resolves that argument only from getCurrentUser()', () => {
+  it('3: the function signature itself has no path for a caller-chosen user id — createPaymentRequest always writes the userId it was called with, and the API route (tested separately) resolves that argument only from getCurrentUser()', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const result = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-003');
+    const userId = await makeUser();
+    const result = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-003');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     // The row in the database is keyed by the real, server-resolved userId —
     // there is no "userId" field anywhere in the function's OTHER
     // parameters (productId/paymentReference/userNote) a caller could smuggle
     // a different id through.
-    expect(getPaymentRequestById(db, result.request.id)?.userId).toBe(userId);
+    expect((await getPaymentRequestById(db, result.request.id))?.userId).toBe(userId);
   });
 
-  it('4: unknown product rejected', () => {
+  it('4: unknown product rejected', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const result = createPaymentRequest(db, userId, 'not-a-real-product', 'TXN-004');
+    const userId = await makeUser();
+    const result = await createPaymentRequest(db, userId, 'not-a-real-product', 'TXN-004');
     expect(result).toEqual({ ok: false, reason: 'unknown-product' });
   });
 
-  it('5: inactive product rejected', () => {
+  it('5: inactive product rejected', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
+    const userId = await makeUser();
     // No product in the real catalogue is inactive today, so this exercises
     // the check via a synthetic product id that cannot match any active
     // catalogue entry — the same code path an inactive product would hit.
-    const result = createPaymentRequest(db, userId, 'inactive-fixture-product', 'TXN-005');
+    const result = await createPaymentRequest(db, userId, 'inactive-fixture-product', 'TXN-005');
     expect(result).toEqual({ ok: false, reason: 'unknown-product' });
   });
 
-  it('6: missing payment reference rejected', () => {
+  it('6: missing payment reference rejected', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    expect(createPaymentRequest(db, userId, KANZUL_PRODUCT.id, '')).toEqual({ ok: false, reason: 'invalid-reference' });
-    expect(createPaymentRequest(db, userId, KANZUL_PRODUCT.id, '   ')).toEqual({ ok: false, reason: 'invalid-reference' });
+    const userId = await makeUser();
+    expect(await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, '')).toEqual({ ok: false, reason: 'invalid-reference' });
+    expect(await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, '   ')).toEqual({ ok: false, reason: 'invalid-reference' });
   });
 
-  it('7: malformed request (empty reference alongside unknown product) is rejected safely, never throws', () => {
+  it('7: malformed request (empty reference alongside unknown product) is rejected safely, never throws', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    expect(() => createPaymentRequest(db, userId, '', '')).not.toThrow();
+    const userId = await makeUser();
+    await expect(createPaymentRequest(db, userId, '', '')).resolves.not.toThrow();
   });
 });
 
@@ -99,51 +99,52 @@ describe('payment request creation', () => {
 // DUPLICATES (8-10)
 // ---------------------------------------------------------------------------
 describe('duplicate/repeat request policy', () => {
-  it('8: duplicate pending request for the same product returns the existing request, never a second row', () => {
+  it('8: duplicate pending request for the same product returns the existing request, never a second row', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const first = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-008-A');
-    const second = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-008-B');
+    const userId = await makeUser();
+    const first = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-008-A');
+    const second = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-008-B');
     expect(first.ok && second.ok).toBe(true);
     if (!first.ok || !second.ok) return;
     expect(second.created).toBe(false);
     expect(second.request.id).toBe(first.request.id);
-    expect(getPaymentRequestsForUser(db, userId).filter((r) => r.productId === KANZUL_PRODUCT.id)).toHaveLength(1);
+    const forUser = await getPaymentRequestsForUser(db, userId);
+    expect(forUser.filter((r) => r.productId === KANZUL_PRODUCT.id)).toHaveLength(1);
   });
 
-  it('9: an active entitlement prevents a misleading duplicate purchase request for the SAME product', () => {
+  it('9: an active entitlement prevents a misleading duplicate purchase request for the SAME product', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const first = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-009');
+    const userId = await makeUser();
+    const first = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-009');
     expect(first.ok).toBe(true);
     if (!first.ok) return;
-    approvePaymentRequest(db, first.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, first.request.id, 'admin-fixture');
 
-    const again = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-009-AGAIN');
+    const again = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-009-AGAIN');
     expect(again).toEqual({ ok: false, reason: 'already-entitled' });
   });
 
-  it('9b: a Master entitlement does NOT block a Bundle request (Bundle grants strictly more)', () => {
+  it('9b: a Master entitlement does NOT block a Bundle request (Bundle grants strictly more)', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const masterReq = createPaymentRequest(db, userId, MASTER_PRODUCT.id, 'TXN-009B');
+    const userId = await makeUser();
+    const masterReq = await createPaymentRequest(db, userId, MASTER_PRODUCT.id, 'TXN-009B');
     expect(masterReq.ok).toBe(true);
     if (!masterReq.ok) return;
-    approvePaymentRequest(db, masterReq.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, masterReq.request.id, 'admin-fixture');
 
-    const bundleReq = createPaymentRequest(db, userId, BUNDLE_PRODUCT.id, 'TXN-009B-BUNDLE');
+    const bundleReq = await createPaymentRequest(db, userId, BUNDLE_PRODUCT.id, 'TXN-009B-BUNDLE');
     expect(bundleReq.ok).toBe(true);
   });
 
-  it('10: a rejected request can be resubmitted', () => {
+  it('10: a rejected request can be resubmitted', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const first = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-010');
+    const userId = await makeUser();
+    const first = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-010');
     expect(first.ok).toBe(true);
     if (!first.ok) return;
-    rejectPaymentRequest(db, first.request.id, 'admin-fixture', 'no matching payment found');
+    await rejectPaymentRequest(db, first.request.id, 'admin-fixture', 'no matching payment found');
 
-    const again = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-010-RETRY');
+    const again = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-010-RETRY');
     expect(again.ok).toBe(true);
     if (!again.ok) return;
     expect(again.created).toBe(true);
@@ -157,30 +158,30 @@ describe('duplicate/repeat request policy', () => {
 // covered by the API route tests.
 // ---------------------------------------------------------------------------
 describe('user isolation', () => {
-  it('11: user A cannot see user B’s payment request via getPaymentRequestsForUser', () => {
+  it('11: user A cannot see user B’s payment request via getPaymentRequestsForUser', async () => {
     db = openDatabase(':memory:');
-    const userA = makeUser();
-    const userB = getOrCreateUser(db, 'a-different-real-session-token').user.id;
-    createPaymentRequest(db, userA, KANZUL_PRODUCT.id, 'TXN-011-A');
-    createPaymentRequest(db, userB, MASTER_PRODUCT.id, 'TXN-011-B');
+    const userA = await makeUser();
+    const userB = (await getOrCreateUser(db, 'a-different-real-session-token')).user.id;
+    await createPaymentRequest(db, userA, KANZUL_PRODUCT.id, 'TXN-011-A');
+    await createPaymentRequest(db, userB, MASTER_PRODUCT.id, 'TXN-011-B');
 
-    const aRequests = getPaymentRequestsForUser(db, userA);
+    const aRequests = await getPaymentRequestsForUser(db, userA);
     expect(aRequests).toHaveLength(1);
     expect(aRequests[0].userId).toBe(userA);
   });
 
-  it('12: nothing in this module lets user A act on user B’s request id without that id already being B’s own — approve/reject operate on whatever request id is passed, so isolation is enforced by the ROUTE never accepting an arbitrary id from a non-admin caller (see the API route tests), not by this function guessing ownership', () => {
+  it('12: nothing in this module lets user A act on user B’s request id without that id already being B’s own — approve/reject operate on whatever request id is passed, so isolation is enforced by the ROUTE never accepting an arbitrary id from a non-admin caller (see the API route tests), not by this function guessing ownership', async () => {
     db = openDatabase(':memory:');
-    const userA = makeUser();
-    const userB = getOrCreateUser(db, 'yet-another-real-session-token').user.id;
-    const bRequest = createPaymentRequest(db, userB, KANZUL_PRODUCT.id, 'TXN-012');
+    const userA = await makeUser();
+    const userB = (await getOrCreateUser(db, 'yet-another-real-session-token')).user.id;
+    const bRequest = await createPaymentRequest(db, userB, KANZUL_PRODUCT.id, 'TXN-012');
     expect(bRequest.ok).toBe(true);
     if (!bRequest.ok) return;
 
     // userA has no mutation function available to them at all in this
     // module that takes a userId — approve/reject are ADMIN-only
     // operations by design (Phase 7/11), never callable with "as user A".
-    expect(getPaymentRequestsForUser(db, userA)).toHaveLength(0);
+    expect(await getPaymentRequestsForUser(db, userA)).toHaveLength(0);
   });
 });
 
@@ -188,82 +189,86 @@ describe('user isolation', () => {
 // APPROVAL (17-22)
 // ---------------------------------------------------------------------------
 describe('approval', () => {
-  it('17: pending request approval grants the correct product entitlement', () => {
+  it('17: pending request approval grants the correct product entitlement', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-017');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-017');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
 
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
   });
 
-  it('18: approval marks the request approved', () => {
+  it('18: approval marks the request approved', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-018');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-018');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    const result = approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    const result = await approvePaymentRequest(db, req.request.id, 'admin-fixture');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.request.status).toBe('approved');
   });
 
-  it('19: approval records reviewer and time', () => {
+  it('19: approval records reviewer and time', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-019');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-019');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    const result = approvePaymentRequest(db, req.request.id, 'admin-42');
+    const result = await approvePaymentRequest(db, req.request.id, 'admin-42');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.request.reviewedBy).toBe('admin-42');
     expect(result.request.reviewedAt).toBeTruthy();
   });
 
-  it('20: approval cannot be repeated to create a duplicate entitlement', () => {
+  it('20: approval cannot be repeated to create a duplicate entitlement', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-020');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-020');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-1');
-    approvePaymentRequest(db, req.request.id, 'admin-2');
-    approvePaymentRequest(db, req.request.id, 'admin-3');
+    await approvePaymentRequest(db, req.request.id, 'admin-1');
+    await approvePaymentRequest(db, req.request.id, 'admin-2');
+    await approvePaymentRequest(db, req.request.id, 'admin-3');
 
-    expect(getActiveEntitlementsForUser(db, userId).filter((e) => e.productId === KANZUL_PRODUCT.id)).toHaveLength(1);
+    const active = await getActiveEntitlementsForUser(db, userId);
+    expect(active.filter((e) => e.productId === KANZUL_PRODUCT.id)).toHaveLength(1);
   });
 
-  it('20b: repeated approval keeps the ORIGINAL reviewer/time, not the latest retry', () => {
+  it('20b: repeated approval keeps the ORIGINAL reviewer/time, not the latest retry', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-020B');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-020B');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    const first = approvePaymentRequest(db, req.request.id, 'admin-original');
-    const second = approvePaymentRequest(db, req.request.id, 'admin-retry');
+    const first = await approvePaymentRequest(db, req.request.id, 'admin-original');
+    const second = await approvePaymentRequest(db, req.request.id, 'admin-retry');
     expect(first.ok && second.ok).toBe(true);
     if (!first.ok || !second.ok) return;
     expect(second.request.reviewedBy).toBe('admin-original');
     expect(second.request.reviewedAt).toBe(first.request.reviewedAt);
   });
 
-  it('21: an unknown request id cannot be approved', () => {
+  it('21: an unknown request id cannot be approved', async () => {
     db = openDatabase(':memory:');
-    expect(approvePaymentRequest(db, 'not-a-real-request-id', 'admin-fixture')).toEqual({ ok: false, reason: 'not-found' });
+    expect(await approvePaymentRequest(db, 'not-a-real-request-id', 'admin-fixture')).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
   });
 
-  it('22: an already-rejected request cannot be approved', () => {
+  it('22: an already-rejected request cannot be approved', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-022');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-022');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    rejectPaymentRequest(db, req.request.id, 'admin-fixture');
-    expect(approvePaymentRequest(db, req.request.id, 'admin-fixture')).toEqual({ ok: false, reason: 'not-pending' });
+    await rejectPaymentRequest(db, req.request.id, 'admin-fixture');
+    expect(await approvePaymentRequest(db, req.request.id, 'admin-fixture')).toEqual({ ok: false, reason: 'not-pending' });
   });
 });
 
@@ -271,37 +276,37 @@ describe('approval', () => {
 // REJECTION (23-25)
 // ---------------------------------------------------------------------------
 describe('rejection', () => {
-  it('23: rejection marks the request rejected', () => {
+  it('23: rejection marks the request rejected', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-023');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-023');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    const result = rejectPaymentRequest(db, req.request.id, 'admin-fixture', 'not received');
+    const result = await rejectPaymentRequest(db, req.request.id, 'admin-fixture', 'not received');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.request.status).toBe('rejected');
     expect(result.request.adminNote).toBe('not received');
   });
 
-  it('24: rejection does not create an entitlement', () => {
+  it('24: rejection does not create an entitlement', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-024');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-024');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    rejectPaymentRequest(db, req.request.id, 'admin-fixture');
-    expect(getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
+    await rejectPaymentRequest(db, req.request.id, 'admin-fixture');
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
   });
 
-  it('25: a rejected request cannot authorize protected content', () => {
+  it('25: a rejected request cannot authorize protected content', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-025');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-025');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    rejectPaymentRequest(db, req.request.id, 'admin-fixture');
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    await rejectPaymentRequest(db, req.request.id, 'admin-fixture');
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 });
 
@@ -309,40 +314,40 @@ describe('rejection', () => {
 // ACCESS INTEGRATION (26-30)
 // ---------------------------------------------------------------------------
 describe('access integration', () => {
-  it('26-27: approved Master request grants Master access, Kanzul remains inaccessible', () => {
+  it('26-27: approved Master request grants Master access, Kanzul remains inaccessible', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, MASTER_PRODUCT.id, 'TXN-026');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, MASTER_PRODUCT.id, 'TXN-026');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
 
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(true);
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(true);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 
-  it('28-29: approved Kanzul request grants Kanzul access, Master remains inaccessible', () => {
+  it('28-29: approved Kanzul request grants Kanzul access, Master remains inaccessible', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-028');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-028');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
 
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(false);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(false);
   });
 
-  it('30: approved Bundle request grants both', () => {
+  it('30: approved Bundle request grants both', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, BUNDLE_PRODUCT.id, 'TXN-030');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, BUNDLE_PRODUCT.id, 'TXN-030');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
 
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(true);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(true);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'master-of-geomancy-vol-1' })).toBe(true);
   });
 });
 
@@ -350,49 +355,49 @@ describe('access integration', () => {
 // PROTECTED CONTENT (31-34)
 // ---------------------------------------------------------------------------
 describe('protected content authorization', () => {
-  it('31: a freshly-submitted payment request alone does NOT authorize protected content', () => {
+  it('31: a freshly-submitted payment request alone does NOT authorize protected content', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-031');
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    const userId = await makeUser();
+    await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-031');
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 
-  it('32: a pending request does NOT authorize protected content', () => {
+  it('32: a pending request does NOT authorize protected content', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-032');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-032');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
     expect(req.request.status).toBe('pending');
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 
-  it('33: a rejected request does NOT authorize protected content', () => {
+  it('33: a rejected request does NOT authorize protected content', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-033');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-033');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    rejectPaymentRequest(db, req.request.id, 'admin-fixture');
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    await rejectPaymentRequest(db, req.request.id, 'admin-fixture');
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 
-  it('34: only an active entitlement (never a PaymentRequest row of any status) authorizes protected content', () => {
+  it('34: only an active entitlement (never a PaymentRequest row of any status) authorizes protected content', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-034');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-034');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
     // Access is granted — but by the entitlement the approval created, not
     // by the payment_requests row itself. Prove this by revoking the
     // entitlement directly and confirming access is lost even though the
     // payment request row still says "approved".
-    const entitlement = getActiveEntitlementsForUser(db, userId)[0];
-    db.prepare("UPDATE entitlements SET status = 'revoked' WHERE id = ?").run(entitlement.id);
+    const entitlement = (await getActiveEntitlementsForUser(db, userId))[0];
+    await db.execute("UPDATE entitlements SET status = 'revoked' WHERE id = ?", [entitlement.id]);
 
-    expect(getPaymentRequestById(db, req.request.id)?.status).toBe('approved');
-    expect(canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
+    expect((await getPaymentRequestById(db, req.request.id))?.status).toBe('approved');
+    expect(await canAccessForUser(db, userId, { kind: 'book', bookId: 'kanzul-mikban' })).toBe(false);
   });
 });
 
@@ -400,42 +405,62 @@ describe('protected content authorization', () => {
 // TRANSACTIONAL SAFETY (Phase 16)
 // ---------------------------------------------------------------------------
 describe('transactional safety', () => {
-  it('approve, approve: deterministic single entitlement, no error', () => {
+  it('approve, approve: deterministic single entitlement, no error', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T1');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T1');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-1');
-    approvePaymentRequest(db, req.request.id, 'admin-1');
-    expect(getActiveEntitlementsForUser(db, userId)).toHaveLength(1);
-    expect(getPaymentRequestById(db, req.request.id)?.status).toBe('approved');
+    await approvePaymentRequest(db, req.request.id, 'admin-1');
+    await approvePaymentRequest(db, req.request.id, 'admin-1');
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(1);
+    expect((await getPaymentRequestById(db, req.request.id))?.status).toBe('approved');
   });
 
-  it('approve, then reject: final state stays approved, entitlement intact', () => {
+  it('approve, then reject: final state stays approved, entitlement intact', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T2');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T2');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-1');
-    const rejectAttempt = rejectPaymentRequest(db, req.request.id, 'admin-1');
+    await approvePaymentRequest(db, req.request.id, 'admin-1');
+    const rejectAttempt = await rejectPaymentRequest(db, req.request.id, 'admin-1');
     expect(rejectAttempt).toEqual({ ok: false, reason: 'not-pending' });
-    expect(getPaymentRequestById(db, req.request.id)?.status).toBe('approved');
-    expect(getActiveEntitlementsForUser(db, userId)).toHaveLength(1);
+    expect((await getPaymentRequestById(db, req.request.id))?.status).toBe('approved');
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(1);
   });
 
-  it('reject, then approve: final state stays rejected, no entitlement ever exists', () => {
+  it('reject, then approve: final state stays rejected, no entitlement ever exists', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T3');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T3');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    rejectPaymentRequest(db, req.request.id, 'admin-1');
-    const approveAttempt = approvePaymentRequest(db, req.request.id, 'admin-1');
+    await rejectPaymentRequest(db, req.request.id, 'admin-1');
+    const approveAttempt = await approvePaymentRequest(db, req.request.id, 'admin-1');
     expect(approveAttempt).toEqual({ ok: false, reason: 'not-pending' });
-    expect(getPaymentRequestById(db, req.request.id)?.status).toBe('rejected');
-    expect(getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
+    expect((await getPaymentRequestById(db, req.request.id))?.status).toBe('rejected');
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
+  });
+
+  it('concurrent approve calls for the same request never produce more than one active entitlement (Promise.all, same test/dev adapter)', async () => {
+    db = openDatabase(':memory:');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-T4');
+    expect(req.ok).toBe(true);
+    if (!req.ok) return;
+
+    // This confirms the SQLite test/dev adapter's whole-database
+    // BEGIN IMMEDIATE lock still serializes concurrent approvals correctly
+    // — it does NOT prove multi-connection Postgres correctness under
+    // real concurrency, which needs a live database. See
+    // lib/server/db/postgresAdapter.concurrency.test.ts for that.
+    await Promise.all([
+      approvePaymentRequest(db, req.request.id, 'admin-a'),
+      approvePaymentRequest(db, req.request.id, 'admin-b'),
+    ]);
+
+    expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(1);
   });
 });
 
@@ -443,25 +468,25 @@ describe('transactional safety', () => {
 // Admin listing sanity
 // ---------------------------------------------------------------------------
 describe('admin listing', () => {
-  it('lists pending requests across users, oldest first', () => {
+  it('lists pending requests across users, oldest first', async () => {
     db = openDatabase(':memory:');
-    const userA = makeUser();
-    const userB = getOrCreateUser(db, 'admin-listing-fixture-token').user.id;
-    createPaymentRequest(db, userA, KANZUL_PRODUCT.id, 'TXN-L1');
-    createPaymentRequest(db, userB, MASTER_PRODUCT.id, 'TXN-L2');
+    const userA = await makeUser();
+    const userB = (await getOrCreateUser(db, 'admin-listing-fixture-token')).user.id;
+    await createPaymentRequest(db, userA, KANZUL_PRODUCT.id, 'TXN-L1');
+    await createPaymentRequest(db, userB, MASTER_PRODUCT.id, 'TXN-L2');
 
-    const pending = listPaymentRequestsForAdmin(db, 'pending');
+    const pending = await listPaymentRequestsForAdmin(db, 'pending');
     expect(pending).toHaveLength(2);
     expect(pending.every((r) => r.status === 'pending')).toBe(true);
   });
 
-  it('never returns another status when filtered by "pending"', () => {
+  it('never returns another status when filtered by "pending"', async () => {
     db = openDatabase(':memory:');
-    const userId = makeUser();
-    const req = createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-L3');
+    const userId = await makeUser();
+    const req = await createPaymentRequest(db, userId, KANZUL_PRODUCT.id, 'TXN-L3');
     expect(req.ok).toBe(true);
     if (!req.ok) return;
-    approvePaymentRequest(db, req.request.id, 'admin-fixture');
-    expect(listPaymentRequestsForAdmin(db, 'pending')).toHaveLength(0);
+    await approvePaymentRequest(db, req.request.id, 'admin-fixture');
+    expect(await listPaymentRequestsForAdmin(db, 'pending')).toHaveLength(0);
   });
 });

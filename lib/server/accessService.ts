@@ -17,8 +17,8 @@ import type { Db } from './db';
  * lib/access/README.md, "Server/client security boundary") plus the
  * static, tested product catalogue.
  */
-export function getAccessContextForUser(db: Db, userId: string): AccessContext {
-  return { entitlements: getActiveEntitlementsForUser(db, userId), products: PRODUCT_CATALOGUE };
+export async function getAccessContextForUser(db: Db, userId: string): Promise<AccessContext> {
+  return { entitlements: await getActiveEntitlementsForUser(db, userId), products: PRODUCT_CATALOGUE };
 }
 
 /**
@@ -28,6 +28,6 @@ export function getAccessContextForUser(db: Db, userId: string): AccessContext {
  * yes/no decision to canAccess(). Deliberately not wired into any route
  * in this task (Prompt 26, Phase 9).
  */
-export function canAccessForUser(db: Db, userId: string, resource: AccessResource): boolean {
-  return canAccess(getAccessContextForUser(db, userId), resource);
+export async function canAccessForUser(db: Db, userId: string, resource: AccessResource): Promise<boolean> {
+  return canAccess(await getAccessContextForUser(db, userId), resource);
 }

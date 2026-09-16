@@ -46,11 +46,11 @@ export function verifyAdminSecret(secret: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-export function createAdminSession(db: Db, token: string): void {
-  db.prepare('INSERT INTO admin_sessions (token_hash, created_at) VALUES (?, ?)').run(
+export async function createAdminSession(db: Db, token: string): Promise<void> {
+  await db.execute('INSERT INTO admin_sessions (token_hash, created_at) VALUES (?, ?)', [
     hashAdminToken(token),
     new Date().toISOString(),
-  );
+  ]);
 }
 
 /** Looks up whether `token` hashes to a real, still-fresh admin session.
@@ -58,11 +58,11 @@ export function createAdminSession(db: Db, token: string): void {
  * server, not only via the cookie's own maxAge, so a copied/replayed
  * cookie value cannot outlive the intended session length even if a
  * client's own cookie-expiry handling is bypassed. */
-export function isAdminToken(db: Db, token: string | null): boolean {
+export async function isAdminToken(db: Db, token: string | null): Promise<boolean> {
   if (!token) return false;
-  const row = db.prepare('SELECT created_at FROM admin_sessions WHERE token_hash = ?').get(hashAdminToken(token)) as
-    | { created_at: string }
-    | undefined;
+  const row = await db.queryOne<{ created_at: string }>('SELECT created_at FROM admin_sessions WHERE token_hash = ?', [
+    hashAdminToken(token),
+  ]);
   if (!row) return false;
   const age = Date.now() - new Date(row.created_at).getTime();
   return age >= 0 && age <= ADMIN_SESSION_MAX_AGE_MS;

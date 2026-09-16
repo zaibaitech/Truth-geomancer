@@ -42,16 +42,21 @@ function StatusBadge({ status }: { status: ProductAccessStatus }) {
 // Prompt 28, Phase 5/14: uses PRODUCT_CATALOGUE directly — never a second,
 // separately maintained product list. No price is shown anywhere: none
 // was ever defined (Prompt 25), and none is invented here.
-export default function PurchasePage() {
-  const user = getCurrentUserIfPresent();
+export default async function PurchasePage() {
+  const user = await getCurrentUserIfPresent();
   const db = user ? getDb() : null;
+
+  const activeProducts = PRODUCT_CATALOGUE.filter((p) => p.active);
+  const statuses = await Promise.all(
+    activeProducts.map((product) => (user && db ? getProductAccessStatus(db, user.id, product.id) : Promise.resolve('none' as const))),
+  );
 
   return (
     <div>
       <Header title="Get access" subtitle="Request access to a book or bundle" />
       <div className="space-y-3 px-4 py-4">
-        {PRODUCT_CATALOGUE.filter((p) => p.active).map((product) => {
-          const status = user && db ? getProductAccessStatus(db, user.id, product.id) : 'none';
+        {activeProducts.map((product, i) => {
+          const status = statuses[i];
           return (
             <Card key={product.id}>
               <p className="type-body font-semibold text-sand-light">{product.name}</p>

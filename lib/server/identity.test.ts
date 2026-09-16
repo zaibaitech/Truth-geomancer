@@ -1,21 +1,22 @@
 // Tests for the pure identity logic (Prompt 26, Phase 11 — IDENTITY).
+// Updated for Prompt 31C's async Db interface.
 import { afterEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from './db';
 import { createAnonymousUser, generateSessionToken, getOrCreateUser, getUserByToken } from './identity';
 
 let db: Db;
-afterEach(() => {
+afterEach(async () => {
   try {
-    db?.close();
+    await db?.close();
   } catch {
     // Not open for a test that never called openDatabase(); nothing to clean up.
   }
 });
 
 describe('new anonymous identity', () => {
-  it('creates a user with no token, and a fresh, high-entropy token is returned', () => {
+  it('creates a user with no token, and a fresh, high-entropy token is returned', async () => {
     db = openDatabase(':memory:');
-    const { user, token, isNew } = getOrCreateUser(db, null);
+    const { user, token, isNew } = await getOrCreateUser(db, null);
     expect(isNew).toBe(true);
     expect(user.id).toBeTruthy();
     expect(user.email).toBeNull();
@@ -23,28 +24,28 @@ describe('new anonymous identity', () => {
     expect(token.length).toBeGreaterThanOrEqual(32); // 256 bits, base64url
   });
 
-  it('never persists the raw token, only its hash', () => {
+  it('never persists the raw token, only its hash', async () => {
     db = openDatabase(':memory:');
-    const { token } = getOrCreateUser(db, null);
-    const rows = db.prepare('SELECT session_token_hash FROM users').all() as { session_token_hash: string }[];
+    const { token } = await getOrCreateUser(db, null);
+    const rows = await db.query<{ session_token_hash: string }>('SELECT session_token_hash FROM users');
     expect(rows).toHaveLength(1);
     expect(rows[0].session_token_hash).not.toBe(token);
   });
 
-  it('two calls with no token create two distinct users', () => {
+  it('two calls with no token create two distinct users', async () => {
     db = openDatabase(':memory:');
-    const a = getOrCreateUser(db, null);
-    const b = getOrCreateUser(db, null);
+    const a = await getOrCreateUser(db, null);
+    const b = await getOrCreateUser(db, null);
     expect(a.user.id).not.toBe(b.user.id);
     expect(a.token).not.toBe(b.token);
   });
 });
 
 describe('stable identity across requests', () => {
-  it('the same token resolves to the same user on a later call', () => {
+  it('the same token resolves to the same user on a later call', async () => {
     db = openDatabase(':memory:');
-    const first = getOrCreateUser(db, null);
-    const second = getOrCreateUser(db, first.token);
+    const first = await getOrCreateUser(db, null);
+    const second = await getOrCreateUser(db, first.token);
     expect(second.isNew).toBe(false);
     expect(second.user.id).toBe(first.user.id);
     expect(second.token).toBe(first.token);
@@ -52,26 +53,26 @@ describe('stable identity across requests', () => {
 
   it('resolving an existing token advances lastSeenAt', async () => {
     db = openDatabase(':memory:');
-    const first = getOrCreateUser(db, null);
+    const first = await getOrCreateUser(db, null);
     await new Promise((r) => setTimeout(r, 5));
-    const second = getOrCreateUser(db, first.token);
+    const second = await getOrCreateUser(db, first.token);
     expect(new Date(second.user.lastSeenAt).getTime()).toBeGreaterThanOrEqual(new Date(first.user.lastSeenAt).getTime());
   });
 });
 
 describe('invalid/tampered identity cannot impersonate another user', () => {
-  it('an unknown, hand-typed token resolves to no user — never an existing one', () => {
+  it('an unknown, hand-typed token resolves to no user — never an existing one', async () => {
     db = openDatabase(':memory:');
-    const real = getOrCreateUser(db, null);
-    expect(getUserByToken(db, 'userId=paid-user')).toBeNull();
-    expect(getUserByToken(db, 'paid-user')).toBeNull();
-    expect(getUserByToken(db, real.user.id)).toBeNull(); // the DB id itself is NOT a valid token
+    const real = await getOrCreateUser(db, null);
+    expect(await getUserByToken(db, 'userId=paid-user')).toBeNull();
+    expect(await getUserByToken(db, 'paid-user')).toBeNull();
+    expect(await getUserByToken(db, real.user.id)).toBeNull(); // the DB id itself is NOT a valid token
   });
 
-  it('a tampered/unknown token in getOrCreateUser silently creates a NEW anonymous user, never an existing one', () => {
+  it('a tampered/unknown token in getOrCreateUser silently creates a NEW anonymous user, never an existing one', async () => {
     db = openDatabase(':memory:');
-    const real = getOrCreateUser(db, null);
-    const attempt = getOrCreateUser(db, 'userId=paid-user');
+    const real = await getOrCreateUser(db, null);
+    const attempt = await getOrCreateUser(db, 'userId=paid-user');
     expect(attempt.isNew).toBe(true);
     expect(attempt.user.id).not.toBe(real.user.id);
     expect(attempt.token).not.toBe('userId=paid-user'); // server issues its own fresh token
@@ -82,10 +83,10 @@ describe('invalid/tampered identity cannot impersonate another user', () => {
     expect(tokens.size).toBe(200);
   });
 
-  it('createAnonymousUser with a caller-chosen token still requires that exact token to resolve later', () => {
+  it('createAnonymousUser with a caller-chosen token still requires that exact token to resolve later', async () => {
     db = openDatabase(':memory:');
-    createAnonymousUser(db, 'a-specific-token');
-    expect(getUserByToken(db, 'a-specific-token')).not.toBeNull();
-    expect(getUserByToken(db, 'a-specific-token-guessed')).toBeNull();
+    await createAnonymousUser(db, 'a-specific-token');
+    expect(await getUserByToken(db, 'a-specific-token')).not.toBeNull();
+    expect(await getUserByToken(db, 'a-specific-token-guessed')).toBeNull();
   });
 });

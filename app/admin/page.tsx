@@ -16,8 +16,8 @@ function productName(productId: string): string {
 // reads only a cookie whose value hashes to a real, fresh row in
 // admin_sessions) returns true. There is no client-side flag, query
 // parameter, or hidden button that can substitute for this check.
-export default function AdminDashboardPage() {
-  const isAdmin = isCurrentUserAdmin();
+export default async function AdminDashboardPage() {
+  const isAdmin = await isCurrentUserAdmin();
 
   if (!isAdmin) {
     return (
@@ -35,8 +35,8 @@ export default function AdminDashboardPage() {
   }
 
   const db = getDb();
-  const pending = listPaymentRequestsForAdmin(db, 'pending');
-  const reviewed = listPaymentRequestsForAdmin(db).filter((r) => r.status !== 'pending').slice(0, 25);
+  const pending = await listPaymentRequestsForAdmin(db, 'pending');
+  const reviewed = (await listPaymentRequestsForAdmin(db)).filter((r) => r.status !== 'pending').slice(0, 25);
 
   return (
     <div>

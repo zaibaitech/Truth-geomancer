@@ -48,10 +48,10 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
  * and which this function never derives from anything the client sent
  * except by successful hash lookup.
  */
-export function getCurrentUser(): User {
+export async function getCurrentUser(): Promise<User> {
   const store = cookies();
   const existingToken = store.get(SESSION_COOKIE)?.value ?? null;
-  const { user, token, isNew } = getOrCreateUser(getDb(), existingToken);
+  const { user, token, isNew } = await getOrCreateUser(getDb(), existingToken);
 
   if (isNew || !existingToken) {
     store.set(SESSION_COOKIE, token, {
@@ -84,12 +84,12 @@ export function getCurrentUser(): User {
  * identically to one that could create-and-check a fresh anonymous user,
  * without needing to write a cookie it structurally cannot write.
  */
-export function getCurrentUserIfPresent(): User | null {
+export async function getCurrentUserIfPresent(): Promise<User | null> {
   const token = cookies().get(SESSION_COOKIE)?.value ?? null;
   if (!token) return null;
   const db = getDb();
-  const user = getUserByToken(db, token);
+  const user = await getUserByToken(db, token);
   if (!user) return null;
-  const lastSeenAt = touchLastSeen(db, user.id);
+  const lastSeenAt = await touchLastSeen(db, user.id);
   return { ...user, lastSeenAt };
 }

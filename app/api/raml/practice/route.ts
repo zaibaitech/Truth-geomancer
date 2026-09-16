@@ -32,9 +32,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
 
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
   const db = getDb();
-  const result = getPracticeMethodForUser(db, user.id, chapterId, methodId, isValidChart(chart) ? chart : null);
+  const result = await getPracticeMethodForUser(db, user.id, chapterId, methodId, isValidChart(chart) ? chart : null);
 
   if (!result.ok) {
     if (result.reason === 'unauthorized') {

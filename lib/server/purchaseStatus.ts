@@ -18,10 +18,11 @@ export type ProductAccessStatus = 'active' | 'pending' | 'rejected' | 'none';
  *              paymentRequests.ts's duplicate policy).
  * `none`     — no entitlement and no request has ever been submitted.
  */
-export function getProductAccessStatus(db: Db, userId: string, productId: string): ProductAccessStatus {
-  if (canAccessForUser(db, userId, { kind: 'book', bookId: productId })) return 'active';
+export async function getProductAccessStatus(db: Db, userId: string, productId: string): Promise<ProductAccessStatus> {
+  if (await canAccessForUser(db, userId, { kind: 'book', bookId: productId })) return 'active';
 
-  const requests = getPaymentRequestsForUser(db, userId).filter((r) => r.productId === productId);
+  const allRequests = await getPaymentRequestsForUser(db, userId);
+  const requests = allRequests.filter((r) => r.productId === productId);
   if (requests.length === 0) return 'none';
 
   // getPaymentRequestsForUser orders by submitted_at DESC, so the first

@@ -9,7 +9,7 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // any other access-granting function — a rejected request provides no
 // access, by construction (see paymentRequests.ts's rejectPaymentRequest).
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const reviewerId = currentAdminReviewerId();
+  const reviewerId = await currentAdminReviewerId();
   if (!reviewerId) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
@@ -29,7 +29,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   }
 
   const db = getDb();
-  const result = rejectPaymentRequest(db, params.id, reviewerId, adminNote);
+  const result = await rejectPaymentRequest(db, params.id, reviewerId, adminNote);
 
   if (!result.ok) {
     const status = result.reason === 'not-found' ? 404 : 409;

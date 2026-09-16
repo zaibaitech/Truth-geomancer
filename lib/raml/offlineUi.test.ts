@@ -92,9 +92,10 @@ describe('OfflineDownloadControl never claims availability it cannot verify (sec
     expect(downloadControl).toMatch(/hasn.t been downloaded for offline use yet/);
   });
 
-  it('reports a partial-download failure by count, never silently claims success', () => {
-    expect(downloadControl).toMatch(/couldn.t be saved/);
+  it('reports a partial-download failure by count, never silently claims success (Prompt 30: also verifies entitlement server-side before caching anything)', () => {
+    expect(downloadControl).toMatch(/could not be completed/);
     expect(downloadControl).toMatch(/result\.ok/);
+    expect(downloadControl).toMatch(/downloadBookForOfflineUse/);
   });
 
   it('never states or implies certainty language about a reading result — this is a download control only', () => {
@@ -144,10 +145,15 @@ describe('offline infrastructure is wired into the app shell', () => {
     expect(swRegister).toMatch(/register\('\/sw\.js'\)/);
   });
 
-  it('the book detail page renders OfflineDownloadControl only for readable books, matching the Start Reading gate', () => {
+  it('the book detail page renders OfflineDownloadControl only for readable books, matching the Start Reading gate, and passes a server-computed entitled flag (Prompt 30, Phase 20)', () => {
     const startReadingIdx = bookPage.indexOf('Start Reading');
     const readableBlock = bookPage.slice(startReadingIdx, startReadingIdx + 300);
-    expect(readableBlock).toMatch(/<OfflineDownloadControl bookId=\{book\.id\} \/>/);
+    expect(readableBlock).toMatch(/<OfflineDownloadControl bookId=\{book\.id\} entitled=\{entitled\} \/>/);
+  });
+
+  it('the book detail page computes `entitled` from canAccessForUser, never a client-supplied flag, and routes an unentitled visitor toward the purchase flow', () => {
+    expect(bookPage).toMatch(/canAccessForUser\(db, user\.id, \{ kind: 'book', bookId: book\.id \}\)/);
+    expect(bookPage).toMatch(/Purchase to enable offline download/);
   });
 });
 

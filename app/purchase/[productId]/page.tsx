@@ -20,17 +20,18 @@ import { getPaymentRequestsForUser } from '@/lib/server/paymentRequests';
 // still rendered, and submitting it is what actually creates their
 // session, inside the Route Handler (POST /api/payment-requests), which
 // legitimately calls the cookie-writing getCurrentUser().
-export default function ProductPurchasePage({ params }: { params: { productId: string } }) {
+export default async function ProductPurchasePage({ params }: { params: { productId: string } }) {
   const product = PRODUCT_CATALOGUE.find((p) => p.id === params.productId && p.active);
   if (!product) notFound();
 
   const instructions = getPaymentInstructions(product.id);
   if (!instructions) notFound();
 
-  const user = getCurrentUserIfPresent();
+  const user = await getCurrentUserIfPresent();
   const db = user ? getDb() : null;
-  const status = user && db ? getProductAccessStatus(db, user.id, product.id) : 'none';
-  const myRequests = user && db ? getPaymentRequestsForUser(db, user.id).filter((r) => r.productId === product.id) : [];
+  const status = user && db ? await getProductAccessStatus(db, user.id, product.id) : 'none';
+  const myRequests =
+    user && db ? (await getPaymentRequestsForUser(db, user.id)).filter((r) => r.productId === product.id) : [];
   const mostRecent = myRequests[0];
 
   return (

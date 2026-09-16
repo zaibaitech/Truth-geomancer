@@ -32,9 +32,9 @@ import { getDb } from '@/lib/server/db';
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 export async function GET(_request: Request, { params }: { params: { bookId: string; chapterId: string } }) {
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
   const db = getDb();
-  const result = getChapterForUser(db, user.id, params.bookId, params.chapterId);
+  const result = await getChapterForUser(db, user.id, params.bookId, params.chapterId);
 
   if (result.ok) {
     return NextResponse.json({ chapter: result.chapter }, { headers: NO_STORE_HEADERS });

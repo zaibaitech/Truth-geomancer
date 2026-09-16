@@ -3,7 +3,8 @@
 // and identity.test.ts/security.test.ts (IDENTITY SECURITY): LEAKAGE,
 // SEARCH, and PRACTICE. Also covers the session-resolution fix this
 // migration required (a Server Component page render cannot write a
-// cookie — see session.ts's own comment).
+// cookie — see session.ts's own comment). Updated for Prompt 31C's async
+// Db interface.
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from './db';
@@ -13,9 +14,9 @@ import { getChapterForUser } from './contentService';
 import { KANZUL_PRODUCT } from '@/lib/access/products';
 
 let db: Db;
-afterEach(() => {
+afterEach(async () => {
   try {
-    db?.close();
+    await db?.close();
   } catch {
     // Not open for a test that never called openDatabase(); nothing to clean up.
   }
@@ -25,10 +26,10 @@ afterEach(() => {
 // LEAKAGE
 // ---------------------------------------------------------------------------
 describe('LEAKAGE: an unauthorized content request never carries protected text', () => {
-  it('an unauthorized ChapterContentResult has no chapter field at all — not an empty/redacted one', () => {
+  it('an unauthorized ChapterContentResult has no chapter field at all — not an empty/redacted one', async () => {
     db = openDatabase(':memory:');
-    const userId = getOrCreateUser(db, null).user.id;
-    const result = getChapterForUser(db, userId, 'kanzul-mikban', 'if-you-want-to-know-if-you-will');
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    const result = await getChapterForUser(db, userId, 'kanzul-mikban', 'if-you-want-to-know-if-you-will');
     expect(result.ok).toBe(false);
     expect(JSON.stringify(result)).not.toMatch(/paragraphs|you will return with money/i);
   });
@@ -138,13 +139,13 @@ describe('a page render never attempts an illegal cookie write, and never fixate
 
   it('getCurrentUserIfPresent never creates a user or writes a cookie — only getUserByToken/touchLastSeen, never getOrCreateUser/store.set', () => {
     const source = readFileSync('lib/server/session.ts', 'utf-8');
-    const fnStart = source.indexOf('export function getCurrentUserIfPresent');
+    const fnStart = source.indexOf('export async function getCurrentUserIfPresent');
     const fnBody = source.slice(fnStart);
     expect(fnBody).toMatch(/getUserByToken/);
     expect(fnBody).not.toMatch(/getOrCreateUser|\.set\(/);
   });
 
-  it('every gated page evaluates authorized as `user !== null && canAccessForUser(...)`, so a null user (no cookie yet) short-circuits to false without ever calling canAccessForUser', () => {
+  it('every gated page evaluates authorized as `user !== null && (await canAccessForUser(...))`, so a null user (no cookie yet) short-circuits to false without ever calling canAccessForUser', () => {
     const pages = [
       'app/books/[id]/read/page.tsx',
       'app/raml/practice/[chapterId]/[methodId]/page.tsx',
@@ -157,21 +158,21 @@ describe('a page render never attempts an illegal cookie write, and never fixate
     }
   });
 
-  it('identity.ts still never lets a client-supplied token become the stored session — the getOrCreateUser() fixation guard this migration must not weaken', () => {
+  it('identity.ts still never lets a client-supplied token become the stored session — the getOrCreateUser() fixation guard this migration must not weaken', async () => {
     db = openDatabase(':memory:');
-    const attempt = getOrCreateUser(db, 'client-chosen-token');
+    const attempt = await getOrCreateUser(db, 'client-chosen-token');
     expect(attempt.token).not.toBe('client-chosen-token');
   });
 
-  it('once a Route Handler has issued a real session cookie, the same token grants access to content the user was actually entitled to', () => {
+  it('once a Route Handler has issued a real session cookie, the same token grants access to content the user was actually entitled to', async () => {
     db = openDatabase(':memory:');
-    const { user, token } = getOrCreateUser(db, null);
-    grantEntitlement(db, user.id, KANZUL_PRODUCT.id, 'manual-payment');
+    const { user, token } = await getOrCreateUser(db, null);
+    await grantEntitlement(db, user.id, KANZUL_PRODUCT.id, 'manual-payment');
     // Re-resolving via the exact token a Route Handler would have set as
     // the cookie value reaches the SAME user and SAME entitlement.
-    const resolved = getOrCreateUser(db, token);
+    const resolved = await getOrCreateUser(db, token);
     expect(resolved.user.id).toBe(user.id);
-    const result = getChapterForUser(db, resolved.user.id, 'kanzul-mikban', 'if-you-want-to-know-if-you-will');
+    const result = await getChapterForUser(db, resolved.user.id, 'kanzul-mikban', 'if-you-want-to-know-if-you-will');
     expect(result.ok).toBe(true);
   });
 });

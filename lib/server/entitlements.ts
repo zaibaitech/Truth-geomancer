@@ -31,15 +31,16 @@ function rowToEntitlement(row: EntitlementRow): Entitlement {
   };
 }
 
-export function getEntitlementsForUser(db: Db, userId: string): Entitlement[] {
-  const rows = db.prepare('SELECT * FROM entitlements WHERE user_id = ? ORDER BY granted_at').all(userId) as unknown as EntitlementRow[];
+export async function getEntitlementsForUser(db: Db, userId: string): Promise<Entitlement[]> {
+  const rows = await db.query<EntitlementRow>('SELECT * FROM entitlements WHERE user_id = ? ORDER BY granted_at', [userId]);
   return rows.map(rowToEntitlement);
 }
 
-export function getActiveEntitlementsForUser(db: Db, userId: string): Entitlement[] {
-  const rows = db
-    .prepare("SELECT * FROM entitlements WHERE user_id = ? AND status = 'active' ORDER BY granted_at")
-    .all(userId) as unknown as EntitlementRow[];
+export async function getActiveEntitlementsForUser(db: Db, userId: string): Promise<Entitlement[]> {
+  const rows = await db.query<EntitlementRow>(
+    "SELECT * FROM entitlements WHERE user_id = ? AND status = 'active' ORDER BY granted_at",
+    [userId],
+  );
   return rows.map(rowToEntitlement);
 }
 
@@ -74,30 +75,32 @@ export interface GrantResult {
  * exercise the "known but inactive product" refusal path with a
  * controlled catalogue, without mutating shared state.
  */
-export function grantEntitlement(
+export async function grantEntitlement(
   db: Db,
   userId: string,
   productId: string,
   source: EntitlementSource,
   catalogue: Product[] = PRODUCT_CATALOGUE,
-): GrantResult {
+): Promise<GrantResult> {
   const product = catalogue.find((p) => p.id === productId);
   if (!product || !product.active) {
     throw new Error(`grantEntitlement: unknown or inactive product id "${productId}"`);
   }
 
-  const existing = db
-    .prepare("SELECT * FROM entitlements WHERE user_id = ? AND product_id = ? AND status = 'active'")
-    .get(userId, productId) as EntitlementRow | undefined;
+  const existing = await db.queryOne<EntitlementRow>(
+    "SELECT * FROM entitlements WHERE user_id = ? AND product_id = ? AND status = 'active'",
+    [userId, productId],
+  );
   if (existing) {
     return { entitlement: rowToEntitlement(existing), created: false };
   }
 
   const grantedAt = new Date().toISOString();
   const id = randomUUID();
-  db.prepare(
+  await db.execute(
     'INSERT INTO entitlements (id, user_id, product_id, status, granted_at, revoked_at, source) VALUES (?, ?, ?, ?, ?, NULL, ?)',
-  ).run(id, userId, productId, 'active', grantedAt, source);
+    [id, userId, productId, 'active', grantedAt, source],
+  );
 
   return { entitlement: { id, userId, productId, status: 'active', grantedAt, source }, created: true };
 }
@@ -109,12 +112,12 @@ export function grantEntitlement(
  * rather than erroring or overwriting `revokedAt`. Returns null only if
  * the id does not exist at all.
  */
-export function revokeEntitlement(db: Db, entitlementId: string): Entitlement | null {
-  const row = db.prepare('SELECT * FROM entitlements WHERE id = ?').get(entitlementId) as EntitlementRow | undefined;
+export async function revokeEntitlement(db: Db, entitlementId: string): Promise<Entitlement | null> {
+  const row = await db.queryOne<EntitlementRow>('SELECT * FROM entitlements WHERE id = ?', [entitlementId]);
   if (!row) return null;
   if (row.status === 'revoked') return rowToEntitlement(row);
 
   const revokedAt = new Date().toISOString();
-  db.prepare("UPDATE entitlements SET status = 'revoked', revoked_at = ? WHERE id = ?").run(revokedAt, entitlementId);
+  await db.execute("UPDATE entitlements SET status = 'revoked', revoked_at = ? WHERE id = ?", [revokedAt, entitlementId]);
   return { ...rowToEntitlement(row), status: 'revoked', revokedAt };
 }

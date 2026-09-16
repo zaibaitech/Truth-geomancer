@@ -54,30 +54,28 @@ function rowToPaymentRequest(row: PaymentRequestRow): PaymentRequest {
   };
 }
 
-function getRow(db: Db, id: string): PaymentRequestRow | undefined {
-  return db.prepare('SELECT * FROM payment_requests WHERE id = ?').get(id) as PaymentRequestRow | undefined;
+async function getRow(db: Db, id: string): Promise<PaymentRequestRow | null> {
+  return db.queryOne<PaymentRequestRow>('SELECT * FROM payment_requests WHERE id = ?', [id]);
 }
 
-export function getPaymentRequestById(db: Db, id: string): PaymentRequest | null {
-  const row = getRow(db, id);
+export async function getPaymentRequestById(db: Db, id: string): Promise<PaymentRequest | null> {
+  const row = await getRow(db, id);
   return row ? rowToPaymentRequest(row) : null;
 }
 
-export function getPaymentRequestsForUser(db: Db, userId: string): PaymentRequest[] {
-  const rows = db
-    .prepare('SELECT * FROM payment_requests WHERE user_id = ? ORDER BY submitted_at DESC')
-    .all(userId) as unknown as PaymentRequestRow[];
+export async function getPaymentRequestsForUser(db: Db, userId: string): Promise<PaymentRequest[]> {
+  const rows = await db.query<PaymentRequestRow>('SELECT * FROM payment_requests WHERE user_id = ? ORDER BY submitted_at DESC', [
+    userId,
+  ]);
   return rows.map(rowToPaymentRequest);
 }
 
 /** Admin-facing listing. `status` optionally narrows to one state (the
  * dashboard's "pending" queue); omitted returns everything, newest first. */
-export function listPaymentRequestsForAdmin(db: Db, status?: PaymentRequestStatus): PaymentRequest[] {
-  const rows = (
-    status
-      ? db.prepare('SELECT * FROM payment_requests WHERE status = ? ORDER BY submitted_at ASC').all(status)
-      : db.prepare('SELECT * FROM payment_requests ORDER BY submitted_at DESC').all()
-  ) as unknown as PaymentRequestRow[];
+export async function listPaymentRequestsForAdmin(db: Db, status?: PaymentRequestStatus): Promise<PaymentRequest[]> {
+  const rows = status
+    ? await db.query<PaymentRequestRow>('SELECT * FROM payment_requests WHERE status = ? ORDER BY submitted_at ASC', [status])
+    : await db.query<PaymentRequestRow>('SELECT * FROM payment_requests ORDER BY submitted_at DESC');
   return rows.map(rowToPaymentRequest);
 }
 
@@ -104,27 +102,29 @@ export type CreatePaymentRequestResult =
  *  - A previously REJECTED (or none at all) request allows a fresh
  *    submission — always inserts a new row.
  */
-export function createPaymentRequest(
+export async function createPaymentRequest(
   db: Db,
   userId: string,
   productId: string,
   paymentReference: string,
   userNote?: string,
-): CreatePaymentRequestResult {
+): Promise<CreatePaymentRequestResult> {
   const product = PRODUCT_CATALOGUE.find((p) => p.id === productId);
   if (!product || !product.active) return { ok: false, reason: 'unknown-product' };
 
   const trimmedReference = paymentReference.trim();
   if (trimmedReference.length === 0) return { ok: false, reason: 'invalid-reference' };
 
-  const activeEntitlement = db
-    .prepare("SELECT 1 FROM entitlements WHERE user_id = ? AND product_id = ? AND status = 'active'")
-    .get(userId, productId);
+  const activeEntitlement = await db.queryOne(
+    "SELECT 1 FROM entitlements WHERE user_id = ? AND product_id = ? AND status = 'active'",
+    [userId, productId],
+  );
   if (activeEntitlement) return { ok: false, reason: 'already-entitled' };
 
-  const existingPending = db
-    .prepare("SELECT * FROM payment_requests WHERE user_id = ? AND product_id = ? AND status = 'pending'")
-    .get(userId, productId) as PaymentRequestRow | undefined;
+  const existingPending = await db.queryOne<PaymentRequestRow>(
+    "SELECT * FROM payment_requests WHERE user_id = ? AND product_id = ? AND status = 'pending'",
+    [userId, productId],
+  );
   if (existingPending) {
     return { ok: true, request: rowToPaymentRequest(existingPending), created: false };
   }
@@ -132,9 +132,10 @@ export function createPaymentRequest(
   const id = randomUUID();
   const submittedAt = new Date().toISOString();
   const trimmedNote = userNote?.trim();
-  db.prepare(
+  await db.execute(
     'INSERT INTO payment_requests (id, user_id, product_id, status, payment_reference, user_note, admin_note, submitted_at, reviewed_at, reviewed_by) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL)',
-  ).run(id, userId, productId, 'pending', trimmedReference, trimmedNote && trimmedNote.length > 0 ? trimmedNote : null, submittedAt);
+    [id, userId, productId, 'pending', trimmedReference, trimmedNote && trimmedNote.length > 0 ? trimmedNote : null, submittedAt],
+  );
 
   return {
     ok: true,
@@ -159,14 +160,15 @@ export type ReviewResult =
  * Approves a pending payment request: grants the product's entitlement via
  * the existing grantEntitlement() and marks the request approved.
  *
- * Transactional safety (Prompt 28, Phase 16): node:sqlite's DatabaseSync is
- * synchronous and this function contains no `await`, so — Node.js being
- * single-threaded — no other request can interleave between this
- * function's read and its writes; the whole operation is atomic with
- * respect to every other call in this process. Wrapped in an explicit
- * BEGIN IMMEDIATE/COMMIT/ROLLBACK for crash consistency (a process
- * interruption mid-write leaves either the old or the new state, never a
- * half-written row).
+ * Transactional safety (Prompt 28, Phase 16; migrated to async Postgres
+ * transactions in Prompt 31C): wrapped in `db.transaction()`
+ * (lib/server/db/types.ts) — every read and write below happens on one
+ * connection/session, and either all of it commits or none of it does.
+ * Against production Postgres this uses SERIALIZABLE isolation with
+ * automatic retry (lib/server/db/postgresAdapter.ts), so two concurrent
+ * approval attempts for the same request can never both observe
+ * status='pending' and both proceed — one always retries and re-reads
+ * the other's committed result.
  *
  * Idempotent by design, matching grantEntitlement()'s own idempotency:
  *  - Already-APPROVED: re-runs grantEntitlement() (itself a no-op if the
@@ -178,51 +180,42 @@ export type ReviewResult =
  *    left behind by a reject-then-approve sequence.
  *  - PENDING: the normal path — grants, then marks approved.
  */
-export function approvePaymentRequest(db: Db, requestId: string, reviewerId: string): ReviewResult {
-  db.exec('BEGIN IMMEDIATE');
-  try {
-    const row = getRow(db, requestId);
+export async function approvePaymentRequest(db: Db, requestId: string, reviewerId: string): Promise<ReviewResult> {
+  return db.transaction(async (tx) => {
+    const row = await getRow(tx, requestId);
     if (!row) {
-      db.exec('ROLLBACK');
-      return { ok: false, reason: 'not-found' };
+      return { ok: false, reason: 'not-found' } as const;
     }
     if (row.status === 'rejected') {
-      db.exec('ROLLBACK');
-      return { ok: false, reason: 'not-pending' };
+      return { ok: false, reason: 'not-pending' } as const;
     }
 
     const product = PRODUCT_CATALOGUE.find((p) => p.id === row.product_id);
     if (!product || !product.active) {
-      db.exec('ROLLBACK');
-      return { ok: false, reason: 'unknown-product' };
+      return { ok: false, reason: 'unknown-product' } as const;
     }
 
     if (row.status === 'approved') {
       // Idempotent retry: re-run the (itself idempotent) grant, but never
       // touch reviewed_at/reviewed_by again — the original approval's
       // record stays the historical truth.
-      grantEntitlement(db, row.user_id, row.product_id, 'manual-payment');
-      db.exec('COMMIT');
-      return { ok: true, request: rowToPaymentRequest(row) };
+      await grantEntitlement(tx, row.user_id, row.product_id, 'manual-payment');
+      return { ok: true, request: rowToPaymentRequest(row) } as const;
     }
 
     // status === 'pending'
-    grantEntitlement(db, row.user_id, row.product_id, 'manual-payment');
+    await grantEntitlement(tx, row.user_id, row.product_id, 'manual-payment');
     const reviewedAt = new Date().toISOString();
-    db.prepare("UPDATE payment_requests SET status = 'approved', reviewed_at = ?, reviewed_by = ? WHERE id = ?").run(
+    await tx.execute("UPDATE payment_requests SET status = 'approved', reviewed_at = ?, reviewed_by = ? WHERE id = ?", [
       reviewedAt,
       reviewerId,
       requestId,
-    );
-    db.exec('COMMIT');
+    ]);
     return {
       ok: true,
       request: { ...rowToPaymentRequest(row), status: 'approved', reviewedAt, reviewedBy: reviewerId },
-    };
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
-  }
+    } as const;
+  });
 }
 
 /**
@@ -237,8 +230,13 @@ export function approvePaymentRequest(db: Db, requestId: string, reviewerId: str
  * outside this function's scope (lib/server/entitlements.ts's
  * revokeEntitlement exists for that, and is never invoked from here).
  */
-export function rejectPaymentRequest(db: Db, requestId: string, reviewerId: string, adminNote?: string): ReviewResult {
-  const row = getRow(db, requestId);
+export async function rejectPaymentRequest(
+  db: Db,
+  requestId: string,
+  reviewerId: string,
+  adminNote?: string,
+): Promise<ReviewResult> {
+  const row = await getRow(db, requestId);
   if (!row) return { ok: false, reason: 'not-found' };
   if (row.status === 'approved') return { ok: false, reason: 'not-pending' };
   if (row.status === 'rejected') return { ok: true, request: rowToPaymentRequest(row) };
@@ -246,9 +244,10 @@ export function rejectPaymentRequest(db: Db, requestId: string, reviewerId: stri
   const reviewedAt = new Date().toISOString();
   const trimmedNote = adminNote?.trim();
   const noteToStore = trimmedNote && trimmedNote.length > 0 ? trimmedNote : null;
-  db.prepare(
+  await db.execute(
     "UPDATE payment_requests SET status = 'rejected', reviewed_at = ?, reviewed_by = ?, admin_note = ? WHERE id = ?",
-  ).run(reviewedAt, reviewerId, noteToStore, requestId);
+    [reviewedAt, reviewerId, noteToStore, requestId],
+  );
 
   return {
     ok: true,

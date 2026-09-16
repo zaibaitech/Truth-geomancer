@@ -17,6 +17,12 @@ export function bookCacheName(bookId: string): string {
   return `tg-book-${bookId}-${BOOK_CACHE_VERSION}`;
 }
 
+// Prompt 30: content-version metadata lives alongside the cache, not the
+// protected text itself — see offlineManifest.ts for why it is
+// deliberately unsigned local metadata, never an authorization credential.
+import { readOfflineManifest, removeOfflineManifest, writeOfflineManifest } from './offlineManifest';
+export { readOfflineManifest, type OfflineManifestEntry } from './offlineManifest';
+
 function cachesAvailable(): boolean {
   return typeof window !== 'undefined' && 'caches' in window;
 }
@@ -76,13 +82,95 @@ export async function downloadBookOffline(bookId: string, urls: string[]): Promi
 }
 
 /** Deletes exactly this book's cache — never touches another book's, the
- * app shell, or the runtime cache. */
+ * app shell, or the runtime cache. Also clears this book's local offline
+ * manifest entry (Prompt 30) — removing a book's offline copy should leave
+ * no stale "available offline" metadata behind either. Never touches
+ * entitlement, payment history, or any other book's data (Phase 22). */
 export async function removeBookOffline(bookId: string): Promise<void> {
+  removeOfflineManifest(bookId);
   if (!cachesAvailable()) return;
   try {
     await caches.delete(bookCacheName(bookId));
   } catch {
     // Nothing more to do; the cache either wasn't there or couldn't be
     // opened — either way there is nothing left to report as "removed".
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Prompt 30 — entitlement-verified download, content versioning
+// ---------------------------------------------------------------------------
+
+export type OfflineDownloadFailureReason = 'unauthorized' | 'not-found' | 'network-error' | 'partial-failure';
+
+export interface OfflineDownloadOutcome {
+  ok: boolean;
+  reason?: OfflineDownloadFailureReason;
+  /** URLs that failed to cache — only populated for 'partial-failure'. */
+  failed: string[];
+}
+
+/**
+ * The real "Download for offline" entry point (Prompt 30, Phase 5/9).
+ * Verifies entitlement SERVER-SIDE first, via the protected
+ * /api/books/:bookId/offline endpoint — never trusting the caller's own
+ * belief that the user is entitled (that belief only decided whether to
+ * SHOW the download button; this call is the actual authorization check).
+ * Only on a real 200 does it proceed to cache the book's pages (reusing
+ * the existing, unmodified downloadBookOffline()) and record the
+ * resulting content version in the local manifest. A 403/404/network
+ * failure here never touches Cache Storage at all — no gate-page content,
+ * no partial book, is ever written for a request that wasn't authorized.
+ */
+export async function downloadBookForOfflineUse(bookId: string, urls: string[]): Promise<OfflineDownloadOutcome> {
+  let verify: Response;
+  try {
+    verify = await fetch(`/api/books/${bookId}/offline`, { cache: 'no-store' });
+  } catch {
+    return { ok: false, reason: 'network-error', failed: urls };
+  }
+
+  if (verify.status === 403) return { ok: false, reason: 'unauthorized', failed: urls };
+  if (verify.status === 404) return { ok: false, reason: 'not-found', failed: urls };
+  if (!verify.ok) return { ok: false, reason: 'network-error', failed: urls };
+
+  let contentVersion: string;
+  try {
+    const data = (await verify.json()) as { contentVersion?: unknown };
+    if (typeof data.contentVersion !== 'string') return { ok: false, reason: 'network-error', failed: urls };
+    contentVersion = data.contentVersion;
+  } catch {
+    return { ok: false, reason: 'network-error', failed: urls };
+  }
+
+  const result = await downloadBookOffline(bookId, urls);
+  if (!result.ok) return { ok: false, reason: 'partial-failure', failed: result.failed };
+
+  writeOfflineManifest({ bookId, contentVersion, authorizedAt: new Date().toISOString(), accessType: 'entitled' });
+  return { ok: true, failed: [] };
+}
+
+export type BookVersionStatus = 'up-to-date' | 'update-available' | 'unknown';
+
+/**
+ * Compares the locally cached content version against the server's
+ * current one (Prompt 30, Phase 7/14). Requires network — if it cannot be
+ * reached, or the user's entitlement no longer checks out (403), this
+ * resolves 'unknown' rather than erroring or claiming staleness: the
+ * previously downloaded copy remains usable offline regardless (Phase 14
+ * — "do not delete a user's valid offline copy merely because they are
+ * temporarily offline" / Phase 15 — no speculative revocation).
+ */
+export async function checkBookOfflineVersion(bookId: string): Promise<BookVersionStatus> {
+  const manifest = readOfflineManifest(bookId);
+  if (!manifest) return 'unknown';
+  try {
+    const res = await fetch(`/api/books/${bookId}/offline`, { cache: 'no-store' });
+    if (!res.ok) return 'unknown';
+    const data = (await res.json()) as { contentVersion?: unknown };
+    if (typeof data.contentVersion !== 'string') return 'unknown';
+    return data.contentVersion === manifest.contentVersion ? 'up-to-date' : 'update-available';
+  } catch {
+    return 'unknown';
   }
 }

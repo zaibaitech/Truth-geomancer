@@ -17,10 +17,10 @@ const ADMIN_SESSION_SECONDS = 12 * 60 * 60; // 12 hours — shorter-lived than t
  * Never distinguishes "wrong secret" from "no secret configured" in its
  * return value or any observable timing beyond verifyAdminSecret's own
  * constant-time comparison — both simply fail. */
-export function loginAdmin(secret: string): boolean {
+export async function loginAdmin(secret: string): Promise<boolean> {
   if (!verifyAdminSecret(secret)) return false;
   const token = generateAdminToken();
-  createAdminSession(getDb(), token);
+  await createAdminSession(getDb(), token);
   cookies().set(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -35,7 +35,7 @@ export function loginAdmin(secret: string): boolean {
  * request admin-authorized". Never inferred from email, localStorage, a
  * query parameter, or any client-supplied value — only from a cookie whose
  * value hashes to a real, fresh row in admin_sessions. */
-export function isCurrentUserAdmin(): boolean {
+export async function isCurrentUserAdmin(): Promise<boolean> {
   const token = cookies().get(ADMIN_COOKIE)?.value ?? null;
   return isAdminToken(getDb(), token);
 }
@@ -46,8 +46,8 @@ export function isCurrentUserAdmin(): boolean {
  * fixed literal is the honest value rather than inventing per-session
  * "admin #2"-style identifiers that would imply a multi-admin system that
  * does not exist. Returns null when the caller is not admin-authorized. */
-export function currentAdminReviewerId(): string | null {
-  return isCurrentUserAdmin() ? 'admin' : null;
+export async function currentAdminReviewerId(): Promise<string | null> {
+  return (await isCurrentUserAdmin()) ? 'admin' : null;
 }
 
 export function logoutAdmin(): void {

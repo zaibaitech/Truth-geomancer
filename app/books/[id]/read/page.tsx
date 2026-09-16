@@ -42,6 +42,7 @@ import {
 import { canAccessForUser } from "@/lib/server/accessService";
 import { getCurrentUserIfPresent } from "@/lib/server/session";
 import { getDb } from "@/lib/server/db";
+import { getProductAccessStatus } from "@/lib/server/purchaseStatus";
 import { KM_CHAPTERS } from "@/lib/server/content/kanzulMikban";
 import { CHAPTERS, DEDICATION, INTRODUCTION } from "@/lib/server/content/masterOfGeomancy";
 
@@ -130,10 +131,11 @@ export default function BookReaderPage({ params }: { params: { id: string } }) {
   const authorized = user !== null && canAccessForUser(db, user.id, { kind: "book", bookId: book.id });
 
   if (!authorized) {
+    const status = user !== null ? getProductAccessStatus(db, user.id, book.id) : "none";
     return (
       <div className="flex flex-col">
         <ReaderHeader book={book} />
-        <BookAccessGate bookTitle={book.title} />
+        <BookAccessGate bookTitle={book.title} productId={book.id} status={status} />
       </div>
     );
   }

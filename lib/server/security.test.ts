@@ -69,6 +69,9 @@ describe('client cannot grant or revoke entitlements', () => {
       'raml/readingService',
       'raml/practiceService',
       'raml/chartValidation',
+      'paymentRequests',
+      'adminSession',
+      'purchaseStatus',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

@@ -3,9 +3,11 @@ import { Header } from '@/components/layout/Header';
 import { MethodPracticeFlow } from '@/components/raml/practice/MethodPracticeFlow';
 import { BookAccessGate } from '@/components/books/BookAccessGate';
 import { findPracticableMethod } from '@/lib/raml/methodPractice';
+import { KANZUL_PRODUCT } from '@/lib/access/products';
 import { canAccessForUser } from '@/lib/server/accessService';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
+import { getProductAccessStatus } from '@/lib/server/purchaseStatus';
 
 // PROMPT 27 (protected-content migration): this route is no longer
 // statically generated. It used to be (Prompt 23) because nothing it
@@ -38,10 +40,11 @@ export default function MethodPracticePage({
     });
 
   if (!authorized) {
+    const status = user !== null ? getProductAccessStatus(db, user.id, KANZUL_PRODUCT.id) : 'none';
     return (
       <div>
         <Header title="Practice a method" />
-        <BookAccessGate bookTitle="Kanzul Mikban" />
+        <BookAccessGate bookTitle="Kanzul Mikban" productId={KANZUL_PRODUCT.id} status={status} />
       </div>
     );
   }

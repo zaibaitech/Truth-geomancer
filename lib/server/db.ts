@@ -67,6 +67,40 @@ CREATE TABLE IF NOT EXISTS preview_usage (
   status TEXT NOT NULL CHECK (status IN ('available', 'exhausted')),
   PRIMARY KEY (user_id, preview_id)
 );
+
+-- Prompt 28: a PaymentRequest is a CLAIM, never an entitlement — see
+-- lib/access/types.ts's own comment. reviewed_at/reviewed_by/admin_note
+-- stay NULL until an admin acts; grantEntitlement() is only ever called
+-- from the approval transaction in lib/server/paymentRequests.ts, never
+-- from this table's own writes.
+CREATE TABLE IF NOT EXISTS payment_requests (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  product_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+  payment_reference TEXT NOT NULL,
+  user_note TEXT,
+  admin_note TEXT,
+  submitted_at TEXT NOT NULL,
+  reviewed_at TEXT,
+  reviewed_by TEXT
+);
+-- Administrative queue: "all pending requests, oldest first".
+CREATE INDEX IF NOT EXISTS idx_payment_requests_status_submitted
+  ON payment_requests(status, submitted_at);
+-- User's own history: "my requests, most recent first".
+CREATE INDEX IF NOT EXISTS idx_payment_requests_user_submitted
+  ON payment_requests(user_id, submitted_at);
+
+-- Prompt 28, Phase 7: the server-authoritative admin identity. A row here
+-- exists only after a caller proved knowledge of TG_ADMIN_SECRET (see
+-- lib/server/adminAuth.ts) — the table stores only a hash of the resulting
+-- session token, mirroring users.session_token_hash, never the secret
+-- itself or the raw token.
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  token_hash TEXT PRIMARY KEY,
+  created_at TEXT NOT NULL
+);
 `;
 
 /** Opens (creating if necessary) a database at `path` with the schema

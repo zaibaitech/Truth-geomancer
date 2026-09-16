@@ -96,28 +96,46 @@ export interface Entitlement {
 }
 
 // ---------------------------------------------------------------------------
-// PaymentRequest — future manual-payment record (type only, per Prompt 25
-// section 14 item 4: this module must be able to explain the shape a
-// future payment workflow will use, without implementing any payment
-// processing). No code anywhere in this repository creates, reads, or
-// persists a PaymentRequest.
+// PaymentRequest — manual-payment record (Prompt 28 — manual payment +
+// author approval workflow). A PaymentRequest is NOT an entitlement: it is
+// only a claim ("I paid for this, please review") that an admin must
+// explicitly approve before the entitlement-granting function in
+// lib/server/entitlements.ts is ever called. See
+// lib/server/paymentRequests.ts for the persistence and state-machine
+// logic that operates on this shape.
+//
+// Deliberately has no `amount`/`currency`/`paymentMethod` field: Prompt 25
+// never defined a price for any product, and Prompt 28 explicitly forbids
+// inventing one now — see lib/access/paymentInstructions.ts. Deliberately
+// has no proof-file field either: this repository has no secure object
+// storage, and Prompt 28 Phase 17 requires documenting that limitation
+// rather than pretending file storage exists — see paymentRequests.ts's
+// module comment for the full reasoning.
 // ---------------------------------------------------------------------------
 
-export type PaymentRequestStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'cancelled';
+export type PaymentRequestStatus = 'pending' | 'approved' | 'rejected';
 
 export interface PaymentRequest {
   id: string;
   userId: string;
   productId: string;
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  paymentReference: string;
-  proofUrl?: string;
   status: PaymentRequestStatus;
+  /** Whatever reference the user's payment method gave them (a transaction
+   * ID, a confirmation code, a sender name) — free text the admin uses to
+   * cross-check against payment they received outside this app. Never
+   * validated or parsed by this system beyond "non-empty". */
+  paymentReference: string;
+  /** Optional free-text note from the user to the admin (e.g. "paid via
+   * my brother's account", "sent twice by mistake"). */
+  userNote?: string;
   submittedAt: string;
   reviewedAt?: string;
+  /** The admin identity that reviewed this request — see
+   * lib/server/adminAuth.ts. Opaque, not a display name (there is no
+   * admin-identity/name system beyond the single configured secret). */
   reviewedBy?: string;
+  /** Optional free-text note from the admin, most useful on rejection
+   * (why), but allowed on approval too. */
   adminNote?: string;
 }
 

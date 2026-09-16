@@ -1,12 +1,12 @@
 import { FigureGlyph } from './FigureGlyph';
 import { Badge } from '@/components/ui/Badge';
 import { FORTUNE_LABEL, UPDOWN_LABEL } from '@/content/classicalAttributes';
-import type { MethodVerdictResult } from '@/lib/raml/methodVerdicts';
+import type { PublicMethodVerdict } from '@/lib/raml/readingVerdictTypes';
 
 const FORTUNE_TONE = { good: 'sand', bad: 'fire', neutral: 'neutral' } as const;
 const UPDOWN_TONE = { upward: 'air', downward: 'water', level: 'neutral' } as const;
 
-export function MethodVerdictCard({ verdict }: { verdict: MethodVerdictResult }) {
+export function MethodVerdictCard({ verdict }: { verdict: PublicMethodVerdict }) {
   const { result } = verdict;
 
   return (

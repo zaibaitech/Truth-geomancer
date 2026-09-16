@@ -13,7 +13,7 @@ import type { ReadingResult } from './reading';
 /** Returns a complete, automatically-calculated reading for one of the
  * pilot questions in questions/index.ts, or null if this intention isn't in
  * the registry yet (the caller should fall back to the existing
- * lib/raml/methodVerdicts.ts flow in that case — this engine is additive,
+ * lib/server/raml/methodVerdicts.ts flow in that case — this engine is additive,
  * not a replacement for the chapters it doesn't cover yet). */
 export function runEngine(chart: Chart, intentionId: string): EngineResult | null {
   const question = getQuestionDefinition(intentionId);

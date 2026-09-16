@@ -2,7 +2,7 @@
 // in content/intentions.ts, so the existing casting-flow question picker can
 // drive this engine with no new UI concept — an intention the user already
 // selects before casting either has an entry here (automatic engine
-// reading) or it doesn't yet (falls back to lib/raml/methodVerdicts.ts's
+// reading) or it doesn't yet (falls back to lib/server/raml/methodVerdicts.ts's
 // general parser, unaffected by any of this).
 //
 // Stage 1 (5 questions): money, business, court case, stolen things, travel

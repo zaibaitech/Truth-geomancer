@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { MethodVerdictCard } from './MethodVerdictCard';
@@ -7,17 +8,52 @@ import { getIntentionById, getCategoryById } from '@/content/intentions';
 // every paragraph of the matched chapter(s) verbatim as a fallback when no
 // verdict was computed — a full, uncontrolled chapter-text dump reachable
 // from any free cast. That fallback is removed below (see the render
-// logic): only a COMPUTED verdict (from getMethodVerdicts, itself already
-// an accepted smaller exposure — see lib/access/README.md) is ever shown
-// here now, never the chapter's raw prose. The import below still needs
-// `.number`/`.title`, which the public metadata export carries.
+// logic): only a COMPUTED verdict is ever shown here now, never the
+// chapter's raw prose. The import below still needs `.number`/`.title`,
+// which the public metadata export carries.
+//
+// PROMPT 27B: the verdict itself is no longer computed in this component.
+// getMethodVerdicts (and the full Kanzul Mikban corpus it needs) moved to
+// lib/server/raml/ — this component now fetches the already-computed,
+// already-trimmed result from the reading-verdicts Route Handler instead.
+// See lib/server/readingVerdictService.ts for the access-boundary
+// reasoning (this stays free/ungated, matching the pre-existing product
+// design) and lib/raml/readingVerdictTypes.ts for the client-safe shape.
 import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
-import { getMethodVerdicts } from '@/lib/raml/methodVerdicts';
+import type { ReadingVerdictsByChapter } from '@/lib/raml/readingVerdictTypes';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
 import { NO_AUTOMATIC_READING_EXPLANATION, NO_AUTOMATIC_READING_HEADING } from '@/lib/raml/statusLanguage';
 
 export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: string }) {
   const intention = getIntentionById(intentionId);
+  const hasChapters = !!intention && intention.chapterIds.length > 0;
+
+  const [verdictsByChapter, setVerdictsByChapter] = useState<ReadingVerdictsByChapter | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    if (!hasChapters) return;
+    let cancelled = false;
+    setVerdictsByChapter(null);
+    setLoadFailed(false);
+    fetch('/api/raml/reading-verdicts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intentionId, chart }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('request failed'))))
+      .then((data: { verdicts: ReadingVerdictsByChapter }) => {
+        if (!cancelled) setVerdictsByChapter(data.verdicts);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intentionId, hasChapters]);
+
   if (!intention || intention.chapterIds.length === 0) return null;
 
   const category = intention.categoryId ? getCategoryById(intention.categoryId) : undefined;
@@ -58,7 +94,8 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
       </Card>
 
       {chapters.map((ch) => {
-        const verdicts = getMethodVerdicts(ch.id, chart);
+        const stillLoading = verdictsByChapter === null && !loadFailed;
+        const verdicts = verdictsByChapter ? (verdictsByChapter[ch.id] ?? null) : null;
         const computed = (verdicts ?? []).filter((v): v is NonNullable<typeof v> => v !== null);
         const hasAnyVerdict = computed.length > 0;
 
@@ -69,7 +106,9 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
               {ch.title}
             </p>
 
-            {hasAnyVerdict ? (
+            {stillLoading ? (
+              <p className="type-body text-sand/65">Calculating your reading…</p>
+            ) : hasAnyVerdict ? (
               <>
                 <p className="mb-3 type-meta font-medium uppercase tracking-widest text-sand/65">
                   Your reading result

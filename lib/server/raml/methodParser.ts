@@ -20,19 +20,19 @@
 // with an honest note that the book's own wording doesn't cover it, rather
 // than forcing a guess.
 
-// PROMPT 27 NOTE (protected-content migration): this module genuinely
-// parses every KM chapter's full paragraph text to auto-derive verdicts
-// (getParsedMethods, below, iterates the whole corpus on first call) —
-// unlike every other consumer fixed in this migration, it cannot be
-// reduced to a metadata-only import, because the computation itself
-// requires the source text. It remains reachable from a client component
-// (ReadingTab.tsx, via methodVerdicts.ts) and therefore still puts the
-// full Kanzul Mikban text into the client bundle. This is a real,
-// documented residual exposure — see the Prompt 27 final report's "Known
-// limitations" — left in place rather than broken, pending a dedicated
-// follow-up (e.g. moving verdict computation server-side) that is out of
-// this task's safe scope. The import path below points at the relocated
-// server-only content module purely so the build keeps working correctly.
+// PROMPT 27B NOTE: relocated from lib/raml/ to lib/server/raml/ — this
+// module genuinely parses every KM chapter's full paragraph text to
+// auto-derive verdicts (getParsedMethods, below, iterates the whole
+// corpus on first call), which is exactly why it can no longer live
+// anywhere a client component can reach it. Prompt 27 left it in
+// lib/raml/ as a documented residual exposure (the full Kanzul Mikban
+// corpus was still entering the client bundle via ReadingTab.tsx →
+// methodVerdicts.ts → here); Prompt 27B closes that by moving this file
+// (unchanged logic — a pure relocation, verified byte-for-byte identical
+// output via lib/raml/readingVerdictsEquivalence.test.ts) behind the
+// server boundary and having lib/server/readingVerdictService.ts call it
+// from a Route Handler instead. The browser now only ever receives the
+// trimmed per-request result — never this module, never KM_CHAPTERS.
 import type { KmChapter } from '@/lib/server/content/kanzulMikban';
 import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 

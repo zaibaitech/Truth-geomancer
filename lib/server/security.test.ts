@@ -58,7 +58,15 @@ describe('client cannot grant or revoke entitlements', () => {
   });
 
   it('every app/ route that imports lib/server/ does so only for a documented read-only purpose: identity resolution, the access decision, or already-authorized content — confirmed by which lib/server/ modules are actually imported', () => {
-    const ALLOWED_SERVER_MODULES = ['session', 'accessService', 'db', 'contentService', 'content/kanzulMikban', 'content/masterOfGeomancy'];
+    const ALLOWED_SERVER_MODULES = [
+      'session',
+      'accessService',
+      'db',
+      'contentService',
+      'content/kanzulMikban',
+      'content/masterOfGeomancy',
+      'readingVerdictService',
+    ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];
     for (const f of appFiles) {

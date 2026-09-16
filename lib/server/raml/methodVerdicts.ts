@@ -20,7 +20,7 @@
 // or from the manuscript's own element/opened-closed definitions where noted
 // — every result surfaces which, so the UI can label it honestly.
 
-import type { Chart } from './casting';
+import type { Chart } from '@/lib/raml/casting';
 import {
   combineHouses,
   combineHouseGroups,
@@ -28,7 +28,7 @@ import {
   getHouseFigure,
   isFoundInChart,
   type CombinedFigure,
-} from './classicalVerdict';
+} from '@/lib/raml/classicalVerdict';
 import type { Fortune, UpDown } from '@/content/classicalAttributes';
 import { getParsedMethods, type Axis, type ParsedMethod } from './methodParser';
 import { getStarById } from '@/content/stars';

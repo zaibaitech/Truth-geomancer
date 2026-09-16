@@ -23,7 +23,12 @@ import { cookies } from 'next/headers';
 import { getDb } from './db';
 import { getOrCreateUser, getUserByToken, touchLastSeen, type User } from './identity';
 
-const SESSION_COOKIE = 'tg_uid';
+// Exported (Prompt 46) so lib/server/emailAuth.ts's session-cookie I/O can
+// set the SAME cookie a freshly-authenticated login rotates the value of,
+// rather than introducing a second, parallel "logged in" cookie — see that
+// file's own comment on why reusing this exact mechanism was preferred
+// over adding a new one.
+export const SESSION_COOKIE = 'tg_uid';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 /** Resolves the current request's user from its session cookie, creating

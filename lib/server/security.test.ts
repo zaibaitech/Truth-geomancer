@@ -73,6 +73,15 @@ describe('client cannot grant or revoke entitlements', () => {
       'adminSession',
       'purchaseStatus',
       'previewService',
+      // Prompt 46 — persistent (email-verified) identity. Same
+      // read-only-purpose rule as every module above: these routes
+      // resolve/authenticate identity and read status, they never
+      // reach grantEntitlement/revokeEntitlement/consumePreviewUse
+      // (still enforced by the two tests above this one).
+      'emailAuth',
+      'emailSession',
+      'emailProvider',
+      'rateLimit',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

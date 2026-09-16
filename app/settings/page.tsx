@@ -6,6 +6,7 @@ import { Trash2, History, BookOpen, Info } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { ReaderSizeControl } from '@/components/settings/ReaderSizeControl';
+import { AccountSection } from '@/components/auth/AccountSection';
 import { countReadings, clearHistory } from '@/lib/raml/history';
 
 export default function SettingsPage() {
@@ -31,6 +32,11 @@ export default function SettingsPage() {
       <Header title="Settings" />
       <div className="space-y-4 px-4 py-4">
         <ReaderSizeControl />
+
+        <Card>
+          <p className="mb-3 type-label uppercase tracking-widest text-sand/65">Account</p>
+          <AccountSection />
+        </Card>
 
         <Card>
           <p className="mb-3 type-label uppercase tracking-widest text-sand/65">Your Data</p>

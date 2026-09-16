@@ -88,6 +88,20 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   token_hash TEXT PRIMARY KEY,
   created_at TEXT NOT NULL
 );
+
+-- Prompt 46: same additive table as
+-- lib/server/db/migrations/0002_email_login_tokens.sql, in SQLite's
+-- dialect, kept parallel for the same reason every other table here is.
+CREATE TABLE IF NOT EXISTS email_login_tokens (
+  token_hash TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
+  email TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_email_login_tokens_email
+  ON email_login_tokens(email);
 `;
 
 class SqliteDb implements Db {

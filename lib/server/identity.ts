@@ -100,3 +100,62 @@ export async function getOrCreateUser(db: Db, token: string | null): Promise<Res
   const user = await createAnonymousUser(db, newToken);
   return { user, token: newToken, isNew: true };
 }
+
+// --- Prompt 46: additive support for persistent (email-verified) identity ---
+// Everything below is new; nothing above this line was changed. These
+// functions are the ONLY places that ever read/write users.email or
+// rotate users.session_token_hash outside of anonymous-user creation —
+// lib/server/emailAuth.ts (the login-token/verification logic) calls into
+// these rather than writing SQL against `users` directly, keeping this
+// file the single owner of the users table's shape, exactly as before.
+
+/** All users whose (already-normalized) email exactly matches. Returns
+ * more than one row only if legacy/duplicate data already exists — see
+ * lib/server/emailAuth.ts's resolveUserForVerifiedEmail, which is the
+ * only caller and which explicitly refuses to guess in that case rather
+ * than picking one. Never called with anything except an
+ * already-normalizeEmail()-processed value. */
+export async function findUsersByEmail(db: Db, normalizedEmail: string): Promise<User[]> {
+  const rows = await db.query<UserRow>('SELECT * FROM users WHERE email = ? ORDER BY created_at ASC', [normalizedEmail]);
+  return rows.map(rowToUser);
+}
+
+/** Attaches a verified email to an EXISTING users row — never creates a
+ * new one. This is the "claim" step: an anonymous user who verifies an
+ * email with no prior account keeps their exact same id, so every
+ * entitlement/payment_request/preview_usage row already tied to it is
+ * untouched. */
+export async function attachEmailToUser(db: Db, userId: string, normalizedEmail: string): Promise<void> {
+  await db.execute('UPDATE users SET email = ? WHERE id = ?', [normalizedEmail, userId]);
+}
+
+/** Creates a brand-new user whose email is already verified — used only
+ * when a magic link is verified and NEITHER an existing account for that
+ * email NOR a claimable anonymous identity exists (a person with no prior
+ * visit at all). This is the one legitimate "new users.id" case: it never
+ * happens merely because a login link was requested (see emailAuth.ts). */
+export async function createUserWithEmail(db: Db, token: string, normalizedEmail: string): Promise<User> {
+  const now = new Date().toISOString();
+  const id = randomUUID();
+  await db.execute('INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?)', [
+    id,
+    hashToken(token),
+    normalizedEmail,
+    now,
+    now,
+  ]);
+  return { id, email: normalizedEmail, createdAt: now, lastSeenAt: now };
+}
+
+/** Issues a fresh session token for an EXISTING user id and makes it the
+ * only valid token for that row (session_token_hash is a single UNIQUE
+ * column per user, so this intentionally supersedes any token that
+ * previously matched this row — see the Prompt 46 report's "known
+ * limitation" note on single-active-session-per-account). Returns the raw
+ * token to set as the session cookie's value; only the hash is stored. */
+export async function rotateSessionToken(db: Db, userId: string): Promise<string> {
+  const token = generateSessionToken();
+  const now = new Date().toISOString();
+  await db.execute('UPDATE users SET session_token_hash = ?, last_seen_at = ? WHERE id = ?', [hashToken(token), now, userId]);
+  return token;
+}

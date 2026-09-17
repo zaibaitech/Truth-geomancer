@@ -7,7 +7,9 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { ReaderSizeControl } from '@/components/settings/ReaderSizeControl';
 import { AccountSection } from '@/components/auth/AccountSection';
+import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { countReadings, clearHistory } from '@/lib/raml/history';
+import { buildGeneralContactMessage } from '@/lib/whatsapp';
 
 export default function SettingsPage() {
   const [count, setCount] = useState<number | null>(null);
@@ -80,6 +82,12 @@ export default function SettingsPage() {
           >
             <BookOpen size={15} className="text-clay-light" /> The Master of Geomancy, Vol. 1
           </Link>
+        </Card>
+
+        <Card>
+          <p className="mb-3 type-label uppercase tracking-widest text-sand/65">Contact</p>
+          <p className="mb-3 type-body text-sand/70">Questions, payment help, or anything else — message the author on WhatsApp.</p>
+          <WhatsAppButton message={buildGeneralContactMessage()} label="Contact the author" />
         </Card>
       </div>
     </div>

@@ -4,12 +4,14 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { PaymentRequestForm } from '@/components/purchase/PaymentRequestForm';
+import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 import { getPaymentInstructions } from '@/lib/access/paymentInstructions';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { getProductAccessStatus } from '@/lib/server/purchaseStatus';
 import { getPaymentRequestsForUser } from '@/lib/server/paymentRequests';
+import { buildAccessHelpMessage, buildPaymentHelpMessage, buildProductContactMessage } from '@/lib/whatsapp';
 
 // Prompt 28, Phase 5: a plain Server Component page render cannot write a
 // cookie (see session.ts's own comment on getCurrentUser() vs.
@@ -51,6 +53,9 @@ export default async function ProductPurchasePage({ params }: { params: { produc
             <Link href="/books" className="mt-4 inline-block min-h-[44px] rounded-xl border border-sand/15 px-4 py-2.5 type-body text-sand-light">
               Go to your library
             </Link>
+            <div className="mt-2">
+              <WhatsAppButton message={buildAccessHelpMessage()} label="Trouble accessing it?" variant="subtle" />
+            </div>
           </Card>
         ) : status === 'pending' && mostRecent ? (
           <Card className="mt-3 text-center">
@@ -78,6 +83,18 @@ export default async function ProductPurchasePage({ params }: { params: { produc
             <PaymentRequestForm productId={product.id} instructions={instructions} />
           </>
         )}
+
+        <Card className="mt-3">
+          <p className="type-label uppercase tracking-widest text-sand/65">Need help?</p>
+          <p className="mt-1.5 type-body text-sand/70">
+            Message the author directly on WhatsApp — to ask a question before requesting access, or for help with a
+            payment you've already made.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <WhatsAppButton message={buildProductContactMessage(product)} label="Ask a question" />
+            <WhatsAppButton message={buildPaymentHelpMessage(product)} label="Payment help" variant="subtle" />
+          </div>
+        </Card>
       </div>
     </div>
   );

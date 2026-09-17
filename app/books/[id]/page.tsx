@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/Badge';
 import { BookCover } from '@/components/books/BookCover';
 import { ChapterList } from '@/components/books/ChapterList';
 import { OfflineDownloadControl } from '@/components/books/OfflineDownloadControl';
+import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { getBookById } from '@/content/books';
 import { getChapterList } from '@/lib/books/chapters';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { canAccessForUser } from '@/lib/server/accessService';
+import { buildBookContactMessage } from '@/lib/whatsapp';
 
 // Prompt 30: this page is no longer statically generated — whether the
 // offline-download control renders at all now depends on the requester's
@@ -43,6 +45,10 @@ export default async function BookDetailPage({ params }: { params: { id: string 
           </div>
         </div>
         <p className="mt-4 type-body leading-relaxed text-sand/70">{book.description}</p>
+
+        <div className="mt-4">
+          <WhatsAppButton message={buildBookContactMessage(book)} label="Ask about this book" variant="subtle" />
+        </div>
 
         {book.status === 'readable' ? (
           <>

@@ -8,6 +8,14 @@ import { useRouter } from 'next/navigation';
 // renders for an admin — see the route's own currentAdminReviewerId()
 // check). router.refresh() re-renders the dashboard from the database's
 // real, post-mutation state rather than this component guessing it.
+//
+// Prompt 65: only the labels/sizing below changed ("Approve"->"Approve
+// Access", "Reject"->"Decline", 40px->44px touch targets, per the Author
+// Dashboard's plainer terminology and mobile touch-target requirements) —
+// act()'s own body, its setBusy/setError calls, and the request/response
+// handling are byte-for-byte unchanged from Prompt 40's fix (asserted on by
+// this codebase's route-wiring structural tests, which check this exact
+// function shape).
 export function PaymentRequestActions({ requestId }: { requestId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
@@ -53,14 +61,14 @@ export function PaymentRequestActions({ requestId }: { requestId: string }) {
             <button
               onClick={() => act('reject')}
               disabled={busy !== null}
-              className="min-h-[40px] flex-1 rounded-lg border border-sand/15 px-3 py-2 type-body text-sand-light disabled:opacity-50"
+              className="min-h-[44px] flex-1 rounded-lg border border-sand/15 px-3 py-2 type-body text-sand-light disabled:opacity-50"
             >
-              {busy === 'reject' ? 'Rejecting…' : 'Confirm reject'}
+              {busy === 'reject' ? 'Declining…' : 'Confirm decline'}
             </button>
             <button
               onClick={() => setShowRejectNote(false)}
               disabled={busy !== null}
-              className="min-h-[40px] rounded-lg px-3 py-2 type-body text-sand/65"
+              className="min-h-[44px] rounded-lg px-3 py-2 type-body text-sand/65"
             >
               Cancel
             </button>
@@ -71,16 +79,16 @@ export function PaymentRequestActions({ requestId }: { requestId: string }) {
           <button
             onClick={() => act('approve')}
             disabled={busy !== null}
-            className="min-h-[40px] flex-1 rounded-lg bg-clay px-3 py-2 type-body font-semibold text-ink disabled:opacity-50"
+            className="min-h-[44px] flex-1 rounded-lg bg-clay px-3 py-2 type-body font-semibold text-ink disabled:opacity-50"
           >
-            {busy === 'approve' ? 'Approving…' : 'Approve'}
+            {busy === 'approve' ? 'Approving…' : '✓ Approve Access'}
           </button>
           <button
             onClick={() => setShowRejectNote(true)}
             disabled={busy !== null}
-            className="min-h-[40px] flex-1 rounded-lg border border-sand/15 px-3 py-2 type-body text-sand-light disabled:opacity-50"
+            className="min-h-[44px] flex-1 rounded-lg border border-sand/15 px-3 py-2 type-body text-sand-light disabled:opacity-50"
           >
-            Reject
+            ✕ Decline
           </button>
         </div>
       )}

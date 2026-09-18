@@ -1,102 +1,96 @@
-import { Header } from '@/components/layout/Header';
-import { Card } from '@/components/ui/Card';
-import { AdminLoginForm } from '@/components/admin/AdminLoginForm';
-import { PaymentRequestActions } from '@/components/admin/PaymentRequestActions';
+import Link from 'next/link';
+import { ArrowRight, BookOpen, Inbox, Users, CheckCircle2 } from 'lucide-react';
+import { AdminShell } from '@/components/admin/AdminShell';
+import { AdminSignInRequired } from '@/components/admin/AdminSignInRequired';
+import { StatTile } from '@/components/admin/StatTile';
+import { RequestCard } from '@/components/admin/RequestCard';
+import { ActivityItem } from '@/components/admin/ActivityItem';
+import { EmptyState } from '@/components/admin/EmptyState';
+import { BOOKS } from '@/content/books';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 import { isCurrentUserAdmin } from '@/lib/server/adminSession';
 import { getDb } from '@/lib/server/db';
 import { listPaymentRequestsForAdmin } from '@/lib/server/paymentRequests';
+import { getTotalActiveAccessGrants, getTotalUniqueReaders } from '@/lib/server/adminStats';
 
-function productName(productId: string): string {
+function bookTitleForProduct(productId: string): string {
   return PRODUCT_CATALOGUE.find((p) => p.id === productId)?.name ?? productId;
 }
 
-// Prompt 28, Phase 8: server-authoritative admin check — this page never
-// renders any payment-request data unless isCurrentUserAdmin() (which
-// reads only a cookie whose value hashes to a real, fresh row in
-// admin_sessions) returns true. There is no client-side flag, query
-// parameter, or hidden button that can substitute for this check.
+// Prompt 65: the Author Dashboard home — replaces the old technical
+// "Admin / Payment requests" console (Prompt 28) with the same underlying
+// data, presented so a non-technical author understands it in a few
+// seconds (see the prompt's own success criteria). Every number here comes
+// from the existing, unmodified payment-request/entitlement tables — see
+// lib/server/adminStats.ts's own comment on why each stat is safely
+// derivable, never invented. Auth check is identical to the original page
+// (Prompt 28, Phase 8) — server-authoritative, never a client flag.
 export default async function AdminDashboardPage() {
   const isAdmin = await isCurrentUserAdmin();
-
-  if (!isAdmin) {
-    return (
-      <div>
-        <Header title="Admin" />
-        <div className="px-4 py-6">
-          <Card>
-            <p className="type-body font-semibold text-sand-light">Administrator sign-in required</p>
-            <p className="mt-1.5 type-body text-sand/70">This page is only visible to the configured administrator.</p>
-            <AdminLoginForm />
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  if (!isAdmin) return <AdminSignInRequired />;
 
   const db = getDb();
   const pending = await listPaymentRequestsForAdmin(db, 'pending');
-  const reviewed = (await listPaymentRequestsForAdmin(db)).filter((r) => r.status !== 'pending').slice(0, 25);
+  const reviewed = (await listPaymentRequestsForAdmin(db)).filter((r) => r.status !== 'pending');
+  const totalReaders = await getTotalUniqueReaders(db);
+  const totalAccessGrants = await getTotalActiveAccessGrants(db);
+
+  const pendingPreview = pending.slice(0, 3);
+  const reviewedPreview = reviewed.slice(0, 3);
 
   return (
-    <div>
-      <Header title="Admin" subtitle="Payment requests" />
+    <AdminShell>
       <div className="space-y-6 px-4 py-4">
         <div>
-          <p className="mb-2 type-label uppercase tracking-widest text-sand/65">Pending ({pending.length})</p>
+          <p className="type-body text-sand/70">Manage your books, access requests, and readers.</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            <StatTile icon={BookOpen} label="Books" value={BOOKS.length} />
+            <StatTile icon={Inbox} label="Pending" value={pending.length} />
+            <StatTile icon={Users} label="Readers" value={totalReaders} />
+            <StatTile icon={CheckCircle2} label="Access Granted" value={totalAccessGrants} />
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="type-label uppercase tracking-widest text-sand/65">Needs Your Attention</p>
+            {pending.length > pendingPreview.length ? (
+              <Link href="/admin/requests" className="flex shrink-0 items-center gap-1 type-meta font-medium text-clay-light">
+                See all <ArrowRight size={12} />
+              </Link>
+            ) : null}
+          </div>
           {pending.length === 0 ? (
-            <Card>
-              <p className="type-body text-sand/65">No pending requests.</p>
-            </Card>
+            <EmptyState icon={CheckCircle2} heading="You're all caught up." body="No access requests are waiting for review." />
           ) : (
             <div className="space-y-3">
-              {pending.map((req) => (
-                <Card key={req.id}>
-                  <p className="type-body font-semibold text-sand-light">{productName(req.productId)}</p>
-                  {/* Anonymous-identity model: the only user reference that
-                      exists is the opaque server-assigned userId — no
-                      email/name is ever collected, so this is honestly all
-                      an admin has to cross-check a request against. */}
-                  <p className="mt-1 type-label text-sand/65">User: {req.userId}</p>
-                  <p className="mt-1 type-label text-sand/65">Request: {req.id}</p>
-                  <p className="mt-1.5 type-body text-sand-light">Reference: {req.paymentReference}</p>
-                  {req.userNote ? <p className="mt-1 type-body text-sand/70">Note: {req.userNote}</p> : null}
-                  <p className="mt-1 type-label text-sand/65">Submitted {new Date(req.submittedAt).toLocaleString()}</p>
-                  <PaymentRequestActions requestId={req.id} />
-                </Card>
+              {pendingPreview.map((req) => (
+                <RequestCard key={req.id} request={req} bookTitle={bookTitleForProduct(req.productId)} />
               ))}
             </div>
           )}
         </div>
 
         <div>
-          <p className="mb-2 type-label uppercase tracking-widest text-sand/65">Recently reviewed</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="type-label uppercase tracking-widest text-sand/65">Recent Activity</p>
+            {reviewed.length > reviewedPreview.length ? (
+              <Link href="/admin/requests" className="flex shrink-0 items-center gap-1 type-meta font-medium text-clay-light">
+                See all <ArrowRight size={12} />
+              </Link>
+            ) : null}
+          </div>
           {reviewed.length === 0 ? (
-            <Card>
-              <p className="type-body text-sand/65">Nothing reviewed yet.</p>
-            </Card>
+            <EmptyState icon={Inbox} heading="No recent activity yet." body="Approved and declined requests will show up here." />
           ) : (
-            <div className="space-y-3">
-              {reviewed.map((req) => (
-                <Card key={req.id}>
-                  <div className="flex items-center justify-between">
-                    <p className="type-body font-semibold text-sand-light">{productName(req.productId)}</p>
-                    <span className="type-label text-sand/65">{req.status}</span>
-                  </div>
-                  <p className="mt-1 type-label text-sand/65">User: {req.userId}</p>
-                  <p className="mt-1 type-body text-sand-light">Reference: {req.paymentReference}</p>
-                  {req.adminNote ? <p className="mt-1 type-body text-sand/70">Admin note: {req.adminNote}</p> : null}
-                  {req.reviewedAt ? (
-                    <p className="mt-1 type-label text-sand/65">
-                      Reviewed {new Date(req.reviewedAt).toLocaleString()} by {req.reviewedBy}
-                    </p>
-                  ) : null}
-                </Card>
+            <div className="space-y-2">
+              {reviewedPreview.map((req) => (
+                <ActivityItem key={req.id} request={req} bookTitle={bookTitleForProduct(req.productId)} />
               ))}
             </div>
           )}
         </div>
       </div>
-    </div>
+    </AdminShell>
   );
 }

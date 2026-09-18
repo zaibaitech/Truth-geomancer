@@ -82,6 +82,12 @@ describe('client cannot grant or revoke entitlements', () => {
       'emailSession',
       'emailProvider',
       'rateLimit',
+      // Prompt 65 — Author Dashboard read-only aggregate counts (reader
+      // counts per book, total active access grants). Same rule: only
+      // COUNT(...) reads over the existing entitlements table, never a
+      // grant/revoke function — see lib/server/adminStats.ts's own module
+      // comment.
+      'adminStats',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

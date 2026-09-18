@@ -92,3 +92,24 @@ export const BUNDLE_PRODUCT: Product = {
  * without touching access.ts — the access module only ever reads
  * `Product.entitlementGrants` generically. */
 export const PRODUCT_CATALOGUE: Product[] = [MASTER_PRODUCT, KANZUL_PRODUCT, BUNDLE_PRODUCT];
+
+// ---------------------------------------------------------------------------
+// Prompt 65: which purchasable products grant access to one particular book —
+// e.g. `kanzul-mikban` is granted by BOTH the standalone Kanzul product AND
+// the bundle, so a "how many readers does Kanzul Mikban have" count must
+// look at entitlements for either product id, never just the one whose id
+// happens to match the book id. This reuses the exact same BookGrant check
+// access.ts's canAccess() already performs — never a second, separately
+// maintained "does this product cover this book" rule — it just enumerates
+// every product where that check would be true, instead of checking one
+// user's entitlements against it.
+// ---------------------------------------------------------------------------
+
+/** Every product id (active or not) whose entitlementGrants include a
+ * BookGrant for `bookId`. Pure and catalogue-driven — a new bundle or a
+ * book gaining a second bundle needs no change here. */
+export function productIdsForBook(bookId: string, catalogue: Product[] = PRODUCT_CATALOGUE): string[] {
+  return catalogue
+    .filter((product) => product.entitlementGrants.some((grant) => grant.kind === 'book' && grant.bookId === bookId))
+    .map((product) => product.id);
+}

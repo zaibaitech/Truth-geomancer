@@ -23,7 +23,12 @@ export function WhatsAppButton({
 }: {
   message: string;
   label?: string;
-  variant?: 'outline' | 'subtle';
+  // Prompt 63: 'whatsapp' is a WhatsApp-green accent used only on the
+  // dashboard's "Talk to the Author" card, per that prompt's own allowance
+  // ("If appropriate, use a WhatsApp-style visual accent") — every other
+  // existing caller (purchase page, settings, book cards) keeps using
+  // 'outline'/'subtle' unchanged, so this is purely additive.
+  variant?: 'outline' | 'subtle' | 'whatsapp';
   className?: string;
 }) {
   const url = buildWhatsAppUrl(message);
@@ -32,7 +37,10 @@ export function WhatsAppButton({
   const variantClass =
     variant === 'outline'
       ? 'border border-sand/15 text-sand-light'
-      : 'text-clay-light';
+      : variant === 'whatsapp'
+        ? 'bg-[#25D366] text-ink'
+        : 'text-clay-light';
+  const iconClass = variant === 'whatsapp' ? 'text-ink' : 'text-clay-light';
 
   function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
     if (typeof navigator === 'undefined' || !/Android/i.test(navigator.userAgent)) return;
@@ -51,7 +59,7 @@ export function WhatsAppButton({
       aria-label={`${label} (opens WhatsApp in a new tab)`}
       className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 type-body font-medium ${variantClass} ${className}`}
     >
-      <MessageCircle size={15} className="shrink-0 text-clay-light" aria-hidden />
+      <MessageCircle size={15} className={`shrink-0 ${iconClass}`} aria-hidden />
       {label}
     </a>
   );

@@ -1,6 +1,6 @@
-export function Emblem({ size = 26 }: { size?: number }) {
+export function Emblem({ size = 26, className = '' }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true" className={className}>
       <path
         d="M24 2 L28.5 15.5 L42 12 L32.5 22.5 L46 24 L32.5 25.5 L42 36 L28.5 32.5 L24 46 L19.5 32.5 L6 36 L15.5 25.5 L2 24 L15.5 22.5 L6 12 L19.5 15.5 Z"
         stroke="#d9b878"

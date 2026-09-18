@@ -41,7 +41,18 @@
 // mechanism as the v1->v2 fix above, applied for the same structural
 // reason: a shell URL's cached content became stale, and only a version
 // bump retires it.
-const APP_VERSION = 'v3';
+//
+// PROMPT 63 — bumped v3 -> v4. `/`'s content changed again in this prompt
+// (dashboard rebuilt to match the approved visual concept: single Hero
+// instead of a rotating carousel, "The Books" 2-column cards, restructured
+// "Explore the App" strip) — the exact same structural situation as the
+// v2->v3 bump: a browser that already installed `tg-shell-v3` would keep
+// serving that now-superseded HTML forever, since nothing else about this
+// worker's own bytes would otherwise change and trigger a browser-side SW
+// update check. Bumping the version is what actually changes this file's
+// bytes (forcing that update check) and gives the new install a fresh,
+// distinctly-named cache to populate from the current `/`.
+const APP_VERSION = 'v4';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 

@@ -4,16 +4,16 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { PatternOverlay } from '@/components/ui/PatternOverlay';
+import { HERO_VALUE_PROP } from '@/lib/dashboard/copy';
 import { SandBoardIllustration } from './SandBoardIllustration';
 
+// Prompt 61: slide 1 carries the app's fuller value proposition (source
+// books + interactive casting/practice, not just a reader) since it's what
+// a first-time visitor sees before the carousel ever rotates — its own
+// copy lives in lib/dashboard/copy.ts so it stays reusable/testable rather
+// than duplicated here.
 const SLIDES = [
-  {
-    eyebrow: 'Ilm al-Raml',
-    heading: ['Cast the Sand.', 'Read the Figures.'],
-    body: 'Sixteen stars, one chart, an answer drawn the way it has always been drawn.',
-    cta: 'Begin a Casting',
-    href: '/raml',
-  },
+  { ...HERO_VALUE_PROP },
   {
     eyebrow: 'The Library',
     heading: ['Study the', 'Manuscripts.'],

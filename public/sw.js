@@ -28,7 +28,20 @@
 // below) — this is the only way to retroactively clear a leak that already
 // happened, not a hypothetical safeguard for a future one (that part is
 // the read-side guard added in the fetch handler below).
-const APP_VERSION = 'v2';
+//
+// PROMPT 61 — bumped v2 -> v3. `/` is one of SHELL_URLS below, so it is
+// precached and served cache-first: `caches.match(request)` returns the
+// old install's cached response before any network round-trip ever
+// happens. The dashboard's content at `/` changed substantially in this
+// prompt (new book-discovery and WhatsApp-contact sections replacing the
+// old Recommended Books layout) — without a version bump, a returning
+// visitor's browser would keep serving that exact old cached HTML
+// indefinitely, never seeing the new dashboard until the entry happened to
+// be evicted for some unrelated reason. Bumping the version is the same
+// mechanism as the v1->v2 fix above, applied for the same structural
+// reason: a shell URL's cached content became stale, and only a version
+// bump retires it.
+const APP_VERSION = 'v3';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 

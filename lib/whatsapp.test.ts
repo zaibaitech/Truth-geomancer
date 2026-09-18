@@ -8,6 +8,8 @@ import {
   buildGeneralContactMessage,
   buildPaymentHelpMessage,
   buildProductContactMessage,
+  buildPurchaseInquiryMessage,
+  buildWhatsAppAndroidIntentUrl,
   buildWhatsAppUrl,
   getWhatsAppNumber,
 } from './whatsapp';
@@ -85,6 +87,47 @@ describe('message builders — product/book specific, never hardcoded', () => {
 
   it('L: buildPaymentHelpMessage embeds the given product name', () => {
     expect(buildPaymentHelpMessage({ name: 'Example Product' })).toContain('Example Product');
+  });
+
+  it('O: buildPurchaseInquiryMessage embeds the given product name and asks for price/payment info, never a hardcoded price', () => {
+    const message = buildPurchaseInquiryMessage({ name: 'Example Product' });
+    expect(message).toContain('Example Product');
+    expect(message).toMatch(/price/i);
+    expect(message).toMatch(/payment/i);
+    expect(message).not.toMatch(/[$£€]|\bUSD\b|\bGHS\b/);
+  });
+});
+
+describe('buildWhatsAppAndroidIntentUrl — Android native-app handoff', () => {
+  it('P: returns null when no number is configured', () => {
+    vi.stubEnv('NEXT_PUBLIC_WHATSAPP_NUMBER', '');
+    expect(buildWhatsAppAndroidIntentUrl('Hello')).toBeNull();
+  });
+
+  it('Q: builds an intent:// URL naming the WhatsApp package and scheme', () => {
+    vi.stubEnv('NEXT_PUBLIC_WHATSAPP_NUMBER', '233248513634');
+    const url = buildWhatsAppAndroidIntentUrl('Hello there')!;
+    expect(url.startsWith('intent://send?phone=233248513634&text=Hello%20there#Intent;')).toBe(true);
+    expect(url).toContain('scheme=whatsapp;');
+    expect(url).toContain('package=com.whatsapp;');
+    expect(url.endsWith(';end')).toBe(true);
+  });
+
+  it('R: carries a browser_fallback_url that decodes back to the exact plain wa.me URL', () => {
+    vi.stubEnv('NEXT_PUBLIC_WHATSAPP_NUMBER', '233248513634');
+    const message = 'Hi, I have a question about "Kanzul Mikban".';
+    const intentUrl = buildWhatsAppAndroidIntentUrl(message)!;
+    const plainUrl = buildWhatsAppUrl(message)!;
+    const match = intentUrl.match(/S\.browser_fallback_url=([^;]+);end$/)!;
+    expect(decodeURIComponent(match[1])).toBe(plainUrl);
+  });
+
+  it('S: the intent text param round-trips back to the exact original message', () => {
+    vi.stubEnv('NEXT_PUBLIC_WHATSAPP_NUMBER', '233248513634');
+    const message = 'Testing "quotes" & emoji 🙏';
+    const intentUrl = buildWhatsAppAndroidIntentUrl(message)!;
+    const textParam = intentUrl.split('text=')[1].split('#Intent')[0];
+    expect(decodeURIComponent(textParam)).toBe(message);
   });
 });
 

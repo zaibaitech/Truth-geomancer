@@ -58,3 +58,36 @@ export function buildAccessHelpMessage(): string {
 export function buildGeneralContactMessage(): string {
   return 'Hi, I have a question about Truth Geomancer.';
 }
+
+/** Prompt 61: the app never shows a price (none is set yet — the author
+ * decides pricing separately), so the purchase path routes straight to a
+ * message asking for it, rather than displaying an invented or "coming
+ * soon" price anywhere in the UI. */
+export function buildPurchaseInquiryMessage(product: { name: string }): string {
+  return `Hi, I'm interested in purchasing "${product.name}". Could you tell me the current price and payment information?`;
+}
+
+// ---------------------------------------------------------------------------
+// Prompt 61: Android native-app handoff. `https://wa.me/...` alone still
+// works everywhere (it's what every href below defaults to), but on Android
+// some browsers route it through an intermediate api.whatsapp.com page
+// before offering to open the app. Android's `intent://` URL scheme is the
+// standards-documented way (part of Chrome's own Intents-in-Android
+// support, honored by most Chromium-based Android browsers) to ask for the
+// WhatsApp app directly by package, while still declaring its own web
+// fallback via `S.browser_fallback_url` — so a device without WhatsApp
+// installed, or a browser that doesn't support the scheme, degrades to
+// exactly the same wa.me URL this module already builds. This never
+// guarantees the native app opens — only that browsers implementing the
+// documented mechanism get the opportunity to.
+// ---------------------------------------------------------------------------
+
+/** Builds an Android `intent://` URL that asks to open WhatsApp directly,
+ * carrying the same message and falling back to the plain wa.me URL — or
+ * null when no number is configured (mirrors buildWhatsAppUrl). */
+export function buildWhatsAppAndroidIntentUrl(message: string): string | null {
+  const number = getWhatsAppNumber();
+  const fallbackUrl = buildWhatsAppUrl(message);
+  if (!number || !fallbackUrl) return null;
+  return `intent://send?phone=${number}&text=${encodeURIComponent(message)}#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};end`;
+}

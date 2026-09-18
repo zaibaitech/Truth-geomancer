@@ -161,6 +161,7 @@ import { pregnantWomanPutToBedDayQuestion } from './pregnantWomanPutToBedDay';
 import { backToWorkAfterProblemQuestion } from './backToWorkAfterProblem';
 import { stayInMarriageQuestion } from './stayInMarriage';
 import { friendshipConsequenceQuestion } from './friendshipConsequence';
+import { dreamsAndInterpretationsQuestion } from './dreamsAndInterpretations';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -367,6 +368,7 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   // text exactly. See COVERAGE.md's "Prompt 13" section.
   stayInMarriageQuestion,
   friendshipConsequenceQuestion,
+  dreamsAndInterpretationsQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -518,4 +520,5 @@ export {
   backToWorkAfterProblemQuestion,
   stayInMarriageQuestion,
   friendshipConsequenceQuestion,
+  dreamsAndInterpretationsQuestion,
 };

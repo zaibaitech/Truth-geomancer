@@ -102,9 +102,18 @@ describe('findPracticableMethod — unresolved and unknown methods are refused',
   });
 
   it('returns nothing for a chapter with no automatic reading at all', () => {
-    // "Dreams and Their Interpretations" is registered as 'no-automatic-reading'
-    // (lib/raml/questionAvailability.ts) — no engine question backs it.
-    expect(practicableMethodsForChapter('dreams-and-their-interpretations')).toEqual([]);
+    // The Chapter 28 gift/visitor continuation is registered as
+    // 'no-automatic-reading' (lib/raml/questionAvailability.ts) — no engine
+    // question backs it, unlike Chapter 151 (see the test below), whose
+    // author-clarified procedure IS now registered.
+    expect(practicableMethodsForChapter('continued-from-chapter-twenty-eight')).toEqual([]);
+  });
+
+  it('returns the real practicable method for Chapter 151, now that its author-clarified procedure is registered', () => {
+    const methods = practicableMethodsForChapter('dreams-and-their-interpretations');
+    expect(methods.length).toBe(1);
+    expect(methods[0].questionId).toBe('dreams-and-their-interpretations');
+    expect(methods[0].method.status).toBe('verified');
   });
 
   it('returns nothing for a consolidated duplicate chapter — the CTA belongs only on the canonical chapter', () => {

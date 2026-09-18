@@ -1,7 +1,9 @@
 // Stage 9 of the engine's question coverage — Prompt 12, Kanzul Mikban
-// chapters 141-150 (chapter 151, "Dreams and Their Interpretations," is not
-// registered — see COVERAGE.md; the manuscript's own highest chapter
-// number is 151, so nothing exists beyond this stage to extract). Same
+// chapters 141-150 (chapter 151, "Dreams and Their Interpretations," was
+// registered in a later prompt once the product owner obtained an author
+// clarification of its "pair them" procedure — see
+// lib/raml/engine/questions/dreamsAndInterpretations.ts and this file's
+// own trailing describe block). Same
 // fixture chart as the rest of the suite; every expected figure/outcome
 // below was read straight off a printed audit run of runEngine/runReading
 // against this exact chart before being relied on here — not guessed.
@@ -159,8 +161,44 @@ describe('Will I get back to work after this problem (ch.150) — good', () => {
   });
 });
 
-describe('Chapter 151 ("Dreams and Their Interpretations") is not registered', () => {
-  it('has no QuestionDefinition — its own "pair them" calculation is still ambiguous, even though its 16 branch figures were later restored', () => {
-    expect(QUESTION_REGISTRY['dreams-and-their-interpretations']).toBeUndefined();
+describe('Chapter 151 ("Dreams and Their Interpretations") — author-clarified pairing procedure', () => {
+  // Fixture Mothers: H1 Yussif[1,1,2,1], H2 Adam[1,2,2,2], H3 Mahadi[2,1,1,1],
+  // H4 Iddris[2,2,1,2]. Pair 1 = H1+H2 = [2,1,2,1] = Usman. Pair 2 = H3+H4 =
+  // [2,1,2,1] = Usman too (a coincidence of this particular fixture, not a
+  // rule). Final = Usman+Usman = [2,2,2,2] = Musah, which Chapter 151 maps
+  // to interpretation #16 — hand-verified independently via addRows'
+  // documented rule (same value -> 2, different -> 1) before being relied
+  // on here.
+  it('has a QuestionDefinition now', () => {
+    expect(QUESTION_REGISTRY['dreams-and-their-interpretations']).toBeDefined();
+  });
+
+  const result = runEngine(chart, 'dreams-and-their-interpretations')!;
+
+  it('uses only H1-H4 — never reads H5-H16, and never references Daughters/Nieces/Witnesses/Judge', () => {
+    expect(result.methods[0].calculation!.housesUsed).toEqual([1, 2, 3, 4]);
+    const stepsText = result.methods[0].calculation!.steps.join(' ').toLowerCase();
+    expect(stepsText).not.toMatch(/daughter|niece|witness|judge/);
+  });
+
+  it('produces exactly one final figure (Musah) matching interpretation #16', () => {
+    expect(result.methods[0].calculation!.resultFigure.figureId).toBe('musah');
+    expect(result.methods[0].verdict!.outcome).toBe('descriptive');
+    expect(result.methods[0].verdict!.label).toBe('Interpretation #16 — Musah');
+    expect(result.methods[0].verdict!.descriptiveAnswer).toBe('interpretation-16');
+  });
+
+  it('the verdict interpretation is the chapter\'s own real text for #16, not a placeholder', () => {
+    expect(result.methods[0].verdict!.interpretation).toContain('your enemies are many');
+    expect(result.methods[0].verdict!.interpretation).toContain('Massan (21)');
+  });
+
+  it('resolves as a real descriptive result, not insufficient_data', () => {
+    expect(result.overallResult).toBe('descriptive');
+  });
+
+  it('runReading also resolves (composeReading works for this question too)', () => {
+    const reading = runReading(chart, 'dreams-and-their-interpretations')!;
+    expect(reading.isInsufficient).toBe(false);
   });
 });

@@ -1148,6 +1148,14 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     resultKind: null,
     methods: [{ id: "friendship-consequence-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "the-consequence-of-friendship-between-two-people" }],
   },
+  "dreams-and-their-interpretations": {
+    id: "dreams-and-their-interpretations",
+    title: "What does this dream mean?",
+    categoryId: "dreams",
+    chapterId: "dreams-and-their-interpretations",
+    resultKind: "descriptive",
+    methods: [{ id: "dreams-interpretation-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "dreams-and-their-interpretations" }],
+  },
 };
 
 export const QUESTION_META_LIST: PublicQuestionMeta[] = Object.values(QUESTION_REGISTRY_META);

@@ -75,7 +75,11 @@ const NOT_REGISTERED: Record<number, string> = {
   59: 'open-ended by design — every method is non-deterministic or not chart-derived',
   95: 'reference table, not a question — a life-stage lookup, and omitted from the transcription besides',
   106: 'reference table, not a question — its body-part lookup is embedded in chapter 105 (bodyPartInPain.ts), the chapter that cross-references it',
-  151: 'not computable — its own "pair them" mechanism is never defined anywhere in either manuscript (its 16 branch figures were restored in a later prompt and are no longer a blocker; see content/manuscripts/dreamInterpretations.ts)',
+  // 151 was here (undefined "pair them" mechanism) until the product owner
+  // obtained an author clarification of the procedure — see
+  // lib/raml/engine/questions/dreamsAndInterpretations.ts's own header for
+  // the full evidence and why that clarification, not this project's own
+  // guess, is what makes it registered now.
 };
 
 describe('Chapter coverage matrix (every numbered chapter 1-151 is accounted for)', () => {
@@ -98,13 +102,13 @@ describe('Chapter coverage matrix (every numbered chapter 1-151 is accounted for
     });
   });
 
-  it('exactly 6 numbered chapters are not implemented, each for a recorded reason', () => {
-    expect(Object.keys(NOT_REGISTERED).map(Number).sort((a, b) => a - b)).toEqual([33, 46, 59, 95, 106, 151]);
+  it('exactly 5 numbered chapters are not implemented, each for a recorded reason', () => {
+    expect(Object.keys(NOT_REGISTERED).map(Number).sort((a, b) => a - b)).toEqual([33, 46, 59, 95, 106]);
     Object.values(NOT_REGISTERED).forEach((reason) => expect(reason.length).toBeGreaterThan(20));
   });
 
-  it('chapter 151 — the book\'s final chapter — is not registered as a question', () => {
-    expect(QUESTION_REGISTRY['dreams-and-their-interpretations']).toBeUndefined();
+  it('chapter 151 — the book\'s final chapter — IS registered as a question (author-clarified procedure)', () => {
+    expect(QUESTION_REGISTRY['dreams-and-their-interpretations']).toBeDefined();
   });
 });
 
@@ -284,10 +288,13 @@ describe('Unnumbered fragments and consolidated material', () => {
 // ---------------------------------------------------------------------------
 
 describe('Final Kanzul Mikban totals', () => {
-  it('140 questions / 231 methods — 182 verified, 19 needs_review, 30 uncertain', () => {
-    expect(Object.keys(QUESTION_REGISTRY).length).toBe(140);
-    expect(ALL_METHODS.length).toBe(231);
-    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(182);
+  // Updated post-Prompt-13 by the Chapter 151 registration (author-clarified
+  // "pair them" procedure — see dreamsAndInterpretations.ts): +1 question,
+  // +1 method, +1 verified.
+  it('141 questions / 232 methods — 183 verified, 19 needs_review, 30 uncertain', () => {
+    expect(Object.keys(QUESTION_REGISTRY).length).toBe(141);
+    expect(ALL_METHODS.length).toBe(232);
+    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(183);
     expect(ALL_METHODS.filter(({ method }) => method.status === 'needs_review').length).toBe(19);
     expect(ALL_METHODS.filter(({ method }) => method.status === 'uncertain').length).toBe(30);
   });

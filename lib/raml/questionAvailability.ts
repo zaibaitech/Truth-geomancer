@@ -96,20 +96,13 @@ const NO_AUTOMATIC_READING: Record<string, ReferenceAvailability> = {
     badge: 'Reference table',
     note: 'This is the body-part table the app already uses when answering “Which part of the body is in pain?”. On its own it is a lookup list, not a question.',
   },
-  'dreams-and-their-interpretations': {
-    kind: 'no-automatic-reading',
-    badge: 'Method undefined',
-    // All sixteen figures were restored from the source pages (see
-    // content/manuscripts/dreamInterpretations.ts) and are visible in the
-    // chapter itself — they are no longer this chapter's blocker. What
-    // remains unresolved is the chapter's own casting instruction: "make
-    // only the first 4 stars (Umuhat) and pair them" never says what
-    // "pair" means here, and a project-wide search of both source
-    // manuscripts found no other definition of it (see COVERAGE.md and
-    // source-reconciliation.test.ts). Inventing a meaning for it would be
-    // a guess, not a restoration, so it stays unautomated.
-    note: 'All sixteen dream meanings and their figures are restored and shown in the chapter below. What the book never explains is how to combine your first four houses (Umuhat) into the single figure needed to match one of them — so a cast chart can’t be matched to a meaning automatically here.',
-  },
+  // NOTE: 'dreams-and-their-interpretations' (Chapter 151) is intentionally
+  // absent from this map — it is now a real, registered engine question
+  // (see lib/raml/engine/questions/dreamsAndInterpretations.ts). It falls
+  // through to the default { kind: 'engine' } below. Do not re-add an entry
+  // here reclassifying it as unautomated; see that file's own header
+  // comment for exactly why it is safe to run automatically, and what part
+  // of its procedure is author-clarified rather than manuscript text.
   'continued-from-chapter-twenty-eight': {
     kind: 'no-automatic-reading',
     badge: 'Figures missing',

@@ -1,16 +1,25 @@
 // Chapter 151 ("Dreams and Their Interpretations") — Cast catalogue
-// reconnection. Prompt 31 (see COVERAGE.md) already restored all sixteen
-// figures into content/manuscripts/dreamInterpretations.ts and wired them
-// into the book reader, but lib/raml/questionAvailability.ts — what the
-// Cast catalogue and its picker badge actually read — was never updated,
-// so it kept telling users the figures were missing after they'd already
-// been restored. These tests cover the fix (Tests A-G from the prompt
-// spec) and lock in the regression it exists to prevent (Section 12).
+// reconnection and, later, full automatic-reading registration.
+//
+// History: Prompt 31 (see COVERAGE.md) restored all sixteen figures into
+// content/manuscripts/dreamInterpretations.ts and wired them into the book
+// reader, but lib/raml/questionAvailability.ts — what the Cast catalogue
+// and its picker badge actually read — was never updated, so it kept
+// telling users the figures were missing after they'd already been
+// restored (fixed: badge/note corrected, this file's Tests B-E). Chapter
+// 151 then stayed a "no-automatic-reading" entry because its own casting
+// instruction ("pair them") was never defined anywhere in either
+// manuscript — until the product owner obtained a direct clarification
+// from the manuscript's author. See
+// lib/raml/engine/questions/dreamsAndInterpretations.ts's own header for
+// the full evidence and the exact procedure; this file's Tests A/F/G and
+// its regression guard now assert the REGISTERED state.
 import { describe, expect, it } from 'vitest';
 import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 import { QUESTION_REGISTRY } from '../questions';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
+import { catalogEntry } from '@/lib/raml/questionCatalog';
 import { STARS } from '@/content/stars';
 import {
   DREAM_INTERPRETATION_FIGURES,
@@ -31,9 +40,16 @@ describe('Test A: Chapter 151 resolves correctly', () => {
     expect(meta?.title).toBe('Dreams and Their Interpretations');
   });
 
-  it('is a real, resolvable Cast catalogue selection (a "no-automatic-reading" entry, not an unknown intention)', () => {
+  it('is a real, resolvable Cast catalogue selection — now a genuine "engine" entry, not "no-automatic-reading"', () => {
     const availability = getQuestionAvailability(CH151_ID);
-    expect(availability.kind).toBe('no-automatic-reading');
+    expect(availability.kind).toBe('engine');
+  });
+
+  it('the catalogue entry routes to the real engine question, with no badge and a non-zero method count', () => {
+    const entry = catalogEntry(CH151_ID)!;
+    expect(entry.engineQuestionId).toBe(CH151_ID);
+    expect(entry.methodCount).toBeGreaterThan(0);
+    expect(entry.availability.kind).toBe('engine');
   });
 });
 
@@ -93,39 +109,28 @@ describe('Test E: each figure maps to the correct numbered interpretation', () =
   });
 });
 
-describe('Test F: Chapter 151 is not incorrectly marked "Figures missing" now that all source figures are present', () => {
-  it('the picker badge is no longer "Figures missing"', () => {
+describe('Test F: Chapter 151 is not incorrectly marked "Figures missing" or "Method undefined" now that both blockers are resolved', () => {
+  it('the availability is a plain engine entry — no badge, no "missing"/"undefined" note at all', () => {
     const availability = getQuestionAvailability(CH151_ID);
-    if (availability.kind !== 'no-automatic-reading') throw new Error('expected a no-automatic-reading entry');
-    expect(availability.badge).not.toBe('Figures missing');
+    expect(availability.kind).toBe('engine');
+    // An 'engine' entry structurally has no badge/note fields — the type
+    // itself (EngineAvailability = { kind: 'engine' }) makes a stale
+    // "Figures missing"/"Method undefined" string impossible to attach.
+    expect('badge' in availability).toBe(false);
+    expect('note' in availability).toBe(false);
   });
 
-  it('the explanatory note no longer claims the figures were not preserved or are missing', () => {
-    const availability = getQuestionAvailability(CH151_ID);
-    if (availability.kind !== 'no-automatic-reading') throw new Error('expected a no-automatic-reading entry');
-    expect(availability.note).not.toMatch(/not preserved/i);
-    expect(availability.note.toLowerCase()).not.toContain('figures missing');
-    expect(availability.note.toLowerCase()).not.toContain('figure that identifies');
-  });
-
-  it('the note instead correctly states the figures are restored, and names the real remaining blocker', () => {
-    const availability = getQuestionAvailability(CH151_ID);
-    if (availability.kind !== 'no-automatic-reading') throw new Error('expected a no-automatic-reading entry');
-    expect(availability.note).toMatch(/restored|shown in the chapter/i);
-    expect(availability.note).toMatch(/combine|pair/i);
+  it('the catalogue never shows a badge for this entry', () => {
+    const entry = catalogEntry(CH151_ID)!;
+    expect(entry.availability.kind).not.toBe('no-automatic-reading');
   });
 });
 
 describe('Test G: a valid Chapter 151 figure resolves to its correct source interpretation', () => {
   it('every one of the sixteen canonical figures, looked up by pattern alone, resolves to its own correct interpretation text markers', () => {
-    // Simulates the "matching" half of the chapter's own method (Section 8):
-    // given a resulting four-row figure, find which of the 16 source
-    // interpretations it identifies. The other half — deriving that
-    // resulting figure from a cast chart via the chapter's own undefined
-    // "pair them" step — is deliberately not implemented; see the
-    // "Chapter 151 is not registered" tests in source-reconciliation.test.ts
-    // and questions-stage9.test.ts for why, and this file's own comment
-    // header for the full explanation.
+    // The "matching" half of the chapter's own method (Section 8): given a
+    // resulting four-row figure, find which of the 16 source
+    // interpretations it identifies.
     for (let n = 1; n <= 16; n++) {
       const pattern = getDreamInterpretationPattern(n);
       const resolved = findDreamInterpretationsByPattern(pattern);
@@ -137,19 +142,20 @@ describe('Test G: a valid Chapter 151 figure resolves to its correct source inte
     }
   });
 
-  it('chapter 151 is still correctly NOT a computed engine question — the "pair them" step remains undefined by the source, and this project never invents an unsourced calculation rule', () => {
-    expect(QUESTION_REGISTRY[CH151_ID]).toBeUndefined();
+  it('chapter 151 IS now a computed engine question — the author-clarified pairing procedure is registered (see dreamsAndInterpretations.ts)', () => {
+    expect(QUESTION_REGISTRY[CH151_ID]).toBeDefined();
+    expect(QUESTION_REGISTRY[CH151_ID].methods.length).toBeGreaterThan(0);
   });
 });
 
-describe('Regression guard (Section 12): Chapter 151 must never again be marked as having missing figures while its 16 source figures are present', () => {
-  it('the figure count and the interpretation count stay equal at 16 — if this ever drifts, the badge logic above needs re-auditing', () => {
+describe('Regression guard (Section 12): Chapter 151 must never again be marked as having missing figures or an undefined method while both are resolved', () => {
+  it('the figure count and the interpretation count stay equal at 16 — if this ever drifts, the reading logic above needs re-auditing', () => {
     const full = KM_CHAPTERS.find((c) => c.id === CH151_ID)!;
     const interpretationCount = full.paragraphs.flatMap((p) => parseDreamParagraph(p).items).length;
     expect(DREAM_INTERPRETATION_FIGURES.length).toBe(interpretationCount);
   });
 
-  it('as long as every interpretation 1-16 has a resolvable figure, the availability badge must not be "Figures missing"', () => {
+  it('as long as every interpretation 1-16 has a resolvable figure and the question stays registered, the availability must never fall back to "no-automatic-reading"', () => {
     const allSixteenResolve = Array.from({ length: 16 }, (_, i) => i + 1).every((n) => {
       try {
         return getDreamInterpretationPattern(n) !== undefined;
@@ -158,10 +164,9 @@ describe('Regression guard (Section 12): Chapter 151 must never again be marked 
       }
     });
     expect(allSixteenResolve).toBe(true);
+    expect(QUESTION_REGISTRY[CH151_ID]).toBeDefined();
 
     const availability = getQuestionAvailability(CH151_ID);
-    if (availability.kind === 'no-automatic-reading') {
-      expect(availability.badge).not.toBe('Figures missing');
-    }
+    expect(availability.kind).toBe('engine');
   });
 });

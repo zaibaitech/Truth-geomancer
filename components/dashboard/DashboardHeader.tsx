@@ -15,9 +15,14 @@ function IconButton({ href, label, children }: { href: string; label: string; ch
   );
 }
 
+// Prompt 64: trimmed vertical padding on mobile (pt-5/pb-4 -> pt-3.5/pb-3)
+// so the header takes less of a 360px-tall first screen, restored to the
+// original, more generous spacing from sm: up where the room exists. The
+// logo/tagline/icon sizes themselves are unchanged — the prompt is explicit
+// that legibility must not be sacrificed here, only unnecessary whitespace.
 export function DashboardHeader() {
   return (
-    <header className="relative overflow-hidden border-b border-sand/10 bg-gradient-to-b from-ink-light/60 to-ink px-4 pb-4 pt-5">
+    <header className="relative overflow-hidden border-b border-sand/10 bg-gradient-to-b from-ink-light/60 to-ink px-4 pb-3 pt-3.5 sm:pb-4 sm:pt-5">
       <PatternOverlay opacity={0.045} />
       <div className="relative flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">

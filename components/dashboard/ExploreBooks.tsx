@@ -16,18 +16,28 @@ import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 // getProductAccessStatus() every purchase page already calls (Prompt 28,
 // Phase 13) — never a second, separately maintained ownership check — and
 // PRODUCT_CATALOGUE/BOOKS as the only sources of book identity, so no book
-// name is ever hardcoded here. Prompt 63's approved concept gives each
-// book card its own full-width cover and stacked (not side-by-side) CTAs,
-// so covers stay legible rather than a small thumbnail.
+// name is ever hardcoded here.
+//
+// Prompt 64: Prompt 63 stacked a full-width primary button ABOVE a
+// full-width "Ask the Author" pill (two 40px+ rows), which alone added
+// ~90px to every card — the single biggest contributor to the "books need
+// too much scrolling" problem. The primary CTA stays a full pill (its own
+// label is the one thing on the card a visitor must be able to read); the
+// secondary "Ask the Author" action becomes the existing WhatsAppButton's
+// new `iconOnly` mode, placed beside it in the same row instead of below
+// it. Its accessible name (`aria-label`) is unchanged — still the full
+// "Ask the Author (opens WhatsApp in a new tab)" — only its visual shape
+// changes. Both stay a real 44px tall (the previous 40px missed this app's
+// own touch-target floor; fixed here, not loosened).
 function CardActions({ card }: { card: ExploreBookCard }) {
   const { book, product, status } = card;
 
   if (status === 'active') {
     return (
-      <div className="mt-2.5 space-y-1.5">
+      <div className="mt-2 flex items-center gap-1.5">
         <Link
           href={`/books/${book.id}`}
-          className="flex min-h-[40px] w-full items-center justify-center rounded-lg bg-clay px-3 py-2 type-label font-semibold text-ink"
+          className="flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-clay px-2.5 type-label font-semibold text-ink"
         >
           Open Book
         </Link>
@@ -35,7 +45,8 @@ function CardActions({ card }: { card: ExploreBookCard }) {
           message={buildBookContactMessage(book)}
           label="Ask the Author"
           variant="subtle"
-          className="w-full border border-sand/15 px-3 py-2 type-label"
+          iconOnly
+          className="border border-sand/15"
         />
       </div>
     );
@@ -44,10 +55,10 @@ function CardActions({ card }: { card: ExploreBookCard }) {
   const purchaseLabel = status === 'pending' ? 'View Request' : status === 'rejected' ? 'Try Again' : 'Get This Book';
 
   return (
-    <div className="mt-2.5 space-y-1.5">
+    <div className="mt-2 flex items-center gap-1.5">
       <Link
         href={`/purchase/${product.id}`}
-        className="flex min-h-[40px] w-full items-center justify-center rounded-lg bg-clay px-3 py-2 type-label font-semibold text-ink"
+        className="flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-clay px-2.5 type-label font-semibold text-ink"
       >
         {purchaseLabel}
       </Link>
@@ -55,7 +66,8 @@ function CardActions({ card }: { card: ExploreBookCard }) {
         message={buildPurchaseInquiryMessage(product)}
         label="Ask the Author"
         variant="subtle"
-        className="w-full border border-sand/15 px-3 py-2 type-label"
+        iconOnly
+        className="border border-sand/15"
       />
     </div>
   );
@@ -81,21 +93,42 @@ export async function ExploreBooks() {
           See all <ArrowRight size={12} />
         </Link>
       </div>
-      <p className="mb-3 type-meta text-sand/65">{EXPLORE_BOOKS_COPY.body}</p>
-      <div className="grid grid-cols-2 gap-3">
+      <p className="mb-2.5 text-sm leading-snug text-sand/65 sm:mb-3 sm:text-base">{EXPLORE_BOOKS_COPY.body}</p>
+      {/*
+        Prompt 64: on mobile this is a vertical stack of HORIZONTAL cards
+        (small cover on the left, title/subtitle/CTAs beside it) rather than
+        the Prompt 63 grid of full-poster vertical cards — a vertical card
+        sums cover height + text height + CTA height, so with only 2 books
+        the visitor had to scroll well past the first screen to reach even
+        one CTA. A horizontal card's height is the max of its cover and its
+        text/CTA column instead of their sum, which is what actually gets
+        both books (and their CTAs) visible together near the top. At lg:
+        (the same breakpoint app/layout.tsx's own shell widens the content
+        column at) there's enough width and height budget for the original
+        2-column vertical-poster grid, which suits the wider desktop layout
+        better, so it switches back there.
+      */}
+      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
         {cards.map((card) => (
-          <div key={card.book.id} className="rounded-2xl border border-sand/12 bg-ink-card p-2.5">
-            <Link href={`/books/${card.book.id}`} className="block">
-              <BookCover book={card.book} />
+          <div
+            key={card.book.id}
+            className="flex gap-3 rounded-2xl border border-sand/12 bg-ink-card p-2.5 lg:flex-col lg:gap-0"
+          >
+            <Link href={`/books/${card.book.id}`} className="block shrink-0">
+              <BookCover book={card.book} className="w-[84px] sm:w-24 lg:w-full" />
             </Link>
-            <div className="mt-2 flex items-start justify-between gap-1.5">
-              <p className="line-clamp-2 type-body font-medium leading-snug text-sand-light">{card.book.title}</p>
-              {card.status === 'active' ? (
-                <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-clay-light" aria-label="Owned" />
-              ) : null}
+            <div className="min-w-0 flex-1 lg:mt-2">
+              <div className="flex items-start justify-between gap-1.5">
+                <p className="line-clamp-2 text-sm font-medium leading-snug text-sand-light lg:text-base">
+                  {card.book.title}
+                </p>
+                {card.status === 'active' ? (
+                  <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-clay-light" aria-label="Owned" />
+                ) : null}
+              </div>
+              <p className="line-clamp-1 text-xs leading-snug text-sand/65 lg:text-sm">{card.book.subtitle}</p>
+              <CardActions card={card} />
             </div>
-            <p className="line-clamp-1 type-label text-sand/65">{card.book.subtitle}</p>
-            <CardActions card={card} />
           </div>
         ))}
       </div>

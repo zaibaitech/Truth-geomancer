@@ -52,7 +52,15 @@
 // update check. Bumping the version is what actually changes this file's
 // bytes (forcing that update check) and gives the new install a fresh,
 // distinctly-named cache to populate from the current `/`.
-const APP_VERSION = 'v4';
+//
+// PROMPT 64 — bumped v4 -> v5. `/`'s markup changed again (mobile-first
+// responsive rework: compact Hero, horizontal book cards on narrow
+// viewports, 2x2 "Explore the App" grid) — same stale-shell-cache
+// mechanism as the two bumps above, so the same fix applies: a browser
+// that already installed `tg-shell-v4` would otherwise keep serving the
+// pre-Prompt-64 HTML (the version that squeezed a desktop-style layout
+// into a phone) indefinitely.
+const APP_VERSION = 'v5';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 

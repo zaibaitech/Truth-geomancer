@@ -20,6 +20,7 @@ export function WhatsAppButton({
   label = 'Contact on WhatsApp',
   variant = 'outline',
   className = '',
+  iconOnly = false,
 }: {
   message: string;
   label?: string;
@@ -30,6 +31,15 @@ export function WhatsAppButton({
   // 'outline'/'subtle' unchanged, so this is purely additive.
   variant?: 'outline' | 'subtle' | 'whatsapp';
   className?: string;
+  // Prompt 64: renders just the icon (still exactly 44x44, still carrying
+  // the full `label` as its accessible name via aria-label) instead of an
+  // icon+text pill. Used only by the compact mobile book-card CTA row,
+  // where a full-width "Ask the Author" pill next to the primary purchase
+  // button no longer fits without pushing the card's height back up — see
+  // ExploreBooks.tsx. Every existing caller keeps the default (false), so
+  // this is purely additive; no destination, message, or click handoff
+  // behavior changes for anyone.
+  iconOnly?: boolean;
 }) {
   const url = buildWhatsAppUrl(message);
   if (!url) return null;
@@ -57,10 +67,10 @@ export function WhatsAppButton({
       rel="noopener noreferrer"
       onClick={handleClick}
       aria-label={`${label} (opens WhatsApp in a new tab)`}
-      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 type-body font-medium ${variantClass} ${className}`}
+      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl type-body font-medium ${iconOnly ? 'w-11 shrink-0 px-0' : 'px-4 py-2.5'} ${variantClass} ${className}`}
     >
       <MessageCircle size={15} className={`shrink-0 ${iconClass}`} aria-hidden />
-      {label}
+      {!iconOnly && label}
     </a>
   );
 }

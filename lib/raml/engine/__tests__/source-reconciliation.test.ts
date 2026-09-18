@@ -75,7 +75,7 @@ const NOT_REGISTERED: Record<number, string> = {
   59: 'open-ended by design — every method is non-deterministic or not chart-derived',
   95: 'reference table, not a question — a life-stage lookup, and omitted from the transcription besides',
   106: 'reference table, not a question — its body-part lookup is embedded in chapter 105 (bodyPartInPain.ts), the chapter that cross-references it',
-  151: 'not computable — its own "pair them" mechanism is never defined anywhere in either manuscript, and all 16 branch trigger figures are omitted',
+  151: 'not computable — its own "pair them" mechanism is never defined anywhere in either manuscript (its 16 branch figures were restored in a later prompt and are no longer a blocker; see content/manuscripts/dreamInterpretations.ts)',
 };
 
 describe('Chapter coverage matrix (every numbered chapter 1-151 is accounted for)', () => {

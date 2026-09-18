@@ -98,8 +98,17 @@ const NO_AUTOMATIC_READING: Record<string, ReferenceAvailability> = {
   },
   'dreams-and-their-interpretations': {
     kind: 'no-automatic-reading',
-    badge: 'Figures missing',
-    note: 'The book never explains how to combine the four Mothers for this chapter, and the figure that identifies each of its sixteen meanings was not preserved in the transcription — so no dream meaning can be selected honestly. The chapter text is shown in full below.',
+    badge: 'Method undefined',
+    // All sixteen figures were restored from the source pages (see
+    // content/manuscripts/dreamInterpretations.ts) and are visible in the
+    // chapter itself — they are no longer this chapter's blocker. What
+    // remains unresolved is the chapter's own casting instruction: "make
+    // only the first 4 stars (Umuhat) and pair them" never says what
+    // "pair" means here, and a project-wide search of both source
+    // manuscripts found no other definition of it (see COVERAGE.md and
+    // source-reconciliation.test.ts). Inventing a meaning for it would be
+    // a guess, not a restoration, so it stays unautomated.
+    note: 'All sixteen dream meanings and their figures are restored and shown in the chapter below. What the book never explains is how to combine your first four houses (Umuhat) into the single figure needed to match one of them — so a cast chart can’t be matched to a meaning automatically here.',
   },
   'continued-from-chapter-twenty-eight': {
     kind: 'no-automatic-reading',

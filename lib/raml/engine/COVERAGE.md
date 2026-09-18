@@ -5049,3 +5049,70 @@ effect on any calculation.
 instruction.
 
 
+
+## Prompt — Chapter 151: reconnect the restored dream figures to the Cast catalogue
+
+**The complaint.** The Cast catalogue's intention picker still labelled
+Chapter 151 ("Dreams and Their Interpretations") with a "Figures missing"
+badge, and its explanatory note still said "the figure that identifies
+each of its sixteen meanings was not preserved in the transcription." Both
+were false: Prompt 31 (above) had already restored all sixteen figures
+into `content/manuscripts/dreamInterpretations.ts` and wired them into the
+book reader via `DreamInterpretationsBody`. Prompt 31 never touched
+`lib/raml/questionAvailability.ts` — the module the Cast catalogue and
+picker badge actually read from — so the picker kept describing a problem
+that had already been fixed elsewhere.
+
+**Root cause, precisely.** Chapter 151 was always blocked by *two*
+independent things, not one: (1) the sixteen figures being unreadable from
+the transcription, and (2) the chapter's own casting instruction — "make
+only the first 4 stars (Umuhat) and pair them" — never defining what
+"pair" means. Prompt 31 fixed (1). It did not, and could not, fix (2):
+that finding is Prompt 12/13's own conclusion (see "Prompt 13" above and
+`source-reconciliation.test.ts`), reached only after searching every other
+occurrence of "pair" in both source manuscripts and finding no applicable
+definition — the same class of gap as chapter 33's own unresolved "cast
+out by 4s" mechanic. Nothing found this stage changes that conclusion.
+
+**What changed.**
+- `lib/raml/questionAvailability.ts` — Chapter 151's entry: badge
+  `'Figures missing'` → `'Method undefined'`; note rewritten to state
+  plainly that the figures are restored and viewable in the chapter, and
+  that the real, still-unresolved blocker is the undefined "pair them"
+  step — not omitted figures.
+- `content/manuscripts/dreamInterpretations.ts` — added
+  `findDreamInterpretationsByPattern()`, a small reverse lookup (four-row
+  pattern → matching interpretation number(s), looked up against the
+  existing `STARS`-backed data, nothing new defined). This is the
+  "matching a figure against the 16 source figures" half of the chapter's
+  own method — the half the source *does* support — kept separate from
+  the "deriving that figure from a cast chart" half, which the source does
+  not support and this prompt does not invent.
+  `chapter151DreamFigures.test.ts` (new) proves the lookup is correct.
+- `source-reconciliation.test.ts`, `questions-stage9.test.ts` — the
+  `NOT_REGISTERED`/test wording for chapter 151 updated to stop citing
+  "all 16 branch trigger figures are omitted" as a live reason, since it
+  no longer is; the "pair them" ambiguity remains the sole cited reason.
+- `questionCatalog.test.ts` — badge allow-list extended with `'Method
+  undefined'` (the two chapter-28 continuation entries keep using
+  `'Figures missing'` genuinely — their own figures are still lost, and
+  neither was touched this stage).
+
+**What did not change, and why.** `QUESTION_REGISTRY` still has no entry
+for `dreams-and-their-interpretations` — chapter 151 is still not
+selectable as a computed, chart-based reading in the Cast catalogue.
+Registering it would require deciding what "pair" means (e.g. treating it
+as `ADD_FIGURES` on the four Mothers, or as a transposition, or something
+else); every one of those is a guess this project's own established
+practice — never invent an unsourced rule, mark it as unresolved instead —
+forbids, and this is exactly the situation that practice exists for.
+`casting.ts`, `chartModel.ts`, `ruleEngine.ts` and `operations.ts` were
+read and none needed changing, and none would help: the gap is a missing
+sentence in the source, not a missing capability in the engine. If the
+original manuscript's own description of "pairing" ever surfaces (the
+same way a future page could resolve chapter 33's mechanic), chapter 151
+can be registered as a real question at that point — using the figures
+and the matching helper this stage adds, both already in place.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.

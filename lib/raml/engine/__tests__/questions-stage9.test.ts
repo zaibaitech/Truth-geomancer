@@ -160,7 +160,7 @@ describe('Will I get back to work after this problem (ch.150) — good', () => {
 });
 
 describe('Chapter 151 ("Dreams and Their Interpretations") is not registered', () => {
-  it('has no QuestionDefinition — ambiguous "pair them" calculation plus all 16 branch triggers omitted', () => {
+  it('has no QuestionDefinition — its own "pair them" calculation is still ambiguous, even though its 16 branch figures were later restored', () => {
     expect(QUESTION_REGISTRY['dreams-and-their-interpretations']).toBeUndefined();
   });
 });

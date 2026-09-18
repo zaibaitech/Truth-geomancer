@@ -200,7 +200,7 @@ describe('special source entries', () => {
   });
 
   it('runs no engine question for material that has none, and says which kind it is', () => {
-    const badges = new Set(['Reference table', 'Figures missing', 'Practice, not a reading', 'Open-ended', 'Different method']);
+    const badges = new Set(['Reference table', 'Figures missing', 'Method undefined', 'Practice, not a reading', 'Open-ended', 'Different method']);
     for (const entry of noReading) {
       expect(entry.engineQuestionId, entry.id).toBeNull();
       expect(entry.methodCount).toBe(0);

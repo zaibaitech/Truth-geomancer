@@ -106,6 +106,21 @@ export function getDreamInterpretationPattern(number: number): Pattern {
   return star.pattern;
 }
 
+/** Given a four-row figure, the interpretation number(s) whose printed
+ * figure matches it exactly — the "match it against the 16 source
+ * figures" half of the chapter's own method (see source-reconciliation
+ * .test.ts for why the other half, deriving that figure from a chart, is
+ * NOT implemented: the chapter's own "pair them" step has no defined
+ * meaning anywhere in either manuscript, and this file does not guess
+ * one). Usually a single entry; entries #1 and #4 share the Yussif
+ * pattern, so a pattern match against that figure returns both. */
+export function findDreamInterpretationsByPattern(pattern: Pattern): number[] {
+  return DREAM_INTERPRETATION_FIGURES.filter((entry) => {
+    const star = STARS.find((s) => s.id === entry.starId);
+    return star !== undefined && star.pattern.every((row, i) => row === pattern[i]);
+  }).map((entry) => entry.number);
+}
+
 // ----------------------------------------------------------------------
 // Splitting the chapter's own paragraph text around each "If it's" marker
 // so a figure can be inserted exactly where the source places it, without

@@ -10,52 +10,46 @@
 //
 // HOW THIS FILE'S EIGHT FIGURES WERE VERIFIED
 //
-// This restoration was requested with eight ordered four-row patterns
-// supplied directly by the product owner (from newly located manuscript
-// photographs this session could not itself view — no image file for them
-// was reachable in this environment; see the accompanying audit report).
-// Because this project never accepts a figure claim on say-so alone, the
-// patterns were checked two ways before being accepted here rather than
-// by inspecting the photograph pixel-by-pixel as content/manuscripts/
-// dreamInterpretations.ts's Chapter 151 restoration could:
+// This restoration was originally implemented (commit 2c94120) with eight
+// ordered four-row patterns supplied directly by the product owner, from
+// manuscript photographs this session could not itself view. Because this
+// project never accepts a figure claim on say-so alone, those patterns
+// were checked two indirect ways before being accepted: (1) uniqueness/
+// exactness against the canonical STARS array (no rotation or inversion),
+// and (2) count/order against the eight unmarked "If you get..."
+// placeholders the two source paragraphs already contain. Both passed,
+// but neither is the same as this project independently reading the
+// manuscript photograph itself.
 //
-//   1. Uniqueness and exactness — each of the eight patterns was checked
-//      against the existing, already-canonical STARS array in content/
-//      stars.ts for an EXACT match (no rotation, inversion, or other
-//      transform applied to make a match work). All eight matched a
-//      distinct star with no collisions.
-//   2. Count and order — the two source paragraphs above contain exactly
-//      eight unmarked "If you get..." placeholders, in a fixed reading
-//      order (five in the first paragraph of "continued-from-chapter-
-//      twenty-eight", one more in its second paragraph — split across the
-//      manuscript's own page break — then two in "reading-the-gift-
-//      visitor-figures-end-of-chapter"). Eight patterns supplied, in a
-//      fixed order, for eight placeholders in a fixed order, is exactly
-//      the shape source restoration should take.
+// PROMPT 50 CORRECTION — four of those eight were wrong
 //
-// Both checks passed cleanly, which is real corroborating evidence — but
-// it is NOT the same as this project independently reading the manuscript
-// photograph itself, which is how every other figure restoration in this
-// codebase (Chapter 151, the Chapter 1/Cancelling/Bazdaaho diagrams) was
-// actually done. That distinction is recorded here rather than glossed
-// over. Two wording points from the same newly-supplied evidence could
-// NOT be corroborated this way and are deliberately left unresolved — see
-// lib/raml/engine/questions/giftVisitorFigures.ts's own header comment.
+// A direct visual re-verification of the manuscript page (see the Prompt
+// 49 reconciliation report and the Prompt 50 correction that followed it)
+// found that four of the eight originally-supplied patterns had their
+// third row misread: every one of the four disagreements between the
+// original mapping and the re-verified one differs in exactly that one
+// position (row 3), always 2 -> 1, never anywhere else — 2222 -> 2212,
+// 1222 -> 1212, 2122 -> 2112, 2121 -> 2111. The other four entries (#1,
+// #4, #6, #8) were already correct and are unchanged. This file now
+// reflects the re-verified mapping. The prior mapping's own git history
+// (this file, and lib/raml/engine/__tests__/giftVisitorFiguresMethod.test.ts)
+// preserves the incorrect intermediate state for anyone auditing how this
+// was corrected.
 //
-// GIFT/VISITOR FIGURE MAPPING (source order, as supplied)
+// GIFT/VISITOR FIGURE MAPPING (source order, as re-verified — Prompt 50)
 //
-// #1 1111 -> Ibrahim          [1,1,1,1]
-// #2 2222 -> Musah            [2,2,2,2]
-// #3 1222 -> Adam             [1,2,2,2]
-// #4 1112 -> Hassan & Hussein [1,1,1,2]
-// #5 2122 -> Umar             [2,1,2,2]
-// #6 2211 -> Nuhu             [2,2,1,1]
-// #7 2121 -> Usman            [2,1,2,1]
-// #8 1211 -> Yunus            [1,2,1,1]
+// #1 1111 -> Ibrahim          [1,1,1,1]  (unchanged)
+// #2 2212 -> Iddris           [2,2,1,2]  (was 2222 -> Musah)
+// #3 1212 -> Issah            [1,2,1,2]  (was 1222 -> Adam)
+// #4 1112 -> Hassan & Hussein [1,1,1,2]  (unchanged)
+// #5 2112 -> Ali              [2,1,1,2]  (was 2122 -> Umar)
+// #6 2211 -> Nuhu             [2,2,1,1]  (unchanged)
+// #7 2111 -> Mahadi           [2,1,1,1]  (was 2121 -> Usman)
+// #8 1211 -> Yunus            [1,2,1,1]  (unchanged)
 //
 // Not assigned an interpretation: the other eight of the sixteen canonical
-// figures (Yussif, Mahadi, Issah, Ayuba, Kalla Allahu, Sulemana, Ali,
-// Iddris) never appear among these eight recovered patterns. If a cast
+// figures (Yussif, Adam, Umar, Ayuba, Kalla Allahu, Sulemana, Usman,
+// Musah) never appear among these eight recovered patterns. If a cast
 // chart's Gift/Visitor calculation produces one of those eight, this file
 // correctly reports no gift interpretation is available for it — see
 // findGiftVisitorFigureByPattern's own doc comment. No meaning is invented
@@ -74,12 +68,12 @@ export interface GiftVisitorFigure {
 
 export const GIFT_VISITOR_FIGURES: GiftVisitorFigure[] = [
   { number: 1, starId: "ibrahim" },
-  { number: 2, starId: "musah" },
-  { number: 3, starId: "adam" },
+  { number: 2, starId: "iddris" },
+  { number: 3, starId: "issah" },
   { number: 4, starId: "hassan-hussein" },
-  { number: 5, starId: "umar" },
+  { number: 5, starId: "ali" },
   { number: 6, starId: "nuhu" },
-  { number: 7, starId: "usman" },
+  { number: 7, starId: "mahadi" },
   { number: 8, starId: "yunus" },
 ];
 

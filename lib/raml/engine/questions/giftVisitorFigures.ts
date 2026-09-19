@@ -73,10 +73,11 @@
 // THE EIGHT GIFT FIGURES
 //
 // See content/manuscripts/giftVisitorFigures.ts for the eight recovered
-// figures, how they were verified without this session being able to view
-// the source photograph, and which eight of the sixteen canonical figures
-// have NO recovered interpretation (a real, honestly-reported gap — see
-// this method's own zero-match branch below, never guessed at).
+// figures (including the Prompt 50 correction to four of the eight, made
+// after direct visual re-verification of the manuscript page), and which
+// eight of the sixteen canonical figures have NO recovered interpretation
+// (a real, honestly-reported gap — see this method's own zero-match
+// branch below, never guessed at).
 //
 // SECURITY: this file lives in lib/raml/engine/questions/, reachable only
 // from server-side code — see dreamsAndInterpretations.ts's own header

@@ -18,12 +18,12 @@ const EXPECTED: Record<
   { starId: string; pattern: [number, number, number, number] }
 > = {
   1: { starId: "ibrahim", pattern: [1, 1, 1, 1] },
-  2: { starId: "musah", pattern: [2, 2, 2, 2] },
-  3: { starId: "adam", pattern: [1, 2, 2, 2] },
+  2: { starId: "iddris", pattern: [2, 2, 1, 2] },
+  3: { starId: "issah", pattern: [1, 2, 1, 2] },
   4: { starId: "hassan-hussein", pattern: [1, 1, 1, 2] },
-  5: { starId: "umar", pattern: [2, 1, 2, 2] },
+  5: { starId: "ali", pattern: [2, 1, 1, 2] },
   6: { starId: "nuhu", pattern: [2, 2, 1, 1] },
-  7: { starId: "usman", pattern: [2, 1, 2, 1] },
+  7: { starId: "mahadi", pattern: [2, 1, 1, 1] },
   8: { starId: "yunus", pattern: [1, 2, 1, 1] },
 };
 
@@ -76,7 +76,7 @@ describe("Gift/Visitor Figures (Chapter 28 continuation) figure restoration", ()
     const recovered = new Set(GIFT_VISITOR_FIGURES.map((f) => f.starId));
     const notRecovered = STARS.filter((s) => !recovered.has(s.id)).map((s) => s.id);
     expect(notRecovered.sort()).toEqual(
-      ["ali", "ayuba", "iddris", "kalla-allahu", "mahadi", "sulemana", "issah", "yussif"].sort(),
+      ["adam", "ayuba", "kalla-allahu", "musah", "sulemana", "umar", "usman", "yussif"].sort(),
     );
   });
 
@@ -88,8 +88,10 @@ describe("Gift/Visitor Figures (Chapter 28 continuation) figure restoration", ()
     for (let n = 1; n <= 8; n++) {
       expect(findGiftVisitorFigureByPattern(getGiftVisitorFigurePattern(n))).toBe(n);
     }
-    // Iddris [2,2,1,2] is one of the eight NOT recovered.
-    expect(findGiftVisitorFigureByPattern([2, 2, 1, 2])).toBeNull();
+    // Musah [2,2,2,2] was recovered under the pre-Prompt-50 mapping but is
+    // one of the eight NOT recovered under the corrected one (see this
+    // file's header comment) — a direct regression check on the correction.
+    expect(findGiftVisitorFigureByPattern([2, 2, 2, 2])).toBeNull();
   });
 
   describe("existing interpretation text is unchanged by this restoration", () => {

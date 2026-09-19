@@ -591,9 +591,12 @@ describe('Chapter 33 ("cast out by 4s") is not registered', () => {
   });
 });
 
-describe('Chapter 28 continuation fragments are not registered', () => {
-  it('both fall back to null — no computable shape at all (every figure token was dropped, not just omitted)', () => {
-    expect(runEngine(chart, 'continued-from-chapter-twenty-eight')).toBeNull();
+describe('Chapter 28 continuation ("Reading the Gift/Visitor Figures")', () => {
+  it('continued-from-chapter-twenty-eight is now registered — eight of its sixteen result figures were recovered (see lib/raml/engine/questions/giftVisitorFigures.ts)', () => {
+    expect(runEngine(chart, 'continued-from-chapter-twenty-eight')).not.toBeNull();
+  });
+
+  it('reading-the-gift-visitor-figures-end-of-chapter has no QuestionDefinition of its own — it is the same passage, continued across a page break, and is consolidated into the entry above (questionAvailability.ts), never run directly', () => {
     expect(runEngine(chart, 'reading-the-gift-visitor-figures-end-of-chapter')).toBeNull();
   });
 });

@@ -47,8 +47,8 @@ describe('Registry integrity', () => {
     });
   });
 
-  it('now covers 141 questions total (138 by chapter 151, plus the 2 computable unnumbered fragments the Prompt 13 audit found unregistered, plus chapter 151 itself once its author-clarified procedure was registered)', () => {
-    expect(ids.length).toBe(141);
+  it('now covers 142 questions total (138 by chapter 151, plus the 2 computable unnumbered fragments the Prompt 13 audit found unregistered, plus chapter 151 itself once its author-clarified procedure was registered, plus the Gift/Visitor Figures continuation once eight of its result figures were recovered)', () => {
+    expect(ids.length).toBe(142);
   });
 });
 

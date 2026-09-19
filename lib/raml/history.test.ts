@@ -150,7 +150,7 @@ const STATE_FIXTURES = {
   insufficient: 'if-a-pregnancy-is-going-to-be-stable',
   'source-detail-missing': 'if-it-s-day-or-night-that-she',
   'not-defined-in-source': 'hunting-in-water-and-on-land-and-searching',
-  'no-automatic-reading': 'continued-from-chapter-twenty-eight',
+  'no-automatic-reading': 'how-to-make-one-win-over-the-other',
   general: 'general',
 } as const;
 
@@ -222,7 +222,7 @@ describe('saving a completed reading', () => {
 describe('replay', () => {
   it('reconstructs exactly the reading the user originally saw', async () => {
     for (const questionId of Object.values(STATE_FIXTURES)) {
-      if (questionId === 'general' || questionId === 'continued-from-chapter-twenty-eight') continue;
+      if (questionId === 'general' || questionId === 'how-to-make-one-win-over-the-other') continue;
       // The result as the user saw it, at casting time.
       const original = runReading(buildChart(MOTHERS), questionId)!;
       // The result as history rebuilds it, from storage alone.
@@ -329,7 +329,7 @@ describe('what a history entry says about itself', () => {
     expect(entry.stateKind).toBe('no-automatic-reading');
     expect(entry.result).toBeNull();
     expect(entry.unavailableReason).toBeNull(); // it is a limit of the book, not of the save
-    expect(entry.sourceLabel).toBe('Kanzul Mikban');
+    expect(entry.sourceLabel).toBe('Kanzul Mikban, Chapter 46');
   });
 });
 

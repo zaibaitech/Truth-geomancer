@@ -68,6 +68,11 @@ const CONSOLIDATED: Record<string, ConsolidatedAvailability> = {
     canonicalQuestionId: 'the-real-behavior-character-or-life-of-someone',
     note: 'This repeats Chapter 43’s method word for word — the notebook’s own note says so. It is read under that chapter.',
   },
+  'reading-the-gift-visitor-figures-end-of-chapter': {
+    kind: 'consolidated',
+    canonicalQuestionId: 'continued-from-chapter-twenty-eight',
+    note: 'The manuscript continues this same passage across a page break. It is read together with “Reading the Gift/Visitor Figures,” which includes it.',
+  },
 };
 
 const NO_AUTOMATIC_READING: Record<string, ReferenceAvailability> = {
@@ -103,16 +108,17 @@ const NO_AUTOMATIC_READING: Record<string, ReferenceAvailability> = {
   // here reclassifying it as unautomated; see that file's own header
   // comment for exactly why it is safe to run automatically, and what part
   // of its procedure is author-clarified rather than manuscript text.
-  'continued-from-chapter-twenty-eight': {
-    kind: 'no-automatic-reading',
-    badge: 'Figures missing',
-    note: 'Every figure that would identify which meaning applies was lost from this continuation, so nothing here can be matched to your chart. The text is shown in full below.',
-  },
-  'reading-the-gift-visitor-figures-end-of-chapter': {
-    kind: 'no-automatic-reading',
-    badge: 'Figures missing',
-    note: 'Every figure that would identify which meaning applies was lost from this continuation, so nothing here can be matched to your chart. The text is shown in full below.',
-  },
+  // NOTE: 'continued-from-chapter-twenty-eight' (the Gift/Visitor Figures
+  // continuation of Chapter 28) is intentionally absent from this map —
+  // eight of its sixteen result figures have now been recovered (see
+  // content/manuscripts/giftVisitorFigures.ts) and it is a real,
+  // registered engine question (lib/raml/engine/questions/
+  // giftVisitorFigures.ts). It falls through to the default
+  // { kind: 'engine' } below. Its own page-break continuation,
+  // 'reading-the-gift-visitor-figures-end-of-chapter', is consolidated
+  // into it above rather than removed from this map entirely, since that
+  // entry has no figures or calculation of its own — it is the same
+  // passage, split by the manuscript's own page break.
 };
 
 /** What the app can actually do with a selected intention. `engine` means the

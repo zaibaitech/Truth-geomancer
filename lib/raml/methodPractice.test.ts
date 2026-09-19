@@ -102,17 +102,24 @@ describe('findPracticableMethod — unresolved and unknown methods are refused',
   });
 
   it('returns nothing for a chapter with no automatic reading at all', () => {
-    // The Chapter 28 gift/visitor continuation is registered as
+    // 'How to Make One Win Over the Other Opponents' is registered as
     // 'no-automatic-reading' (lib/raml/questionAvailability.ts) — no engine
-    // question backs it, unlike Chapter 151 (see the test below), whose
-    // author-clarified procedure IS now registered.
-    expect(practicableMethodsForChapter('continued-from-chapter-twenty-eight')).toEqual([]);
+    // question backs it, unlike Chapter 151 or the Gift/Visitor Figures
+    // continuation (see the tests below), whose procedures ARE registered.
+    expect(practicableMethodsForChapter('how-to-make-one-win-over-the-other')).toEqual([]);
   });
 
   it('returns the real practicable method for Chapter 151, now that its author-clarified procedure is registered', () => {
     const methods = practicableMethodsForChapter('dreams-and-their-interpretations');
     expect(methods.length).toBe(1);
     expect(methods[0].questionId).toBe('dreams-and-their-interpretations');
+    expect(methods[0].method.status).toBe('verified');
+  });
+
+  it('returns the real practicable method for the Gift/Visitor Figures continuation, now that eight of its result figures are recovered', () => {
+    const methods = practicableMethodsForChapter('continued-from-chapter-twenty-eight');
+    expect(methods.length).toBe(1);
+    expect(methods[0].questionId).toBe('continued-from-chapter-twenty-eight');
     expect(methods[0].method.status).toBe('verified');
   });
 

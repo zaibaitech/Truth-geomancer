@@ -5116,3 +5116,138 @@ and the matching helper this stage adds, both already in place.
 
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
+
+
+## Prompt — Reading the Gift/Visitor Figures: restore eight recovered figures, register an automatic reading
+
+**The request.** Restore the "Reading the Gift/Visitor Figures" continuation
+of Chapter 28 ("If You Will Get Money or Good Strangers That Same Day or
+Not"), currently shown with a "Figures missing" badge, using eight newly
+supplied source patterns — and register an automatic reading if, and only
+if, the source and the existing engine together support one safely.
+
+**Source-access limitation, stated plainly.** The four manuscript
+photographs this prompt referenced (paths under `/mnt/data/`) were not
+reachable in this session — that path does not exist here, and no batch of
+four newly uploaded images could be confidently matched to them among this
+session's own uploads. Nothing in this stage rests on this session having
+independently viewed those photographs. What made restoration possible
+without them: the interpretive prose was already fully transcribed in
+`kanzulMikban.ts` from an earlier stage, and the eight supplied patterns
+were verified structurally — each checked for an exact, unique match
+against the existing canonical `STARS` array (no rotation, inversion, or
+other transform used to force a match), and the two source paragraphs were
+independently found to contain exactly eight unmarked "If you get..."
+placeholders, in the same fixed reading order. Eight patterns, in order,
+for eight placeholders, in the same order, with zero collisions, is real
+corroborating evidence — recorded in `content/manuscripts/
+giftVisitorFigures.ts`'s own header as exactly that, and not conflated with
+this project having independently read the source photograph itself.
+
+**Source-fidelity re-audit — a real correction, not a refinement.** The
+first version of this stage's method computed the chapter's fire/air/
+water/sand-star elaboration (visitor type, open/closed water-line timing,
+"repeats many times" timing) as verified interpretation output, choosing
+which figure ("the star") those later sentences describe by what it called
+"the most textually coherent reading." A dedicated re-audit, explicitly
+barred from resolving ambiguity by coherence, intuition, or convenience,
+found this was wrong — and not because of anything newly discovered about
+the manuscript. It directly contradicted evidence already sitting in this
+same codebase: `moneyOrGoodStrangers.ts`'s own header comment, written for
+an earlier, already-verified stage of this EXACT SAME passage, states
+explicitly that this elaboration — including "a 'water-element, closed ->
+you won't get anything' carve-out" — was "deliberately not encoded... the
+closed-water carve-out isn't clearly reconciled with the primary rule
+textually." That is a documented, considered decision from this project's
+own prior audit of this exact sentence, and the first version of this
+stage overrode it with a fresh interpretive choice instead of continuing
+to honor it. The "man" vs "mom" wording discrepancy flagged for the fire/
+air branches (see git history of `giftVisitorFigures.ts`) is independent
+evidence of the same risk in this specific elaboration text.
+
+**The correction applied.** `lib/raml/engine/questions/
+giftVisitorFigures.ts`'s method now computes ONLY: (1) the calculation
+(`EXTRACT_ELEMENT` + `ADD_FIGURE_TO_HOUSE` — an unambiguous, already-
+established structural match to "pick the water element of h5/h7/h11/h14
+and form a star. Add it to h7"); (2) the found-in-chart check, which
+reuses — not re-derives — the exact same entity resolution
+`moneyOrGoodStrangers.ts`'s own already-verified method already applies to
+this identical clause on this identical calculation, so this is continuity
+with an established precedent rather than a new interpretive choice; and
+(3) the eight recovered gift-figure meanings, read as naming the result of
+that same procedure ("the method above"), introducing no further entity-
+resolution question beyond what (2) already settles by precedent. It does
+NOT compute or report element, direction, water-line state, repetition
+count, or any of the fire/air/water/sand-star sentences. `SourceRef.quote`
+was trimmed to be byte-identical to `moneyOrGoodStrangers.ts`'s own quote —
+the method claims to implement no more of the source sentence than that
+already-verified method does.
+
+**Classification: PARTIALLY IMPLEMENTABLE, safely registered on a narrow
+scope.** The calculation, the found/not-found fact, and eight of the
+sixteen possible result figures' specific gift meanings are source-
+supported and registered as a real, verified, `resultKind: 'descriptive'`
+engine question. The fire/air/water/sand elaboration is source text but
+NOT computed — exactly mirroring Chapter 28's own, already-established
+scope decision for this identical material. The other eight of the sixteen
+possible result figures have no recovered gift meaning and are reported as
+exactly that — "not one of the eight figures this restoration has
+recovered a specific gift/visitor meaning for" — never guessed.
+
+**What changed.**
+- `content/manuscripts/giftVisitorFigures.ts` (new) — the eight recovered
+  figures, their verification method, and a marker-splitting parser for
+  the two chapters' own unmarked "If you get[:]" occurrences (same
+  text-preserving technique as `dreamInterpretations.ts`'s
+  `parseDreamParagraph`, adapted for unnumbered, irregularly-worded
+  markers). Unaffected by the re-audit correction.
+- `lib/raml/engine/questions/giftVisitorFigures.ts` (new) — the new
+  question, registered under id `continued-from-chapter-twenty-eight`.
+  `moneyOrGoodStrangersQuestion` (`moneyOrGoodStrangers.ts`) is completely
+  untouched — this is a separate question, not a second method on that
+  one, since mixing an `outcome`-kind method with a `descriptive`-kind
+  method inside one `QuestionDefinition` is not what this architecture
+  supports (see file header). Corrected per the re-audit above.
+- `lib/raml/engine/questions/index.ts` — registers the new question.
+- `lib/raml/questionAvailability.ts` — `continued-from-chapter-twenty-
+  eight` removed from `NO_AUTOMATIC_READING` (falls through to the default
+  engine entry); `reading-the-gift-visitor-figures-end-of-chapter`
+  (the same passage, continued across the manuscript's own page break, no
+  figures or calculation of its own) added to `CONSOLIDATED`, pointing at
+  the entry above.
+- `lib/raml/questionRegistryMeta.ts` — public meta entry added (id/title/
+  category/method status only — no quotes, no interpretation text).
+- `components/books/GiftVisitorFiguresBody.tsx` (new) + `app/books/[id]/
+  read/page.tsx` — restores the eight figures into the book reader in
+  position, exactly as `DreamInterpretationsBody` already does for Chapter
+  151; not a word of the existing transcription is rewritten. This part
+  only displays the source's own words (fire/air/water/sand elaboration
+  included, verbatim) — it never computes or interprets them, so the
+  re-audit above does not affect it.
+- Nine existing test files updated for the registry-count ripple
+  (141→142 questions, 232→233 methods, 183→184 verified, 5→6 consolidated,
+  7→5 no-automatic-reading) — the same kind of update Chapter 151's own
+  registration required, and for the same reason.
+- `content/manuscripts/giftVisitorFigures.test.ts` (new, unaffected by the
+  re-audit) and `lib/raml/engine/__tests__/giftVisitorFiguresMethod.test.ts`
+  (new, rewritten per the re-audit — now asserts the fire/air/water/sand
+  elaboration is ABSENT from the computed interpretation, not present) —
+  62 tests total, fixtures found by an exhaustive 16⁴ brute-force search
+  over every castable Mothers combination, so every fixture is a real,
+  castable chart.
+
+**Engine confirmation.** `casting.ts`, `chartModel.ts`, `ruleEngine.ts`
+were not modified at any point in this stage or its re-audit. Confirmed
+via `git status`/`git diff --name-only`.
+
+**Security confirmation (re-run after the correction).** A clean
+production build's `.next/static` output was searched for every gift
+interpretation sentence, the method's full source quote, and the method id
+string — none of the interpretation text or the quote appear; the method
+id string appears exactly once, as part of `QUESTION_REGISTRY_META`'s
+already-established public-metadata entry (id/title/category/method status
+only), the same shape every other of the ~140 other registered chapters
+already exposes client-side. `clientLeakage.test.ts` passes unchanged.
+
+**Not committed, not pushed, not deployed**, per this prompt's explicit
+instruction.

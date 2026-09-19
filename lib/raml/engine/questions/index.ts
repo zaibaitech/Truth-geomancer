@@ -162,6 +162,7 @@ import { backToWorkAfterProblemQuestion } from './backToWorkAfterProblem';
 import { stayInMarriageQuestion } from './stayInMarriage';
 import { friendshipConsequenceQuestion } from './friendshipConsequence';
 import { dreamsAndInterpretationsQuestion } from './dreamsAndInterpretations';
+import { giftVisitorFiguresQuestion } from './giftVisitorFigures';
 
 const ALL_QUESTIONS: QuestionDefinition[] = [
   moneyQuestion,
@@ -369,6 +370,7 @@ const ALL_QUESTIONS: QuestionDefinition[] = [
   stayInMarriageQuestion,
   friendshipConsequenceQuestion,
   dreamsAndInterpretationsQuestion,
+  giftVisitorFiguresQuestion,
 ];
 
 export const QUESTION_REGISTRY: Record<string, QuestionDefinition> = Object.fromEntries(
@@ -521,4 +523,5 @@ export {
   stayInMarriageQuestion,
   friendshipConsequenceQuestion,
   dreamsAndInterpretationsQuestion,
+  giftVisitorFiguresQuestion,
 };

@@ -1156,6 +1156,14 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     resultKind: "descriptive",
     methods: [{ id: "dreams-interpretation-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "dreams-and-their-interpretations" }],
   },
+  "continued-from-chapter-twenty-eight": {
+    id: "continued-from-chapter-twenty-eight",
+    title: "What kind of gift or visitor is coming?",
+    categoryId: "fate-timing",
+    chapterId: "continued-from-chapter-twenty-eight",
+    resultKind: "descriptive",
+    methods: [{ id: "gift-visitor-figures-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-get-money-or-good-strangers" }],
+  },
 };
 
 export const QUESTION_META_LIST: PublicQuestionMeta[] = Object.values(QUESTION_REGISTRY_META);

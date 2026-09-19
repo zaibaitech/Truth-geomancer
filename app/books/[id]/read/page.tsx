@@ -7,6 +7,7 @@ import { ContentGuard } from "@/components/books/ContentGuard";
 import { Prose } from "@/components/books/Prose";
 import { ChapterMethodPractice } from "@/components/books/ChapterMethodPractice";
 import { DreamInterpretationsBody } from "@/components/books/DreamInterpretationsBody";
+import { GiftVisitorFiguresBody } from "@/components/books/GiftVisitorFiguresBody";
 import { BookAccessGate } from "@/components/books/BookAccessGate";
 import { FigureGlyph } from "@/components/raml/FigureGlyph";
 import { HatimDiagram } from "@/components/books/HatimDiagram";
@@ -170,6 +171,16 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                     {chapter.id === "dreams-and-their-interpretations" ? (
                       <DreamInterpretationsBody
                         paragraphs={chapter.paragraphs}
+                      />
+                    ) : chapter.id === "continued-from-chapter-twenty-eight" ? (
+                      <GiftVisitorFiguresBody
+                        paragraphs={chapter.paragraphs}
+                      />
+                    ) : chapter.id ===
+                      "reading-the-gift-visitor-figures-end-of-chapter" ? (
+                      <GiftVisitorFiguresBody
+                        paragraphs={chapter.paragraphs}
+                        startNumber={7}
                       />
                     ) : (
                       <ChapterMethodPractice

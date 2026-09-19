@@ -60,7 +60,7 @@ describe('the catalogue covers the product exactly once', () => {
     // The manuscript's heading is kept as supporting text, never as the only
     // thing a user has to read.
     const withEngineQuestion = QUESTION_CATALOG.filter((e) => e.engineQuestionId);
-    expect(withEngineQuestion.length).toBe(146);
+    expect(withEngineQuestion.length).toBe(148);
     for (const entry of withEngineQuestion) {
       expect(entry.title).toBe(QUESTION_REGISTRY[entry.engineQuestionId!].title);
       expect(entry.hasShortTitle).toBe(entry.title !== entry.sourceTitle);
@@ -173,17 +173,18 @@ describe('question search', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 4. The 12 special entries keep their honest treatment (13, before
-//    Chapter 151 was registered as a real engine question)
+// 4. The 11 special entries keep their honest treatment (13, before Chapter
+//    151 and the Gift/Visitor Figures continuation were registered as real
+//    engine questions)
 // ---------------------------------------------------------------------------
 
 describe('special source entries', () => {
   const consolidated = QUESTION_CATALOG.filter((e) => e.availability.kind === 'consolidated');
   const noReading = QUESTION_CATALOG.filter((e) => e.availability.kind === 'no-automatic-reading');
 
-  it('still counts 5 consolidated and 7 without an automatic reading', () => {
-    expect(consolidated.length).toBe(5);
-    expect(noReading.length).toBe(7);
+  it('still counts 6 consolidated and 5 without an automatic reading', () => {
+    expect(consolidated.length).toBe(6);
+    expect(noReading.length).toBe(5);
   });
 
   it('routes a consolidated entry to a real engine question that is not itself', () => {
@@ -201,7 +202,7 @@ describe('special source entries', () => {
   });
 
   it('runs no engine question for material that has none, and says which kind it is', () => {
-    const badges = new Set(['Reference table', 'Figures missing', 'Practice, not a reading', 'Open-ended', 'Different method']);
+    const badges = new Set(['Reference table', 'Practice, not a reading', 'Open-ended', 'Different method']);
     for (const entry of noReading) {
       expect(entry.engineQuestionId, entry.id).toBeNull();
       expect(entry.methodCount).toBe(0);

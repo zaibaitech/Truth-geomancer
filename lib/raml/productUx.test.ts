@@ -38,9 +38,9 @@ describe('question discovery', () => {
   it('offers one selectable entry per transcription entry, each with a known disposition', () => {
     expect(SELECTABLE.length).toBe(KM_CHAPTERS.length);
     const kinds = SELECTABLE.map((i) => getQuestionAvailability(i.id).kind);
-    expect(kinds.filter((k) => k === 'engine').length).toBe(141);
-    expect(kinds.filter((k) => k === 'consolidated').length).toBe(5);
-    expect(kinds.filter((k) => k === 'no-automatic-reading').length).toBe(7);
+    expect(kinds.filter((k) => k === 'engine').length).toBe(142);
+    expect(kinds.filter((k) => k === 'consolidated').length).toBe(6);
+    expect(kinds.filter((k) => k === 'no-automatic-reading').length).toBe(5);
   });
 
   it('backs every entry it presents as an ordinary question with a registered engine question', () => {

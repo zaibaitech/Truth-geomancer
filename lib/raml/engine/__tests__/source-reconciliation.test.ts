@@ -290,11 +290,14 @@ describe('Unnumbered fragments and consolidated material', () => {
 describe('Final Kanzul Mikban totals', () => {
   // Updated post-Prompt-13 by the Chapter 151 registration (author-clarified
   // "pair them" procedure — see dreamsAndInterpretations.ts): +1 question,
-  // +1 method, +1 verified.
-  it('141 questions / 232 methods — 183 verified, 19 needs_review, 30 uncertain', () => {
-    expect(Object.keys(QUESTION_REGISTRY).length).toBe(141);
-    expect(ALL_METHODS.length).toBe(232);
-    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(183);
+  // +1 method, +1 verified. Updated again by the Gift/Visitor Figures
+  // continuation registration (eight of its sixteen result figures
+  // recovered — see giftVisitorFigures.ts): +1 question, +1 method, +1
+  // verified.
+  it('142 questions / 233 methods — 184 verified, 19 needs_review, 30 uncertain', () => {
+    expect(Object.keys(QUESTION_REGISTRY).length).toBe(142);
+    expect(ALL_METHODS.length).toBe(233);
+    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(184);
     expect(ALL_METHODS.filter(({ method }) => method.status === 'needs_review').length).toBe(19);
     expect(ALL_METHODS.filter(({ method }) => method.status === 'uncertain').length).toBe(30);
   });

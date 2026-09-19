@@ -21,6 +21,7 @@ import {
   searchCatalog,
 } from './questionCatalog';
 import { readingToText, summariseReading } from './readingSummary';
+import { primaryDisplayedInterpretation } from './resultPresentation';
 import { INSUFFICIENT_EXPLANATION, INSUFFICIENT_HEADING, METHOD_STATUS_LABEL, methodTally } from './statusLanguage';
 
 const chart = fixtureChart();
@@ -290,7 +291,7 @@ describe('result summary', () => {
     for (const reading of readings) {
       const summary = summariseReading(reading);
       expect(summary.question).toBe(reading.question);
-      expect(summary.interpretation).toBe(reading.shortSummary);
+      expect(summary.interpretation).toBe(primaryDisplayedInterpretation(reading) ?? reading.shortSummary);
       expect(summary.status.trim().length, reading.questionId).toBeGreaterThan(0);
       expect(summary.status).not.toMatch(/\d+%|probability|confidence|certain/i);
       expect(summary.source.length, reading.questionId).toBeGreaterThan(0);
@@ -339,6 +340,17 @@ describe('result summary', () => {
   it('marks a copied insufficient reading as such rather than leaving it blank', () => {
     const blocked = readings.find((r) => r.isInsufficient)!;
     expect(readingToText(blocked)).toContain(INSUFFICIENT_HEADING);
+  });
+
+  it('copies a descriptive reading\'s source interpretation, not only the figure label', () => {
+    const reading = readings.find((r) => r.questionId === 'dreams-and-their-interpretations' && !r.isInsufficient);
+    if (!reading) return;
+    const summary = summariseReading(reading);
+    const interpretation = primaryDisplayedInterpretation(reading);
+    expect(interpretation).toBeTruthy();
+    expect(summary.interpretation).toBe(interpretation);
+    expect(summary.status).toBe(reading.descriptiveAnswer);
+    expect(readingToText(reading)).toContain(interpretation!);
   });
 });
 

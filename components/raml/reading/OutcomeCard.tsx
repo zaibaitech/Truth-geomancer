@@ -1,5 +1,10 @@
 import { Card } from '@/components/ui/Card';
-import { computePrimaryStatus, primaryAnswerText } from '@/lib/raml/resultPresentation';
+import {
+  computePrimaryStatus,
+  primaryAnswerText,
+  primaryDisplayedInterpretation,
+  shouldShowShortSummary,
+} from '@/lib/raml/resultPresentation';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
 
 /** The primary reading card (section 12, priority 1-3 — what was asked,
@@ -8,19 +13,25 @@ import type { ReadingResult } from '@/lib/raml/engine/reading';
  * per-method jargon here — those live behind "How this was determined"
  * (EngineReadingView). The headline and status line are both built from
  * data reading.ts already computed (see resultPresentation.ts); this
- * component only lays that out. The insufficient-data state has its own
+ * component only lays that out. For a descriptive reading the engine
+ * already stored the source interpretation on the counted method row —
+ * that existing text is shown here too, so the reader is not left with
+ * only the figure identifier. The insufficient-data state has its own
  * dedicated copy in InsufficientNotice instead of reaching this card. */
 export function OutcomeCard({ result }: { result: ReadingResult }) {
   const status = computePrimaryStatus(result);
   const answer = primaryAnswerText(result, status);
+  const interpretation = primaryDisplayedInterpretation(result, status);
+  const showSummary = shouldShowShortSummary(result, interpretation, status);
   const counted = result.methodResults.filter((m) => m.counted);
 
   return (
     <Card>
       <p className="type-meta uppercase tracking-widest text-sand/65">Reading</p>
-      <p className="mt-1.5 type-method font-semibold text-sand-light">{answer}</p>
+      <p className="mt-1.5 type-method font-semibold text-sand-light break-words">{answer}</p>
       <p className="mt-2 type-body font-medium text-sand-light">{status.statusText}</p>
-      <p className="mt-1.5 type-body text-sand/75">{result.shortSummary}</p>
+      {interpretation ? <p className="mt-1.5 type-body text-sand/75 break-words">{interpretation}</p> : null}
+      {showSummary ? <p className="mt-1.5 type-body text-sand/75 break-words">{result.shortSummary}</p> : null}
 
       {/* Never a winner picked between methods — every counted method's own
           answer, named plainly, whenever there isn't one answer they all

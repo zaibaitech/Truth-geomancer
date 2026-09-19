@@ -30,10 +30,18 @@ describe('primary reading screen shows only the answer and its agreement status'
     expect(OUTCOME).toContain("from '@/lib/raml/resultPresentation'");
     expect(OUTCOME).toContain('computePrimaryStatus(result)');
     expect(OUTCOME).toContain('primaryAnswerText(result, status)');
+    expect(OUTCOME).toContain('primaryDisplayedInterpretation(result, status)');
+    expect(OUTCOME).toContain('shouldShowShortSummary(result, interpretation, status)');
   });
 
   it('only shows the method-by-method breakdown when there is no single agreed answer', () => {
     expect(OUTCOME).toMatch(/status\.showBreakdown\s*\?/);
+  });
+
+  it('surfaces the existing source interpretation on the primary card when the presentation helper provides one', () => {
+    expect(OUTCOME).toMatch(/interpretation \? <p className="mt-1\.5 type-body text-sand\/75 break-words">\{interpretation\}<\/p> : null/);
+    expect(OUTCOME).not.toMatch(/Ibrahim/);
+    expect(OUTCOME).not.toMatch(/Chapter 151|dreams-and-their-interpretations/);
   });
 
   it('never renders houses, figure names or quality labels on the primary card itself', () => {

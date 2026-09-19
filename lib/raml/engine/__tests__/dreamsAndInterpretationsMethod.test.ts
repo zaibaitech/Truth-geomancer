@@ -10,9 +10,15 @@ import { buildChart } from '../../casting';
 import { buildChartModel } from '../chartModel';
 import { ADD_FIGURES, ADD_MULTIPLE_HOUSES, CHECK_HOUSE } from '../operations';
 import { QUESTION_REGISTRY } from '../questions';
-import { runEngine } from '../index';
+import { runEngine, runReading } from '../index';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
 import { catalogEntry } from '@/lib/raml/questionCatalog';
+import {
+  computePrimaryStatus,
+  primaryAnswerText,
+  primaryDisplayedInterpretation,
+  shouldShowShortSummary,
+} from '@/lib/raml/resultPresentation';
 import type { Pattern } from '@/content/stars';
 
 const CH151_ID = 'dreams-and-their-interpretations';
@@ -173,5 +179,54 @@ describe('Test K: the catalogue no longer shows "Method undefined" or "Figures m
   it('the catalogue entry carries no badge at all', () => {
     const entry = catalogEntry(CH151_ID)!;
     expect(entry.availability.kind).not.toBe('no-automatic-reading');
+  });
+});
+
+// Presentation-layer coverage only: composeReading already preserved the
+// source interpretation, and the primary card now surfaces it. These
+// assertions never re-derive the pairing arithmetic.
+const IBRAHIM_MOTHERS: [Pattern, Pattern, Pattern, Pattern] = [
+  [1, 1, 1, 1], // Ibrahim
+  [2, 2, 2, 2], // Musah (identity)
+  [2, 2, 2, 2], // Musah
+  [2, 2, 2, 2], // Musah → final figure Ibrahim = interpretation #5
+];
+
+describe('presentation: the source interpretation is preserved and shown, calculation unchanged', () => {
+  it('Ibrahim (#5): composeReading keeps the source text, and the primary card shows both the figure label and that text', () => {
+    const chart = buildChart(IBRAHIM_MOTHERS);
+    const engine = runEngine(chart, CH151_ID)!;
+    const reading = runReading(chart, CH151_ID)!;
+    const verdict = engine.methods[0].verdict!;
+
+    expect(engine.methods[0].calculation!.resultFigure.figureId).toBe('ibrahim');
+    expect(verdict.label).toBe('Interpretation #5 — Ibrahim');
+    expect(reading.descriptiveAnswer).toBe('Interpretation #5 — Ibrahim');
+    expect(reading.methodResults[0].interpretation).toBe(verdict.interpretation);
+    expect(reading.primaryFigure?.interpretation).toBe(verdict.interpretation);
+    expect(verdict.interpretation).toContain('white house-bird');
+
+    const status = computePrimaryStatus(reading);
+    expect(primaryAnswerText(reading, status)).toBe('Interpretation #5 — Ibrahim');
+    expect(primaryDisplayedInterpretation(reading, status)).toBe(verdict.interpretation);
+    expect(shouldShowShortSummary(reading, verdict.interpretation, status)).toBe(false);
+  });
+
+  it('Ayuba (#8): the primary card shows that figure\'s own interpretation, not Ibrahim\'s', () => {
+    const ayuba = FIXTURES[1];
+    const chart = buildChart(ayuba.mothers);
+    const engine = runEngine(chart, CH151_ID)!;
+    const reading = runReading(chart, CH151_ID)!;
+    const verdict = engine.methods[0].verdict!;
+
+    expect(engine.methods[0].calculation!.resultFigure.figureId).toBe('ayuba');
+    expect(verdict.label).toContain('#8');
+    expect(primaryAnswerText(reading, computePrimaryStatus(reading))).toBe(verdict.label);
+    expect(primaryDisplayedInterpretation(reading)).toBe(verdict.interpretation);
+    expect(primaryDisplayedInterpretation(reading)).not.toBe(
+      runReading(buildChart(IBRAHIM_MOTHERS), CH151_ID)!.methodResults[0].interpretation,
+    );
+    expect(primaryDisplayedInterpretation(reading)).toMatch(/funeral/i);
+    expect(primaryDisplayedInterpretation(reading)).not.toMatch(/white house-bird/);
   });
 });

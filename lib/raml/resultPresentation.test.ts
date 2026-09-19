@@ -9,7 +9,7 @@ import { composeReading } from './engine/reading';
 import { runReading } from './engine';
 import { fixtureChart } from './engine/__tests__/fixtures';
 import { QUESTION_REGISTRY } from './engine/questions';
-import { computePrimaryStatus, primaryAnswerText } from './resultPresentation';
+import { computePrimaryStatus, primaryAnswerText, primaryDisplayedInterpretation, shouldShowShortSummary } from './resultPresentation';
 import type { ComputedFigure, EngineResult, FigureQualities, MethodConsensus, MethodResult, QuestionDefinition } from './engine/types';
 
 function qualities(overrides: Partial<FigureQualities> = {}): FigureQualities {
@@ -90,6 +90,110 @@ describe('computePrimaryStatus — 1. multiple methods agreeing', () => {
     expect(status.statusText).toBe('2 verified methods agree.');
     expect(status.showBreakdown).toBe(false);
     expect(primaryAnswerText(result, status)).toBe('Favourable');
+  });
+});
+
+describe('primaryDisplayedInterpretation — source text on the primary card, not only the label', () => {
+  it('surfaces the counted method interpretation for a descriptive reading', () => {
+    const interpretation =
+      'It means a message, a messenger, or a child/pregnancy that you will soon get. It also talks about travelling across water or a flood. Do the sadaka of a white house-bird, white rice and cow\'s milk, or the head of a sheep or goat.';
+    const m1 = method('m1', 'Method 1', {
+      verdict: {
+        outcome: 'descriptive',
+        label: 'Interpretation #5 — Ibrahim',
+        descriptiveAnswer: 'interpretation-5',
+        interpretation,
+      },
+    });
+    const consensus: MethodConsensus = {
+      kind: 'descriptive',
+      level: 'agree',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 0,
+      verifiableCount: 1,
+      summary: 'All 1 of 1 computable method(s) agree.',
+      descriptiveAnswer: 'Interpretation #5 — Ibrahim',
+    };
+    const result = readingWith([m1], consensus, 'descriptive');
+    const status = computePrimaryStatus(result);
+
+    expect(primaryAnswerText(result, status)).toBe('Interpretation #5 — Ibrahim');
+    expect(primaryDisplayedInterpretation(result, status)).toBe(interpretation);
+    expect(shouldShowShortSummary(result, interpretation, status)).toBe(false);
+  });
+
+  it('is not figure-specific: a different descriptive method shows that method\'s own interpretation', () => {
+    const interpretation =
+      'It means a new funeral, or that there will be many funerals that month or week. It talks about panic and fear. Do the sadaka of a mixed-color cock, mixed-color foods, and a black cloth.';
+    const m1 = method('m1', 'Method 1', {
+      verdict: {
+        outcome: 'descriptive',
+        label: 'Interpretation #8 — Ayuba',
+        descriptiveAnswer: 'interpretation-8',
+        interpretation,
+      },
+    });
+    const consensus: MethodConsensus = {
+      kind: 'descriptive',
+      level: 'agree',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 0,
+      verifiableCount: 1,
+      summary: 'All 1 of 1 computable method(s) agree.',
+      descriptiveAnswer: 'Interpretation #8 — Ayuba',
+    };
+    const result = readingWith([m1], consensus, 'descriptive');
+    const status = computePrimaryStatus(result);
+
+    expect(primaryAnswerText(result, status)).toBe('Interpretation #8 — Ayuba');
+    expect(primaryDisplayedInterpretation(result, status)).toBe(interpretation);
+    expect(primaryDisplayedInterpretation(result, status)).not.toMatch(/Ibrahim|house-bird/i);
+  });
+
+  it('does not replace shortSummary on an outcome reading — counted-method behaviour is unchanged', () => {
+    const m1 = method('m1', 'Method 1');
+    const consensus: MethodConsensus = {
+      kind: 'outcome',
+      level: 'agree',
+      favourableCount: 1,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 0,
+      verifiableCount: 1,
+      summary: 'All 1 of 1 computable method(s) agree.',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([m1], consensus, 'favourable');
+    const status = computePrimaryStatus(result);
+
+    expect(primaryDisplayedInterpretation(result, status)).toBeNull();
+    expect(shouldShowShortSummary(result, null, status)).toBe(true);
+    expect(result.shortSummary).toBe('Favourable — the verified methods agree.');
+  });
+
+  it('does not pick an interpretation when descriptive methods disagree', () => {
+    const m1 = method('m1', 'Method 1', { verdict: { outcome: 'descriptive', label: 'Water', descriptiveAnswer: 'water', interpretation: 'Much water.' } });
+    const m2 = method('m2', 'Method 2', { verdict: { outcome: 'descriptive', label: 'Sand', descriptiveAnswer: 'sand', interpretation: 'Dry sand.' } });
+    const consensus: MethodConsensus = {
+      kind: 'descriptive',
+      level: 'disagree',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 0,
+      verifiableCount: 2,
+      summary: 'The 2 computable methods give different answers.',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([m1, m2], consensus, 'descriptive');
+    const status = computePrimaryStatus(result);
+
+    expect(status.kind).toBe('no_dominant');
+    expect(primaryDisplayedInterpretation(result, status)).toBeNull();
   });
 });
 
@@ -188,6 +292,8 @@ describe('computePrimaryStatus — 3. one verified method', () => {
     expect(status.kind).toBe('single');
     expect(status.statusText).toBe('Based on 1 verified method.');
     expect(primaryAnswerText(result, status)).toBe('Eastern direction');
+    expect(primaryDisplayedInterpretation(result, status)).toBe('Goes east.');
+    expect(shouldShowShortSummary(result, 'Goes east.', status)).toBe(false);
   });
 });
 

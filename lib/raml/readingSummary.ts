@@ -7,6 +7,7 @@
 // re-tallied, or softened here, and no certainty the engine did not state is
 // added.
 import type { ReadingResult } from './engine/reading';
+import { primaryDisplayedInterpretation } from './resultPresentation';
 import { INSUFFICIENT_HEADING } from './statusLanguage';
 
 export interface ReadingSummary {
@@ -35,7 +36,7 @@ export function summariseReading(result: ReadingResult): ReadingSummary {
   return {
     question: result.question,
     status,
-    interpretation: result.shortSummary,
+    interpretation: primaryDisplayedInterpretation(result) ?? result.shortSummary,
     source: result.sourceReferences.map((s) => s.label).join(' · '),
     conflict: result.conflictingIndicators,
   };

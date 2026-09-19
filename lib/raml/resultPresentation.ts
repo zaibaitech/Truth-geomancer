@@ -63,3 +63,67 @@ export function primaryAnswerText(result: ReadingResult, status: PrimaryStatus):
   if (result.resultKind === 'descriptive') return result.descriptiveAnswer ?? 'Mixed indications';
   return result.outcomeLabel;
 }
+
+function normalisePhrase(s: string): string {
+  return s.trim().replace(/[.]+$/g, '').toLowerCase();
+}
+
+/** True when `text` is just the headline restated — e.g. shortSummary
+ * "The verified methods indicate: Interpretation #5 — Ibrahim." against
+ * that same descriptiveAnswer. Never a geomantic judgement. */
+function repeatsHeadline(text: string, result: ReadingResult, status: PrimaryStatus): boolean {
+  const headline = primaryAnswerText(result, status);
+  const nText = normalisePhrase(text);
+  const nHeadline = normalisePhrase(headline);
+  if (!nText || !nHeadline) return false;
+  if (nText === nHeadline) return true;
+  if (result.resultKind === 'descriptive' && result.descriptiveAnswer) {
+    const nAnswer = normalisePhrase(result.descriptiveAnswer);
+    if (nText === nAnswer) return true;
+    if (nText === `the verified methods indicate: ${nAnswer}`) return true;
+  }
+  return false;
+}
+
+/** The source-backed interpretation already sitting on the counted method
+ * row(s) / primary figure — surfaced on the primary card for a descriptive
+ * reading so the reader sees the actual meaning, not only the figure
+ * identifier. Returns null when there is no single shared interpretation
+ * (mixed methods, outcome-kind readings, insufficient data), so existing
+ * counted-method / favourable-unfavourable presentation is unchanged.
+ * Never invents text; never branches on a chapter or figure name. */
+export function primaryDisplayedInterpretation(result: ReadingResult, status?: PrimaryStatus): string | null {
+  if (result.isInsufficient) return null;
+  const resolved = status ?? computePrimaryStatus(result);
+  if (resolved.kind === 'no_dominant') return null;
+  if (result.resultKind !== 'descriptive') return null;
+
+  const counted = result.methodResults.filter((m) => m.counted);
+  const texts = counted.map((m) => m.interpretation?.trim() ?? '').filter((t) => t.length > 0);
+  let text: string | null = null;
+  if (texts.length > 0) {
+    if (new Set(texts).size !== 1) return null;
+    text = texts[0];
+  } else {
+    const fallback = result.primaryFigure?.interpretation?.trim() ?? '';
+    text = fallback.length > 0 ? fallback : null;
+  }
+  if (!text) return null;
+  if (repeatsHeadline(text, result, resolved)) return null;
+  return text;
+}
+
+/** shortSummary stays on the card unless it would merely repeat the
+ * headline (or the interpretation already shown). Outcome readings keep
+ * their existing "Favourable — the verified methods agree." line. */
+export function shouldShowShortSummary(result: ReadingResult, interpretation: string | null, status?: PrimaryStatus): boolean {
+  const summary = result.shortSummary?.trim() ?? '';
+  if (!summary) return false;
+  const resolved = status ?? computePrimaryStatus(result);
+  if (interpretation) {
+    if (summary === interpretation) return false;
+    if (repeatsHeadline(summary, result, resolved)) return false;
+  }
+  if (repeatsHeadline(summary, result, resolved)) return false;
+  return true;
+}

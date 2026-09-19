@@ -41,6 +41,11 @@ import { QUESTION_REGISTRY_META, type PublicMethodMeta } from './questionRegistr
 import { catalogEntry } from './questionCatalog';
 import { listReadings, type ReadingRecord } from './history';
 import { buildChart, type Chart } from './casting';
+// Type-only — erased at compile time, so this adds nothing to the client
+// bundle (unlike importing a value from engine/reading.ts, which this file
+// deliberately avoids elsewhere for that reason). Needed only to type
+// `practiceResultState`'s parameter below.
+import type { ReadingMethodRow } from './engine/reading';
 
 export interface PracticableMethod {
   questionId: string;
@@ -142,4 +147,29 @@ export function mostRecentChart(): { chart: Chart; record: ReadingRecord } | nul
   const [record] = listReadings();
   if (!record) return null;
   return { chart: buildChart(record.mothers), record };
+}
+
+/** Prompt 54 — the three states a Practice walkthrough's result row can be
+ * in, pulled out of MethodPracticeFlow.tsx as a small, pure, non-DOM
+ * function so the decision itself is directly testable.
+ *
+ * 'failure' — a genuine technical problem: no row at all, or a row whose
+ *   calculation never even produced a figure (`resultPattern === null`,
+ *   i.e. `calculate()` threw, or the request itself failed).
+ * 'uncertain' — the method WAS fully, correctly computed, but its own
+ *   verdict was `outcome: 'uncertain'` (reading.ts's `counted` is exactly
+ *   `verdict !== null && outcome !== 'uncertain'` — the same flag
+ *   COMPARE_RESULTS/ruleEngine.ts already use to decide what counts toward
+ *   cross-method consensus). This is a real, source-faithful answer — the
+ *   rule simply doesn't define an outcome for this chart — and must never
+ *   be presented as a failure, nor as an invented negative ("no rain",
+ *   "unfavourable", etc.).
+ * 'result' — a normal counted verdict; the existing walkthrough/result
+ *   screens apply unchanged. */
+export type PracticeResultState = 'failure' | 'uncertain' | 'result';
+
+export function practiceResultState(row: ReadingMethodRow | null): PracticeResultState {
+  if (!row || row.resultPattern === null) return 'failure';
+  if (!row.counted) return 'uncertain';
+  return 'result';
 }

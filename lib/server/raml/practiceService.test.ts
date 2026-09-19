@@ -9,9 +9,12 @@ import { openDatabase, type Db } from '../db';
 import { getOrCreateUser } from '../identity';
 import { grantEntitlement, revokeEntitlement } from '../entitlements';
 import { runReading } from '@/lib/raml/engine';
+import { buildChart } from '@/lib/raml/casting';
 import { fixtureChart } from '@/lib/raml/engine/__tests__/fixtures';
+import { practiceResultState } from '@/lib/raml/methodPractice';
 import { getPracticeMethodForUser } from './practiceService';
 import { KANZUL_PRODUCT } from '@/lib/access/products';
+import type { Pattern } from '@/content/stars';
 
 const CHAPTER = 'if-you-want-to-know-if-you-will';
 const METHOD = 'money-method-1';
@@ -190,5 +193,114 @@ describe("3: no 'use client' component imports the practice service or the engin
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PROMPT 54 — the real service contract through an `uncertain` verdict.
+// Four Mother combinations below, each brute-forced over the full 16^4
+// space of real, castable charts and cross-checked directly against
+// runReading()/the real engine (not hand-constructed), used to prove the
+// FULL contract — getPracticeMethodForUser() -> runReading() ->
+// methodResults -> row -> practiceResultState() — carries `counted`,
+// `outcome`, `outcomeLabel`, `interpretation`, and `resultPattern` through
+// intact, and that MethodPracticeFlow's state decision is correct for
+// each. The service/engine themselves are NOT modified by Prompt 54 — only
+// asserted against here.
+// ---------------------------------------------------------------------------
+
+const RAIN_CHAPTER = 'if-it-will-rain-today-or-not';
+const RAIN_METHOD_1 = 'rain-method-1';
+// Ali is NOT adjacent anywhere in this chart — the common case, and the
+// exact shape of chart that originally reproduced Prompt 53's bug.
+const RAIN_UNCERTAIN_MOTHERS: [Pattern, Pattern, Pattern, Pattern] = [
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+];
+// Ali occupies two adjacent houses in this chart (H3/H4, both from the
+// 3rd Mother) — the source's own positive trigger.
+const RAIN_POSITIVE_MOTHERS: [Pattern, Pattern, Pattern, Pattern] = [
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+  [2, 1, 1, 2],
+  [2, 1, 1, 2],
+];
+
+const MONEY_CHAPTER = 'if-you-will-get-money-or-good-strangers';
+const MONEY_METHOD_1 = 'money-strangers-method-1';
+// The Chapter 28 calculation's result figure does not appear elsewhere in
+// this chart — a generic (non-Chapter-32) example of the same
+// found/not-found → favourable/uncertain shape.
+const MONEY_UNCERTAIN_MOTHERS: [Pattern, Pattern, Pattern, Pattern] = [
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+  [1, 1, 2, 1],
+];
+
+describe('PROMPT 54 — TEST C: Chapter 32 Method 1, uncertain branch, through the real practice service', () => {
+  it('a chart where Ali is not adjacent produces counted:false/outcome:"uncertain"/a real resultPattern/a real interpretation, and practiceResultState correctly calls it "uncertain", never "failure"', async () => {
+    db = openDatabase(':memory:');
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const rainChart = buildChart(RAIN_UNCERTAIN_MOTHERS);
+    const result = await getPracticeMethodForUser(db, userId, RAIN_CHAPTER, RAIN_METHOD_1, rainChart);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const row = result.row!;
+    expect(row).not.toBeNull();
+    expect(row.counted).toBe(false);
+    expect(row.outcome).toBe('uncertain');
+    expect(row.outcomeLabel).toBe('Uncertain');
+    expect(row.resultPattern).not.toBeNull();
+    expect(row.interpretation).toBeTruthy();
+    expect(row.interpretation).toContain('not addressed');
+    expect(practiceResultState(row)).toBe('uncertain');
+  });
+});
+
+describe('PROMPT 54 — TEST D: Chapter 32 Method 1, positive branch, unaffected by the fix', () => {
+  it('a chart where Ali IS adjacent still produces the ordinary counted, source-backed favourable result', async () => {
+    db = openDatabase(':memory:');
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const rainChart = buildChart(RAIN_POSITIVE_MOTHERS);
+    const result = await getPracticeMethodForUser(db, userId, RAIN_CHAPTER, RAIN_METHOD_1, rainChart);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const row = result.row!;
+    expect(row.counted).toBe(true);
+    expect(row.outcome).toBe('favourable');
+    expect(row.interpretation).toBe('It will rain.');
+    expect(practiceResultState(row)).toBe('result');
+  });
+});
+
+describe('PROMPT 54 — TEST E: a generic, non-Chapter-32 method (money-strangers-method-1) gets the same correct uncertain treatment', () => {
+  it('proves the fix is Practice-layer-generic, not specific to willItRain.ts', async () => {
+    db = openDatabase(':memory:');
+    const userId = (await getOrCreateUser(db, null)).user.id;
+    await grantEntitlement(db, userId, KANZUL_PRODUCT.id, 'manual-payment');
+    const moneyChart = buildChart(MONEY_UNCERTAIN_MOTHERS);
+    const result = await getPracticeMethodForUser(db, userId, MONEY_CHAPTER, MONEY_METHOD_1, moneyChart);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const row = result.row!;
+    expect(row.counted).toBe(false);
+    expect(row.outcome).toBe('uncertain');
+    expect(row.resultPattern).not.toBeNull();
+    expect(row.interpretation).toBeTruthy();
+    expect(practiceResultState(row)).toBe('uncertain');
+  });
+
+  it('cross-checked directly against runReading() — the row Prompt 54 asserts on is exactly what the engine itself produces, nothing recomputed by the service', () => {
+    const moneyChart = buildChart(MONEY_UNCERTAIN_MOTHERS);
+    const direct = runReading(moneyChart, MONEY_CHAPTER)!;
+    const row = direct.methodResults.find((m) => m.id === MONEY_METHOD_1)!;
+    expect(row.counted).toBe(false);
+    expect(row.outcome).toBe('uncertain');
+    expect(practiceResultState(row)).toBe('uncertain');
   });
 });

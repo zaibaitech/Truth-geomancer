@@ -9,8 +9,10 @@ import {
   findPracticableMethod,
   mostRecentChart,
   practicableMethodsForChapter,
+  practiceResultState,
 } from './methodPractice';
 import { QUESTION_REGISTRY } from './engine/questions';
+import type { ReadingMethodRow } from './engine/reading';
 // Prompt 27: the full chapter text is now server-only. A test file runs in
 // Node, never in a client bundle, so importing it directly here to exercise
 // the paragraph-matching path is safe and appropriate — this is exactly
@@ -205,5 +207,76 @@ describe('mostRecentChart', () => {
   it('is null when storage access itself is unavailable, never throws', () => {
     install(null);
     expect(() => mostRecentChart()).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prompt 54 — practiceResultState: distinguishing a valid `uncertain`
+// verdict from a genuine computation failure. This is the exact decision
+// MethodPracticeFlow.tsx's walkthrough gate makes, pulled out as a pure
+// function so it's testable without a rendering framework (this repo has
+// no jsdom/@testing-library/react — see vitest.config.ts's `environment:
+// 'node'` and `.ts`-only `include`). Minimal, realistic ReadingMethodRow-
+// shaped fixtures below stand in for what practiceService.ts's real
+// runReading() call actually produces — the "real chart, real row" version
+// of this same contract is covered end-to-end in
+// lib/server/raml/practiceService.test.ts (Prompt 54 additions).
+// ---------------------------------------------------------------------------
+
+function row(overrides: Partial<ReadingMethodRow>): ReadingMethodRow {
+  return {
+    id: 'some-method-1',
+    label: 'Method 1',
+    status: 'verified',
+    counted: true,
+    agreesWithOverall: null,
+    outcome: 'favourable',
+    outcomeLabel: 'Favourable',
+    interpretation: 'Some source-backed statement.',
+    reviewNote: null,
+    housesUsed: [4],
+    calculationSteps: ['H4 = Yussif'],
+    resultFigureName: 'Yussif',
+    resultPattern: [1, 1, 2, 1],
+    resultElement: 'Fire',
+    resultFortune: null,
+    resultDirection: null,
+    sourceQuote: 'After drawing the chart, check h4.',
+    sourceLabel: 'Kanzul Mikban, Chapter 32',
+    ...overrides,
+  };
+}
+
+describe('practiceResultState — Test A/B: uncertain is not a computation failure', () => {
+  it('TEST A — a row with counted: false, outcome: "uncertain", a real resultPattern, and a real interpretation is "uncertain", never "failure"', () => {
+    const r = row({
+      counted: false,
+      outcome: 'uncertain',
+      outcomeLabel: 'Uncertain',
+      interpretation: 'The source only defines the "Ali follows Ali" trigger — this is not addressed.',
+      resultPattern: [1, 1, 1, 1], // a real reference figure, never null
+    });
+    expect(practiceResultState(r)).toBe('uncertain');
+    // Sanity: the fields the "uncertain" UI branch actually reads are present.
+    expect(r.interpretation).not.toBeNull();
+    expect(r.outcomeLabel).not.toBeNull();
+  });
+
+  it('TEST B — genuine failure remains failure: a null row', () => {
+    expect(practiceResultState(null)).toBe('failure');
+  });
+
+  it('TEST B — genuine failure remains failure: a row whose calculation never produced a figure (resultPattern: null)', () => {
+    // This is the shape ruleEngine.ts produces when a verified method's own
+    // calculate() throws (calculation: null, verdict: null) — a real
+    // technical failure, distinct in every way from a computed `uncertain`.
+    const r = row({ counted: false, outcome: null, outcomeLabel: null, interpretation: null, resultPattern: null });
+    expect(practiceResultState(r)).toBe('failure');
+  });
+
+  it('a normal counted result (favourable/unfavourable/mixed) is "result" — the existing walkthrough is unaffected', () => {
+    expect(practiceResultState(row({ counted: true, outcome: 'favourable' }))).toBe('result');
+    expect(practiceResultState(row({ counted: true, outcome: 'unfavourable' }))).toBe('result');
+    expect(practiceResultState(row({ counted: true, outcome: 'mixed' }))).toBe('result');
   });
 });

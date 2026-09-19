@@ -9,7 +9,7 @@ import { HouseSelector } from './HouseSelector';
 import { FigureGlyph } from '../FigureGlyph';
 import { buildChart, type Chart } from '@/lib/raml/casting';
 import { OUTCOME_TONE, type ReadingMethodRow } from '@/lib/raml/engine/reading';
-import { findPracticableMethod, mostRecentChart, chapterSourceLabel } from '@/lib/raml/methodPractice';
+import { findPracticableMethod, mostRecentChart, chapterSourceLabel, practiceResultState } from '@/lib/raml/methodPractice';
 // Prompt 27: only `.title` is read here (line ~122's chapter subheading) —
 // the public metadata export carries it, so the full chapter text never
 // needs to enter this client component's import graph.
@@ -246,11 +246,16 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
     );
   }
 
-  if (!row || !row.counted || row.resultPattern === null) {
+  const resultState = practiceResultState(row);
+
+  if (resultState === 'failure' || !row) {
     // A verified method's calculation should never fail — this is a defensive
     // backstop, never a state the app tries to talk its way around. A
     // genuine network failure gets the same honest, non-fabricating
-    // treatment: no result is shown rather than a guessed one.
+    // treatment: no result is shown rather than a guessed one. This is a
+    // TECHNICAL failure state only — never reached for a method that
+    // computed a real (even if uncounted) verdict; see the `!row.counted`
+    // branch just below for that case.
     return (
       <div>
         {header}
@@ -263,6 +268,64 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
               {loadFailed ? 'Check your connection and try again.' : 'Nothing was assumed or filled in — no result is shown.'}
             </p>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (resultState === 'uncertain') {
+    // `counted === false` on a row that DID produce a resultPattern means
+    // the method computed a real, valid `uncertain` verdict — reading.ts's
+    // own definition of `counted` (verdict.outcome !== 'uncertain'), the
+    // same one COMPARE_RESULTS/ruleEngine.ts already use to decide what
+    // counts toward cross-method consensus. This is not a failure: the
+    // source rule simply doesn't define an outcome for this chart (e.g.
+    // Chapter 32 Method 1 only states what happens when Ali IS adjacent —
+    // it is silent on every other chart). Showing "couldn't be computed"
+    // here would discard a real, already-computed, source-faithful answer.
+    // Nothing is inferred beyond what `row.interpretation` already says —
+    // in particular this never converts a missing negative branch into an
+    // invented one ("no rain", "unfavourable", etc.).
+    return (
+      <div>
+        {header}
+        <div className="space-y-4 px-4 pb-6">
+          <Card>
+            <p className="type-body font-semibold text-sand-light">This chart does not trigger this method’s defined condition.</p>
+            <p className="mt-1.5 type-body text-sand/70">
+              This method was fully evaluated for your chart. The source only defines an outcome for one specific
+              condition, and this chart doesn’t meet it — so no result is shown for this case, rather than a guessed one.
+            </p>
+            <div className="mt-4 border-t border-sand/10 pt-3">
+              {row.outcomeLabel ? <Badge tone={row.outcome ? OUTCOME_TONE[row.outcome] : 'neutral'}>{row.outcomeLabel}</Badge> : null}
+              <p className="mt-1.5 type-verdict text-sand-light">According to the source: {row.interpretation}</p>
+            </div>
+          </Card>
+
+          <Card>
+            <p className="type-meta uppercase tracking-widest text-sand/65">Source method</p>
+            <p className="mt-1 type-body text-sand-light">{sourceLabel} · {method.label}</p>
+            <button
+              type="button"
+              onClick={() => setShowSource((v) => !v)}
+              aria-expanded={showSource}
+              className="mt-2 type-body text-clay-light underline underline-offset-2"
+            >
+              {showSource ? 'Hide source instructions' : 'View source instructions'}
+            </button>
+            {showSource ? (
+              <blockquote className="mt-2 border-l-2 border-clay/30 pl-3">
+                <p className="type-quote italic text-sand/75">“{row.sourceQuote}”</p>
+              </blockquote>
+            ) : null}
+          </Card>
+
+          <Link
+            href={`/books/kanzul-mikban/read#${chapterId}`}
+            className="block min-h-[48px] w-full rounded-xl border border-sand/15 py-3 text-center type-body text-sand-light"
+          >
+            Back to the chapter
+          </Link>
         </div>
       </div>
     );

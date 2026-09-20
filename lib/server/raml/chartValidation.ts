@@ -5,6 +5,7 @@
 // privilege-bearing value, so this exists to avoid crashes on malformed
 // input, not to establish trust.
 import type { Chart, ChartHouse } from '@/lib/raml/casting';
+import { getStarById } from '@/content/stars';
 
 function isValidChartHouse(h: unknown): h is ChartHouse {
   if (typeof h !== 'object' || h === null) return false;
@@ -21,4 +22,23 @@ export function isValidChart(c: unknown): c is Chart {
   if (typeof c !== 'object' || c === null) return false;
   const chart = c as Record<string, unknown>;
   return Array.isArray(chart.houses) && chart.houses.length === 16 && chart.houses.every(isValidChartHouse);
+}
+
+/** Fill missing canonical star fields (element, pattern metadata, etc.)
+ * from the existing STARS table when a house already names a known star
+ * by id. Slim serialized charts can legally arrive with only `{id, name}`;
+ * Method 4 (and any other element-dependent check) still needs the
+ * canonical element.
+ *
+ * Lookup is by star id only. Unknown ids are left untouched — never invent
+ * an element, and never guess from the supplied name or pattern. */
+export function hydrateCanonicalStars(chart: Chart): Chart {
+  return {
+    ...chart,
+    houses: chart.houses.map((house): ChartHouse => {
+      const canonical = getStarById(house.star.id);
+      if (!canonical) return house;
+      return { ...house, star: canonical };
+    }),
+  };
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
+import { isSourceSilentReading } from '@/lib/raml/resultPresentation';
 import { ReadingHeader } from './reading/ReadingHeader';
 import { OutcomeCard } from './reading/OutcomeCard';
 import { InsufficientNotice } from './reading/InsufficientNotice';
@@ -32,7 +33,11 @@ export function EngineReadingView({ result, userQuestion }: { result: ReadingRes
       <ReadingHeader question={result.question} questionCategory={result.questionCategory} />
 
       {result.isInsufficient ? (
-        <InsufficientNotice shortSummary={result.shortSummary} methods={result.methodResults} />
+        <InsufficientNotice
+          shortSummary={result.shortSummary}
+          methods={result.methodResults}
+          sourceSilent={isSourceSilentReading(result)}
+        />
       ) : (
         <>
           <OutcomeCard result={result} />

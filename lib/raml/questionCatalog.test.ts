@@ -21,8 +21,8 @@ import {
   searchCatalog,
 } from './questionCatalog';
 import { readingToText, summariseReading } from './readingSummary';
-import { primaryDisplayedInterpretation } from './resultPresentation';
-import { INSUFFICIENT_EXPLANATION, INSUFFICIENT_HEADING, METHOD_STATUS_LABEL, methodTally } from './statusLanguage';
+import { isSourceSilentReading, primaryDisplayedInterpretation } from './resultPresentation';
+import { INSUFFICIENT_EXPLANATION, INSUFFICIENT_HEADING, METHOD_STATUS_LABEL, methodTally, SOURCE_SILENT_HEADING, sourceSilentExplanation } from './statusLanguage';
 
 const chart = fixtureChart();
 
@@ -291,18 +291,26 @@ describe('result summary', () => {
     for (const reading of readings) {
       const summary = summariseReading(reading);
       expect(summary.question).toBe(reading.question);
-      expect(summary.interpretation).toBe(primaryDisplayedInterpretation(reading) ?? reading.shortSummary);
+      if (isSourceSilentReading(reading)) {
+        expect(summary.interpretation).toBe(
+          sourceSilentExplanation(reading.methodResults.filter((m) => m.status === 'verified').length),
+        );
+      } else {
+        expect(summary.interpretation).toBe(primaryDisplayedInterpretation(reading) ?? reading.shortSummary);
+      }
       expect(summary.status.trim().length, reading.questionId).toBeGreaterThan(0);
       expect(summary.status).not.toMatch(/\d+%|probability|confidence|certain/i);
       expect(summary.source.length, reading.questionId).toBeGreaterThan(0);
     }
   });
 
-  it('says “Insufficient information” exactly when nothing could be computed', () => {
+  it('says “Insufficient information” only for a genuine failure to compute, not for source-silent charts', () => {
     for (const reading of readings) {
+      const silent = isSourceSilentReading(reading);
       expect(summariseReading(reading).status === 'Insufficient information', reading.questionId).toBe(
-        reading.isInsufficient,
+        reading.isInsufficient && !silent,
       );
+      expect(summariseReading(reading).status === SOURCE_SILENT_HEADING, reading.questionId).toBe(silent);
     }
   });
 
@@ -338,8 +346,17 @@ describe('result summary', () => {
   });
 
   it('marks a copied insufficient reading as such rather than leaving it blank', () => {
-    const blocked = readings.find((r) => r.isInsufficient)!;
+    const blocked = readings.find((r) => r.isInsufficient && !isSourceSilentReading(r))!;
+    expect(blocked).toBeTruthy();
     expect(readingToText(blocked)).toContain(INSUFFICIENT_HEADING);
+    expect(readingToText(blocked)).not.toContain(SOURCE_SILENT_HEADING);
+  });
+
+  it('marks a copied source-silent reading as undetermined, not as missing source information', () => {
+    const silent = readings.find((r) => isSourceSilentReading(r));
+    if (!silent) return;
+    expect(readingToText(silent)).toContain(SOURCE_SILENT_HEADING);
+    expect(readingToText(silent)).not.toContain(INSUFFICIENT_HEADING);
   });
 
   it('copies a descriptive reading\'s source interpretation, not only the figure label', () => {
@@ -370,6 +387,8 @@ describe('status language', () => {
   it('states the insufficient case as a limit of the manuscript', () => {
     expect(INSUFFICIENT_HEADING).not.toMatch(/data|_/i);
     expect(INSUFFICIENT_EXPLANATION).toContain('source-defined');
+    expect(SOURCE_SILENT_HEADING).toBe('Source does not determine the outcome');
+    expect(SOURCE_SILENT_HEADING).not.toMatch(/data|_/i);
   });
 
   it('counts methods in words', () => {

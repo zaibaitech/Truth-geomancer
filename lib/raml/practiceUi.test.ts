@@ -140,7 +140,7 @@ describe('7. Calculation — reuses the existing engine, never a duplicate imple
 
   it('the server practice service calls the exact same runReading() the Reading flow uses, and reads one method’s own row', () => {
     expect(PRACTICE_SERVICE).toContain("import { runReading } from '@/lib/raml/engine'");
-    expect(PRACTICE_SERVICE).toMatch(/runReading\(chart, question\.id\)/);
+    expect(PRACTICE_SERVICE).toMatch(/runReading\(hydrateCanonicalStars\(chart\), question\.id\)/);
     expect(PRACTICE_SERVICE).toMatch(/methodResults\.find\(\(m\) => m\.id === method\.id\)/);
   });
 

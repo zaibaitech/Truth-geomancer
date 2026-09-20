@@ -9,7 +9,7 @@ import { composeReading } from './engine/reading';
 import { runReading } from './engine';
 import { fixtureChart } from './engine/__tests__/fixtures';
 import { QUESTION_REGISTRY } from './engine/questions';
-import { computePrimaryStatus, primaryAnswerText, primaryDisplayedInterpretation, shouldShowShortSummary } from './resultPresentation';
+import { computePrimaryStatus, primaryAnswerText, primaryDisplayedInterpretation, shouldShowShortSummary, isSourceSilentReading, sourceSilentConditionLine } from './resultPresentation';
 import type { ComputedFigure, EngineResult, FigureQualities, MethodConsensus, MethodResult, QuestionDefinition } from './engine/types';
 
 function qualities(overrides: Partial<FigureQualities> = {}): FigureQualities {
@@ -364,5 +364,97 @@ describe('computePrimaryStatus — never fabricates certainty', () => {
         expect(status.kind === 'single' || status.kind === 'agree', id).toBe(true);
       }
     }
+  });
+});
+
+describe('isSourceSilentReading — executed-but-undefined vs failed-to-compute', () => {
+  it('all verified methods executed as uncertain, none counted → source-silent', () => {
+    const m1 = method('m1', 'Method 1', {
+      verdict: { outcome: 'uncertain', label: 'Trigger absent', interpretation: 'The source only defines the "Ali follows Ali" trigger — this is not addressed.' },
+    });
+    const m2 = method('m2', 'Method 2', {
+      verdict: { outcome: 'uncertain', label: 'Trigger absent', interpretation: 'The source only defines the "Kalla Allahu at H4" trigger — this is not addressed.' },
+    });
+    const consensus: MethodConsensus = {
+      kind: 'outcome',
+      level: 'insufficient_data',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 2,
+      verifiableCount: 0,
+      summary: 'none',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([m1, m2], consensus, 'insufficient_data');
+    expect(result.isInsufficient).toBe(true);
+    expect(result.methodResults.every((m) => m.counted)).toBe(false);
+    expect(isSourceSilentReading(result)).toBe(true);
+    expect(sourceSilentConditionLine(result.methodResults[0])).toBe('Ali follows Ali — not present in this chart.');
+    expect(sourceSilentConditionLine(result.methodResults[1])).toBe('Kalla Allahu at H4 — not present in this chart.');
+  });
+
+  it('a genuine technical failure (no verdict) is NOT source-silent', () => {
+    const failed = method('m1', 'Method 1', {
+      method: { id: 'm1', label: 'Method 1', status: 'uncertain', reviewNote: 'Named figures were not transcribed.', source: { book: 'kanzul-mikban', chapterId: 'test-chapter', quote: '[omitted]' } },
+      calculation: null,
+      verdict: null,
+    });
+    const consensus: MethodConsensus = {
+      kind: 'outcome',
+      level: 'insufficient_data',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 1,
+      verifiableCount: 0,
+      summary: 'none',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([failed], consensus, 'insufficient_data');
+    expect(result.isInsufficient).toBe(true);
+    expect(result.methodResults[0].outcome).toBeNull();
+    expect(isSourceSilentReading(result)).toBe(false);
+  });
+
+  it('a needs_review method mixed with verified-uncertain is NOT source-silent', () => {
+    const verifiedUncertain = method('m1', 'Method 1', {
+      verdict: { outcome: 'uncertain', label: 'Not addressed', interpretation: 'The source only defines the trigger — this is not addressed.' },
+    });
+    const needsReview = method('m2', 'Method 2', {
+      method: { id: 'm2', label: 'Method 2', status: 'needs_review', reviewNote: 'The rule never says what a split result means.', source: { book: 'kanzul-mikban', chapterId: 'test-chapter', quote: 'Check H2.' } },
+      calculation: { housesUsed: [2], steps: ['H2'], resultFigure: figure() },
+      verdict: null,
+    });
+    const consensus: MethodConsensus = {
+      kind: 'outcome',
+      level: 'insufficient_data',
+      favourableCount: 0,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 1,
+      verifiableCount: 0,
+      summary: 'none',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([verifiedUncertain, needsReview], consensus, 'insufficient_data');
+    expect(isSourceSilentReading(result)).toBe(false);
+  });
+
+  it('a counted favourable result is never source-silent', () => {
+    const m1 = method('m1', 'Method 1');
+    const consensus: MethodConsensus = {
+      kind: 'outcome',
+      level: 'agree',
+      favourableCount: 1,
+      unfavourableCount: 0,
+      mixedCount: 0,
+      uncertainCount: 0,
+      verifiableCount: 1,
+      summary: 'All 1 of 1 computable method(s) agree.',
+      descriptiveAnswer: null,
+    };
+    const result = readingWith([m1], consensus, 'favourable');
+    expect(isSourceSilentReading(result)).toBe(false);
   });
 });

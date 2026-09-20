@@ -9,6 +9,7 @@
 // lib/access/previewPolicy.ts, never from anything the client sends.
 import { QUESTION_REGISTRY } from '@/lib/raml/engine/questions';
 import { runReading } from '@/lib/raml/engine';
+import { hydrateCanonicalStars } from '@/lib/server/raml/chartValidation';
 import type { ReadingMethodRow } from '@/lib/raml/engine/reading';
 import type { Chart } from '@/lib/raml/casting';
 import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
@@ -99,7 +100,7 @@ export async function executeBookPreview(db: Db, userId: string, bookId: string,
     const chapterMeta = KM_CHAPTER_META.find((c) => c.id === found.question.id);
     const sourceLabel = chapterMeta?.number != null ? `Kanzul Mikban, Chapter ${chapterMeta.number}` : 'Kanzul Mikban';
 
-    const reading = runReading(chart, found.question.id);
+    const reading = runReading(hydrateCanonicalStars(chart), found.question.id);
     const row = reading?.methodResults.find((m) => m.id === found.method.id) ?? null;
 
     return {

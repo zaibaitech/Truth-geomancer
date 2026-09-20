@@ -19,6 +19,7 @@ import type { Chart } from '@/lib/raml/casting';
 import { catalogEntry } from '@/lib/raml/questionCatalog';
 import { canAccessForUser } from '../accessService';
 import type { Db } from '../db';
+import { hydrateCanonicalStars } from './chartValidation';
 
 export type PracticeMethodResult =
   | {
@@ -61,7 +62,7 @@ export async function getPracticeMethodForUser(
 
   let row: ReadingMethodRow | null = null;
   if (chart) {
-    const reading = runReading(chart, question.id);
+    const reading = runReading(hydrateCanonicalStars(chart), question.id);
     row = reading?.methodResults.find((m) => m.id === method.id) ?? null;
   }
 

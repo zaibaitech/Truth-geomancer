@@ -357,7 +357,8 @@ describe('interface contracts', () => {
     expect(tabs).toMatch(/intentionId:\s*resolvedEngineId/);
     expect(tabs).toMatch(/fetch\('\/api\/raml\/reading'/);
     const readingService = repoFile('lib/server/raml/readingService.ts');
-    expect(readingService).toMatch(/runReading\(chart, intentionId\)/);
+    expect(readingService).toMatch(/hydrateCanonicalStars\(chart\)/);
+    expect(readingService).toMatch(/runReading\(hydrateCanonicalStars\(chart\), intentionId\)/);
   });
 
   it('never claims a chart was read for material that has no automatic reading', () => {

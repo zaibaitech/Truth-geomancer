@@ -7,8 +7,8 @@
 // re-tallied, or softened here, and no certainty the engine did not state is
 // added.
 import type { ReadingResult } from './engine/reading';
-import { primaryDisplayedInterpretation } from './resultPresentation';
-import { INSUFFICIENT_HEADING } from './statusLanguage';
+import { isSourceSilentReading, primaryDisplayedInterpretation } from './resultPresentation';
+import { INSUFFICIENT_HEADING, SOURCE_SILENT_HEADING, sourceSilentExplanation } from './statusLanguage';
 
 export interface ReadingSummary {
   /** The question, in the engine's own plain-language wording. */
@@ -25,18 +25,25 @@ export interface ReadingSummary {
 }
 
 export function summariseReading(result: ReadingResult): ReadingSummary {
-  const status = result.isInsufficient
-    ? 'Insufficient information'
-    : result.conflictingIndicators
-      ? 'Mixed / Conflicting indications'
-      : result.resultKind === 'descriptive'
-        ? (result.descriptiveAnswer ?? 'The methods give different answers')
-        : result.outcomeLabel;
+  const silent = isSourceSilentReading(result);
+  const status = silent
+    ? SOURCE_SILENT_HEADING
+    : result.isInsufficient
+      ? 'Insufficient information'
+      : result.conflictingIndicators
+        ? 'Mixed / Conflicting indications'
+        : result.resultKind === 'descriptive'
+          ? (result.descriptiveAnswer ?? 'The methods give different answers')
+          : result.outcomeLabel;
+
+  const interpretation = silent
+    ? sourceSilentExplanation(result.methodResults.filter((m) => m.status === 'verified').length)
+    : (primaryDisplayedInterpretation(result) ?? result.shortSummary);
 
   return {
     question: result.question,
     status,
-    interpretation: primaryDisplayedInterpretation(result) ?? result.shortSummary,
+    interpretation,
     source: result.sourceReferences.map((s) => s.label).join(' · '),
     conflict: result.conflictingIndicators,
   };
@@ -52,6 +59,7 @@ export function readingToText(result: ReadingResult, userQuestion?: string): str
     lines.push('', `Asked: ${userQuestion.trim()}`);
   }
   if (summary.source) lines.push('', `Source: ${summary.source}`);
-  if (result.isInsufficient) lines.push('', INSUFFICIENT_HEADING);
+  if (isSourceSilentReading(result)) lines.push('', SOURCE_SILENT_HEADING);
+  else if (result.isInsufficient) lines.push('', INSUFFICIENT_HEADING);
   return lines.join('\n');
 }

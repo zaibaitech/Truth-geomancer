@@ -31,6 +31,18 @@ export const INSUFFICIENT_EXPLANATION =
  * means. */
 export const OUTCOME_UNDEFINED_FOR_CHART = 'The surviving source does not define an outcome for this chart.';
 
+/** All verified methods ran, each returned `uncertain`, and none counted —
+ * the source is silent for this chart, which is not the same as a method
+ * failing to compute (that case still uses INSUFFICIENT_HEADING). */
+export const SOURCE_SILENT_HEADING = 'Source does not determine the outcome';
+
+export function sourceSilentExplanation(verifiedCount: number): string {
+  if (verifiedCount <= 1) {
+    return 'The verified condition defined by the source is not present in this chart, so the source does not determine the outcome.';
+  }
+  return `None of the ${verifiedCount} verified conditions defined by the source are present in this chart, so the source does not determine the outcome.`;
+}
+
 /** Source material that carries no complete automatic reading at all. */
 export const NO_AUTOMATIC_READING_HEADING = 'No automatic reading for this one';
 export const NO_AUTOMATIC_READING_EXPLANATION =

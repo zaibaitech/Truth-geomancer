@@ -6,7 +6,7 @@
 // this does is turn that already-decided state into the short, honest
 // status line and headline the primary reading card shows — a phrasing
 // layer, never a second opinion.
-import type { ReadingResult } from './engine/reading';
+import type { ReadingMethodRow, ReadingResult } from './engine/reading';
 
 export type PrimaryStatusKind = 'single' | 'agree' | 'mostly_agree' | 'no_dominant';
 
@@ -126,4 +126,32 @@ export function shouldShowShortSummary(result: ReadingResult, interpretation: st
   }
   if (repeatsHeadline(summary, result, resolved)) return false;
   return true;
+}
+
+/** True when every method on the reading executed as a verified `uncertain`
+ * result and none of them counted. That is source-silence for this chart
+ * (the book defines the methods, but not an outcome here) — not a
+ * technical failure, and not "not enough source information".
+ *
+ * Generic on result metadata: never keyed off a chapter or question id.
+ * A needs_review / failed-to-compute method (status not verified, or
+ * outcome null) keeps the existing insufficient presentation. */
+export function isSourceSilentReading(result: ReadingResult): boolean {
+  if (!result.isInsufficient) return false;
+  const methods = result.methodResults;
+  if (methods.length === 0) return false;
+  if (methods.some((m) => m.counted)) return false;
+  return methods.every((m) => m.status === 'verified' && m.outcome === 'uncertain');
+}
+
+/** One method line for a source-silent reading. Prefers the trigger the
+ * method already named in its own interpretation (quoted), then the
+ * method's existing interpretation, and never invents a negative answer. */
+export function sourceSilentConditionLine(method: ReadingMethodRow): string {
+  const quoted = method.interpretation?.match(/"([^"]+)"/);
+  if (quoted?.[1]) return `${quoted[1]} — not present in this chart.`;
+  const existing = method.interpretation?.trim();
+  if (existing) return existing;
+  if (method.outcomeLabel) return `${method.outcomeLabel} — not present in this chart.`;
+  return 'The source does not define an outcome for this chart.';
 }

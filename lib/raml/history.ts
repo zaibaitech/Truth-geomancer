@@ -37,7 +37,8 @@ import { buildChart, type Chart } from './casting';
 import type { ReadingResult } from './engine/reading';
 import { catalogEntry } from './questionCatalog';
 import { summariseReading } from './readingSummary';
-import { METHOD_STATUS_LABEL } from './statusLanguage';
+import { isSourceSilentReading } from './resultPresentation';
+import { METHOD_STATUS_LABEL, SOURCE_SILENT_HEADING } from './statusLanguage';
 import type { Pattern } from '@/content/stars';
 
 export const HISTORY_STORAGE_KEY = 'truth-geomancer:castings';
@@ -206,6 +207,9 @@ export const NETWORK_REQUIRED_MESSAGE =
   "This reading's result couldn't be recalculated right now — check your connection and try again. Nothing was lost.";
 
 function insufficientStateFor(result: ReadingResult): { kind: HistoryStateKind; label: string } {
+  if (isSourceSilentReading(result)) {
+    return { kind: 'insufficient', label: SOURCE_SILENT_HEADING };
+  }
   const statuses = new Set(result.methodResults.filter((m) => m.status !== 'verified').map((m) => m.status));
   if (statuses.size === 1 && statuses.has('needs_review')) {
     return { kind: 'source-detail-missing', label: METHOD_STATUS_LABEL.needs_review };

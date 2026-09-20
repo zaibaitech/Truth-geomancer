@@ -50,9 +50,11 @@ describe('primary reading screen shows only the answer and its agreement status'
     expect(OUTCOME).not.toContain('FigureGlyph');
   });
 
-  it('routes the insufficient-data state to its own existing, unmodified notice', () => {
+  it('routes the insufficient-data state to its own notice, with a source-silent branch', () => {
     expect(VIEW).toContain('result.isInsufficient');
     expect(VIEW).toContain('<InsufficientNotice');
+    expect(VIEW).toContain('isSourceSilentReading(result)');
+    expect(VIEW).toContain('sourceSilent={isSourceSilentReading(result)}');
   });
 });
 

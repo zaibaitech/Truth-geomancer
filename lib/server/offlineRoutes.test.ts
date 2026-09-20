@@ -83,10 +83,11 @@ describe('30: service worker does not precache protected content', () => {
 });
 
 describe('31: generic visitors cannot populate protected caches', () => {
-  it('the fetch handler excludes /api/, /raml/practice/, and /books/*/read|practice from opportunistic RUNTIME_CACHE writes', () => {
+  it('the fetch handler excludes /api/, /raml (Cast picker + practice), and /books/*/read|practice from opportunistic RUNTIME_CACHE writes', () => {
     expect(SW).toMatch(/NO_OPPORTUNISTIC_CACHE_PREFIXES/);
     expect(SW).toMatch(/'\/api\/'/);
     expect(SW).toMatch(/'\/raml\/practice\/'/);
+    expect(SW).toMatch(/'\/raml'/);
     expect(SW).toMatch(/isProtectedBookPath/);
     expect(SW).toMatch(/shouldOpportunisticallyCache/);
   });
@@ -137,6 +138,17 @@ describe('34: a stale/leftover cache entry can never be served for a gated path 
     const occurrences = fetchBlock.match(/shouldOpportunisticallyCache\(url\.pathname\)/g) ?? [];
     // Once for the read-side guard, once for the write-side gate below it.
     expect(occurrences.length).toBe(2);
+  });
+});
+
+describe('59: Cast picker /raml is never served cache-first', () => {
+  it('APP_VERSION was bumped to v6 so a pre-Prompt-59 cached anonymous /raml is retired', () => {
+    expect(SW).toMatch(/const APP_VERSION = 'v6'/);
+  });
+
+  it('/raml is on the network-only prefix list, so caches.match is never consulted for the picker', () => {
+    const prefixes = SW.slice(SW.indexOf('NO_OPPORTUNISTIC_CACHE_PREFIXES'), SW.indexOf('function isProtectedBookPath'));
+    expect(prefixes).toMatch(/'\/raml'/);
   });
 });
 

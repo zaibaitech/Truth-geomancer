@@ -124,40 +124,37 @@ describe("4/10: the service returns the exact same computation, minus only the d
 });
 
 // ---------------------------------------------------------------------------
-// 5. cross-book entitlement remains isolated. (N/A in the sense that this
-//    free feature checks no entitlement at all — confirmed structurally:
-//    no canAccessForUser call exists anywhere in this path, so there is no
-//    entitlement state that could leak across books/users in the first
-//    place — the isolation is total, not partial.)
+// 5. Cast entitlement isolation now lives in castingAccess.ts (Prompt 59).
+//    This service remains a pure computation wrapper — the route must call
+//    authorizeCastingForUser before it.
 // ---------------------------------------------------------------------------
-describe('5: no entitlement state is consulted by this path at all, so none can leak across books or users', () => {
-  it('readingVerdictService.ts never imports canAccessForUser/accessService', () => {
+describe('5: the verdicts service itself stays a computation wrapper', () => {
+  it('readingVerdictService.ts still does not import canAccessForUser — the route owns the gate', () => {
     const source = readFileSync('lib/server/readingVerdictService.ts', 'utf-8');
     expect(source).not.toMatch(/from ['"]\.\/accessService['"]/);
     expect(source).not.toMatch(/^import.*canAccessForUser/m);
   });
 
-  it('the reading-verdicts route never imports session/identity — it cannot resolve or depend on a user', () => {
+  it('the reading-verdicts route authorizes the session before computing verdicts', () => {
     const source = readFileSync('app/api/raml/reading-verdicts/route.ts', 'utf-8');
-    expect(source).not.toMatch(/getCurrentUser|lib\/server\/session|lib\/server\/identity/);
+    const post = source.slice(source.indexOf('export async function POST'));
+    expect(post).toMatch(/getCurrentUser/);
+    expect(post).toMatch(/authorizeCastingForUser/);
+    expect(post.indexOf('authorizeCastingForUser')).toBeLessThan(post.indexOf('getReadingVerdictsForIntention'));
   });
 });
 
 // ---------------------------------------------------------------------------
 // 6. a forged userId cannot retrieve Kanzul results.
 // 7. a revoked Kanzul entitlement cannot retrieve results.
-// (Both items describe an identity/entitlement bypass attempt against a
-// gated path. This path is deliberately ungated by design — see #5 — so
-// there is no userId/entitlement input for a forgery or a revocation to
-// act on in the first place; the request body accepts only intentionId
-// and the caller's own chart, confirmed structurally below.)
+// Forged userId is ignored (session only). Revocation is covered in
+// castingAccess.test.ts. The request body still has no userId field.
 // ---------------------------------------------------------------------------
-describe('6-7: the request body has no userId/entitlement-shaped field for a forgery or stale grant to exploit', () => {
+describe('6-7: the request body has no userId/entitlement-shaped field for a forgery', () => {
   it('the route only reads intentionId and chart from the request body', () => {
     const source = readFileSync('app/api/raml/reading-verdicts/route.ts', 'utf-8');
     expect(source).toMatch(/const \{ intentionId, chart \} = body/);
-    expect(source).not.toMatch(/body\.userId|body\[.userId.\]|userId:\s*string/);
-    expect(source).not.toMatch(/canAccessForUser|getCurrentUser/);
+    expect(source).not.toMatch(/body\.userId|body\[.userId.\]/);
   });
 
   it('getReadingVerdictsForIntention takes no userId parameter — its signature is (intentionId, chart) only', () => {

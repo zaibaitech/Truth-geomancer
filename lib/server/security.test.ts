@@ -69,6 +69,7 @@ describe('client cannot grant or revoke entitlements', () => {
       'raml/readingService',
       'raml/practiceService',
       'raml/chartValidation',
+      'raml/castingAccess',
       'paymentRequests',
       'adminSession',
       'purchaseStatus',

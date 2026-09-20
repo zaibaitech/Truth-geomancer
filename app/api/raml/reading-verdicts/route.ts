@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getReadingVerdictsForIntention } from '@/lib/server/readingVerdictService';
 import { isValidChart } from '@/lib/server/raml/chartValidation';
+import { authorizeCastingForUser } from '@/lib/server/raml/castingAccess';
+import { getCurrentUser } from '@/lib/server/session';
+import { getDb } from '@/lib/server/db';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
-// Prompt 27B: the browser's own already-cast chart (never secret — it's
-// the requester's own result) is the only per-request input; chapterIds
-// are never accepted from the client — see readingVerdictService.ts for
-// why that specifically is what keeps this endpoint from becoming a
-// corpus-harvesting oracle. This route stays deliberately ungated (no
-// session/entitlement check) — see readingVerdictService.ts's own header
-// for the explicit, confirmed product decision this reflects.
-
+// Prompt 59: the fallback "Your Reading" path is gated the same way as
+// /api/raml/reading. Chapter IDs are still never taken from the client
+// (see readingVerdictService.ts). Authorization runs BEFORE any verdict
+// computation.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -29,7 +28,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
 
-  const result = getReadingVerdictsForIntention(intentionId, chart);
+  const user = await getCurrentUser();
+  const authz = await authorizeCastingForUser(getDb(), user.id, intentionId);
+  if (authz.reason === 'unknown-intention') {
+    return NextResponse.json({ error: 'Unknown question.' }, { status: 404, headers: NO_STORE_HEADERS });
+  }
+  if (!authz.allowed) {
+    return NextResponse.json(
+      { error: 'This reading requires an active entitlement.', accessState: authz.accessState, bookId: authz.bookId },
+      { status: 403, headers: NO_STORE_HEADERS },
+    );
+  }
+
+  const result = getReadingVerdictsForIntention(authz.intentionId, chart);
   if (!result.ok) {
     return NextResponse.json({ error: 'Unknown question.' }, { status: 404, headers: NO_STORE_HEADERS });
   }

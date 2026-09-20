@@ -455,7 +455,7 @@ describe('navigation contracts', () => {
     expect(picker).toMatch(/role="status"/);
     expect(repoFile('components/raml/reading/ResultSummaryCard.tsx')).toMatch(/aria-label="Copy this reading as text"/);
     expect(repoFile('components/raml/EngineReadingView.tsx')).toMatch(/aria-expanded=\{showCalculation\}/);
-    expect(repoFile('components/raml/QuestionCard.tsx')).toMatch(/aria-pressed=\{selected\}/);
+    expect(repoFile('components/raml/QuestionCard.tsx')).toMatch(/aria-pressed=\{allowed \? selected : undefined\}/);
   });
 
   it('uses the extra room on a desktop instead of stretching a phone column', () => {

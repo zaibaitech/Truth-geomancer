@@ -17,8 +17,9 @@ import { getIntentionById, getCategoryById } from '@/content/intentions';
 // lib/server/raml/ — this component now fetches the already-computed,
 // already-trimmed result from the reading-verdicts Route Handler instead.
 // See lib/server/readingVerdictService.ts for the access-boundary
-// reasoning (this stays free/ungated, matching the pre-existing product
-// design) and lib/raml/readingVerdictTypes.ts for the client-safe shape.
+// reasoning (Prompt 59: the route now gates via authorizeCastingForUser
+// before computing verdicts) and lib/raml/readingVerdictTypes.ts for the
+// client-safe shape.
 import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import type { ReadingVerdictsByChapter } from '@/lib/raml/readingVerdictTypes';
 import { getQuestionAvailability } from '@/lib/raml/questionAvailability';
@@ -30,20 +31,29 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
 
   const [verdictsByChapter, setVerdictsByChapter] = useState<ReadingVerdictsByChapter | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     if (!hasChapters) return;
     let cancelled = false;
     setVerdictsByChapter(null);
     setLoadFailed(false);
+    setDenied(false);
     fetch('/api/raml/reading-verdicts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ intentionId, chart }),
     })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('request failed'))))
-      .then((data: { verdicts: ReadingVerdictsByChapter }) => {
-        if (!cancelled) setVerdictsByChapter(data.verdicts);
+      .then(async (res) => {
+        if (res.status === 403) {
+          if (!cancelled) setDenied(true);
+          return null;
+        }
+        if (!res.ok) throw new Error('request failed');
+        return res.json() as Promise<{ verdicts: ReadingVerdictsByChapter }>;
+      })
+      .then((data) => {
+        if (!cancelled && data?.verdicts) setVerdictsByChapter(data.verdicts);
       })
       .catch(() => {
         if (!cancelled) setLoadFailed(true);
@@ -55,6 +65,17 @@ export function ReadingTab({ chart, intentionId }: { chart: Chart; intentionId: 
   }, [intentionId, hasChapters]);
 
   if (!intention || intention.chapterIds.length === 0) return null;
+
+  if (denied) {
+    return (
+      <Card>
+        <p className="type-body font-semibold text-sand-light">This reading is locked</p>
+        <p className="mt-1.5 type-body text-sand/65">
+          This question’s book is not in your library yet. Request access to cast it.
+        </p>
+      </Card>
+    );
+  }
 
   const category = intention.categoryId ? getCategoryById(intention.categoryId) : undefined;
 

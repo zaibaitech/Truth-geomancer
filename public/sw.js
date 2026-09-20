@@ -60,7 +60,17 @@
 // that already installed `tg-shell-v4` would otherwise keep serving the
 // pre-Prompt-64 HTML (the version that squeezed a desktop-style layout
 // into a phone) indefinitely.
-const APP_VERSION = 'v5';
+
+// PROMPT 59 — bumped v5 -> v6. `/raml` is a SHELL_URL, so it was served
+// cache-first: the first visit (almost always unpaid) stored an anonymous
+// picker snapshot, and every later visit — including after a payment
+// request became pending, or after admin approval granted the book —
+// kept seeing Locked. The Cast picker is now entitlement-personalized
+// (free / unlocked / pending / locked per book). Same structural fix as
+// Prompt 34's gated-path exclusion: bump the cache version so the stale
+// anonymous `/raml` entry is retired, and never serve `/raml` from cache
+// again so the server's access snapshot runs on every request.
+const APP_VERSION = 'v6';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 
@@ -141,6 +151,13 @@ self.addEventListener('activate', (event) => {
 // into its own book-specific cache, never RUNTIME_CACHE, and only after
 // the server has independently verified entitlement for THAT request.
 //
+// Prompt 59 — `/raml` (the Cast picker) joined this list. The picker HTML
+// is now personalized by book entitlement (free / unlocked / pending /
+// locked). Caching it would freeze the first visit's access snapshot
+// (almost always unpaid) and hide later approval. `/raml` as a prefix
+// also covers `/raml/history` and `/raml/practice/` (the latter was
+// already listed).
+//
 // This does not, and cannot, prevent a DIFFERENT anonymous identity later
 // sharing the SAME physical browser from finding and reading an
 // explicitly-downloaded book cache that a previous, legitimately-entitled
@@ -149,7 +166,7 @@ self.addEventListener('activate', (event) => {
 // single browser profile. See the Prompt 30 final report's "Anonymous
 // identity limitations" section for the honest, complete statement of
 // what is and is not enforced here.
-const NO_OPPORTUNISTIC_CACHE_PREFIXES = ['/api/', '/raml/practice/'];
+const NO_OPPORTUNISTIC_CACHE_PREFIXES = ['/api/', '/raml/practice/', '/raml'];
 
 function isProtectedBookPath(pathname) {
   // /books/<id>/read and /books/<id>/practice/<method> — the book listing

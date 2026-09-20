@@ -12,10 +12,15 @@ import { buildChart, type Chart } from '@/lib/raml/casting';
 import { describeHistory, listReadings, saveReading, type HistoryEntry } from '@/lib/raml/history';
 import { catalogEntry, readingBrief } from '@/lib/raml/questionCatalog';
 import type { Pattern } from '@/content/stars';
+import {
+  accessForIntention,
+  canProceedToCast,
+  type CastingAccessSnapshot,
+} from '@/lib/access/castingAuthorization';
 
 type Step = 'ask' | 'confirm' | 'casting' | 'result';
 
-export function CastingFlow() {
+export function CastingFlow({ access }: { access: CastingAccessSnapshot }) {
   const [step, setStep] = useState<Step>('ask');
   const [intentionId, setIntentionId] = useState('general');
   const [question, setQuestion] = useState('');
@@ -58,11 +63,16 @@ export function CastingFlow() {
   // what the reading will actually do before any sand is cast, which is also
   // what stops an accidental tap from starting a casting.
   function chooseQuestion(id: string) {
+    if (!canProceedToCast(accessForIntention(access, id).accessState)) return;
     setIntentionId(id);
     setStep('confirm');
   }
 
   function handleCastComplete(mothers: [Pattern, Pattern, Pattern, Pattern]) {
+    if (!canProceedToCast(accessForIntention(access, intentionId).accessState)) {
+      setStep('ask');
+      return;
+    }
     const built = buildChart(mothers);
     setChart(built);
     // Every completed reading is kept on this device automatically — see
@@ -79,10 +89,10 @@ export function CastingFlow() {
       <div className="px-4">
         <p className="mb-2 type-body font-semibold text-sand-light">What is this reading for?</p>
         <p className="mb-3 type-meta text-sand/65">
-          Pick a question and you’ll get the exact method Kanzul Mikban gives for it — read against your
-          own chart.
+          Pick a question and you’ll get the exact method its book gives for it — read against your
+          own chart. Locked questions need access to that book.
         </p>
-        <IntentionPicker value={intentionId} onChange={chooseQuestion} />
+        <IntentionPicker value={intentionId} onChange={chooseQuestion} access={access} />
 
         {recent && recent.length > 0 ? (
           <div className="mt-8">
@@ -105,6 +115,36 @@ export function CastingFlow() {
 
   if (step === 'confirm') {
     const entry = catalogEntry(intentionId);
+    const accessState = accessForIntention(access, intentionId);
+    if (!canProceedToCast(accessState.accessState)) {
+      return (
+        <div className="px-4">
+          <button
+            type="button"
+            onClick={() => setStep('ask')}
+            className="mb-3 flex items-center gap-1.5 type-meta text-sand/70"
+          >
+            <ArrowLeft size={14} /> Choose a different question
+          </button>
+          <Card>
+            <p className="type-body font-semibold text-sand-light">
+              {accessState.accessState === 'pending' ? 'Payment review pending' : 'This reading is locked'}
+            </p>
+            <p className="mt-1.5 type-body text-sand/70">
+              {accessState.accessState === 'pending'
+                ? `Your payment request for ${accessState.bookTitle ?? 'this book'} is awaiting review.`
+                : `${accessState.bookTitle ?? 'This book'} is required before this question can be cast.`}
+            </p>
+            <Link
+              href={accessState.purchaseProductId ? `/purchase/${accessState.purchaseProductId}` : '/purchase'}
+              className="mt-4 inline-block min-h-[44px] rounded-xl bg-clay px-4 py-2.5 type-body font-semibold text-ink"
+            >
+              {accessState.accessState === 'pending' ? 'View my request' : 'Request access'}
+            </Link>
+          </Card>
+        </div>
+      );
+    }
     return (
       <div className="px-4">
         <button
@@ -173,6 +213,23 @@ export function CastingFlow() {
   }
 
   if (step === 'casting') {
+    if (!canProceedToCast(accessForIntention(access, intentionId).accessState)) {
+      return (
+        <div className="px-4">
+          <button
+            type="button"
+            onClick={() => setStep('ask')}
+            className="mb-3 flex items-center gap-1.5 type-meta text-sand/70"
+          >
+            <ArrowLeft size={14} /> Choose a different question
+          </button>
+          <Card>
+            <p className="type-body font-semibold text-sand-light">This reading is locked</p>
+            <p className="mt-1.5 type-body text-sand/70">This question cannot be cast without access to its book.</p>
+          </Card>
+        </div>
+      );
+    }
     const entry = catalogEntry(intentionId);
     return (
       <div className="px-4">

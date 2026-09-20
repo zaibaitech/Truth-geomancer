@@ -2,19 +2,13 @@
 // the residual Kanzul Mikban corpus leak Prompt 27 documented and left
 // open). Reuses lib/server/raml/methodVerdicts.ts — the SAME two-tier
 // calculation Prompt 27B found already existed — unchanged, so an
-// authorized/free request gets byte-for-byte the same computed verdict it
+// authorized request gets byte-for-byte the same computed verdict it
 // always did (see lib/server/raml/readingVerdictsEquivalence.test.ts).
 //
-// ACCESS DECISION (explicitly confirmed for this task): "Your Reading"
-// verdicts stay free/ungated, matching the free-casting product's
-// existing, deliberate design (a short computed-interpretation sentence
-// per matched method was already an accepted minimal exposure before this
-// migration — see lib/raml/methodVerdicts.ts's own header). This service
-// does NOT call canAccessForUser(); it is deliberately reachable by any
-// session. What it closes is the CLIENT BUNDLE leak — the full Kanzul
-// Mikban corpus and the whole parsed-method structure no longer ship to
-// the browser at all, regardless of entitlement — not the free-tier
-// verdict feature itself.
+// ACCESS DECISION (Prompt 59): this function is the computation wrapper
+// ONLY. Authorization happens in app/api/raml/reading-verdicts/route.ts
+// via authorizeCastingForUser() BEFORE this is called. Do not invoke it
+// from a public route without that check.
 //
 // What keeps this from becoming "an endpoint that returns the parsed
 // corpus" (the thing Prompt 27B explicitly forbids): chapterIds are NEVER

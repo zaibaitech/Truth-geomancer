@@ -126,6 +126,7 @@ describe('a page render never attempts an illegal cookie write, and never fixate
   it('every gated Server Component page uses the read-only getCurrentUserIfPresent(), never the cookie-writing getCurrentUser()', () => {
     const pages = [
       'app/books/[id]/read/page.tsx',
+      'app/raml/page.tsx',
       'app/raml/practice/[chapterId]/[methodId]/page.tsx',
       'app/books/master-of-geomancy-vol-1/practice/counting-method/page.tsx',
       'app/books/master-of-geomancy-vol-1/practice/cancelling-method/page.tsx',

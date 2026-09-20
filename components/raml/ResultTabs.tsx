@@ -48,20 +48,30 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
 
   const [engineResult, setEngineResult] = useState<ReadingResult | null>(null);
   const [engineLoadFailed, setEngineLoadFailed] = useState(false);
+  const [engineDenied, setEngineDenied] = useState<{ accessState?: string; bookId?: string | null } | null>(null);
 
   useEffect(() => {
     if (!engineCovers || !resolvedEngineId) return;
     let cancelled = false;
     setEngineResult(null);
     setEngineLoadFailed(false);
+    setEngineDenied(null);
     fetch('/api/raml/reading', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ intentionId: resolvedEngineId, chart }),
     })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('request failed'))))
-      .then((data: { result: ReadingResult }) => {
-        if (!cancelled) setEngineResult(data.result);
+      .then(async (res) => {
+        if (res.status === 403) {
+          const data = (await res.json().catch(() => ({}))) as { accessState?: string; bookId?: string | null };
+          if (!cancelled) setEngineDenied({ accessState: data.accessState, bookId: data.bookId });
+          return null;
+        }
+        if (!res.ok) throw new Error('request failed');
+        return res.json() as Promise<{ result: ReadingResult }>;
+      })
+      .then((data) => {
+        if (!cancelled && data?.result) setEngineResult(data.result);
       })
       .catch(() => {
         if (!cancelled) setEngineLoadFailed(true);
@@ -111,6 +121,15 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
                 ) : null}
                 <EngineReadingView result={engineResult} userQuestion={userQuestion} />
               </>
+            ) : engineDenied ? (
+              <Card>
+                <p className="type-body font-semibold text-sand-light">
+                  {engineDenied.accessState === 'pending' ? 'Payment review pending' : 'This reading is locked'}
+                </p>
+                <p className="mt-1.5 type-body text-sand/65">
+                  This question’s book is not in your library yet. Request access to cast it.
+                </p>
+              </Card>
             ) : engineLoadFailed ? (
               <Card>
                 <p className="type-body text-sand/65">

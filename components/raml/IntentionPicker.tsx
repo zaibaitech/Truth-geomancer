@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Clock, Search, Sparkles } from 'lucide-react';
+import { ArrowLeft, Clock, Lock, Search, Sparkles } from 'lucide-react';
 import { CATEGORIES, type CategoryId } from '@/content/intentions';
 import { INTENTION_ICONS } from './intentionIcons';
 import { QuestionCard } from './QuestionCard';
@@ -14,6 +14,11 @@ import {
   categoryCounts,
   searchCatalog,
 } from '@/lib/raml/questionCatalog';
+import {
+  accessForIntention,
+  canProceedToCast,
+  type CastingAccessSnapshot,
+} from '@/lib/access/castingAuthorization';
 
 type View = { kind: 'home' } | { kind: 'category'; id: CategoryId } | { kind: 'all' };
 
@@ -24,7 +29,15 @@ type View = { kind: 'home' } | { kind: 'category'; id: CategoryId } | { kind: 'a
  * or the full A-Z list. Nothing here can surface a question that is not
  * already registered — `searchCatalog` filters the existing catalogue and
  * never generates anything. */
-export function IntentionPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+export function IntentionPicker({
+  value,
+  onChange,
+  access,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  access: CastingAccessSnapshot;
+}) {
   const [view, setView] = useState<View>({ kind: 'home' });
   const [query, setQuery] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -49,6 +62,7 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
   }, [view]);
 
   function select(id: string) {
+    if (!canProceedToCast(accessForIntention(access, id).accessState)) return;
     recordRecentIntention(id);
     setRecentIds(listRecentIntentionIds());
     onChange(id);
@@ -60,6 +74,9 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
     () => recentIds.map((id) => catalogEntry(id)).filter((e): e is NonNullable<typeof e> => !!e),
     [recentIds],
   );
+  const freeSampleEntry = access.freeSampleIntentionId ? catalogEntry(access.freeSampleIntentionId) : undefined;
+  const generalAccess = accessForIntention(access, 'general');
+  const generalAllowed = canProceedToCast(generalAccess.accessState);
 
   const alphabetical = useMemo(() => [...QUESTION_CATALOG].sort((a, b) => a.title.localeCompare(b.title)), []);
 
@@ -67,7 +84,13 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
     return (
       <div className="grid gap-2 sm:grid-cols-2">
         {entries.map((entry) => (
-          <QuestionCard key={entry.id} entry={entry} selected={value === entry.id} onClick={() => select(entry.id)} />
+          <QuestionCard
+            key={entry.id}
+            entry={entry}
+            selected={value === entry.id}
+            onClick={() => select(entry.id)}
+            access={accessForIntention(access, entry.id)}
+          />
         ))}
       </div>
     );
@@ -108,17 +131,40 @@ export function IntentionPicker({ value, onChange }: { value: string; onChange: 
         </div>
       ) : view.kind === 'home' ? (
         <div className="space-y-5">
+          {freeSampleEntry ? (
+            <section>
+              <h3 className="mb-2 flex items-center gap-1.5 type-label uppercase tracking-widest text-sand/65">
+                <Sparkles size={12} /> Free sample
+              </h3>
+              {renderList([freeSampleEntry])}
+            </section>
+          ) : null}
+
           <button
             type="button"
-            onClick={() => select('general')}
+            onClick={() => (generalAllowed ? select('general') : undefined)}
+            disabled={!generalAllowed}
+            aria-disabled={!generalAllowed}
             className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left ${
-              value === 'general' ? 'border-clay/60 bg-clay/10' : 'border-sand/15 bg-ink-card'
-            }`}
+              value === 'general' && generalAllowed ? 'border-clay/60 bg-clay/10' : 'border-sand/15 bg-ink-card'
+            } ${generalAllowed ? '' : 'cursor-not-allowed opacity-80'}`}
           >
-            <Sparkles size={15} className="shrink-0 text-clay-light" />
+            {generalAllowed ? (
+              <Sparkles size={15} className="shrink-0 text-clay-light" />
+            ) : generalAccess.accessState === 'pending' ? (
+              <Clock size={15} className="shrink-0 text-sand/65" />
+            ) : (
+              <Lock size={15} className="shrink-0 text-sand/65" />
+            )}
             <span className="min-w-0 flex-1">
               <span className="block type-meta font-medium text-sand-light">General reading</span>
-              <span className="block type-label text-sand/65">Cast without a set question and read the chart itself</span>
+              <span className="block type-label text-sand/65">
+                {generalAllowed
+                  ? 'Cast without a set question and read the chart itself'
+                  : generalAccess.accessState === 'pending'
+                    ? `Payment for ${generalAccess.bookTitle ?? 'The Master of Geomancy'} is awaiting review`
+                    : `Requires ${generalAccess.bookTitle ?? 'The Master of Geomancy'}`}
+              </span>
             </span>
           </button>
 

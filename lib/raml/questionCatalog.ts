@@ -25,6 +25,7 @@ import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 // lib/raml/questionRegistryMeta.ts's own header for how it was generated.
 import { QUESTION_REGISTRY_META } from './questionRegistryMeta';
 import { getQuestionAvailability, resolveEngineQuestionId, type QuestionAvailability } from './questionAvailability';
+import { owningBookIdForIntention } from '@/lib/access/methodOwnership';
 
 export interface CatalogEntry {
   /** The intention id the picker selects — unchanged from before. */
@@ -51,6 +52,9 @@ export interface CatalogEntry {
    * surviving source fully defines. Both 0 when there is no engine question. */
   methodCount: number;
   verifiedMethodCount: number;
+  /** Owning book id from SourceRef/sourceBook / KM chapter membership.
+   * Null only when ownership cannot be established — Cast then fails closed. */
+  sourceBook: string | null;
   /** Lowercased text the search matches against. */
   haystack: string;
 }
@@ -156,6 +160,7 @@ function buildEntry(intentionId: string, sourceTitle: string, intentionCategory:
     engineQuestionId,
     methodCount: definition?.methods.length ?? 0,
     verifiedMethodCount: definition?.methods.filter((m) => m.status === 'verified').length ?? 0,
+    sourceBook: owningBookIdForIntention(intentionId),
     haystack,
   };
 }

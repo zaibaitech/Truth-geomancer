@@ -306,7 +306,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "legal-conflict",
     chapterId: "if-your-enemies-are-working-against-you-or",
     resultKind: null,
-    methods: [{ id: "enemies-working-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-enemies-are-working-against-you-or" }, { id: "enemies-working-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-enemies-are-working-against-you-or" }],
+    methods: [{ id: "enemies-working-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-enemies-are-working-against-you-or", casting: { userGenerates: "four_mothers", inspects: "recast", display: "recast_working", recastMotherHouses: [3, 7, 11, 15], recastThenInspects: "named_houses", recastThenHouses: [13] } }, { id: "enemies-working-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-enemies-are-working-against-you-or", casting: { userGenerates: "four_mothers", inspects: "named_houses", display: "named_houses", houses: [1, 12] } }],
   },
   "if-your-family-is-doing-well-while-you": {
     id: "if-your-family-is-doing-well-while-you",

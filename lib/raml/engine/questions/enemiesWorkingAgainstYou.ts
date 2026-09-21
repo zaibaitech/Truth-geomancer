@@ -5,9 +5,33 @@
 // Mothers and deriving a whole new chart from them.
 
 import { ADD_MULTIPLE_HOUSES, CHECK_LINE_STATE, RECAST_FROM_HOUSES } from '../operations';
-import type { MethodDefinition, QuestionDefinition } from '../types';
+import type { CastingRequirement, MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'if-your-enemies-are-working-against-you-or';
+
+/** Presentation metadata only (Prompt 72). Does not change calculate()/evaluate().
+ * Recast is application-derived from the original chart's own H3/H7/H11/H15 —
+ * never a second user-generated cast (see castingRequirement.ts's own doc
+ * comment). `then` is the NEW chart's H13, not original-chart H13. */
+const ENEMIES_M1_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: {
+    kind: 'recast',
+    motherHouses: [3, 7, 11, 15],
+    then: { kind: 'named_houses', houses: [13] },
+  },
+  appDerives: { kind: 'recast_shield', motherHouses: [3, 7, 11, 15] },
+  display: { kind: 'recast_working' },
+  evidence: 'source_explicit',
+};
+
+const ENEMIES_M2_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'named_houses', houses: [1, 12] },
+  appDerives: { kind: 'named_houses', houses: [1, 12] },
+  display: { kind: 'named_houses', houses: [1, 12] },
+  evidence: 'source_explicit',
+};
 
 const method1: MethodDefinition = {
   id: 'enemies-working-method-1',
@@ -19,6 +43,7 @@ const method1: MethodDefinition = {
     quote:
       "After casting the chart, pick h3, h7, h11 and h15 and use them to form new Umuhat (mother houses), and cancel the old chart. Use the Umuhat to form another chart, and check h13 of the new chart you have drawn. Check the water element of h13 — if it's opened (single dot) or closed (double dot). If it's a single dot, they are not working on you, or they are, but it's not working on you because you are spiritually active. But if it's double dots, they are seriously working on you to destroy you.",
   },
+  castingRequirement: ENEMIES_M1_CASTING,
   calculate: (chart) => {
     const { chart: newChart, trace } = RECAST_FROM_HOUSES(chart, [3, 7, 11, 15]);
     const newH13 = newChart.houses[12];
@@ -54,6 +79,7 @@ const method2: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: "After casting the chart, pick h1 and h12 and add them. If it is a good star, they are not working on you; but if it's a bad star, they are working on you seriously.",
   },
+  castingRequirement: ENEMIES_M2_CASTING,
   calculate: (chart) => {
     const { figure, trace } = ADD_MULTIPLE_HOUSES(chart, [1, 12]);
     return { housesUsed: [1, 12], steps: [trace.description], resultFigure: figure };

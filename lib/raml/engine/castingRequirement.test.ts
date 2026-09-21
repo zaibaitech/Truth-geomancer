@@ -41,7 +41,7 @@ describe('optional metadata on existing MethodDefinition', () => {
     expect(typeof method.evaluate).toBe('function');
   });
 
-  it('only Chapter 151 and Chapter 32 are annotated so far', () => {
+  it('only Chapter 151, Chapter 32, and Chapter 34 are annotated so far', () => {
     const annotated: string[] = [];
     for (const question of Object.values(QUESTION_REGISTRY)) {
       for (const method of question.methods) {
@@ -55,6 +55,8 @@ describe('optional metadata on existing MethodDefinition', () => {
         'rain-method-2',
         'rain-method-3',
         'rain-method-4',
+        'enemies-working-method-1',
+        'enemies-working-method-2',
       ].sort(),
     );
   });
@@ -230,6 +232,8 @@ describe('source safety of public metadata', () => {
       'rain-method-2',
       'rain-method-3',
       'rain-method-4',
+      'enemies-working-method-1',
+      'enemies-working-method-2',
     ]);
     for (const question of Object.values(QUESTION_REGISTRY_META)) {
       for (const method of question.methods) {
@@ -626,7 +630,7 @@ describe('Chapter 32 method-level casting metadata', () => {
 
 const ENEMIES_ID = 'if-your-enemies-are-working-against-you-or';
 
-describe('Prompt 71 recast metadata contract (Chapter 34 still unannotated)', () => {
+describe('Prompt 71 recast metadata contract (engine-agnostic)', () => {
   it('does not add a recast kind to UserCastInput — recast is application-derived', () => {
     const src = repoFile('lib/raml/engine/castingRequirement.ts');
     const userBlock = src.slice(src.indexOf('export type UserCastInput'), src.indexOf('export type MethodInspects'));
@@ -651,30 +655,99 @@ describe('Prompt 71 recast metadata contract (Chapter 34 still unannotated)', ()
     expect(pub.userGenerates).toBe('four_mothers');
   });
 
-  it('Chapter 34 methods remain unclassified and calculate/evaluate ignore metadata', () => {
-    const question = QUESTION_REGISTRY[ENEMIES_ID];
-    expect(question.methods.map((m) => m.id)).toEqual([
+  it('ResultTabs does not hide Full Chart for recast the way exclusive pairing does', () => {
+    const tabs = repoFile('components/raml/ResultTabs.tsx');
+    expect(tabs).toContain('showPairingWorking && !casting.showFullShieldTabs');
+    expect(tabs).not.toMatch(/showRecastWorking && !casting.showFullShieldTabs/);
+    expect(tabs).not.toContain('recast_working');
+  });
+});
+
+describe('Prompt 72 — Chapter 34 casting metadata migration', () => {
+  const enemies = QUESTION_REGISTRY[ENEMIES_ID];
+  const byId = Object.fromEntries(enemies.methods.map((m) => [m.id, m]));
+
+  it('1. both Chapter 34 methods have casting requirements', () => {
+    expect(enemies.methods.map((m) => m.id)).toEqual([
       'enemies-working-method-1',
       'enemies-working-method-2',
     ]);
-    for (const method of question.methods) {
-      expect(method.castingRequirement).toBeUndefined();
-      expect(method.calculate.toString()).not.toMatch(/castingRequirement/);
-      expect(method.evaluate.toString()).not.toMatch(/castingRequirement/);
-    }
-    const pub = QUESTION_REGISTRY_META[ENEMIES_ID];
-    for (const method of pub.methods) {
-      expect(method.casting).toBeUndefined();
-    }
-    const resolved = resolveQuestionCasting(pub);
-    expect(resolved.showFullShieldTabs).toBe(true);
-    expect(resolved.showRecastWorking).toBe(false);
-    expect(resolved.namedHouses).toEqual([]);
-    expect(resolved.recastMotherHouses).toEqual([]);
-    expect(resolved.recastThenHouses).toEqual([]);
+    expect(byId['enemies-working-method-1'].castingRequirement).toBeDefined();
+    expect(byId['enemies-working-method-2'].castingRequirement).toBeDefined();
   });
 
-  it('Chapter 34 Method 1 still recasts original H3/H7/H11/H15 and inspects new H13', () => {
+  it('2-3-4. Method 1 is a recast from [3,7,11,15] that inspects H13 of the derived chart', () => {
+    const effective = getEffectiveCastingRequirement(byId['enemies-working-method-1']);
+    expect(effective.userGenerates).toEqual({ kind: 'four_mothers' });
+    expect(effective.inspects.kind).toBe('recast');
+    expect(effective.inspects).toEqual({
+      kind: 'recast',
+      motherHouses: [3, 7, 11, 15],
+      then: { kind: 'named_houses', houses: [13] },
+    });
+    expect(effective.appDerives).toEqual({ kind: 'recast_shield', motherHouses: [3, 7, 11, 15] });
+    expect(effective.display).toEqual({ kind: 'recast_working' });
+    expect(effective.evidence).toBe('source_explicit');
+    // Not a second user-generated cast.
+    expect(effective.userGenerates.kind).not.toBe('recast');
+  });
+
+  it('5. Method 2 remains named houses [1, 12]', () => {
+    const effective = getEffectiveCastingRequirement(byId['enemies-working-method-2']);
+    expect(effective.userGenerates).toEqual({ kind: 'four_mothers' });
+    expect(effective.inspects).toEqual({ kind: 'named_houses', houses: [1, 12] });
+    expect(effective.appDerives).toEqual({ kind: 'named_houses', houses: [1, 12] });
+    expect(effective.display).toEqual({ kind: 'named_houses', houses: [1, 12] });
+    expect(effective.evidence).toBe('source_explicit');
+    expect(effective.inspects.kind).not.toBe('recast');
+  });
+
+  it('6. question resolver produces the exact required result', () => {
+    const resolved = resolveQuestionCasting(QUESTION_REGISTRY_META[ENEMIES_ID]);
+    expect(resolved.userGenerates).toBe('four_mothers');
+    expect(resolved.showFullShieldTabs).toBe(true);
+    expect(resolved.showPairingWorking).toBe(false);
+    expect(resolved.showRecastWorking).toBe(true);
+    expect(resolved.namedHouses).toEqual([1, 12]);
+    expect(resolved.recastMotherHouses).toEqual([3, 7, 11, 15]);
+    expect(resolved.recastThenHouses).toEqual([13]);
+  });
+
+  it('7. public metadata preserves chart namespaces — mother houses, then-houses, and named houses never mix', () => {
+    const pub = QUESTION_REGISTRY_META[ENEMIES_ID];
+    const m1 = pub.methods.find((m) => m.id === 'enemies-working-method-1')!;
+    const m2 = pub.methods.find((m) => m.id === 'enemies-working-method-2')!;
+    expect(m1.casting).toEqual(toPublicCastingMeta(byId['enemies-working-method-1'].castingRequirement!));
+    expect(m2.casting).toEqual(toPublicCastingMeta(byId['enemies-working-method-2'].castingRequirement!));
+
+    expect(m1.casting!.houses).toBeUndefined();
+    expect(m1.casting!.recastMotherHouses).toEqual([3, 7, 11, 15]);
+    expect(m1.casting!.recastThenHouses).toEqual([13]);
+    expect(m2.casting!.houses).toEqual([1, 12]);
+    expect(m2.casting).not.toHaveProperty('recastMotherHouses');
+    expect(m2.casting).not.toHaveProperty('recastThenHouses');
+
+    const resolved = resolveQuestionCasting(pub);
+    expect(resolved.namedHouses).not.toContain(13);
+    expect(resolved.namedHouses).not.toEqual(expect.arrayContaining([3, 7, 11, 15]));
+    expect(resolved.recastThenHouses).not.toEqual(resolved.namedHouses);
+  });
+
+  it('8. no source prose, quotes, or notes leak into public metadata', () => {
+    const pub = QUESTION_REGISTRY_META[ENEMIES_ID];
+    for (const method of pub.methods) {
+      expect(method).not.toHaveProperty('quote');
+      expect(method).not.toHaveProperty('source');
+      expect(method).not.toHaveProperty('note');
+      expect(method.casting).not.toHaveProperty('note');
+      expect(method.casting).not.toHaveProperty('evidence');
+      expect(JSON.stringify(method.casting)).not.toMatch(
+        /Umuhat|cancel the old chart|spiritually active|destroy|good star|bad star|working on you/i,
+      );
+    }
+  });
+
+  it('engine protection: Chapter 34 Method 1 still recasts original H3/H7/H11/H15 and inspects new H13', () => {
     const result = runEngine(fixtureChart(), ENEMIES_ID)!;
     const m1 = result.methods.find((m) => m.method.id === 'enemies-working-method-1')!;
     expect(m1.calculation!.housesUsed).toEqual([3, 7, 11, 15]);
@@ -686,10 +759,10 @@ describe('Prompt 71 recast metadata contract (Chapter 34 still unannotated)', ()
     expect(m2.calculation!.housesUsed).toEqual([1, 12]);
   });
 
-  it('ResultTabs does not hide Full Chart for recast the way exclusive pairing does', () => {
-    const tabs = repoFile('components/raml/ResultTabs.tsx');
-    expect(tabs).toContain('showPairingWorking && !casting.showFullShieldTabs');
-    expect(tabs).not.toMatch(/showRecastWorking && !casting.showFullShieldTabs/);
-    expect(tabs).not.toContain('recast_working');
+  it('engine protection: calculate/evaluate never read castingRequirement', () => {
+    for (const method of enemies.methods) {
+      expect(method.calculate.toString()).not.toMatch(/castingRequirement/);
+      expect(method.evaluate.toString()).not.toMatch(/castingRequirement/);
+    }
   });
 });

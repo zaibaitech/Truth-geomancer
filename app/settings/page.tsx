@@ -72,8 +72,9 @@ export default function SettingsPage() {
           <div className="flex items-start gap-2.5">
             <Info size={16} className="mt-0.5 shrink-0 text-clay-light" />
             <p className="type-meta text-sand/70">
-              Truth Geomancer is an Ilm al-Raml casting tool and manuscript library. Castings are
-              saved only on this device — nothing is synced to an account or server yet.
+              Truth Geomancer is an Ilm al-Raml casting tool and manuscript library. Your saved
+              readings stay on this device only. Signing in only keeps your book access with you
+              on other devices — it doesn’t move your readings anywhere.
             </p>
           </div>
           <Link

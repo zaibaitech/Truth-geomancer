@@ -188,7 +188,7 @@ export function readingBrief(entry: CatalogEntry): string {
     return `${base}Kanzul Mikban gives ${methods} for this question, but the surviving manuscript leaves out something each one needs — so the reading will explain what is missing rather than give an answer.`;
   }
   if (verifiedMethodCount === methodCount) {
-    return `${base}Kanzul Mikban gives ${methods} for this question. Your chart is read against ${methodCount === 1 ? 'it' : 'all of them'}, and you will see each one's working.`;
+    return `${base}Kanzul Mikban gives ${methods} for this question. Your chart is read against ${methodCount === 1 ? 'it, and you will see its working.' : 'all of them, and you will see each one’s working.'}`;
   }
   return `${base}Kanzul Mikban gives ${methods} for this question. ${verifiedMethodCount} can be read from the surviving source and will be used; the ${methodCount - verifiedMethodCount === 1 ? 'other is' : 'others are'} shown with the reason ${methodCount - verifiedMethodCount === 1 ? 'it' : 'they'} cannot be.`;
 }

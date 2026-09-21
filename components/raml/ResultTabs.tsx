@@ -106,19 +106,28 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
   return (
     <div>
       {dreamPairing ? null : (
-        <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-4 pb-3">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              aria-pressed={tab === t}
-              className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
-                tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/70'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+        // Prompt 78 (launch usability audit): this row scrolls horizontally
+        // (Full Chart/My Star/Sadaqah routinely sit past the fold on a phone
+        // width) but had no visual cue that more tabs exist off-screen — a
+        // first-time reader had no reason to suspect there was anything to
+        // scroll to. The fade is decorative only (aria-hidden); nothing about
+        // the tabs themselves changed.
+        <div className="relative">
+          <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-4 pb-3">
+            {tabs.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                aria-pressed={tab === t}
+                className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
+                  tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/70'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div aria-hidden className="pointer-events-none absolute bottom-3 right-0 top-0 w-8 bg-gradient-to-l from-ink to-transparent" />
         </div>
       )}
 

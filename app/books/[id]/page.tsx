@@ -40,7 +40,12 @@ export default async function BookDetailPage({ params }: { params: { id: string 
             <p className="type-body text-sand/65">{book.subtitle}</p>
             <p className="mt-0.5 type-meta text-sand/65">{book.author}</p>
             <div className="mt-2">
-              <Badge tone={book.status === 'readable' ? 'sand' : 'neutral'}>{book.priceDisplay}</Badge>
+              {/* Prompt 78: this badge used to show the static "In your
+                  library" for every visitor regardless of `entitled` (computed
+                  just above, already correctly gating the offline-download
+                  control below) — directly contradicted by BookAccessGate's
+                  "This book isn't in your library yet" one tap later. */}
+              <Badge tone={entitled ? 'sand' : 'neutral'}>{entitled ? book.priceDisplay : 'Not yet unlocked'}</Badge>
             </div>
           </div>
         </div>

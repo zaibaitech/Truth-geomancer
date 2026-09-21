@@ -5,7 +5,7 @@
 // left `uncertain` (source silent) rather than assumed to mean "no rain".
 
 import { CHECK_ELEMENT_ADJACENT_REPETITION, CHECK_FIGURE_ADJACENT_REPETITION, CHECK_HOUSE, MATCH_FIGURE } from '../operations';
-import type { MethodDefinition, QuestionDefinition } from '../types';
+import type { CastingRequirement, MethodDefinition, QuestionDefinition } from '../types';
 import { getStarById } from '@/content/stars';
 
 const CHAPTER_ID = 'if-it-will-rain-today-or-not';
@@ -16,6 +16,43 @@ function starPattern(id: string) {
   return star.pattern;
 }
 
+/** Presentation metadata only (Prompt 67). Does not change calculate()/evaluate(). */
+const RAIN_M1_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'adjacency' },
+  appDerives: { kind: 'full_shield' },
+  display: { kind: 'full_shield_tabs' },
+  evidence: 'source_explicit',
+  note: 'Chart-wide adjacency scan. housesUsed is empty because the scan does not name specific houses.',
+};
+
+const RAIN_M2_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'named_houses', houses: [4] },
+  appDerives: { kind: 'named_houses', houses: [4] },
+  display: { kind: 'named_houses', houses: [4] },
+  evidence: 'source_explicit',
+  note: 'Source names house 4 (Mother 4). Not a full-shield method.',
+};
+
+const RAIN_M3_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'named_houses', houses: [9] },
+  appDerives: { kind: 'named_houses', houses: [9] },
+  display: { kind: 'named_houses', houses: [9] },
+  evidence: 'source_explicit',
+  note: 'Source names house 9. Neutral house number — not a shield-role label.',
+};
+
+const RAIN_M4_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'adjacency' },
+  appDerives: { kind: 'full_shield' },
+  display: { kind: 'full_shield_tabs' },
+  evidence: 'source_explicit',
+  note: 'Chart-wide water-element adjacency scan. housesUsed is empty because the scan does not name specific houses.',
+};
+
 const method1: MethodDefinition = {
   id: 'rain-method-1',
   label: 'Method 1',
@@ -25,6 +62,7 @@ const method1: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: 'After casting the chart, check if Ali is following each other in the chart. If they are, then it will rain.',
   },
+  castingRequirement: RAIN_M1_CASTING,
   calculate: (chart) => {
     const aliPattern = starPattern('ali');
     const { trace } = CHECK_FIGURE_ADJACENT_REPETITION(chart, aliPattern);
@@ -51,6 +89,7 @@ const method2: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: 'After drawing the chart, check h4. If you found Kallah Allahu there, it is going to rain.',
   },
+  castingRequirement: RAIN_M2_CASTING,
   calculate: (chart) => {
     const { figure, trace } = CHECK_HOUSE(chart, 4);
     return { housesUsed: [4], steps: [trace.description], resultFigure: figure };
@@ -72,6 +111,7 @@ const method3: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: "If you found Iddris in h9, it is going to rain, insha'Allah.",
   },
+  castingRequirement: RAIN_M3_CASTING,
   calculate: (chart) => {
     const { figure, trace } = CHECK_HOUSE(chart, 9);
     return { housesUsed: [9], steps: [trace.description], resultFigure: figure };
@@ -93,6 +133,7 @@ const method4: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: 'Also, when water stars are following each other in a chart, it talks about rain.',
   },
+  castingRequirement: RAIN_M4_CASTING,
   calculate: (chart) => {
     const { trace } = CHECK_ELEMENT_ADJACENT_REPETITION(chart, 'water');
     return {

@@ -169,6 +169,12 @@ describe('Test I: Chapter 151 is registered for automatic reading', () => {
     expect(question.methods.some((m) => m.status === 'verified')).toBe(true);
     expect(question.resultKind).toBe('descriptive');
   });
+
+  it('source.quote remains the manuscript sentence, not the author-clarified pairing procedure', () => {
+    expect(QUESTION_REGISTRY[CH151_ID].methods[0].source.quote).toBe(
+      'If you want to know the meaning of a dream, make only the first 4 stars (Umuhat) and pair them.',
+    );
+  });
 });
 
 describe('Test K: the catalogue no longer shows "Method undefined" or "Figures missing" for Chapter 151', () => {

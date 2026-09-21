@@ -249,6 +249,13 @@ describe('pre-casting brief', () => {
     if (entry.availability.kind !== 'consolidated') throw new Error('unreachable');
     expect(readingBrief(entry)).toContain(entry.availability.note);
   });
+
+  it('tells Chapter 151 to draw four Mothers rather than a sixteen-house chart', () => {
+    const entry = catalogEntry('dreams-and-their-interpretations')!;
+    const brief = readingBrief(entry);
+    expect(brief).toBe('Draw the four Mothers (Umuhat). They will be paired to determine the dream interpretation.');
+    expect(brief).not.toMatch(/sixteen|full shield|Your chart is read against/i);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -10,12 +10,20 @@
 // actually authorized to see) now comes from the server reading/practice
 // routes — see lib/server/raml/readingService.ts.
 
+import type { PublicCastingMeta } from '@/lib/raml/engine/castingRequirement';
+
 export interface PublicMethodMeta {
   id: string;
   label: string;
   status: 'verified' | 'needs_review' | 'uncertain';
   sourceBook: 'kanzul-mikban' | 'master-of-geomancy-vol-1';
   sourceChapterId: string;
+  /**
+   * Optional client-safe casting subset. Enums/house numbers only — never
+   * quotes or notes. Populated only where a method has been classified
+   * (Prompt 66: Chapter 151; Prompt 67: Chapter 32). Omitted = product default.
+   */
+  casting?: PublicCastingMeta;
 }
 
 export interface PublicQuestionMeta {
@@ -290,7 +298,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "fate-timing",
     chapterId: "if-it-will-rain-today-or-not",
     resultKind: null,
-    methods: [{ id: "rain-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not" }, { id: "rain-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not" }, { id: "rain-method-3", label: "Method 3", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not" }, { id: "rain-method-4", label: "Method 4", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not" }],
+    methods: [{ id: "rain-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not", casting: { userGenerates: "four_mothers", inspects: "adjacency", display: "full_shield_tabs" } }, { id: "rain-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not", casting: { userGenerates: "four_mothers", inspects: "named_houses", display: "named_houses", houses: [4] } }, { id: "rain-method-3", label: "Method 3", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not", casting: { userGenerates: "four_mothers", inspects: "named_houses", display: "named_houses", houses: [9] } }, { id: "rain-method-4", label: "Method 4", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-it-will-rain-today-or-not", casting: { userGenerates: "four_mothers", inspects: "adjacency", display: "full_shield_tabs" } }],
   },
   "if-your-enemies-are-working-against-you-or": {
     id: "if-your-enemies-are-working-against-you-or",
@@ -1154,7 +1162,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "dreams",
     chapterId: "dreams-and-their-interpretations",
     resultKind: "descriptive",
-    methods: [{ id: "dreams-interpretation-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "dreams-and-their-interpretations" }],
+    methods: [{ id: "dreams-interpretation-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "dreams-and-their-interpretations", casting: { userGenerates: "four_mothers", inspects: "derived_figures", display: "mothers_and_pairing" } }],
   },
   "continued-from-chapter-twenty-eight": {
     id: "continued-from-chapter-twenty-eight",

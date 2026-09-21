@@ -7,6 +7,7 @@ import { StarCard } from './StarCard';
 import { ChartGrid } from './ChartGrid';
 import { ReadingTab } from './ReadingTab';
 import { EngineReadingView } from './EngineReadingView';
+import { DreamWorkingPanel } from './DreamWorkingPanel';
 import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
 import { getIntentionById } from '@/content/intentions';
@@ -21,6 +22,7 @@ import { getQuestionAvailability, resolveEngineQuestionId } from '@/lib/raml/que
 // computed result now comes from the server reading route — see
 // the server reading service (Prompt 27C).
 import { QUESTION_REGISTRY_META } from '@/lib/raml/questionRegistryMeta';
+import { resolveQuestionCasting } from '@/lib/raml/engine/castingRequirement';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
 import {
   findBuruji,
@@ -35,9 +37,6 @@ type Tab = (typeof BASE_TABS)[number] | 'Your Reading';
 
 export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart; intentionId?: string; userQuestion?: string }) {
   const hasReading = !!intentionId && (getIntentionById(intentionId)?.chapterIds.length ?? 0) > 0;
-  const tabs: Tab[] = hasReading ? ['Your Reading', ...BASE_TABS] : [...BASE_TABS];
-  const [tab, setTab] = useState<Tab>(hasReading ? 'Your Reading' : 'Overview');
-
   // A few picker entries are the SAME question the engine already answers
   // under another id (a chapter and a fragment repeating one rule). Run the
   // engine's own question for those rather than dropping to the fallback
@@ -45,6 +44,18 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
   const availability = intentionId ? getQuestionAvailability(intentionId) : null;
   const resolvedEngineId = intentionId ? resolveEngineQuestionId(intentionId) : null;
   const engineCovers = !!(resolvedEngineId && QUESTION_REGISTRY_META[resolvedEngineId]);
+  const casting = resolveQuestionCasting(
+    resolvedEngineId ? QUESTION_REGISTRY_META[resolvedEngineId] : undefined,
+  );
+  // Exclusive pairing chrome (Chapter 151 today). Mixed pairing+full-shield
+  // questions keep the shield tabs; the resolver reports both flags.
+  const dreamPairing = casting.showPairingWorking && !casting.showFullShieldTabs;
+  const tabs: Tab[] = dreamPairing
+    ? ['Your Reading']
+    : hasReading
+      ? ['Your Reading', ...BASE_TABS]
+      : [...BASE_TABS];
+  const [tab, setTab] = useState<Tab>(hasReading || dreamPairing ? 'Your Reading' : 'Overview');
 
   const [engineResult, setEngineResult] = useState<ReadingResult | null>(null);
   const [engineLoadFailed, setEngineLoadFailed] = useState(false);
@@ -94,20 +105,22 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
 
   return (
     <div>
-      <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-4 pb-3">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            aria-pressed={tab === t}
-            className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
-              tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/70'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      {dreamPairing ? null : (
+        <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-4 pb-3">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              aria-pressed={tab === t}
+              className={`flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-1.5 type-meta font-medium ${
+                tab === t ? 'bg-clay text-ink' : 'border border-sand/15 text-sand/70'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-4 px-4">
         {tab === 'Your Reading' && intentionId ? (
@@ -119,7 +132,11 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
                     {availability.note}
                   </p>
                 ) : null}
-                <EngineReadingView result={engineResult} userQuestion={userQuestion} />
+                <EngineReadingView
+                  result={engineResult}
+                  userQuestion={userQuestion}
+                  working={dreamPairing ? <DreamWorkingPanel chart={chart} /> : undefined}
+                />
               </>
             ) : engineDenied ? (
               <Card>
@@ -137,16 +154,19 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
                 </p>
               </Card>
             ) : (
-              <Card>
-                <p className="type-body text-sand/65">Calculating your reading…</p>
-              </Card>
+              <>
+                {dreamPairing ? <DreamWorkingPanel chart={chart} /> : null}
+                <Card>
+                  <p className="type-body text-sand/65">Calculating your reading…</p>
+                </Card>
+              </>
             )
           ) : (
             <ReadingTab chart={chart} intentionId={intentionId} />
           )
         ) : null}
 
-        {tab === 'Overview' ? (
+        {!dreamPairing && tab === 'Overview' ? (
           <>
             <StarCard star={judge.star} eyebrow="The Judge — the chart’s verdict">
               <p className="type-body text-sand/70">{judge.star.house6.meaning}</p>
@@ -161,7 +181,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
           </>
         ) : null}
 
-        {tab === 'Full Chart' ? (
+        {!dreamPairing && tab === 'Full Chart' ? (
           <>
             <p className="type-meta text-sand/65">
               Houses 1-4 are the Mothers, 5-8 the Daughters, 9-12 the Nieces, 13-14 the Witnesses,
@@ -171,7 +191,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
           </>
         ) : null}
 
-        {tab === 'My Star' ? (
+        {!dreamPairing && tab === 'My Star' ? (
           <>
             <Card>
               <p className="mb-3 type-body font-semibold text-sand-light">Knowing your Buruji (life star)</p>
@@ -210,7 +230,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
           </>
         ) : null}
 
-        {tab === 'Sadaqah' ? (
+        {!dreamPairing && tab === 'Sadaqah' ? (
           <Card>
             <p className="mb-1 type-body font-semibold text-sand-light">{sadaqah.star.name}</p>
             <p className="mb-3 type-label text-sand/65">

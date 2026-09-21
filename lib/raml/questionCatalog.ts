@@ -26,6 +26,8 @@ import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 import { QUESTION_REGISTRY_META } from './questionRegistryMeta';
 import { getQuestionAvailability, resolveEngineQuestionId, type QuestionAvailability } from './questionAvailability';
 import { owningBookIdForIntention } from '@/lib/access/methodOwnership';
+import { DREAM_PAIRING_BRIEF } from '@/lib/raml/dreamPairingPresentation';
+import { resolveQuestionCasting } from '@/lib/raml/engine/castingRequirement';
 
 export interface CatalogEntry {
   /** The intention id the picker selects — unchanged from before. */
@@ -171,6 +173,8 @@ function buildEntry(intentionId: string, sourceTitle: string, intentionCategory:
  * so it never promises an answer the engine may not be able to produce. */
 export function readingBrief(entry: CatalogEntry): string {
   if (entry.availability.kind === 'no-automatic-reading') return entry.availability.note;
+  const casting = entry.engineQuestionId ? resolveQuestionCasting(QUESTION_REGISTRY_META[entry.engineQuestionId]) : resolveQuestionCasting(undefined);
+  if (casting.showPairingWorking && !casting.showFullShieldTabs) return DREAM_PAIRING_BRIEF;
 
   const { methodCount, verifiedMethodCount } = entry;
   const methods = `${methodCount} method${methodCount === 1 ? '' : 's'}`;

@@ -29,13 +29,18 @@
 // worked examples"). This method reuses that exact, already-verified
 // operation — nothing new is added to operations.ts or casting.ts.
 //
-// Houses 1-4 of any standard-cast chart ARE the four Umuhat (the book's own
-// front matter: "Umuhat for the first four" houses — see KM_EDITION_NOTE in
-// kanzulMikban.ts). No new casting helper was needed: every chart this app
-// casts already contains the four Umuhat at H1-H4, exactly like every other
-// registered chapter reads whichever subset of the 16 houses its own method
-// needs and ignores the rest. This method never reads H5-H16 and never
-// references Daughters, Nieces, Witnesses, or the Judge.
+// Calculation still reads the four Umuhat as H1-H4 of the chart object the
+// engine is given (`housesUsed: [1, 2, 3, 4]`) and never reads H5-H16,
+// Daughters, Nieces, Witnesses, or the Judge. The Cast result UI for this
+// question does not present the unused twelve shield houses: the user
+// generates four Mothers, and the application displays those four plus the
+// three pairing products (Pair 1 = M1+M2, Pair 2 = M3+M4, Final = those
+// two). Those pairing products must never be labelled Nieces, Witnesses, or
+// the Judge, even though a standard 16-house shield stores the same
+// arithmetic at H9/H10/H13. That presentation lives in
+// lib/raml/dreamPairingPresentation.ts and
+// components/raml/DreamWorkingPanel.tsx — it does not change this method's
+// calculate()/evaluate(), operations.ts, or casting.ts.
 //
 // The sixteen dream figures and their star ids were already restored (see
 // content/manuscripts/dreamInterpretations.ts, Prompt 31) — reused here via
@@ -52,7 +57,7 @@
 // 'use client' component imports this registry.
 
 import { ADD_FIGURES, ADD_MULTIPLE_HOUSES, CHECK_HOUSE } from '../operations';
-import type { MethodDefinition, QuestionDefinition } from '../types';
+import type { CastingRequirement, MethodDefinition, QuestionDefinition } from '../types';
 import { findDreamInterpretationsByPattern, getDreamInterpretationStarId } from '@/content/manuscripts/dreamInterpretations';
 import { STARS } from '@/content/stars';
 
@@ -87,6 +92,23 @@ function starNameFor(entryNumber: number): string {
   return STARS.find((s) => s.id === starId)?.name ?? starId;
 }
 
+/** Presentation metadata only (Prompt 66). Does not change calculate()/evaluate(). */
+const CHAPTER_151_CASTING: CastingRequirement = {
+  userGenerates: { kind: 'four_mothers' },
+  inspects: { kind: 'derived_figures', figureIds: ['pair-1', 'pair-2', 'final'] },
+  appDerives: {
+    kind: 'pairing_tree',
+    steps: [
+      { id: 'pair-1', label: 'Pair 1', from: ['mother-1', 'mother-2'] },
+      { id: 'pair-2', label: 'Pair 2', from: ['mother-3', 'mother-4'] },
+      { id: 'final', label: 'Final Figure', from: ['pair-1', 'pair-2'] },
+    ],
+  },
+  display: { kind: 'mothers_and_pairing' },
+  evidence: 'author_clarified',
+  note: 'Manuscript instructs making only the first 4 Umuhat and pairing them. The pairing tree (1+2, 3+4, then those two) is author-clarified, not a SourceRef.quote. Pairing products must never be labelled Nieces, Witnesses, or the Judge.',
+};
+
 const method1: MethodDefinition = {
   id: 'dreams-interpretation-method-1',
   label: 'Method 1',
@@ -96,6 +118,7 @@ const method1: MethodDefinition = {
     chapterId: CHAPTER_ID,
     quote: "If you want to know the meaning of a dream, make only the first 4 stars (Umuhat) and pair them.",
   },
+  castingRequirement: CHAPTER_151_CASTING,
   calculate: (chart) => {
     const u1 = CHECK_HOUSE(chart, 1);
     const u2 = CHECK_HOUSE(chart, 2);

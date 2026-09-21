@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
 import { isSourceSilentReading } from '@/lib/raml/resultPresentation';
 import { ReadingHeader } from './reading/ReadingHeader';
@@ -25,12 +25,22 @@ import { ResultSummaryCard } from './reading/ResultSummaryCard';
 // it just isn't shown twice. Every value still comes straight off the
 // ReadingResult built in lib/raml/engine/reading.ts; this component and
 // resultPresentation.ts only arrange and phrase it.
-export function EngineReadingView({ result, userQuestion }: { result: ReadingResult; userQuestion?: string }) {
+export function EngineReadingView({
+  result,
+  userQuestion,
+  working,
+}: {
+  result: ReadingResult;
+  userQuestion?: string;
+  working?: ReactNode;
+}) {
   const [showCalculation, setShowCalculation] = useState(false);
 
   return (
     <div className="space-y-4">
       <ReadingHeader question={result.question} questionCategory={result.questionCategory} />
+
+      {working}
 
       {result.isInsufficient ? (
         <InsufficientNotice

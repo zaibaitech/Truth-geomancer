@@ -14,6 +14,18 @@
 
 import type { Element, Pattern } from '@/content/stars';
 import type { HouseRole } from '../houses';
+import type { CastingRequirement } from './castingRequirement';
+
+export type {
+  UserCastInput,
+  MethodInspects,
+  AppDerivation,
+  ResultDisplay,
+  CastingEvidence,
+  CastingRequirement,
+  PublicCastingMeta,
+  QuestionCastingResolution,
+} from './castingRequirement';
 
 // ---------------------------------------------------------------------------
 // Provenance / trust
@@ -237,6 +249,14 @@ export interface MethodDefinition {
    * ReviewReasonCode's own doc comment. */
   reviewReasonCode?: ReviewReasonCode;
   source: SourceRef;
+  /**
+   * Optional casting-requirement metadata (Prompt 65). Method is the source
+   * of truth. Omitted = not yet classified: getEffectiveCastingRequirement
+   * returns the product default (today's four-Mother / full-shield pipeline).
+   * That default is NOT a source claim that the manuscript requires a full
+   * shield. Unused by Cast UI / ResultTabs / calculate() in this prompt.
+   */
+  castingRequirement?: CastingRequirement;
   /** LAYER 1 — calculation. Pure, deterministic, no phrasing. */
   calculate: (chart: ChartModel) => MethodCalculation;
   /** LAYER 2 — interpretation. Turns a calculation into a verdict. Still

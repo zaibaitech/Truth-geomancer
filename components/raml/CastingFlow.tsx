@@ -17,6 +17,9 @@ import {
   canProceedToCast,
   type CastingAccessSnapshot,
 } from '@/lib/access/castingAuthorization';
+import { resolveQuestionCasting } from '@/lib/raml/engine/castingRequirement';
+import { QUESTION_REGISTRY_META } from '@/lib/raml/questionRegistryMeta';
+import { resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
 
 type Step = 'ask' | 'confirm' | 'casting' | 'result';
 
@@ -231,10 +234,18 @@ export function CastingFlow({ access }: { access: CastingAccessSnapshot }) {
       );
     }
     const entry = catalogEntry(intentionId);
+    // Same resolver ResultTabs/questionCatalog already use for this exact
+    // question (Prompt 76): the casting INPUT is still always exactly four
+    // Mothers for every question — this only decides whether the board says
+    // so plainly (Chapter 151's pairing-only reading) or keeps the generic
+    // draw-stage wording every full-shield/named-house/recast question
+    // already had. Never a question-id check.
+    const casting = resolveQuestionCasting(QUESTION_REGISTRY_META[resolveEngineQuestionId(intentionId)]);
+    const mothersOnly = casting.showPairingWorking && !casting.showFullShieldTabs;
     return (
       <div className="px-4">
         {entry ? <p className="mb-3 text-center type-label text-clay-light">Casting for: {entry.title}</p> : null}
-        <CastingBoard onComplete={handleCastComplete} />
+        <CastingBoard onComplete={handleCastComplete} mothersOnly={mothersOnly} />
       </div>
     );
   }

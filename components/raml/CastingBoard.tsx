@@ -15,6 +15,14 @@ import {
 import type { Pattern } from '@/content/stars';
 
 const DRAW_NAMES = ['1st Draw', '2nd Draw', '3rd Draw', '4th Draw'];
+/** Prompt 76: for a pairing-only reading (Chapter 151 today; any future
+ * question whose resolved casting display is `mothers_and_pairing`) the four
+ * rows ARE the four Mothers themselves — nothing else is derived from them
+ * except their own pairing — so they are named as such instead of with the
+ * generic draw-stage wording, which reads like the first four stages of a
+ * sixteen-house chart. Same board, same tap mechanics, same four-line
+ * structure; only these row names and the surrounding copy change. */
+const MOTHER_NAMES = ['Mother 1', 'Mother 2', 'Mother 3', 'Mother 4'];
 /** The source ("The Master of Geomancy") describes making "4 straight lines
  * with dots" and only afterward names the resulting four figures the
  * "Umuhat mother stars." It never assigns Fire/Air/Water/Earth to these four
@@ -52,7 +60,18 @@ function tick() {
  * enough to know it registered, nothing from which to count. The figures stay
  * hidden until the whole casting is complete.
  */
-export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, Pattern, Pattern, Pattern]) => void }) {
+export function CastingBoard({
+  onComplete,
+  mothersOnly = false,
+}: {
+  onComplete: (mothers: [Pattern, Pattern, Pattern, Pattern]) => void;
+  /** Prompt 76: true for a question whose resolved casting display is
+   * `mothers_and_pairing` (Chapter 151 today) — the reading uses only the
+   * four Mothers themselves, never a derived shield, so the board says so
+   * instead of the generic "draw" wording. Caller-supplied, generic: this
+   * component has no question/chapter awareness of its own. */
+  mothersOnly?: boolean;
+}) {
   const [taps, setTaps] = useState<TapGrid>(emptyTapGrid);
   // Which row pulsed last, and a sequence number so that tapping the SAME row
   // again restarts the animation rather than being ignored as an unchanged key.
@@ -87,7 +106,11 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
   function resetAll() {
     setTaps(emptyTapGrid());
     setPulse(null);
-    setAnnouncement('The board has been cleared. Start again with the first draw.');
+    setAnnouncement(
+      mothersOnly
+        ? 'The board has been cleared. Start again with the first Mother.'
+        : 'The board has been cleared. Start again with the first draw.',
+    );
   }
 
   function castReading() {
@@ -95,13 +118,17 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
     onComplete(mothersFromTaps(taps));
   }
 
+  const rowNames = mothersOnly ? MOTHER_NAMES : DRAW_NAMES;
+
   return (
     <div>
       <p className="mb-1.5 text-center type-section font-semibold text-sand-light">
-        Tap each line until you naturally stop.
+        {mothersOnly ? 'Cast the four Mothers.' : 'Tap each line until you naturally stop.'}
       </p>
       <p className="mx-auto mb-5 max-w-[19rem] text-center type-body text-clay-light">
-        Don’t count your taps — follow your intuition.
+        {mothersOnly
+          ? 'Draw the four Mothers (Umuhat). Each Mother has four lines — don’t count your taps, follow your intuition.'
+          : 'Don’t count your taps — follow your intuition.'}
       </p>
 
       {/* One live region for the whole board: it says that a mark registered,
@@ -111,7 +138,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
       </p>
 
       <div className="space-y-3">
-        {DRAW_NAMES.map((name, drawIndex) => {
+        {rowNames.map((name, drawIndex) => {
           const drawTaps = taps[drawIndex];
           const marked = linesMarked(taps, drawIndex);
           const drawDone = isDrawComplete(taps, drawIndex);
@@ -128,9 +155,21 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
                 <div className="min-w-0">
                   <p className="type-meta font-medium text-sand-light">{name}</p>
                   {/* A stage indicator, not a tap counter: which of the four
-                      draws this is, and how many of its lines carry a mark. */}
+                      draws/Mothers this is, and how many of its lines carry
+                      a mark. Two full JSX branches (not one string built in
+                      JS) so the plain "Draw N of 4" wording stays exactly
+                      what it was before Prompt 76 for every non-mothersOnly
+                      board. */}
                   <p className="type-meta text-sand/65">
-                    Draw {drawIndex + 1} of 4 · {drawDone ? 'all four lines marked' : `${marked} of 4 lines marked`}
+                    {mothersOnly ? (
+                      <>
+                        Mother {drawIndex + 1} of 4 · {drawDone ? 'all four lines marked' : `${marked} of 4 lines marked`}
+                      </>
+                    ) : (
+                      <>
+                        Draw {drawIndex + 1} of 4 · {drawDone ? 'all four lines marked' : `${marked} of 4 lines marked`}
+                      </>
+                    )}
                   </p>
                 </div>
                 {drawDone ? (
@@ -177,7 +216,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
 
       {allDone ? (
         <p role="status" className="mt-5 text-center type-body text-sand-light">
-          Four draws complete.
+          {mothersOnly ? 'Four Mothers complete.' : 'Four draws complete.'}
         </p>
       ) : null}
 
@@ -194,7 +233,7 @@ export function CastingBoard({ onComplete }: { onComplete: (mothers: [Pattern, P
         onClick={resetAll}
         className="mx-auto mt-2.5 flex min-h-[44px] items-center justify-center gap-1.5 px-4 py-1 type-meta text-sand/65"
       >
-        <RotateCcw size={14} aria-hidden /> Start the draws again
+        <RotateCcw size={14} aria-hidden /> {mothersOnly ? 'Start the Mothers again' : 'Start the draws again'}
       </button>
     </div>
   );

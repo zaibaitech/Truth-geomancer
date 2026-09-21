@@ -49,7 +49,20 @@ export function runQuestion(chart: Chart, question: QuestionDefinition): EngineR
   // A method whose calculate() itself throws (its source depends on
   // figures the transcription never captured) shows neither.
   const methods: MethodResult[] = question.methods.map((method) => {
-    const methodRef = { id: method.id, label: method.label, status: method.status, reviewNote: method.reviewNote, source: method.source };
+    // 'castingRequirement' included (Prompt 74) so reading.ts can expose a
+    // method's already-existing casting classification to the presentation
+    // layer via the same getEffectiveCastingRequirement/toPublicCastingMeta
+    // sanitizer used elsewhere. Pure metadata pass-through — calculate() and
+    // evaluate() below are still called on the untouched `method`, so no
+    // calculation behavior changes.
+    const methodRef = {
+      id: method.id,
+      label: method.label,
+      status: method.status,
+      reviewNote: method.reviewNote,
+      source: method.source,
+      castingRequirement: method.castingRequirement,
+    };
 
     let calculation: MethodCalculation;
     try {

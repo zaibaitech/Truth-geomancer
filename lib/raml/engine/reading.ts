@@ -29,11 +29,13 @@ import { CATEGORIES } from '@/content/intentions';
 // or reading composition.
 import { KM_CHAPTER_META as KM_CHAPTERS } from '@/content/manuscripts/kanzulMikbanMeta';
 import type { Element, Pattern } from '@/content/stars';
+import { getEffectiveCastingRequirement, toPublicCastingMeta } from './castingRequirement';
 import type {
   EngineResult,
   MethodConsensus,
   MethodOutcome,
   MethodResult,
+  PublicCastingMeta,
   QuestionDefinition,
   RuleStatus,
   SourceRef,
@@ -173,6 +175,14 @@ export interface ReadingMethodRow {
   resultDirection: string | null;
   sourceQuote: string;
   sourceLabel: string;
+  /** Client-safe casting classification for this method (Prompt 74) — enums
+   * and house numbers only, never notes or evidence (see PublicCastingMeta).
+   * Always present: unclassified methods get the product default via
+   * getEffectiveCastingRequirement, same as everywhere else this metadata is
+   * read. Lets presentation components (e.g. the recast-working diagram)
+   * branch on `casting.inspects === 'recast'` generically, without a
+   * question-id or chapter check. */
+  casting: PublicCastingMeta;
 }
 
 export interface SourceReference {
@@ -423,6 +433,7 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
       resultDirection: direction?.status === 'verified' && direction.value ? DIRECTION_LABEL[direction.value] : null,
       sourceQuote: m.method.source.quote,
       sourceLabel: sourceLabelFor(m.method.source),
+      casting: toPublicCastingMeta(getEffectiveCastingRequirement(m.method)),
     };
   });
 

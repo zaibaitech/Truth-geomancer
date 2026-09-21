@@ -291,7 +291,12 @@ export interface QuestionDefinition {
 export type ConsensusLevel = 'agree' | 'mostly_agree' | 'mixed' | 'conflict' | 'disagree' | 'insufficient_data';
 
 export interface MethodResult {
-  method: Pick<MethodDefinition, 'id' | 'label' | 'status' | 'reviewNote' | 'source'>;
+  // 'castingRequirement' added (Prompt 74) so reading.ts can expose each
+  // method's already-existing casting classification via the same
+  // getEffectiveCastingRequirement/toPublicCastingMeta sanitizer used
+  // elsewhere — a type-only widening; ruleEngine.ts already assigns the
+  // full MethodDefinition here, so no runtime change.
+  method: Pick<MethodDefinition, 'id' | 'label' | 'status' | 'reviewNote' | 'source' | 'castingRequirement'>;
   calculation: MethodCalculation | null; // null only if calculate() itself threw (should not happen for verified methods)
   verdict: MethodVerdict | null; // null when status is not 'verified' or calculation failed
 }

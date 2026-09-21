@@ -13,6 +13,7 @@ import {
 } from './methodPractice';
 import { QUESTION_REGISTRY } from './engine/questions';
 import type { ReadingMethodRow } from './engine/reading';
+import { publicCastingDefault } from './engine/castingRequirement';
 // Prompt 27: the full chapter text is now server-only. A test file runs in
 // Node, never in a client bundle, so importing it directly here to exercise
 // the paragraph-matching path is safe and appropriate — this is exactly
@@ -243,6 +244,7 @@ function row(overrides: Partial<ReadingMethodRow>): ReadingMethodRow {
     resultDirection: null,
     sourceQuote: 'After drawing the chart, check h4.',
     sourceLabel: 'Kanzul Mikban, Chapter 32',
+    casting: publicCastingDefault(),
     ...overrides,
   };
 }

@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/Badge';
 import { OUTCOME_TONE } from '@/lib/raml/engine/reading';
 import type { ReadingMethodRow } from '@/lib/raml/engine/reading';
 import { METHOD_STATUS_LABEL } from '@/lib/raml/statusLanguage';
+import { RecastWorkingDiagram } from './RecastWorkingDiagram';
 
 /** The "advanced view" (section 5, 8, 17): per method, exactly the houses
  * used, the operation trace, the resulting figure's identity AND its
@@ -45,25 +46,31 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
                 <cite className="mt-1.5 block type-meta not-italic text-sand/65">{m.sourceLabel}</cite>
               </blockquote>
 
-              {m.housesUsed.length > 0 ? (
-                <div className="mt-3">
-                  <p className="type-meta uppercase tracking-widest text-sand/65">Houses used</p>
-                  <p className="mt-0.5 type-evidence text-sand/70">{m.housesUsed.map((n) => `H${n}`).join(', ')}</p>
-                </div>
-              ) : null}
+              {m.casting.inspects === 'recast' ? (
+                <RecastWorkingDiagram method={m} />
+              ) : (
+                <>
+                  {m.housesUsed.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="type-meta uppercase tracking-widest text-sand/65">Houses used</p>
+                      <p className="mt-0.5 type-evidence text-sand/70">{m.housesUsed.map((n) => `H${n}`).join(', ')}</p>
+                    </div>
+                  ) : null}
 
-              {m.calculationSteps.length > 0 ? (
-                <div className="mt-3">
-                  <p className="type-meta uppercase tracking-widest text-sand/65">Working</p>
-                  <div className="mt-0.5 space-y-1">
-                    {m.calculationSteps.map((step, i) => (
-                      <p key={i} className="type-evidence text-sand/70">
-                        {step}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+                  {m.calculationSteps.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="type-meta uppercase tracking-widest text-sand/65">Working</p>
+                      <div className="mt-0.5 space-y-1">
+                        {m.calculationSteps.map((step, i) => (
+                          <p key={i} className="type-evidence text-sand/70">
+                            {step}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              )}
 
               {m.resultFigureName ? (
                 <div className="mt-3">

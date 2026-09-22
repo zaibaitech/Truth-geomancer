@@ -70,7 +70,27 @@
 // Prompt 34's gated-path exclusion: bump the cache version so the stale
 // anonymous `/raml` entry is retired, and never serve `/raml` from cache
 // again so the server's access snapshot runs on every request.
-const APP_VERSION = 'v6';
+//
+// PROMPT 81 (production hotfix) — bumped v6 -> v7. Three deploys in a row
+// (Prompt 75, 77, 79) changed the server-rendered markup of `/`, `/books`,
+// `/raml`, and `/settings` — all SHELL_URLS — without bumping APP_VERSION.
+// Every returning visitor with a service worker already installed from
+// before those deploys kept getting their old `tg-shell-v6` entry for `/`
+// from `caches.match(request)` (see the fetch handler below), cache-first,
+// no network round-trip. That cached HTML still references the exact
+// `/_next/static/css/*.css` and `/_next/static/chunks/*.js` hashed URLs
+// from whichever deployment was live when it was cached — but Vercel's
+// production alias only serves the CURRENT deployment's static output at
+// those paths, so once later deploys superseded it, those exact hashed
+// asset requests started 404ing. A 404 on a stylesheet fails silently
+// (the browser just never applies it) while the stale-but-textually
+// unchanged HTML body still renders, which is exactly the "correct page
+// copy, zero styling, default blue links" report from a live device.
+// Same structural fix as every bump above: a SHELL_URL's cached content
+// went stale, so the version bumps to force every installed worker to
+// reinstall, fetch `/` fresh from the network, and repopulate the shell
+// cache with the current deployment's own asset references.
+const APP_VERSION = 'v7';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 

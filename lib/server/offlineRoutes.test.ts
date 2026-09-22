@@ -142,8 +142,8 @@ describe('34: a stale/leftover cache entry can never be served for a gated path 
 });
 
 describe('59: Cast picker /raml is never served cache-first', () => {
-  it('APP_VERSION was bumped to v6 so a pre-Prompt-59 cached anonymous /raml is retired', () => {
-    expect(SW).toMatch(/const APP_VERSION = 'v6'/);
+  it('APP_VERSION was bumped past v5 so a pre-Prompt-59 cached anonymous /raml is retired', () => {
+    expect(SW).toMatch(/const APP_VERSION = '(?!v1'|v2'|v3'|v4'|v5')/);
   });
 
   it('/raml is on the network-only prefix list, so caches.match is never consulted for the picker', () => {

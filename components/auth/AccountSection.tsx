@@ -17,7 +17,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'not-found': 'That sign-in link is invalid.',
   expired: 'That sign-in link has expired. Request a new one below.',
   used: 'That sign-in link has already been used. Request a new one below.',
-  conflict: 'We couldn’t automatically sign you in with that email — please contact support.',
+  conflict: 'We couldn’t automatically sign you in with that email — this device has its own separate session.',
   'already-linked': 'That device is already linked to a different email.',
   'rate-limited': 'Too many attempts. Please wait and try again shortly.',
 };
@@ -25,6 +25,11 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 export function AccountSection() {
   const [status, setStatus] = useState<Status | null>(null);
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  // Only 'conflict' has a self-service recovery — see handleResetDevice's
+  // comment. Every other reason (expired/used/rate-limited/etc.) is not a
+  // device-identity problem, so no reset button is offered for those.
+  const [showDeviceReset, setShowDeviceReset] = useState(false);
+  const [resettingDevice, setResettingDevice] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function refreshStatus() {
@@ -46,6 +51,7 @@ export function AccountSection() {
     } else if (params.get('auth_error')) {
       const reason = params.get('auth_error') ?? '';
       setBanner({ kind: 'error', text: AUTH_ERROR_MESSAGES[reason] ?? 'That sign-in link could not be used.' });
+      setShowDeviceReset(reason === 'conflict');
     }
     if (params.has('verified') || params.has('auth_error')) {
       params.delete('verified');
@@ -66,12 +72,53 @@ export function AccountSection() {
     }
   }
 
+  // A 'conflict' error means THIS device's own anonymous session (created
+  // by ordinary browsing before signing in) doesn't match the account that
+  // email already belongs to — see the server-side login-token consumer's
+  // own reasoning for the full explanation. The fix needs no new server
+  // route: /api/auth/logout already does exactly the one thing required —
+  // clear this browser's session cookie, touching nothing in the database
+  // — since a login only ever reads that cookie, never writes to it.
+  // Clearing it here means the NEXT sign-in link this device requests
+  // carries no anonymous identity to conflict with, so it resolves
+  // straight to the existing account.
+  async function handleResetDevice() {
+    setResettingDevice(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setShowDeviceReset(false);
+      setBanner({
+        kind: 'success',
+        text: 'This device has been reset. Enter your email below to request a fresh sign-in link.',
+      });
+    } finally {
+      setResettingDevice(false);
+      await refreshStatus();
+    }
+  }
+
   return (
     <div>
       {banner ? (
         <p className={`mb-3 type-body ${banner.kind === 'success' ? 'text-clay-light' : 'text-red-400'}`}>
           {banner.text}
         </p>
+      ) : null}
+
+      {showDeviceReset ? (
+        <div className="mb-3 rounded-xl border border-sand/15 bg-ink px-3.5 py-3">
+          <p className="type-body text-sand/70">
+            This browser has its own separate, unsigned-in session — that’s what’s blocking the link, not your email.
+            Resetting it only affects this browser; it won’t delete any account or purchase.
+          </p>
+          <button
+            onClick={handleResetDevice}
+            disabled={resettingDevice}
+            className="mt-3 min-h-[40px] rounded-lg border border-sand/15 px-3.5 py-2 type-body text-sand-light disabled:opacity-50"
+          >
+            {resettingDevice ? 'Resetting…' : 'Reset this device and try again'}
+          </button>
+        </div>
       ) : null}
 
       {status === null ? null : status.authenticated ? (

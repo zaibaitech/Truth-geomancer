@@ -90,7 +90,17 @@
 // went stale, so the version bumps to force every installed worker to
 // reinstall, fetch `/` fresh from the network, and repopulate the shell
 // cache with the current deployment's own asset references.
-const APP_VERSION = 'v7';
+//
+// PROMPT 82 — bumped v7 -> v8. This deploy changed `/settings`'s own
+// client bundle (a self-service recovery action for the sign-in conflict
+// error) — another SHELL_URL. Skipping this bump would reintroduce the
+// exact v7 bug immediately: any browser that already reinstalled the v7
+// worker moments ago would keep that `tg-shell-v7` entry for `/settings`,
+// referencing the pre-this-deploy chunk hash, and 404 on it the moment
+// this deploy supersedes it. Bump on every deploy that changes a
+// SHELL_URL's output — not just the first time this class of bug is
+// found — is the actual rule; see the v6->v7 bump above for why.
+const APP_VERSION = 'v8';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 

@@ -32,15 +32,20 @@ export const INSUFFICIENT_EXPLANATION =
 export const OUTCOME_UNDEFINED_FOR_CHART = 'The surviving source does not define an outcome for this chart.';
 
 /** All verified methods ran, each returned `uncertain`, and none counted —
- * the source is silent for this chart, which is not the same as a method
- * failing to compute (that case still uses INSUFFICIENT_HEADING). */
-export const SOURCE_SILENT_HEADING = 'Source does not determine the outcome';
+ * every condition the source defines was checked against this chart and
+ * none is present, which is not the same as a method failing to compute
+ * (that case still uses INSUFFICIENT_HEADING), and not the same as the
+ * source having no rule at all: the rule exists, is implemented, and was
+ * evaluated — it simply didn't match this particular chart. The wording
+ * below must never read as "the manuscript is incomplete" — only as "not
+ * this chart." */
+export const SOURCE_SILENT_HEADING = 'None of the source’s conditions are met';
 
 export function sourceSilentExplanation(verifiedCount: number): string {
   if (verifiedCount <= 1) {
-    return 'The verified condition defined by the source is not present in this chart, so the source does not determine the outcome.';
+    return 'The verified condition the source defines was checked against this chart and is not present, so it gives no answer here.';
   }
-  return `None of the ${verifiedCount} verified conditions defined by the source are present in this chart, so the source does not determine the outcome.`;
+  return `Each of the ${verifiedCount} verified conditions the source defines was checked against this chart, and none is present, so the source gives no answer here.`;
 }
 
 /** Source material that carries no complete automatic reading at all. */

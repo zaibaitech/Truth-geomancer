@@ -70,7 +70,7 @@ function stripStar(chart: Chart): Chart {
 }
 
 describe('1. all four Chapter 32 methods execute uncertain → source-silent, not insufficient copy', () => {
-  it('does not say “Not enough source information”; says the source does not determine the outcome', () => {
+  it('does not say “Not enough source information”; says none of the source’s conditions are met', () => {
     const result = runReading(buildChart(RAIN_ALL_MISS), RAIN)!;
     expect(result.methodResults).toHaveLength(4);
     expect(result.methodResults.every((m) => m.status === 'verified')).toBe(true);

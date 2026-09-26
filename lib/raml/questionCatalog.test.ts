@@ -394,8 +394,13 @@ describe('status language', () => {
   it('states the insufficient case as a limit of the manuscript', () => {
     expect(INSUFFICIENT_HEADING).not.toMatch(/data|_/i);
     expect(INSUFFICIENT_EXPLANATION).toContain('source-defined');
-    expect(SOURCE_SILENT_HEADING).toBe('Source does not determine the outcome');
+    expect(SOURCE_SILENT_HEADING).toBe('None of the source’s conditions are met');
     expect(SOURCE_SILENT_HEADING).not.toMatch(/data|_/i);
+    // Prompt 82 restoration: this state must never read as "the manuscript
+    // is incomplete" — a verified, implemented, evaluated method that
+    // simply didn't trigger for THIS chart is not the same claim as "the
+    // source has no rule." See statusLanguage.ts's own comment.
+    expect(SOURCE_SILENT_HEADING).not.toMatch(/source does not determine|cannot determine|source is (incomplete|unable)/i);
   });
 
   it('counts methods in words', () => {

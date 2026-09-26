@@ -13,6 +13,10 @@ import { describe, expect, it } from 'vitest';
 import { runEngine, runReading } from '../index';
 import { QUESTION_REGISTRY } from '../questions';
 import { fixtureChart } from './fixtures';
+import { buildChart } from '../../casting';
+import { isSourceSilentReading, sourceSilentConditionLine } from '../../resultPresentation';
+import { METHOD_STATUS_LABEL, SOURCE_SILENT_HEADING, sourceSilentExplanation } from '../../statusLanguage';
+import type { Pattern } from '@/content/stars';
 
 const chart = fixtureChart();
 
@@ -134,6 +138,145 @@ describe('If a partner has a particular disease or health problem (ch.65)', () =
   it('only Method 1 counts -> unfavourable', () => {
     expect(result.calculationDetails.consensus.level).toBe('agree');
     expect(result.overallResult).toBe('unfavourable');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prompt 82 (Kanzul Mikban restoration audit) — ch.65's three methods were
+// already fully implemented, verified, and evaluated against the real chart
+// (see the block above); the reported defect was that a chart triggering
+// none of the three conditions was described with wording that reads as
+// "the manuscript has no rule for this," rather than "this rule exists,
+// ran, and did not match this chart." This block is the full Test A-E
+// matrix the audit asked for. Every mother pattern below was found by
+// searching real buildChart() output for the target house-6/14 figures
+// (never hand-invented) — see the audit's own search script for how.
+// ---------------------------------------------------------------------------
+describe('ch.65 method-status matrix — implemented+triggered vs implemented+not-triggered vs source-silent', () => {
+  const M2_TRIGGERS: [Pattern, Pattern, Pattern, Pattern] = [
+    [1, 1, 1, 2],
+    [1, 1, 1, 1],
+    [1, 1, 1, 2],
+    [1, 1, 1, 1],
+  ]; // H6 = ibrahim, H14 = issah
+
+  const M3_TRIGGERS: [Pattern, Pattern, Pattern, Pattern] = [
+    [1, 2, 1, 1],
+    [1, 2, 1, 1],
+    [1, 2, 1, 1],
+    [1, 1, 1, 1],
+  ]; // H6 = ayuba
+
+  const NONE_TRIGGER: [Pattern, Pattern, Pattern, Pattern] = [
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+  ]; // H6 = ibrahim, H14 = musah — neither Issah nor Ayuba anywhere relevant
+
+  const M1_AND_M2_TRIGGER: [Pattern, Pattern, Pattern, Pattern] = [
+    [1, 1, 1, 2],
+    [1, 2, 1, 2],
+    [1, 1, 1, 2],
+    [1, 2, 1, 2],
+  ]; // H6 = issah AND H14 = issah
+
+  it('Test A: H6 = Issah -> Method 1 triggers unfavourable; the reading is NOT source-silent', () => {
+    const result = runReading(chart, 'if-a-partner-has-a-particular-disease-or')!;
+    expect(chart.houses[5].star.id).toBe('issah');
+    const m1 = result.methodResults.find((m) => m.id === 'partner-disease-method-1')!;
+    expect(m1.status).toBe('verified');
+    expect(m1.outcome).toBe('unfavourable');
+    expect(m1.counted).toBe(true);
+    expect(isSourceSilentReading(result)).toBe(false);
+    expect(result.outcomeLabel).toBe('Unfavourable');
+  });
+
+  it('Test B: H14 = Issah (H6 not Issah/Ayuba) -> Method 2 triggers unfavourable', () => {
+    const b = buildChart(M2_TRIGGERS);
+    expect(b.houses[13].star.id).toBe('issah');
+    expect(b.houses[5].star.id).not.toBe('issah');
+    expect(b.houses[5].star.id).not.toBe('ayuba');
+    const result = runReading(b, 'if-a-partner-has-a-particular-disease-or')!;
+    const m2 = result.methodResults.find((m) => m.id === 'partner-disease-method-2')!;
+    expect(m2.status).toBe('verified');
+    expect(m2.outcome).toBe('unfavourable');
+    expect(m2.counted).toBe(true);
+    expect(isSourceSilentReading(result)).toBe(false);
+    expect(result.outcomeLabel).toBe('Unfavourable');
+  });
+
+  it('Test C: H6 = Ayuba -> Method 3 triggers unfavourable (jinn/spiritual problem)', () => {
+    const c = buildChart(M3_TRIGGERS);
+    expect(c.houses[5].star.id).toBe('ayuba');
+    const result = runReading(c, 'if-a-partner-has-a-particular-disease-or')!;
+    const m3 = result.methodResults.find((m) => m.id === 'partner-disease-method-3')!;
+    expect(m3.status).toBe('verified');
+    expect(m3.outcome).toBe('unfavourable');
+    expect(m3.counted).toBe(true);
+    expect(isSourceSilentReading(result)).toBe(false);
+    expect(result.outcomeLabel).toBe('Unfavourable');
+  });
+
+  it('Test D: none of the three conditions present -> all three methods are verified+evaluated+not-triggered, never reported as unimplemented', () => {
+    const d = buildChart(NONE_TRIGGER);
+    expect(d.houses[5].star.id).not.toBe('issah');
+    expect(d.houses[5].star.id).not.toBe('ayuba');
+    expect(d.houses[13].star.id).not.toBe('issah');
+    const result = runReading(d, 'if-a-partner-has-a-particular-disease-or')!;
+
+    // Every method actually ran (calculate/evaluate both executed) and is
+    // 'verified' — this is the state-A/state-B distinction the audit
+    // required: implemented-and-evaluated, not "no executable rule."
+    expect(result.methodResults).toHaveLength(3);
+    expect(result.methodResults.every((m) => m.status === 'verified')).toBe(true);
+    expect(result.methodResults.every((m) => m.outcome === 'uncertain')).toBe(true);
+    expect(result.methodResults.every((m) => m.counted === false)).toBe(true);
+    expect(result.methodResults.every((m) => m.resultFigureName)).toBeTruthy();
+
+    // The engine's own source-silent presentation layer must classify this
+    // as "verified rule, not triggered" — never bucketed with a genuine
+    // needs_review/uncertain-status (source-incomplete) method.
+    expect(isSourceSilentReading(result)).toBe(true);
+
+    // The UI-facing copy must say the condition wasn't met on THIS chart —
+    // never that the source/manuscript itself lacks a rule.
+    expect(SOURCE_SILENT_HEADING).not.toMatch(/does not determine|no rule|not implemented|unsupported/i);
+    expect(sourceSilentExplanation(3)).toContain('checked against this chart');
+    expect(sourceSilentExplanation(3)).not.toMatch(/does not determine the outcome/i);
+
+    // Each method's status badge still reads "Read from the source" (i.e.
+    // implemented), and its own per-chart line names the exact condition
+    // that was checked and not found — never "not yet verified".
+    for (const m of result.methodResults) {
+      expect(METHOD_STATUS_LABEL[m.status]).toBe('Read from the source');
+      expect(sourceSilentConditionLine(m)).toMatch(/not present in this chart/i);
+      expect(sourceSilentConditionLine(m)).not.toMatch(/not yet verified/i);
+    }
+  });
+
+  it('Test E: H6 = Issah AND H14 = Issah both trigger -> both methods count, no invented precedence, neither is discarded', () => {
+    const e = buildChart(M1_AND_M2_TRIGGER);
+    expect(e.houses[5].star.id).toBe('issah');
+    expect(e.houses[13].star.id).toBe('issah');
+    const result = runReading(e, 'if-a-partner-has-a-particular-disease-or')!;
+    const m1 = result.methodResults.find((m) => m.id === 'partner-disease-method-1')!;
+    const m2 = result.methodResults.find((m) => m.id === 'partner-disease-method-2')!;
+    const m3 = result.methodResults.find((m) => m.id === 'partner-disease-method-3')!;
+
+    // Both triggered methods count — neither is arbitrarily dropped in
+    // favour of the other, and the third (not triggered) still doesn't
+    // count. No precedence between Method 1 and Method 2 is invented: the
+    // existing, generic multi-method consensus decides this exactly as it
+    // does for every other question with more than one counted method.
+    expect(m1.outcome).toBe('unfavourable');
+    expect(m1.counted).toBe(true);
+    expect(m2.outcome).toBe('unfavourable');
+    expect(m2.counted).toBe(true);
+    expect(m3.outcome).toBe('uncertain');
+    expect(m3.counted).toBe(false);
+    expect(result.overallOutcome).toBe('unfavourable');
+    expect(isSourceSilentReading(result)).toBe(false);
   });
 });
 

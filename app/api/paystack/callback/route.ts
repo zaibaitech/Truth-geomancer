@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import { fulfilCheckout } from '@/lib/server/paystackFulfilment';
 import { getDb } from '@/lib/server/db';
+import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 
 function resolveAppOrigin(request: Request): string {
   const configured = process.env.APP_BASE_URL;
@@ -38,6 +39,13 @@ export async function GET(request: Request) {
     console.error(`Paystack callback fulfilment failed for ${reference}:`, err);
   }
 
-  const destination = productId ? `${origin}/purchase/${productId}` : `${origin}/books`;
-  return NextResponse.redirect(`${destination}?paystack_reference=${encodeURIComponent(reference)}`, { status: 303 });
+  // A verified purchase goes straight to the book it unlocked, so the buyer
+  // lands on the thing they paid for. Anything else (not yet confirmed,
+  // unrecognised reference) falls back to the library, where the buyer can
+  // see their status rather than a dead end.
+  const bookId = productId
+    ? PRODUCT_CATALOGUE.find((p) => p.id === productId)?.entitlementGrants.find((g) => g.kind === 'book')?.bookId
+    : undefined;
+  const destination = bookId ? `${origin}/books/${bookId}/read` : `${origin}/books`;
+  return NextResponse.redirect(destination, { status: 303 });
 }

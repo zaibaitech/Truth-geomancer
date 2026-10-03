@@ -74,9 +74,13 @@ export type EntitlementStatus = 'active' | 'revoked';
  * decide anything — it exists purely as an audit/provenance field for a
  * future admin view. `'manual-payment'` covers the Phase 1 author-approval
  * workflow described in the prior audit; `'promo'` covers a
- * non-payment-derived grant (e.g. a courtesy account). Neither implies any
- * payment-processing code lives here — none does. */
-export type EntitlementSource = 'manual-payment' | 'promo';
+ * non-payment-derived grant (e.g. a courtesy account); `'paystack'` covers
+ * an automated card payment verified directly against Paystack's API (see
+ * lib/server/paystack.ts and lib/server/paystackFulfilment.ts) — the one
+ * source whose entitlement is recorded without an admin's manual approval
+ * step, because Paystack's own server-to-server verification stands in
+ * for that review. */
+export type EntitlementSource = 'manual-payment' | 'promo' | 'paystack';
 
 /** A user's ownership of one Product. This type is a domain contract only
  * — no Entitlement records are created, persisted, or faked by this

@@ -4,9 +4,11 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { PaymentRequestForm } from '@/components/purchase/PaymentRequestForm';
+import { PaystackCheckoutButton } from '@/components/purchase/PaystackCheckoutButton';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 import { getPaymentInstructions } from '@/lib/access/paymentInstructions';
+import { paystackPriceFor, formatPrice } from '@/lib/server/paystackCatalogue';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { getProductAccessStatus } from '@/lib/server/purchaseStatus';
@@ -28,6 +30,8 @@ export default async function ProductPurchasePage({ params }: { params: { produc
 
   const instructions = getPaymentInstructions(product.id);
   if (!instructions) notFound();
+
+  const paystackPrice = paystackPriceFor(product.id);
 
   const user = await getCurrentUserIfPresent();
   const db = user ? getDb() : null;
@@ -79,6 +83,12 @@ export default async function ProductPurchasePage({ params }: { params: { produc
                 {mostRecent.adminNote ? <p className="mt-1.5 type-body text-sand/70">Note: {mostRecent.adminNote}</p> : null}
                 <p className="mt-1.5 type-body text-sand/70">You can submit a new request below.</p>
               </Card>
+            ) : null}
+            {paystackPrice ? (
+              <div className="mt-3">
+                <PaystackCheckoutButton productId={product.id} priceLabel={formatPrice(paystackPrice)} />
+                <p className="mt-2 text-center type-label text-sand/65">— or pay another way —</p>
+              </div>
             ) : null}
             <PaymentRequestForm productId={product.id} instructions={instructions} />
           </>

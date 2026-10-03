@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS entitlements (
   status TEXT NOT NULL CHECK (status IN ('active', 'revoked')),
   granted_at TEXT NOT NULL,
   revoked_at TEXT,
-  source TEXT NOT NULL CHECK (source IN ('manual-payment', 'promo'))
+  source TEXT NOT NULL CHECK (source IN ('manual-payment', 'promo', 'paystack'))
 );
 CREATE INDEX IF NOT EXISTS idx_entitlements_user_status
   ON entitlements(user_id, status);

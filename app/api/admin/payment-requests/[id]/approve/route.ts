@@ -5,11 +5,13 @@ import { approvePaymentRequest } from '@/lib/server/paymentRequests';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
-// Prompt 28, Phase 8/11: the ONLY route in this whole system that can lead
-// to the entitlement-granting function in lib/server/entitlements.ts being
-// called — via approvePaymentRequest(), never directly. Admin-gated; never
-// accepts a userId/productId from the request body (the request id in the
-// URL already pins both, via the existing payment_requests row).
+// Prompt 28, Phase 8/11: one of two routes in this system that can lead to
+// the entitlement-granting function in lib/server/entitlements.ts being
+// called — via approvePaymentRequest(), never directly (the other is
+// app/api/paystack/{webhook,callback}, via paystackFulfilment.ts's own,
+// differently-verified path). Admin-gated; never accepts a userId/productId
+// from the request body (the request id in the URL already pins both, via
+// the existing payment_requests row).
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
   const reviewerId = await currentAdminReviewerId();
   if (!reviewerId) {

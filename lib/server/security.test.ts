@@ -89,6 +89,18 @@ describe('client cannot grant or revoke entitlements', () => {
       // grant/revoke function — see lib/server/adminStats.ts's own module
       // comment.
       'adminStats',
+      // Automated Paystack checkout — allowed on the same basis
+      // 'paymentRequests' already is above: paystackFulfilment.ts DOES call
+      // grantEntitlement internally (same as approvePaymentRequest does),
+      // but the two tests above this one already guarantee no route ever
+      // imports grantEntitlement directly — only the wrapping module, which
+      // performs its own independent verification (Paystack's webhook
+      // signature, then a fresh server-to-server /transaction/verify call)
+      // before ever reaching it. 'paystack' and 'paystackCatalogue' are
+      // genuinely read-only (an HTTP client and a static price table).
+      'paystack',
+      'paystackFulfilment',
+      'paystackCatalogue',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

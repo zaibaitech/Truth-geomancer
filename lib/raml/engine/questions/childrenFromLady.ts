@@ -70,8 +70,9 @@ const method3: MethodDefinition = {
   id: 'children-method-3',
   label: 'Method 3',
   status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote: 'Every branch depends on specific named figures at H5 that the transcription marked "[figures omitted — symbols not preserved]".',
+  reviewReasonCode: 'source_ambiguous_overlapping_outcomes',
+  reviewNote:
+    'The final edition supplies six figure groups for H5, but they overlap (Mahadi and Usman are in both the first and second groups; Adam, Issah and Ayuba each appear in two groups; Umar in two), and the source states no precedence, so no outcome is implemented.',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

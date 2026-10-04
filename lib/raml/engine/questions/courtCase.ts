@@ -5,8 +5,9 @@
 // its branches depend on named figures the transcription marked
 // "[figures omitted]" — not usable here, so it isn't included as a method.
 
-import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES } from '../operations';
+import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART, MATCH_FIGURE } from '../operations';
 import type { MethodDefinition, MethodOutcome, QuestionDefinition } from '../types';
+import { CH19_M3_LIST, idsOf } from '../kanzulFinalEditionFigures';
 
 const CHAPTER_ID = 'if-you-will-win-a-case-in-court';
 
@@ -70,20 +71,34 @@ const method2: MethodDefinition = {
 const method3: MethodDefinition = {
   id: 'court-method-3',
   label: 'Method 3',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    'This method decides the verdict by which of two named figures shows up in h4/h10 versus h5/h11 — those figures were transcribed as "[figures omitted — symbols not preserved]" and cannot be identified.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      "Pick h4, h5, h10 and h11 and add them. If you get: [figures omitted] in h4 and h10, you will win the case. But if they are found in h5 and h11, you will lose the case.",
+      'Pick h4, h5, h10 and h11 and add them. If you get: Mahadi, Umar, Adam, Musah, in h4 and h10, you will win the case. But if they are found in h5 and h11, you will lose the case.',
   },
-  calculate: () => {
-    throw new Error('The deciding figures for this method were not transcribed from the source.');
+  // The result of the sum is the figure looked for. It must be one of the four
+  // listed figures AND be found in h4/h10 (win) or in h5/h11 (lose). If it is
+  // found in both pairs, the source states no precedence, so nothing is read.
+  calculate: (chart) => {
+    const { figure, trace } = ADD_MULTIPLE_HOUSES(chart, [4, 5, 10, 11]);
+    return { housesUsed: [4, 5, 10, 11], steps: [trace.description], resultFigure: figure };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Not computable', interpretation: 'This method cannot currently be verified against the source.' }),
+  evaluate: (calc, chart) => {
+    if (!idsOf(CH19_M3_LIST).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return { outcome: 'uncertain', label: `${calc.resultFigure.figureName} (not a listed figure)`, interpretation: 'The source lists four figures for this method — this result is not among them.' };
+    }
+    const inWin = CHECK_FIGURE_PRESENT_IN_CHART(chart, calc.resultFigure.dotPattern, [4, 10]).found;
+    const inLose = CHECK_FIGURE_PRESENT_IN_CHART(chart, calc.resultFigure.dotPattern, [5, 11]).found;
+    if (inWin && !inLose) return { outcome: 'favourable', label: `${calc.resultFigure.figureName} found in h4/h10`, interpretation: 'You will win the case.' };
+    if (inLose && !inWin) return { outcome: 'unfavourable', label: `${calc.resultFigure.figureName} found in h5/h11`, interpretation: 'You will lose the case.' };
+    return {
+      outcome: 'uncertain',
+      label: `${calc.resultFigure.figureName} ${inWin && inLose ? 'found in both pairs' : 'not found in h4/h5/h10/h11'}`,
+      interpretation: inWin && inLose ? 'The source gives no precedence when the figure is found in both pairs of houses.' : 'The figure is not found in any of the houses the source names.',
+    };
+  },
 };
 
 const method4: MethodDefinition = {

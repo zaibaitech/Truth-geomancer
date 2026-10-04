@@ -58,7 +58,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "legal-conflict",
     chapterId: "if-you-will-win-a-case-in-court",
     resultKind: null,
-    methods: [{ id: "court-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-3", label: "Method 3", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-4", label: "Method 4", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }],
+    methods: [{ id: "court-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-3", label: "Method 3", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }, { id: "court-method-4", label: "Method 4", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-case-in-court" }],
   },
   "if-you-will-get-your-stolen-things-back": {
     id: "if-you-will-get-your-stolen-things-back",
@@ -82,7 +82,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "hunting-in-water-and-on-land-and-searching",
     resultKind: null,
-    methods: [{ id: "hunting-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "hunting-in-water-and-on-land-and-searching" }],
+    methods: [{ id: "hunting-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "hunting-in-water-and-on-land-and-searching" }],
   },
   "if-you-will-win-a-fight-war-or": {
     id: "if-you-will-win-a-fight-war-or",
@@ -90,15 +90,15 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "legal-conflict",
     chapterId: "if-you-will-win-a-fight-war-or",
     resultKind: null,
-    methods: [{ id: "fight-war-location-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-fight-war-or" }, { id: "fight-war-location-method-2", label: "Method 2", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-fight-war-or" }],
+    methods: [{ id: "fight-war-location-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-fight-war-or" }, { id: "fight-war-location-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-win-a-fight-war-or" }],
   },
   "if-you-want-to-know-where-your-enemy": {
     id: "if-you-want-to-know-where-your-enemy",
     title: "Where is my enemy or a thief hiding?",
     categoryId: "legal-conflict",
     chapterId: "if-you-want-to-know-where-your-enemy",
-    resultKind: null,
-    methods: [{ id: "enemy-location-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-want-to-know-where-your-enemy" }],
+    resultKind: "descriptive",
+    methods: [{ id: "enemy-location-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-want-to-know-where-your-enemy" }],
   },
   "marriage-and-its-blessings": {
     id: "marriage-and-its-blessings",
@@ -122,7 +122,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "health-hardships",
     chapterId: "sickness-if-he-she-will-survive",
     resultKind: null,
-    methods: [{ id: "sickness-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }, { id: "sickness-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }, { id: "sickness-method-3", label: "Method 3", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }],
+    methods: [{ id: "sickness-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }, { id: "sickness-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }, { id: "sickness-method-3", label: "Method 3", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "sickness-if-he-she-will-survive" }],
   },
   "if-your-lost-thing-is-still-around-or": {
     id: "if-your-lost-thing-is-still-around-or",
@@ -185,8 +185,8 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     title: "When will this happen?",
     categoryId: "fate-timing",
     chapterId: "if-something-will-happen-in-an-hour-day",
-    resultKind: null,
-    methods: [{ id: "timing-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-will-happen-in-an-hour-day" }, { id: "timing-method-2", label: "Method 2", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-will-happen-in-an-hour-day" }],
+    resultKind: "descriptive",
+    methods: [{ id: "timing-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-will-happen-in-an-hour-day" }, { id: "timing-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-will-happen-in-an-hour-day" }],
   },
   "who-will-win-an-election-or-a-chieftaincy": {
     id: "who-will-win-an-election-or-a-chieftaincy",
@@ -202,7 +202,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "love-couple",
     chapterId: "if-your-wife-or-sister-has-had-sex",
     resultKind: "descriptive",
-    methods: [{ id: "wife-sex-method-1", label: "Method 1", status: "needs_review", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }, { id: "wife-sex-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }, { id: "wife-sex-method-3", label: "Method 3", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }],
+    methods: [{ id: "wife-sex-method-1", label: "Method 1", status: "needs_review", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }, { id: "wife-sex-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }, { id: "wife-sex-method-3", label: "Method 3", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-your-wife-or-sister-has-had-sex" }],
   },
   "if-it-s-good-to-stay-in-a": {
     id: "if-it-s-good-to-stay-in-a",
@@ -258,7 +258,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "work-success",
     chapterId: "about-farming-and-food-in-the-year",
     resultKind: null,
-    methods: [{ id: "farming-method-1", label: "Method 1 (harvest by direction)", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "about-farming-and-food-in-the-year" }, { id: "farming-method-2", label: "Method 2 (general harvest/calamity)", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "about-farming-and-food-in-the-year" }],
+    methods: [{ id: "farming-method-1", label: "Method 1 (harvest by direction)", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "about-farming-and-food-in-the-year" }, { id: "farming-method-2", label: "Method 2 (general harvest/calamity)", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "about-farming-and-food-in-the-year" }],
   },
   "if-you-will-get-money-or-good-strangers": {
     id: "if-you-will-get-money-or-good-strangers",
@@ -778,7 +778,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "health-hardships",
     chapterId: "the-lifespan-and-when-someone-will-die",
     resultKind: "descriptive",
-    methods: [{ id: "lifespan-when-death-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "the-lifespan-and-when-someone-will-die" }],
+    methods: [{ id: "lifespan-when-death-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "the-lifespan-and-when-someone-will-die" }],
   },
   "if-a-sick-person-has-long-life-or": {
     id: "if-a-sick-person-has-long-life-or",
@@ -794,7 +794,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "health-hardships",
     chapterId: "where-one-will-die-place-of-death",
     resultKind: "descriptive",
-    methods: [{ id: "place-of-death-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "where-one-will-die-place-of-death" }],
+    methods: [{ id: "place-of-death-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "where-one-will-die-place-of-death" }],
   },
   "the-causes-of-someone-s-death": {
     id: "the-causes-of-someone-s-death",
@@ -834,7 +834,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "money-possessions",
     chapterId: "if-this-money-the-work-or-the-lady",
     resultKind: "descriptive",
-    methods: [{ id: "money-work-lady-stable-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-this-money-the-work-or-the-lady" }],
+    methods: [{ id: "money-work-lady-stable-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-this-money-the-work-or-the-lady" }],
   },
   "if-the-querent-is-sick-or-not": {
     id: "if-the-querent-is-sick-or-not",
@@ -866,7 +866,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "if-you-will-see-what-you-are-searching",
     resultKind: "descriptive",
-    methods: [{ id: "see-what-searching-for-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-see-what-you-are-searching" }],
+    methods: [{ id: "see-what-searching-for-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-see-what-you-are-searching" }],
   },
   "if-you-will-get-to-talk-to-someone": {
     id: "if-you-will-get-to-talk-to-someone",
@@ -874,7 +874,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "fate-timing",
     chapterId: "if-you-will-get-to-talk-to-someone",
     resultKind: "descriptive",
-    methods: [{ id: "conversation-will-happen-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-get-to-talk-to-someone" }],
+    methods: [{ id: "conversation-will-happen-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-get-to-talk-to-someone" }],
   },
   "if-you-will-get-what-you-are-searching": {
     id: "if-you-will-get-what-you-are-searching",
@@ -882,7 +882,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "if-you-will-get-what-you-are-searching",
     resultKind: "descriptive",
-    methods: [{ id: "get-what-searching-for-in-place-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-get-what-you-are-searching" }],
+    methods: [{ id: "get-what-searching-for-in-place-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-will-get-what-you-are-searching" }],
   },
   "if-you-won-t-get-what-you-are": {
     id: "if-you-won-t-get-what-you-are",
@@ -890,7 +890,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "if-you-won-t-get-what-you-are",
     resultKind: "descriptive",
-    methods: [{ id: "what-blocks-you-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-won-t-get-what-you-are" }],
+    methods: [{ id: "what-blocks-you-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-you-won-t-get-what-you-are" }],
   },
   "if-you-have-enemies-and-how-many": {
     id: "if-you-have-enemies-and-how-many",
@@ -930,7 +930,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "if-something-has-really-been-stolen-or-not",
     resultKind: "descriptive",
-    methods: [{ id: "something-really-stolen-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-has-really-been-stolen-or-not" }, { id: "something-really-stolen-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-has-really-been-stolen-or-not" }],
+    methods: [{ id: "something-really-stolen-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-has-really-been-stolen-or-not" }, { id: "something-really-stolen-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-something-has-really-been-stolen-or-not" }],
   },
   "if-they-will-return-a-stolen-thing-back": {
     id: "if-they-will-return-a-stolen-thing-back",
@@ -994,7 +994,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "lost-stolen",
     chapterId: "if-there-s-a-hidden-treasure-gold-money",
     resultKind: "descriptive",
-    methods: [{ id: "hidden-treasure-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-2", label: "Method 2", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-3-direction", label: "Method 3 (direction)", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-3-stability", label: "Method 3 (stability)", status: "needs_review", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }],
+    methods: [{ id: "hidden-treasure-method-1", label: "Method 1", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-2", label: "Method 2", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-3-direction", label: "Method 3 (direction)", status: "verified", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }, { id: "hidden-treasure-method-3-stability", label: "Method 3 (stability)", status: "needs_review", sourceBook: "kanzul-mikban", sourceChapterId: "if-there-s-a-hidden-treasure-gold-money" }],
   },
   "how-deep-something-is-buried": {
     id: "how-deep-something-is-buried",
@@ -1074,7 +1074,7 @@ export const QUESTION_REGISTRY_META: Record<string, PublicQuestionMeta> = {
     categoryId: "legal-conflict",
     chapterId: "where-kidnappers-are-keeping-a-person-hostage",
     resultKind: "descriptive",
-    methods: [{ id: "kidnapper-location-method-1", label: "Method 1", status: "uncertain", sourceBook: "kanzul-mikban", sourceChapterId: "where-kidnappers-are-keeping-a-person-hostage" }],
+    methods: [{ id: "kidnapper-location-method-1", label: "Method 1", status: "needs_review", sourceBook: "kanzul-mikban", sourceChapterId: "where-kidnappers-are-keeping-a-person-hostage" }],
   },
   "the-consequence-of-a-prisoner": {
     id: "the-consequence-of-a-prisoner",

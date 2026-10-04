@@ -579,7 +579,7 @@ review + Uncertain totals below exactly):*
 
 | Group | Methods | Calc. complete? | Interp. complete? | Missing input | Cause | Resolvable from supplied manuscripts? | Recommended permanent status |
 |---|---|---|---|---|---|---|---|
-| A — figure-trigger list omitted by transcription | ch.2 M4, ch.4 M1, ch.5 M1/M2, ch.6 M1, ch.7 M4, ch.9 M3, ch.13 M3, ch.17 M1/M2, ch.19 M3, ch.21 M3, ch.26 M1, ch.27 M1/M2 (15 methods) | Yes — houses computed | No — named-figure verdict list never transcribed | A figure-trigger list (which named figures map to which branch) | Source (transcription gap) | No — needs the original manuscript scan | **UNCERTAIN** (permanent, pending scan access) |
+| A — figure-trigger list omitted by transcription | ch.2 M4, ch.4 M1, ch.7 M4, ch.9 M3, ch.13 M3, ch.17 M1/M2, ch.19 M3, ch.21 M3, ch.26 M1, ch.27 M1/M2 (12 methods; ch.5 M1/M2 and ch.6 M1 were restored from the manuscript scan in Prompt 58 and are now `verified`) | Yes — houses computed | No — named-figure verdict list never transcribed | A figure-trigger list (which named figures map to which branch) | Source (transcription gap) | No — needs the original manuscript scan | **UNCERTAIN** (permanent, pending scan access) |
 | B — ambiguous split / incomplete interpretation | ch.3 M3 (2 of 4 fortune combos addressed) | Yes | Partial | None — the stated rule itself is incomplete | Source | No | **NEEDS_REVIEW** (permanent) |
 | B2 — interpretation never stated at all | ch.64 M2 | Yes | No — zero branches interpreted | None — nothing to input, the mapping sentence is simply absent | Source | No — reconfirmed this stage, no continuation exists | **UNCERTAIN** (permanent), `reviewReasonCode: interpretation_not_stated` |
 | C — whole-figure opened/closed axis undefined | ch.1 M3, ch.21 M1 | Yes | No | A verified whole-figure (not per-line) open/closed classification | Architectural (project-wide axis gap, not chapter-specific) + Source (no table anywhere) | No | **NEEDS_REVIEW** (permanent, project-wide) |
@@ -1260,7 +1260,7 @@ additive, no status, calculation or verdict changed:
 
 | Code | Methods | What it means |
 |---|---|---|
-| `figures_omitted_by_transcription` | 20 (chs. 4, 5 x2, 6, 7, 9, 13, 17 x2, 19, 21, 26, 27 x2, 94, 97, 102, 124, 132 x2) | A named trigger-figure list the transcription marked "[figures omitted]" |
+| `figures_omitted_by_transcription` | 20 at the time of that stage; 17 now — chs. 5 x2 and 6 were restored in Prompt 58 (chs. 4, 5 x2, 6, 7, 9, 13, 17 x2, 19, 21, 26, 27 x2, 94, 97, 102, 124, 132 x2) | A named trigger-figure list the transcription marked "[figures omitted]" |
 | `whole_figure_state_undefined` | 2 (ch.1 M3, ch.21 M1) | Classifies a WHOLE figure as opened/closed; this project only defines that per line |
 | `spatial_layout_unsupported` | 1 (ch.37 M2) | Decided by which physical side of the drawn chart a figure lands on |
 | `constant_figure_undefined` | 1 added (ch.2 M4, Sirri Sa'ael) | Extends the Prompt 10 code to the constant it was written for — its own doc comment names Sirri Sa'ael, but ch.2's occurrence predated it |
@@ -1665,8 +1665,8 @@ transcription. Counts are asserted by `__tests__/source-reconciliation.test.ts`.
 |---|---|---|---|
 | Male/female star classification | 7 | `gender_classification_unsourced` | Unresolved — chs. 127 and 141 each investigated and neither defines it; the source's own front matter confirms no table survives |
 | Stable/unstable classification | 7 | `stability_classification_unsourced` | Unresolved — same front-matter admission |
-| Omitted trigger-figure lists | 20 | `figures_omitted_by_transcription` | Unresolved — needs the original scan's hand-drawn symbols |
-| Constant figures (Sirri Sa'ael, Nazir, Nutik, Itisal, Ifusal) | 5 | `constant_figure_undefined` | Unresolved — named in front matter, never defined anywhere |
+| Omitted trigger-figure lists | 20 (historical — **0 now**; see "Final Kanzul edition restoration" at the end) | `figures_omitted_by_transcription` | Was: unresolved. Now: every list is supplied by the final edition (restored, or marked `source_*`) |
+| Constant figures (Sirri Sa'ael, Nazir, Nutik, Itisal, Ifusal) | 5 (historical — **2 now**: only the Damir, ch.2 M4 and ch.26 M1) | `constant_figure_undefined` | Nazir/Nutik/Itisal/Ifusal are supplied by the final edition; the Damir is still never defined |
 | Interpretation never stated | 2 | `interpretation_not_stated` | Unresolved — calculation complete, meaning absent (chs. 64, 90) |
 | Whole-figure opened/closed state | 2 | `whole_figure_state_undefined` | Unresolved — this project defines opened/closed per line only (chs. 1, 21) |
 | Day/night classification | 1 | `day_night_classification_unsourced` | Unresolved (ch.83) |
@@ -5323,3 +5323,35 @@ This is recorded here rather than glossed over.
 
 **Not committed, not pushed, not deployed**, per this prompt's explicit
 instruction.
+
+## Final Kanzul edition restoration
+
+The author-confirmed FINAL edition (`docs/Kanzul-Mikban-Final-Edition.pdf`) supplies
+the figure lists that the earlier transcription dropped. Its figures are 16
+unique embedded images (placed 367 times); each was decoded to a four-row dot
+pattern and matched to `content/stars.ts` by exact pattern equality, calibrated
+on the edition's own page-3 example. Everything below is recorded per chapter
+in `lib/raml/engine/kanzulFigureAudit.ts` and explained in
+`KANZUL_FINAL_RESTORATION_REPORT.md`; this section only corrects the counts
+above.
+
+- **Restored to `verified` (18 methods):** ch.4, ch.9 M3, ch.17 M1/M2, ch.19 M3,
+  ch.21 M3, ch.27 M1/M2, ch.94, ch.97, ch.102, ch.124 M1, ch.132 M1/M2, and the
+  four constant-figure chapters 107/108/118/119 (Nazir = Adam, Nutik = Umar,
+  Itisal = Iddris, Ifusal = Ayuba). Chapter 30's two named-figure branches and
+  chapter 36's explicit element lists were also restored. Chapters 5 and 6 are
+  unchanged (the final edition matches the earlier restoration exactly).
+- **`source_ambiguous_overlapping_outcomes` (2):** ch.7 M4, ch.13 M3 — the
+  supplied lists overlap and the source gives no precedence.
+- **`source_incomplete` (1):** ch.142 — twelve outcomes, then "and so on"; held at
+  `needs_review` (the "own house" rule is also never stated).
+- **`constant_figure_undefined` (2):** ch.2 M4, ch.26 M1 — the Damir is still
+  never defined.
+- **Recorded, existing implementation untouched:** ch.121 (`source_contradiction`:
+  the text says Adam, the drawn figure is Usman), ch.106 (`source_anomaly`:
+  Sulemana for both Head and Neck, Adam absent), ch.49 (`source_anomaly`:
+  Sulemana in both the fire and sand lists).
+- **Source present, no public question registered (by decision):** ch.18 Part A
+  M1/M2 and ch.95.
+- **Registry totals now:** 142 questions / 233 methods — 205 verified, 20
+  needs_review, 8 uncertain; 0 methods coded `figures_omitted_by_transcription`.

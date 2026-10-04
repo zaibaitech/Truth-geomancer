@@ -5,11 +5,14 @@
 // `mixed` rather than flattened into unfavourable, since the source frames
 // it as "be patient" rather than "it will fail"); the water line refines
 // the upward branch's wording without changing its outcome. Two further
-// named-figure branches ("if it's:, you will get a lot of profit but not
-// stable" / "...but you will be very sick") are not implemented — the
-// figure identifying each branch was omitted from the transcription.
+// named-figure branches (Hassan & Hussein: profit but not stable; Issah: a lot
+// of money but very sick) were restored from the author-confirmed final
+// edition and are read as figure-specific exceptions to the direction rule
+// (both figures are upward stars in STARS, so they cannot be refinements of
+// the downward branch).
 
-import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_DIRECTION, CHECK_LINE_STATE } from '../operations';
+import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_DIRECTION, CHECK_LINE_STATE, MATCH_FIGURE } from '../operations';
+import { CH30_HASSAN_HUSSEIN, CH30_ISSAH, idsOf } from '../kanzulFinalEditionFigures';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'if-you-will-be-successful-and-get-what';
@@ -30,6 +33,24 @@ const method1: MethodDefinition = {
     return { housesUsed: [1, 8, 7, 11, 16], steps: [step1.trace.description, step2.trace.description], resultFigure: step2.figure };
   },
   evaluate: (calc) => {
+    // The source's two figure-specific clauses (restored from the final
+    // edition) are read as named exceptions to the general direction reading.
+    // Both figures are upward stars in STARS, so they could never be reached
+    // from inside the downward branch.
+    if (idsOf(CH30_HASSAN_HUSSEIN).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return {
+        outcome: 'mixed',
+        label: 'Hassan & Hussein',
+        interpretation: 'You will get a lot of profit but it will not be stable — you will lose it after that.',
+      };
+    }
+    if (idsOf(CH30_ISSAH).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return {
+        outcome: 'mixed',
+        label: 'Issah',
+        interpretation: 'You will get a lot of money and benefits from the trip, but you will be very, very sick — you may spend all the money on the sickness.',
+      };
+    }
     const direction = CHECK_DIRECTION(calc.resultFigure);
     if (direction === 'upward') {
       const waterOpened = CHECK_LINE_STATE(calc.resultFigure, 'water') === 'opened';

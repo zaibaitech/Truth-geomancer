@@ -14,9 +14,9 @@ const method1: MethodDefinition = {
   id: 'fight-argument-method-1',
   label: 'Method 1',
   status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
+  reviewReasonCode: 'constant_figure_undefined',
   reviewNote:
-    'Every branch of this chapter (h1/h2, Sirri Sa\'ael, h8, h12, h9, h14) is decided by named figures the source transcription omitted or dropped entirely — including the h9 "peace" branch, whose figure token was lost along with the others. Nothing here is computable without those symbols.',
+    "The final edition supplies the figures for every clause (h1/h2: Ayuba, Sulemana; h9 peace: Ali, Issah; Sirri Sa'ael/Damir: Ayuba, Sulemana, Musah; h14: Usman, Yunus, Mahadi), but the clause for the Sirri Sa'ael (Damir) — which the later h8/h12 clauses depend on via \"the stars above\" — needs a Damir figure that no part of the source defines, so the method stays blocked.",
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

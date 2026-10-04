@@ -34,19 +34,19 @@ describe('As a stranger, is the food from the market or home-prepared (ch.101) �
   });
 });
 
-describe('If this money, work, or relationship will be stable (ch.102) — figures omitted', () => {
+describe('If this money, work, or relationship will be stable (ch.102) — restored from the final edition', () => {
   const result = runEngine(chart, 'if-this-money-the-work-or-the-lady')!;
 
-  it('Method 1: the trigger-figure list is omitted -> uncertain, no verdict', () => {
+  it('Method 1 is verified: Adam appears in the recast chart\'s first four houses (a listed figure) -> stable', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
-    expect(m1.verdict).toBeNull();
+    expect(m1.method.status).toBe('verified');
+    expect(m1.verdict!.descriptiveAnswer).toBe('stable');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive reading', () => {
+    expect(result.overallResult).toBe('descriptive');
     const reading = runReading(chart, 'if-this-money-the-work-or-the-lady')!;
-    expect(reading.isInsufficient).toBe(true);
+    expect(reading.isInsufficient).toBe(false);
   });
 });
 
@@ -107,64 +107,71 @@ describe('Which part of the body is in pain (ch.105) — descriptive, embeds ch.
   });
 });
 
-describe('Will I see what I am searching for (ch.107, Nazir) — constant figure undefined', () => {
+describe('Nazir (ch.107) — constant figure supplied by the final edition', () => {
   const result = runEngine(chart, 'if-you-will-see-what-you-are-searching')!;
 
-  it('Method 1: Nazir\'s own dot-pattern is never defined -> uncertain, excluded', () => {
+  it("Method 1: Nazir's figure is now defined, so the method is verified and computes a result", () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     const def = QUESTION_REGISTRY['if-you-will-see-what-you-are-searching'].methods[0];
-    expect(def.reviewReasonCode).toBe('constant_figure_undefined');
-    expect(m1.verdict).toBeNull();
+    expect(def.reviewReasonCode).toBeUndefined();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('will-see');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 
-describe('Will we get to talk (ch.108, Nutik) — constant figure undefined', () => {
+describe('Nutik (ch.108) — constant figure supplied by the final edition', () => {
   const result = runEngine(chart, 'if-you-will-get-to-talk-to-someone')!;
 
-  it('Method 1: Nutik\'s own dot-pattern is never defined -> uncertain, excluded', () => {
+  it("Method 1: Nutik's figure is now defined, so the method is verified and computes a result", () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     const def = QUESTION_REGISTRY['if-you-will-get-to-talk-to-someone'].methods[0];
-    expect(def.reviewReasonCode).toBe('constant_figure_undefined');
+    expect(def.reviewReasonCode).toBeUndefined();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('conversation-will-take-place');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 
-describe('Will I get what I am searching for, in this place (ch.118, Itisal) — constant figure undefined', () => {
+describe('Itisal (ch.118) — constant figure supplied by the final edition', () => {
   const result = runEngine(chart, 'if-you-will-get-what-you-are-searching')!;
 
-  it('Method 1: Itisal\'s own dot-pattern is never defined -> uncertain, excluded', () => {
+  it("Method 1: Itisal's figure is now defined, so the method is verified and computes a result", () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     const def = QUESTION_REGISTRY['if-you-will-get-what-you-are-searching'].methods[0];
-    expect(def.reviewReasonCode).toBe('constant_figure_undefined');
+    expect(def.reviewReasonCode).toBeUndefined();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('will-get-it');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 
-describe('What will block me (ch.119, Ifusal) — constant figure undefined', () => {
+describe('Ifusal (ch.119) — constant figure supplied by the final edition', () => {
   const result = runEngine(chart, 'if-you-won-t-get-what-you-are')!;
 
-  it('Method 1: Ifusal\'s own dot-pattern is never defined -> uncertain, excluded', () => {
+  it("Method 1: Ifusal's figure is now defined, so the method is verified and computes a result", () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     const def = QUESTION_REGISTRY['if-you-won-t-get-what-you-are'].methods[0];
-    expect(def.reviewReasonCode).toBe('constant_figure_undefined');
+    expect(def.reviewReasonCode).toBeUndefined();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('blocked');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 

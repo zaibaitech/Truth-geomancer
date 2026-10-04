@@ -125,8 +125,6 @@ const UNCODED_BY_DESIGN: Record<string, string> = {
     'partial-interpretation ambiguity: the source defines the two extreme cases but never says what a mixed/middle-good pair means — not a total interpretation gap, so interpretation_not_stated would overstate it',
   'time-to-put-to-bed-method-2':
     'the source text is cut off mid-sentence after naming the houses to recast — a truncation, not an omitted figure list; the only occurrence in the book, below this project\'s 3-occurrence bar for minting a code',
-  'kidnapper-location-method-1':
-    'dual blocker: an undefined figure-to-house "own house" identity table AND omitted branch figures — restoring either alone would not make it computable, so no single code is accurate',
 };
 
 describe('Every unresolved method explains itself (UI honesty)', () => {
@@ -149,7 +147,7 @@ describe('Every unresolved method explains itself (UI honesty)', () => {
     });
   });
 
-  it('the documented uncoded exceptions are exactly the three the audit identified', () => {
+  it('the documented uncoded exceptions are exactly the two the audit identified', () => {
     const uncoded = NON_VERIFIED.filter(({ method }) => !method.reviewReasonCode).map(({ method }) => method.id).sort();
     expect(uncoded).toEqual(Object.keys(UNCODED_BY_DESIGN).sort());
   });
@@ -204,20 +202,17 @@ describe('Unresolved source dependencies stay unresolved and correctly labelled'
     expect(methodsWithCode('temporal_classification_unsourced')).toEqual(['present-past-future-method-1']);
   });
 
-  it('constant figures (Sirri Saael, Nazir, Nutik, Itisal, Ifusal): 5 occurrences, no pattern ever invented', () => {
-    expect(methodsWithCode('constant_figure_undefined')).toEqual(
-      [
-        'conversation-will-happen-method-1',
-        'get-what-searching-for-in-place-method-1',
-        'money-method-4',
-        'see-what-searching-for-method-1',
-        'what-blocks-you-method-1',
-      ].sort(),
-    );
+  it("constant figures: only the Sirri Sa'ael (Damir) is still undefined (ch.2 M4, ch.26 M1) — Nazir, Nutik, Itisal and Ifusal are supplied by the final edition", () => {
+    expect(methodsWithCode('constant_figure_undefined')).toEqual(['fight-argument-method-1', 'money-method-4'].sort());
   });
 
-  it('omitted trigger figures: 20 occurrences', () => {
-    expect(methodsWithCode('figures_omitted_by_transcription').length).toBe(20);
+  it('figures_omitted_by_transcription: 0 occurrences — every omitted list is now supplied by the final edition (restored, or explicitly marked source_*)', () => {
+    expect(methodsWithCode('figures_omitted_by_transcription')).toEqual([]);
+  });
+
+  it('source-ambiguous and source-incomplete methods are labelled as such, never as omitted figures', () => {
+    expect(methodsWithCode('source_ambiguous_overlapping_outcomes')).toEqual(['children-method-3', 'marriage-method-4']);
+    expect(methodsWithCode('source_incomplete')).toEqual(['kidnapper-location-method-1']);
   });
 
   it('whole-figure opened/closed state: 2 occurrences; chart spatial layout: 1 occurrence', () => {
@@ -248,11 +243,11 @@ describe('Missing-interpretation methods still show their completed calculation'
     });
   });
 
-  it('by contrast, a method whose calculation cannot run at all exposes no houses', () => {
-    // Chapter 142: neither its "own house" mapping nor its branch figures
-    // survive, so there is nothing to show — the opposite UI state.
+  it('a method held at needs_review still shows its calculation — chapter 142 lists which figures sit in their own house', () => {
+    // Fixture chart: Yussif (no. 1) at H1, Adam (2) at H2, Mahadi (3) at H3, Iddris (4) at H4,
+    // Issah (6) at H6, Ali (11) at H11 — read as "its own house" = the figure's STARS number.
     const kidnapper = ALL_METHODS.find(({ method }) => method.id === 'kidnapper-location-method-1')!;
-    expect(kidnapper.method.calculate(chartModel).housesUsed).toEqual([]);
+    expect(kidnapper.method.calculate(chartModel).housesUsed).toEqual([1, 2, 3, 4, 6, 11]);
   });
 });
 
@@ -293,12 +288,16 @@ describe('Final Kanzul Mikban totals', () => {
   // +1 method, +1 verified. Updated again by the Gift/Visitor Figures
   // continuation registration (eight of its sixteen result figures
   // recovered — see giftVisitorFigures.ts): +1 question, +1 method, +1
-  // verified.
-  it('142 questions / 233 methods — 184 verified, 19 needs_review, 30 uncertain', () => {
+  // verified. Prompt 58: ch.5 (x2) and ch.6 restored from the manuscript scan:
+  // +3 verified, -3 uncertain. Final edition: 18 more methods restored to
+  // verified (ch.4, 9 M3, 17 x2, 19 M3, 21 M3, 27 x2, 94, 97, 102, 107, 108,
+  // 118, 119, 124 M1, 132 x2): +18 verified, -18 uncertain; ch.142 uncertain ->
+  // needs_review (source_incomplete): +1 needs_review, -1 uncertain.
+  it('142 questions / 233 methods — 205 verified, 20 needs_review, 8 uncertain', () => {
     expect(Object.keys(QUESTION_REGISTRY).length).toBe(142);
     expect(ALL_METHODS.length).toBe(233);
-    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(184);
-    expect(ALL_METHODS.filter(({ method }) => method.status === 'needs_review').length).toBe(19);
-    expect(ALL_METHODS.filter(({ method }) => method.status === 'uncertain').length).toBe(30);
+    expect(ALL_METHODS.filter(({ method }) => method.status === 'verified').length).toBe(205);
+    expect(ALL_METHODS.filter(({ method }) => method.status === 'needs_review').length).toBe(20);
+    expect(ALL_METHODS.filter(({ method }) => method.status === 'uncertain').length).toBe(8);
   });
 });

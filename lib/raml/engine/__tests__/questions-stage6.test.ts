@@ -258,18 +258,19 @@ describe('If someone has long life or not (ch.93)', () => {
   });
 });
 
-describe('The lifespan and when someone will die (ch.94) — figures omitted', () => {
+describe('The lifespan and when someone will die (ch.94) — restored from the final edition', () => {
   const result = runEngine(chart, 'the-lifespan-and-when-someone-will-die')!;
 
-  it('H8 = Issah shown, but the branch-trigger figures are omitted -> uncertain, no verdict', () => {
+  it('H8 = Issah -> "he/she will die while still small" (verified, descriptive)', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     expect(m1.calculation!.resultFigure.figureId).toBe('issah');
-    expect(m1.verdict).toBeNull();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.interpretation).toContain('die while still small');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 
@@ -294,18 +295,19 @@ describe('If a sick person has long life (ch.96) — a genuine conflict, not ave
   });
 });
 
-describe('Where one will die (ch.97) — figures omitted', () => {
+describe('Where one will die (ch.97) — restored from the final edition', () => {
   const result = runEngine(chart, 'where-one-will-die-place-of-death')!;
 
-  it('H8 = Issah shown, but the branch-trigger figures are omitted -> uncertain, no verdict', () => {
+  it('H8 = Issah -> "a damaged place, a place of war, or among animals" (verified, descriptive)', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('verified');
     expect(m1.calculation!.resultFigure.figureId).toBe('issah');
-    expect(m1.verdict).toBeNull();
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.interpretation).toContain('place of war');
   });
 
-  it('no method counts -> insufficient data, honestly', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('a verified method counts -> a real descriptive result', () => {
+    expect(result.overallResult).toBe('descriptive');
   });
 });
 

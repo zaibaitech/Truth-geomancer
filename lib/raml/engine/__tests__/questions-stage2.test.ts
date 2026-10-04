@@ -9,30 +9,39 @@ import { fixtureChart } from './fixtures';
 
 const chart = fixtureChart();
 
-describe('Hunting/searching (ch.4) — fully blocked by omitted figures', () => {
+// Chapter 4 restored from the author-confirmed final edition: H10 = Usman is one
+// of the seven listed successful-search figures.
+describe('Hunting/searching (ch.4) — restored from the final edition', () => {
   const result = runEngine(chart, 'hunting-in-water-and-on-land-and-searching')!;
-  it('still returns a reading (not null) with an honest insufficient_data result', () => {
+  it('Method 1 is verified and reads H10 = Usman (a listed figure) as favourable', () => {
     expect(result).not.toBeNull();
-    expect(result.overallResult).toBe('insufficient_data');
-    expect(result.methods[0].method.status).toBe('uncertain');
-    expect(result.methods[0].calculation).not.toBeNull(); // H10 is still shown
-    expect(result.methods[0].verdict).toBeNull(); // status !== 'verified' -> no verdict, per the engine's own gate
+    expect(result.methods[0].method.status).toBe('verified');
+    expect(result.methods[0].calculation!.resultFigure.figureId).toBe('usman');
+    expect(result.methods[0].verdict!.outcome).toBe('favourable');
+    expect(result.overallResult).toBe('favourable');
   });
 });
 
-describe('Fight/war/court, H6 variant (ch.5) — fully blocked', () => {
+describe('Fight/war/court, H6 variant (ch.5) — restored from the manuscript scan', () => {
   const result = runEngine(chart, 'if-you-will-win-a-fight-war-or')!;
-  it('reports insufficient_data across both uncomputable methods', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('both methods are verified and compute a verdict from the restored figures', () => {
     expect(result.methods).toHaveLength(2);
-    result.methods.forEach((m) => expect(m.method.status).toBe('uncertain'));
+    result.methods.forEach((m) => expect(m.method.status).toBe('verified'));
+    const [m1, m2] = result.methods;
+    expect(m1.calculation!.resultFigure.figureId).toBe('issah');
+    expect(m1.verdict!.outcome).toBe('uncertain'); // Issah is not in the h6 win list
+    expect(m2.verdict!.outcome).toBe('unfavourable'); // Issah is in the h1/h8 difficulty list
+    expect(result.overallResult).not.toBe('insufficient_data');
   });
 });
 
-describe('Enemy/thief location (ch.6) — fully blocked', () => {
-  it('reports insufficient_data', () => {
+describe('Enemy/thief location (ch.6) — restored from the manuscript scan', () => {
+  it('Iddris at H4 is a listed figure -> open land or desert', () => {
     const result = runEngine(chart, 'if-you-want-to-know-where-your-enemy')!;
-    expect(result.overallResult).toBe('insufficient_data');
+    expect(result.methods[0].method.status).toBe('verified');
+    expect(result.methods[0].verdict!.outcome).toBe('descriptive');
+    expect(result.methods[0].verdict!.descriptiveAnswer).toBe('open-land-or-desert');
+    expect(result.overallResult).not.toBe('insufficient_data');
   });
 });
 
@@ -93,9 +102,11 @@ describe('Sickness survival (ch.9)', () => {
     expect(m2.verdict!.outcome).toBe('favourable');
   });
 
-  it('Method 3 uncertain (omitted figures); overall methods agree favourable', () => {
+  it('Method 3 (restored from the final edition): H6 = Issah is a listed healing figure -> favourable; overall methods agree', () => {
     const m3 = result.methods.find((m) => m.method.id === 'sickness-method-3')!;
-    expect(m3.method.status).toBe('uncertain');
+    expect(m3.method.status).toBe('verified');
+    expect(m3.calculation!.resultFigure.figureId).toBe('issah');
+    expect(m3.verdict!.outcome).toBe('favourable');
     expect(result.calculationDetails.consensus.level).toBe('agree');
     expect(result.overallResult).toBe('favourable');
   });
@@ -254,10 +265,17 @@ describe('Overcome enemy (ch.16)', () => {
   });
 });
 
-describe('Timing of an event (ch.17) — fully blocked', () => {
-  it('reports insufficient_data across both uncomputable methods', () => {
+// Chapter 17 restored from the final edition: both methods read a listed figure
+// that is also found in the first four houses (Mahadi at H3; Yussif at H1).
+describe('Timing of an event (ch.17) — restored from the final edition', () => {
+  it('both methods are verified and answer "within an hour"', () => {
     const result = runEngine(chart, 'if-something-will-happen-in-an-hour-day')!;
-    expect(result.overallResult).toBe('insufficient_data');
-    result.methods.forEach((m) => expect(m.method.status).toBe('uncertain'));
+    result.methods.forEach((m) => expect(m.method.status).toBe('verified'));
+    const [m1, m2] = result.methods;
+    expect(m1.calculation!.resultFigure.figureId).toBe('mahadi');
+    expect(m1.verdict!.descriptiveAnswer).toBe('within-an-hour');
+    expect(m2.calculation!.resultFigure.figureId).toBe('yussif');
+    expect(m2.verdict!.descriptiveAnswer).toBe('within-an-hour');
+    expect(result.overallResult).toBe('descriptive');
   });
 });

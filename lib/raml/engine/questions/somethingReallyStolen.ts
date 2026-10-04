@@ -1,8 +1,7 @@
 // Source: Kanzul Mikban, Chapter 124 — "If Something Has Really Been Stolen
 // or Not" (id "if-something-has-really-been-stolen-or-not"). Two methods.
-// Method 1 names a trigger-figure list that was never transcribed ("[figures
-// omitted — symbols not preserved in this transcription]") — left uncertain,
-// same shape as chapter 102's own omitted-list method (moneyWorkLadyStable.ts).
+// Method 1 checks the whole chart for any of four listed figures — the list
+// was restored from the author-confirmed final edition.
 // Method 2 is a plain h1+h5 sum checked for presence anywhere in the full
 // 16-house chart (no self-exclusion stated, unlike chapters 101/105/128/136 —
 // this method's own wording never singles out h1 or h5 as houses to exclude
@@ -13,27 +12,42 @@
 
 import { ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART, CHECK_HOUSE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
+import { CH124_M1_STOLEN, idsOf } from '../kanzulFinalEditionFigures';
 
 const CHAPTER_ID = 'if-something-has-really-been-stolen-or-not';
 
 const method1: MethodDefinition = {
   id: 'something-really-stolen-method-1',
   label: 'Method 1',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    'The chapter names a trigger-figure list to check against the whole chart, but the list itself ("[figures omitted — symbols not preserved in this transcription]") was never transcribed.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      'Method 1: After casting the chart, check if you get( [figures omitted — symbols not preserved in this transcription] ) in the chart. If so, it is true — it has been stolen. But if none of these stars is found in the chart, it means it\'s a lie.',
+      "Method 1: After casting the chart, check if you get (Umar, Yunus, Issah, Hassan & Hussein) in the chart. If so, it is true — it has been stolen. But if none of these stars is found in the chart, it means it's a lie.",
   },
   calculate: (chart) => {
-    const { figure } = CHECK_HOUSE(chart, 1); // representative reference figure only — no trigger list to check
-    return { housesUsed: [], steps: ['Trigger-figure list omitted from the transcription.'], resultFigure: figure };
+    const hits = chart.houses.filter((h) => idsOf(CH124_M1_STOLEN).includes(h.figureId));
+    const ref = hits[0] ?? chart.houses[0];
+    const figure = {
+      figureId: ref.figureId,
+      figureName: ref.figureName,
+      classicalName: ref.classicalName,
+      dotPattern: ref.dotPattern,
+      element: ref.element,
+      qualities: ref.qualities,
+      sourceHouses: hits.length ? hits.map((h) => h.houseNumber) : [ref.houseNumber],
+    };
+    return {
+      housesUsed: hits.map((h) => h.houseNumber),
+      steps: hits.length ? hits.map((h) => `H${h.houseNumber} = ${h.figureName} (a listed figure)`) : ['None of the four listed figures is in the chart.'],
+      resultFigure: figure,
+    };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Trigger figures omitted', interpretation: "This chapter's trigger-figure list was not preserved in this transcription." }),
+  evaluate: (calc) =>
+    calc.housesUsed.length > 0
+      ? { outcome: 'descriptive', label: 'Listed figure in the chart', interpretation: 'It is true — it has been stolen.', descriptiveAnswer: 'yes' }
+      : { outcome: 'descriptive', label: 'No listed figure in the chart', interpretation: "It's a lie — it has not been stolen.", descriptiveAnswer: 'no' },
 };
 
 const method2: MethodDefinition = {

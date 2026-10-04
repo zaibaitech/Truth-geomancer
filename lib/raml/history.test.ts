@@ -149,7 +149,7 @@ const STATE_FIXTURES = {
   descriptive: 'is-there-much-trees-water-sand-or-stones',
   insufficient: 'if-a-pregnancy-is-going-to-be-stable',
   'source-detail-missing': 'if-it-s-day-or-night-that-she',
-  'not-defined-in-source': 'hunting-in-water-and-on-land-and-searching',
+  'not-defined-in-source': 'if-there-will-be-a-fight-argument-etc',
   'no-automatic-reading': 'how-to-make-one-win-over-the-other',
   general: 'general',
 } as const;

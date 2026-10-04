@@ -76,7 +76,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 4,
     title: "Hunting in Water and on Land, and Searching for Anything",
     paragraphs: [
-      "After drawing the chart, check h10. If you find the following stars, it means you will be successful in your search: [figures omitted — symbols not preserved in this transcription]. If it's any of the above stars, you will get whatever you are asking for or searching for — for example: job, money, title, promotion, marriage, etc.",
+      "After drawing the chart, check h10. If you find the following stars, it means you will be successful in your search: Usman, Mahadi, Iddris, Nuhu, Sulemana, Ayuba, Yunus. If it's any of the above stars, you will get whatever you are asking for or searching for — for example: job, money, title, promotion, marriage, etc.",
     ],
   },
   {
@@ -84,8 +84,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 5,
     title: "If You Will Win a Fight, War, or Court Case",
     paragraphs: [
-      "After drawing the chart, check h6. If you see any of the following stars there, it means you will win it: [figures omitted — symbols not preserved in this transcription]. If you found any of the following stars in h1",
-      "and h8, it means it's not good and it will be difficult to succeed. They are as follows: [figures omitted — symbols not preserved in this transcription]",
+      "After drawing the chart, check h6. If you see any of the following stars there, it means you will win it: Kalla Allahu, Ayuba, Musah, Mahadi, Adam, Ibrahim, Yunus (figures restored from the manuscript scan, shown by name). If you found any of the following stars in h1",
+      "and h8, it means it's not good and it will be difficult to succeed. They are as follows: Hassan & Hussein, Issah, Yunus, Ayuba (figures restored from the manuscript scan, shown by name).",
     ],
   },
   {
@@ -93,7 +93,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 6,
     title: "If You Want to Know Where Your Enemy or a Thief Is Hidden",
     paragraphs: [
-      "After drawing the chart, check h4 and h10. If you see any of the stars below in any of the houses, it means you will see or get him/her in an opened land or desert: [figures omitted — symbols not preserved in this transcription]",
+      "After drawing the chart, check h4 and h10. If you see any of the stars below in any of the houses, it means you will see or get him/her in an opened land or desert: Musah, Adam, Iddris, Ayuba (figures restored from the manuscript scan, shown by name).",
     ],
   },
   {
@@ -131,7 +131,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     paragraphs: [
       "Method 1: After drawing the chart, pick h4 and h6 and add it to h8. Add all and check: if it's a good star, it's sickness from Allah; if it's a bad star, it's from humans. If it's found in the chart, he/she has a long life; if not found in the chart, he/she will not survive it.",
       "Method 2: After drawing the chart, pick h2, h5, h8 and h11 and add them all. If it's found in the chart, he/she will survive the sickness; if it's not found in the chart, he/she will not survive.",
-      "Method 3: If you find the following stars in h6, he/she will be healed, insha'Allah: [figures omitted — symbols not preserved in this transcription]. But if you find stars like: [figures omitted — symbols not preserved in this transcription] it means it will be difficult for him/her to survive.",
+      "Method 3: If you find the following stars in h6, he/she will be healed, insha'Allah: Iddris, Adam, Kalla Allahu, Yussif, Umar, Issah. But if you find stars like: Ibrahim, Ayuba, Ali, Musah it means it will be difficult for him/her to survive.",
     ],
   },
   {
@@ -216,8 +216,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 17,
     title: "If Something Will Happen in an Hour, Day, Week, Month, or Year",
     paragraphs: [
-      "Method 1: Pick (h1 and h6), then (h4 and h16), and add all. If you get: [figures omitted — symbols not preserved in this transcription] then it will happen within an hour, or a day, or 1–10 days. If any of the above is found in the first four houses, then it will happen within an hour.",
-      "Method 2: Pick (h1 and h13), then (h4 and h12), then (h7 and h10), then (h15 and h16), and add all. If you get: [figures omitted — symbols not preserved in this transcription] in the first four stars, it will happen very fast — less than an hour, or an hour's time. But if it's found in the chart, it will happen within 7 days. And if it's: [figures omitted — symbols not preserved in this transcription] then it will happen within a month or a year. If you use the method above and the star",
+      "Method 1: Pick (h1 and h6), then (h4 and h16), and add all. If you get: Ali, Nuhu, Umar, Issah, Mahadi, Adam, Yussif then it will happen within an hour, or a day, or 1–10 days. If any of the above is found in the first four houses, then it will happen within an hour.",
+      "Method 2: Pick (h1 and h13), then (h4 and h12), then (h7 and h10), then (h15 and h16), and add all. If you get: Ayuba, Umar, Issah, Ibrahim, Iddris, Mahadi, Adam, Yussif in the first four stars, it will happen very fast — less than an hour, or an hour's time. But if it's found in the chart, it will happen within 7 days. And if it's: Kalla Allahu, Sulemana, Ali, Nuhu, Hassan & Hussein, Yunus, Usman, Musah then it will happen within a month or a year. If you use the method above and the star",
       "is found in the chart, it means the year will be good; if not, the year will be hard.",
     ],
   },
@@ -243,7 +243,7 @@ export const KM_CHAPTERS: KmChapter[] = [
       "Method 1: After casting the chart, pick h1, h5, h9 and h14 and add them. If you get a good star, you will win the case. If it's middle-",
       "good star, the case will keep long in court and you may win it with prayers. If it's a bad star, you will lose.",
       "Method 2: Pick h8, h11, h7 and h16 and add them. Add the results to h1 and check if it's a good star — you will win the case; if it's not, you will lose it. If it's a middle-good star, you may win it with serious prayers.",
-      "Method 3: Pick h4, h5, h10 and h11 and add them. If you get: [figures omitted — symbols not preserved in this transcription] in h4 and h10, you will win the case. But if they are found in h5 and h11, you will lose the case.",
+      "Method 3: Pick h4, h5, h10 and h11 and add them. If you get: Mahadi, Umar, Adam, Musah in h4 and h10, you will win the case. But if they are found in h5 and h11, you will lose the case.",
       "Method 4: Pick h8, h1, h9 and h11 and add them. If you get a good and upward star, you will win the case and even get money out of it. If it's a good and downward star, you will win the case without money. If it's a bad star, you will lose the case. Note: the above method (4) can also be used for travelling — that is, if it's a good and upward star, you will go and come in peace and with money; if it's a good and downward star, you will go and come in peace but you won't get money or profit from your trip. If it's a bad star, please don't travel at all — it's not safe.",
     ],
   },
@@ -262,7 +262,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     paragraphs: [
       "Method 1: After drawing the chart, pick h6 and h16 and add them. Add the result to h7 and check if it's an opened star — she does have sex; but if it's a closed star, she didn't.",
       "Method 2: After drawing the chart, pick h7 and h13 and add them. If the star's water line is active (water element is opened, meaning single dot), she does have sex; but if it's closed, she didn't.",
-      "Method 3: After casting the chart with your intention, check h7. If you see [figures omitted — symbols not preserved in this transcription] it means she does or he does have sex; but if it's: [figures omitted — symbols not preserved in this transcription] she didn't.",
+      "Method 3: After casting the chart with your intention, check h7. If you see Usman, Nuhu, Mahadi, Ayuba it means she does or he does have sex; but if it's: Issah, Kalla Allahu, Hassan & Hussein, Adam she didn't.",
     ],
   },
   {
@@ -323,9 +323,9 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 27,
     title: "About Farming and Food in the Year",
     paragraphs: [
-      "Method 1: After casting the chart, pick h1, h7, h4 and h8 and add them. If you get stars of the East [figures omitted — symbols not preserved in this transcription] it means they will get a bumper harvest in that year. If you get the",
-      "stars of the West: [figures omitted — symbols not preserved in this transcription] West people will get a bumper harvest that year. If you get stars of the North [figures omitted — symbols not preserved in this transcription] people of the North will get a bumper harvest more than all in that year. If you get stars of the South: [figures omitted — symbols not preserved in this transcription] people from the South will get a bumper harvest in that year. Method 2 — general harvest, calamity, and what kind (this year): After casting the chart, pick h1, h5, h10 and h15 and add them. If you get fire stars: [figures omitted — symbols not preserved in this transcription] there will be good harvest, but locusts and grasshoppers are going to eat or spoil most of it. Write Suratul Falaq and Suratul Nass (7 times) each on paper and make it 5 layers. Bury them in the farm. Also write them the same number, wash them, and mix it with the things you are going to sow. If you get air stars: [figures omitted — symbols not preserved in this transcription] you will get a bumper harvest but animals (beasts) will eat or spoil a lot of them that year. Write Suratul Naba'a (1 time) each on 5 papers and make",
-      "them layers. Bury them in the farm. Also write it 5 times, wash it, and mix it with what you are going to sow. If you get water stars [figures omitted — symbols not preserved in this transcription] you will get a bumper harvest but worms or maggots will eat or spoil a lot of them. Write Ayatul Kursiyy (9 times) on each paper and make them 5 layers. Bury them in the farm. Also write it the same number, and mix it with what you are going to sow. It also means that year's rainfall will not be much, which will cause a low harvest — pray a lot for rainfall in that year. If you get sand/earth stars: [figures omitted — symbols not preserved in this transcription]., you will get a bumper harvest and nothing bad will happen that year — no calamity will befall your farms, insha'Allah.",
+      "Method 1: After casting the chart, pick h1, h7, h4 and h8 and add them. If you get stars of the East Yussif, Adam, Kalla Allahu, Musah it means they will get a bumper harvest in that year. If you get the",
+      "stars of the West: Usman, Mahadi, Ali, Umar West people will get a bumper harvest that year. If you get stars of the North Iddris, Ibrahim, Issah, Hassan & Hussein people of the North will get a bumper harvest more than all in that year. If you get stars of the South: Nuhu, Yunus, Sulemana, Ayuba people from the South will get a bumper harvest in that year. Method 2 — general harvest, calamity, and what kind (this year): After casting the chart, pick h1, h5, h10 and h15 and add them. If you get fire stars: Yussif, Kalla Allahu, Adam, Musah there will be good harvest, but locusts and grasshoppers are going to eat or spoil most of it. Write Suratul Falaq and Suratul Nass (7 times) each on paper and make it 5 layers. Bury them in the farm. Also write them the same number, wash them, and mix it with the things you are going to sow. If you get air stars: Usman, Mahadi, Ali, Umar you will get a bumper harvest but animals (beasts) will eat or spoil a lot of them that year. Write Suratul Naba'a (1 time) each on 5 papers and make",
+      "them layers. Bury them in the farm. Also write it 5 times, wash it, and mix it with what you are going to sow. If you get water stars Iddris, Ibrahim, Hassan & Hussein, Issah you will get a bumper harvest but worms or maggots will eat or spoil a lot of them. Write Ayatul Kursiyy (9 times) on each paper and make them 5 layers. Bury them in the farm. Also write it the same number, and mix it with what you are going to sow. It also means that year's rainfall will not be much, which will cause a low harvest — pray a lot for rainfall in that year. If you get sand/earth stars: Nuhu, Yunus, Sulemana, Ayuba., you will get a bumper harvest and nothing bad will happen that year — no calamity will befall your farms, insha'Allah.",
     ],
   },
   {
@@ -369,7 +369,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If You Will Be Successful and Get What You Want from the Trip/Traveling",
     paragraphs: [
       "After casting the chart, pick h1, h8, h7 and h11 and add them. Add the results to h16. If the star is an upward star, it means the trip is",
-      "good and safe. And if the water element of the star is opened, it means you will get a lot of profit in your business trip. If the star is a downward star, please be patient — about a month or 10 days, or at least 3 days before you travel. If it's:, it means you will get a lot of profit but it will not be stable — you will lose it after that. If it's:, it means you will get a lot of money and benefits from the trip, but you will be very, very sick — you may spend all the money on the sickness.",
+      "good and safe. And if the water element of the star is opened, it means you will get a lot of profit in your business trip. If the star is a downward star, please be patient — about a month or 10 days, or at least 3 days before you travel. If it's: Hassan & Hussein, it means you will get a lot of profit but it will not be stable — you will lose it after that. If it's: Issah, it means you will get a lot of money and benefits from the trip, but you will be very, very sick — you may spend all the money on the sickness.",
     ],
   },
   {
@@ -422,8 +422,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 36,
     title: "If You Want to Locate Someone or Something",
     paragraphs: [
-      "Method 1: After casting the chart, pick h1 fire element, h2 air element, h3 water element, and h4 sand element, and form a star. If the star is fire star like: [figures omitted — symbols not preserved in this transcription] it means it's in",
-      "the eastern part of the place. If it's air star like [figures omitted — symbols not preserved in this transcription] it means it's in the western part of the place you are. If it's water star like: [figures omitted — symbols not preserved in this transcription] it means it's in the northern part of the place you are. And if it's a sand star like: [figures omitted — symbols not preserved in this transcription] it means it's in the southern part of the place you are.",
+      "Method 1: After casting the chart, pick h1 fire element, h2 air element, h3 water element, and h4 sand element, and form a star. If the star is fire star like: Yussif, Adam, Musah, Kalla Allahu it means it's in",
+      "the eastern part of the place. If it's air star like Usman, Mahadi, Umar, Ali it means it's in the western part of the place you are. If it's water star like: Iddris, Ibrahim, Hassan & Hussein, Issah it means it's in the northern part of the place you are. And if it's a sand star like: Nuhu, Ayuba, Yunus, Sulemana it means it's in the southern part of the place you are.",
       "Method 2: You can also make just one star and use it to locate it — either it's in the north, south, east, or west part of the place.",
     ],
   },
@@ -960,8 +960,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 94,
     title: "The Lifespan and When Someone Will Die",
     paragraphs: [
-      "After casting the chart, check h8. If it is, it means very long life, until old age. If it's, it means within his/her old age. If it's, it means after old age the person will die. If it is, it means early young age — man or lady, will be the time he/she will die. If it is, it means at the end of puberty time. If it is, it means at his/her youthful time. If it is, it means at his/her first year at puberty. If it is, it means in the middle of his/her puberty time. If it is, it means at the beginning of his/her puberty time. If it is, it means at the age of 10 years. If it is, it means he/she will die while still small. If it is, it means the same — he/she will die as a small boy/girl. If it is, it means before he/she attains puberty time. If it is, it means",
-      "in the middle of his/her life — that's from 40 and above. If it is [figures omitted — symbols not preserved in this transcription] it means in the middle of his/her youthful age/time. Note (in the original): Almighty Allah knows best — the beginning and the end of every living thing.",
+      "After casting the chart, check h8. If it is Ayuba, it means very long life, until old age. If it's Sulemana, it means within his/her old age. If it's Adam, it means after old age the person will die. If it is Umar, it means early young age — man or lady, will be the time he/she will die. If it is Usman, it means at the end of puberty time. If it is Nuhu, it means at his/her youthful time. If it is Yussif, it means at his/her first year at puberty. If it is Ali, it means in the middle of his/her puberty time. If it is Musah, it means at the beginning of his/her puberty time. If it is Iddris, it means at the age of 10 years. If it is Issah, it means he/she will die while still small. If it is Hassan & Hussein, it means the same — he/she will die as a small boy/girl. If it is Ibrahim, it means before he/she attains puberty time. If it is Kalla Allahu, it means in the middle of his/her life — that's from 40 and above. If it is Mahadi, it means in the middle of his/her youthful age/time. Note (in the original): Almighty Allah knows best — the beginning and the end of every living thing.",
     ],
   },
   {
@@ -993,9 +992,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 97,
     title: "Where One Will Die (Place of Death)",
     paragraphs: [
-      "After casting the chart, check h8. If it is or, one will die in his/her hometown, in a masjid/mosque, or where they teach",
-      "Qur'an (Makaranta). If it is, one will die in his/her hometown, the same day, with a scholar or well-known person in your town. If it is, one will die in a village or on mountains. If it is, or, it means one will die in a farm or bush. If it is, one will die in a very rich or wealthy place, or a rainy or watery place. If it is, one will die in a place where they break stone, or in mountains. If it is, one will die in an old shrine, or a damaged or dirty place. If it is, one will die in a fearful or robbery-prone place. If it is, one will die in a peaceful or joyful place, or around a river or sea. If it is, one will die in a big town or city — a well-respected, well-arranged place. If it is, one will die in a palace, a flagstaff house, or where there is a river. If it is, one will die in a damaged place, a place of war, or among animals. If it is, one will die in a place of knowledge, a joyful place, cool, or where there are a lot of trees. If it",
-      "is, one will die in a waterlogged area, or where water runs — a cool and peaceful place.",
+      "After casting the chart, check h8. If it is Mahadi or Adam, one will die in his/her hometown, in a masjid/mosque, or where they teach Qur'an (Makaranta). If it is Usman, one will die in his/her hometown, the same day, with a scholar or well-known person in your town. If it is Hassan & Hussein, one will die in a village or on mountains. If it is Ali or Musah, it means one will die in a farm or bush. If it is Yussif, one will die in a very rich or wealthy place, or a rainy or watery place. If it is Sulemana, one will die in a place where they break stone, or in mountains. If it is Ayuba, one will die in an old shrine, or a damaged or dirty place. If it is Umar, one will die in a fearful or robbery-prone place. If it is Iddris, one will die in a peaceful or joyful place, or around a river or sea. If it is Kalla Allahu, one will die in a big town or city — a well-respected, well-arranged place. If it is Nuhu, one will die in a palace, a flagstaff house, or where there is a river. If it is Issah, one will die in a damaged place, a place of war, or among animals. If it is Yunus, one will die in a place of knowledge, a joyful place, cool, or where there are a lot of trees. If it is Ibrahim, one will die in a waterlogged area, or where water runs — a cool and peaceful place.",
     ],
   },
   {
@@ -1038,7 +1035,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If This Money, the Work, or the Lady/Husband Will Be Stable in Your Life",
     paragraphs: [
       "After drawing the chart, pick the first 4 houses and use them as your Umuhat (mother stars), and form another chart, cancelling the old one. Check the first 4 houses of the new chart — if any of these stars below are found in any of them, it will be stable; but if",
-      "not, it will not be stable in your life: [figures omitted — symbols not preserved in this transcription]",
+      "not, it will not be stable in your life: Adam, Kalla Allahu, Nuhu, Mahadi, Ali",
     ],
   },
   {
@@ -1157,7 +1154,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 124,
     title: "If Something Has Really Been Stolen or Not",
     paragraphs: [
-      "Method 1: After casting the chart, check if you get( [figures omitted — symbols not preserved in this transcription] ) in the chart. If so, it is true — it has been stolen. But if none of these stars is found in the chart, it means it's a lie.",
+      "Method 1: After casting the chart, check if you get( Umar, Yunus, Issah, Hassan & Hussein ) in the chart. If so, it is true — it has been stolen. But if none of these stars is found in the chart, it means it's a lie.",
       "Method 2: After drawing the chart, pick h1 and h5 and add them. If it is found in the chart, it's true, and vice versa.",
     ],
   },
@@ -1225,8 +1222,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 132,
     title: "If There's a Hidden Treasure (Gold/Money) in a Particular Place",
     paragraphs: [
-      "Method 1: After casting the chart, pick h4 and h6 and add them. If it's one of the following stars, there is [treasure]; but if it's not, there is nothing there. The stars are as follows: [figures omitted — symbols not preserved in this transcription]",
-      "Method 2: Also, if you get [figures omitted — symbols not preserved in this transcription] or in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
+      "Method 1: After casting the chart, pick h4 and h6 and add them. If it's one of the following stars, there is [treasure]; but if it's not, there is nothing there. The stars are as follows: Usman, Yussif, Sulemana, Iddris",
+      "Method 2: Also, if you get Usman, Mahadi, Nuhu or in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
       "Method 3: Also, if your h1 is a downward star or a stable star, it means there's something; but if it is not, there's nothing.",
     ],
   },
@@ -1311,8 +1308,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 142,
     title: "Where Kidnappers Are Keeping a Person Hostage",
     paragraphs: [
-      "After drawing the chart, check which star is found in its own house. If it's:, he/she is kidnapped in his/her own house. If it's:, he/she is in one of the closest houses, or a neighbor's. If it's, he/she is in one of his/her family members' house. If it's, he/she is in his/her father's or mother's house. If it's, he/she is in one of his/her children's house. If it's, he/she is",
-      "in a sick person's house, close to him or her. If it's, he/she is in his or her girlfriend's/boyfriend's, or wife's/husband's house. If it's, he/she is in a funeral house. If it's, he/she is on a journey — they are taking him/her somewhere out of towns. If it's, he/she is in a chief's, king's, or a well-known and respected person's house. If it's, he/she is in his/her ex's house. If it's, he/she is in his/her enemy's house — and so on, up to the end of the stars.",
+      "After drawing the chart, check which star is found in its own house. If it's: Yussif, he/she is kidnapped in his/her own house. If it's: Adam, he/she is in one of the closest houses, or a neighbor's. If it's Mahadi, he/she is in one of his/her family members' house. If it's Iddris, he/she is in his/her father's or mother's house. If it's Ibrahim, he/she is in one of his/her children's house. If it's Issah, he/she is in a sick person's house, close to him or her. If it's Umar, he/she is in his or her girlfriend's/boyfriend's, or wife's/husband's house. If it's Ayuba, he/she is in a funeral house. If it's Kalla Allahu, he/she is on a journey — they are taking him/her somewhere out of towns. If it's Sulemana, he/she is in a chief's, king's, or a well-known and respected person's house. If it's Ali, he/she is in his/her ex's house. If it's Nuhu, he/she is in his/her enemy's house — and so on, up to the end of the stars.",
     ],
   },
   {

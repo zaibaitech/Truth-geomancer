@@ -85,7 +85,7 @@ const method4: MethodDefinition = {
   status: 'uncertain',
   reviewReasonCode: 'constant_figure_undefined',
   reviewNote:
-    "The chapter references checking one's \"Sirri Sa'ael (Damir)\" against a list of named figures, but that figure list was transcribed as \"[figures omitted — symbols not preserved]\" — the source PDF's hand-drawn symbols could not be read. There is also no defined computation elsewhere in this project for what \"Sirri Sa'ael\" itself is derived from. Not implemented rather than guessed.",
+    "The final edition supplies the figure list (Usman, Nuhu, Mahadi, Ayuba), but the method checks one's Sirri Sa'ael (Damir) against it and no part of the source defines the Damir's figure or how it is derived, so the method stays blocked.",
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

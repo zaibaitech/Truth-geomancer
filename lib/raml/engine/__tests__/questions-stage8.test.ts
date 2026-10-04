@@ -67,13 +67,14 @@ describe('Will something burn (ch.123) — not all four fire lines opened', () =
   });
 });
 
-describe('Has this really been stolen (ch.124) — Method 1 blocked, Method 2 verified', () => {
+describe('Has this really been stolen (ch.124) — both methods verified', () => {
   const result = runEngine(chart, 'if-something-has-really-been-stolen-or-not')!;
 
-  it('Method 1: trigger figures omitted -> uncertain, excluded', () => {
+  it('Method 1 (restored from the final edition): Issah, a listed figure, is in the chart -> descriptive "yes"', () => {
     const m1 = result.methods.find((m) => m.method.id === 'something-really-stolen-method-1')!;
-    expect(m1.method.status).toBe('uncertain');
-    expect(m1.verdict).toBeNull();
+    expect(m1.method.status).toBe('verified');
+    expect(m1.verdict!.outcome).toBe('descriptive');
+    expect(m1.verdict!.descriptiveAnswer).toBe('yes');
   });
 
   it('Method 2: H1+H5 sum not found anywhere in the chart -> descriptive "no"', () => {
@@ -82,10 +83,9 @@ describe('Has this really been stolen (ch.124) — Method 1 blocked, Method 2 ve
     expect(m2.verdict!.descriptiveAnswer).toBe('no');
   });
 
-  it('resolves as a real descriptive result', () => {
+  it('the two methods give different answers on this chart, reported as such rather than merged', () => {
     expect(result.overallResult).toBe('descriptive');
-    const reading = runReading(chart, 'if-something-has-really-been-stolen-or-not')!;
-    expect(reading.descriptiveAnswer).toBe('Not stolen');
+    expect(result.calculationDetails.consensus.level).toBe('disagree');
   });
 });
 
@@ -227,25 +227,28 @@ describe('Was something buried here (ch.131) — Methods 1/2 agree, Method 3 unc
   });
 });
 
-describe('Is there hidden treasure here (ch.132) — all methods blocked', () => {
+describe('Is there hidden treasure here (ch.132) — Methods 1 and 2 restored from the final edition', () => {
   const result = runEngine(chart, "if-there-s-a-hidden-treasure-gold-money")!;
 
-  it('Methods 1 and 2: trigger figures omitted -> uncertain, excluded', () => {
-    ['hidden-treasure-method-1', 'hidden-treasure-method-2'].forEach((id) => {
-      const m = result.methods.find((rm) => rm.method.id === id)!;
-      expect(m.method.status).toBe('uncertain');
-      expect(m.verdict).toBeNull();
-    });
+  it('Method 1: H4+H6 = Adam is not one of the four listed figures -> "nothing"; Method 2: Mahadi is in the chart -> "treasure"', () => {
+    const m1 = result.methods.find((m) => m.method.id === 'hidden-treasure-method-1')!;
+    const m2 = result.methods.find((m) => m.method.id === 'hidden-treasure-method-2')!;
+    expect(m1.method.status).toBe('verified');
+    expect(m2.method.status).toBe('verified');
+    expect(m1.calculation!.resultFigure.figureId).toBe('adam');
+    expect(m1.verdict!.descriptiveAnswer).toBe('nothing');
+    expect(m2.verdict!.descriptiveAnswer).toBe('treasure');
   });
 
-  it('Method 3 (direction): H1 = Yussif, level -> uncertain', () => {
+  it('Method 3 (direction): H1 = Yussif, level -> uncertain (unchanged)', () => {
     const m3 = result.methods.find((m) => m.method.id === 'hidden-treasure-method-3-direction')!;
     expect(m3.calculation!.resultFigure.figureId).toBe('yussif');
     expect(m3.verdict!.outcome).toBe('uncertain');
   });
 
-  it('no method counts -> insufficient data', () => {
-    expect(result.overallResult).toBe('insufficient_data');
+  it('the two verified methods disagree on this chart, reported as such', () => {
+    expect(result.overallResult).toBe('descriptive');
+    expect(result.calculationDetails.consensus.level).toBe('disagree');
   });
 });
 

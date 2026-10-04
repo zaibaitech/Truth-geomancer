@@ -86,8 +86,9 @@ const method4: MethodDefinition = {
   id: 'marriage-method-4',
   label: 'Method 4',
   status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote: 'Every branch depends on a specific named figure at H7 that the transcription never captured (repeated "If it\'s," with no figure named).',
+  reviewReasonCode: 'source_ambiguous_overlapping_outcomes',
+  reviewNote:
+    'The final edition supplies the figures (Iddris, Umar, Yunus, Ayuba -> sick lady with a child; Sulemana -> short lady/man; Nuhu -> colored beautiful lady; Usman -> dark lady far from town; Umar -> colored jealous lady), but Umar is listed under two different outcomes and the source states no precedence, so no outcome is implemented.',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,

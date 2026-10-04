@@ -7,7 +7,8 @@
 // distinct rule — it never says which single star, or how — so it remains
 // unregistered rather than guessed.
 
-import { EXTRACT_LINES, CHECK_ELEMENT } from '../operations';
+import { EXTRACT_LINES, CHECK_ELEMENT, MATCH_FIGURE } from '../operations';
+import { CH36_EAST_FIRE, CH36_NORTH_WATER, CH36_SOUTH_SAND, CH36_WEST_AIR, idsOf, type FigureList } from '../kanzulFinalEditionFigures';
 import type { Element } from '@/content/stars';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
@@ -19,6 +20,18 @@ const DIRECTION_LABEL: Record<Element, string> = {
   water: 'Northern',
   sand: 'Southern',
 };
+
+// METHOD-SPECIFIC SOURCE MAPPING (not a change to STARS): the final edition
+// names which figures are the "fire / air / water / sand stars" of this method.
+// Its lists put Usman with the air (western) stars and Nuhu with the sand
+// (southern) stars, which differs from content/stars.ts's own element field
+// for those two figures. This method follows the explicit source lists.
+const SOURCE_DIRECTION_LISTS: [FigureList, Element][] = [
+  [CH36_EAST_FIRE, 'fire'],
+  [CH36_WEST_AIR, 'air'],
+  [CH36_NORTH_WATER, 'water'],
+  [CH36_SOUTH_SAND, 'sand'],
+];
 
 const method1: MethodDefinition = {
   id: 'locate-method-1',
@@ -40,7 +53,8 @@ const method1: MethodDefinition = {
     return { housesUsed: [1, 2, 3, 4], steps: [trace.description], resultFigure: figure };
   },
   evaluate: (calc) => {
-    const { element } = CHECK_ELEMENT(calc.resultFigure);
+    const listed = SOURCE_DIRECTION_LISTS.find(([list]) => idsOf(list).some((id) => MATCH_FIGURE(calc.resultFigure, id)));
+    const element: Element = listed ? listed[1] : CHECK_ELEMENT(calc.resultFigure).element;
     return {
       outcome: 'descriptive',
       label: `${DIRECTION_LABEL[element]} direction`,

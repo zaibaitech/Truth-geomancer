@@ -1,8 +1,9 @@
 // Source: Kanzul Mikban, Chapter 9 — "Sickness (If He/She Will Survive)"
 // (id "sickness-if-he-she-will-survive").
 
-import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART, CHECK_HOUSE } from '../operations';
+import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_FIGURE_PRESENT_IN_CHART, CHECK_HOUSE, MATCH_FIGURE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
+import { CH9_H6_DIFFICULT_TO_SURVIVE, CH9_H6_HEALED, idsOf } from '../kanzulFinalEditionFigures';
 
 const CHAPTER_ID = 'sickness-if-he-she-will-survive';
 
@@ -56,20 +57,26 @@ const method2: MethodDefinition = {
 const method3: MethodDefinition = {
   id: 'sickness-method-3',
   label: 'Method 3',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote: 'Both the healing and the difficult-to-survive figure lists for H6 were transcribed as "[figures omitted — symbols not preserved]".',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      "If you find the following stars in h6, he/she will be healed, insha'Allah: [figures omitted]. But if you find stars like: [figures omitted] it means it will be difficult for him/her to survive.",
+      "If you find the following stars in h6, he/she will be healed, insha'Allah: Iddris, Adam, Kalla Allahu, Yussif, Umar, Issah. But if you find stars like: Ibrahim, Ayuba, Ali, Musah, it means it will be difficult for him/her to survive.",
   },
   calculate: (chart) => {
     const { figure, trace } = CHECK_HOUSE(chart, 6);
     return { housesUsed: [6], steps: [trace.description], resultFigure: figure };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Not computable', interpretation: 'The deciding figures for H6 were not transcribed from the source.' }),
+  evaluate: (calc) => {
+    if (idsOf(CH9_H6_HEALED).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return { outcome: 'favourable', label: `${calc.resultFigure.figureName} at H6`, interpretation: "He/she will be healed, insha'Allah." };
+    }
+    if (idsOf(CH9_H6_DIFFICULT_TO_SURVIVE).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return { outcome: 'unfavourable', label: `${calc.resultFigure.figureName} at H6`, interpretation: 'It will be difficult for him/her to survive.' };
+    }
+    return { outcome: 'uncertain', label: `${calc.resultFigure.figureName} at H6`, interpretation: 'The source lists ten figures for H6 — this figure is not among them.' };
+  },
 };
 
 export const sicknessSurvivalQuestion: QuestionDefinition = {

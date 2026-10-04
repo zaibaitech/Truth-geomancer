@@ -65,16 +65,18 @@ describe('Wife/sister had sex (ch.21)', () => {
     expect(m2.verdict!.descriptiveAnswer).toBe('yes');
   });
 
-  it('Method 3: uncertain — depends on omitted named figures', () => {
+  it('Method 3 (restored from the final edition): H7 = Nuhu is a listed "yes" figure -> a descriptive "yes"', () => {
     const m3 = result.methods.find((m) => m.method.id === 'wife-sex-method-3')!;
-    expect(m3.method.status).toBe('uncertain');
-    expect(m3.calculation).toBeNull();
+    expect(m3.method.status).toBe('verified');
+    expect(m3.calculation!.resultFigure.figureId).toBe('nuhu');
+    expect(m3.verdict!.outcome).toBe('descriptive');
+    expect(m3.verdict!.descriptiveAnswer).toBe('yes');
   });
 
-  it('only the one verified, computable method counts toward the reading, as a real descriptive result', () => {
+  it('the two verified, computable methods (2 and 3) count toward the reading and agree, as a real descriptive result', () => {
     expect(result.overallResult).toBe('descriptive');
     expect(result.calculationDetails.consensus.kind).toBe('descriptive');
-    expect(result.calculationDetails.consensus.verifiableCount).toBe(1);
+    expect(result.calculationDetails.consensus.verifiableCount).toBe(2);
     const reading = runReading(chart, 'if-your-wife-or-sister-has-had-sex')!;
     expect(reading.resultKind).toBe('descriptive');
     expect(reading.isInsufficient).toBe(false);
@@ -270,12 +272,19 @@ describe('Fight/argument (ch.26) — fully blocked by omitted figures', () => {
   });
 });
 
-describe('Farming and food (ch.27) — fully blocked by omitted figures', () => {
-  it('reports insufficient_data across both uncomputable methods', () => {
+// Chapter 27 restored from the final edition's explicit lists (a method-specific
+// mapping: Usman is a West/air star, Nuhu a South/sand star, as the source lists them).
+describe('Farming and food (ch.27) — restored from the final edition', () => {
+  it('Method 1: sum = Ali, a star of the West -> favourable; Method 2: sum = Yunus, a sand star -> favourable', () => {
     const result = runEngine(chart, 'about-farming-and-food-in-the-year')!;
-    expect(result.overallResult).toBe('insufficient_data');
     expect(result.methods).toHaveLength(2);
-    result.methods.forEach((m) => expect(m.method.status).toBe('uncertain'));
+    result.methods.forEach((m) => expect(m.method.status).toBe('verified'));
+    const [m1, m2] = result.methods;
+    expect(m1.calculation!.resultFigure.figureId).toBe('ali');
+    expect(m1.verdict!.label).toBe('Ali: stars of the West');
+    expect(m2.calculation!.resultFigure.figureId).toBe('yunus');
+    expect(m2.verdict!.label).toBe('Yunus: sand/earth stars');
+    expect(result.overallResult).toBe('favourable');
   });
 });
 

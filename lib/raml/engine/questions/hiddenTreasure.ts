@@ -2,12 +2,10 @@
 // Money) in a Particular Place" (id "if-there-s-a-hidden-treasure-gold-money").
 // Three methods.
 //
-// Methods 1 and 2 both name a trigger-figure list that was never
-// transcribed ("[figures omitted — symbols not preserved in this
-// transcription]") — same shape as chapters 102/124 Method 1. Method 2's
-// own calculation basis ("if you get [omitted] ... in your chart") is even
-// less specified than Method 1's (no stated houses), compounding the
-// omission — left uncertain either way.
+// Methods 1 and 2 each name a trigger-figure list, restored from the
+// author-confirmed final edition (kanzulFinalEditionFigures.ts): Method 1
+// checks the h4+h6 sum against four figures; Method 2 looks for any of three
+// figures anywhere "in your chart" (the source states no houses).
 //
 // Method 3: H1's "downward or stable star" idiom, both branches stated —
 // the same full-binary direction reading as chapters 129/130 (downward and
@@ -18,7 +16,8 @@
 // resultKind 'descriptive': an existence claim ("there is [treasure]" /
 // "there is nothing there"), not a favourable/unfavourable outcome.
 
-import { ADD_MULTIPLE_HOUSES, CHECK_DIRECTION, CHECK_HOUSE } from '../operations';
+import { ADD_MULTIPLE_HOUSES, CHECK_DIRECTION, CHECK_HOUSE, MATCH_FIGURE } from '../operations';
+import { CH132_M1_TREASURE, CH132_M2_TREASURE, idsOf } from '../kanzulFinalEditionFigures';
 import type { MethodDefinition, QuestionDefinition } from '../types';
 
 const CHAPTER_ID = 'if-there-s-a-hidden-treasure-gold-money';
@@ -26,40 +25,55 @@ const CHAPTER_ID = 'if-there-s-a-hidden-treasure-gold-money';
 const method1: MethodDefinition = {
   id: 'hidden-treasure-method-1',
   label: 'Method 1',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    'The chapter names a trigger-figure list to check the H4+H6 sum against, but the list itself ("[figures omitted — symbols not preserved in this transcription]") was never transcribed.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      "Method 1: After casting the chart, pick h4 and h6 and add them. If it's one of the following stars, there is [treasure]; but if it's not, there is nothing there. The stars are as follows: [figures omitted — symbols not preserved in this transcription]",
+      "Method 1: After casting the chart, pick h4 and h6 and add them. If it's one of the following stars, there is [treasure]; but if it's not, there is nothing there. The stars are as follows: Usman, Yussif, Sulemana, Iddris.",
   },
   calculate: (chart) => {
     const { figure, trace } = ADD_MULTIPLE_HOUSES(chart, [4, 6]);
-    return { housesUsed: [4, 6], steps: [trace.description, 'Trigger-figure list omitted from the transcription.'], resultFigure: figure };
+    return { housesUsed: [4, 6], steps: [trace.description], resultFigure: figure };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Trigger figures omitted', interpretation: "This chapter's trigger-figure list was not preserved in this transcription." }),
+  evaluate: (calc) =>
+    idsOf(CH132_M1_TREASURE).some((id) => MATCH_FIGURE(calc.resultFigure, id))
+      ? { outcome: 'descriptive', label: `H4+H6 = ${calc.resultFigure.figureName}`, interpretation: "There's something there.", descriptiveAnswer: 'treasure' }
+      : { outcome: 'descriptive', label: `H4+H6 = ${calc.resultFigure.figureName}`, interpretation: "There's nothing there.", descriptiveAnswer: 'nothing' },
 };
 
 const method2: MethodDefinition = {
   id: 'hidden-treasure-method-2',
   label: 'Method 2',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    'Names a second trigger-figure list ("[figures omitted...]") to check for anywhere "in your chart" — even the calculation\'s own basis (which houses, if any, feed it) is unclear beyond that, compounding the omission.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
-    quote: "Method 2: Also, if you get [figures omitted — symbols not preserved in this transcription] or in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
+    quote: "Method 2: Also, if you get Usman, Mahadi, or Nuhu in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
   },
   calculate: (chart) => {
-    const { figure } = CHECK_HOUSE(chart, 1); // representative reference figure only — no trigger list to check
-    return { housesUsed: [], steps: ['Trigger-figure list omitted from the transcription.'], resultFigure: figure };
+    // "in your chart": any of the three listed figures anywhere in the 16 houses.
+    const hits = chart.houses.filter((h) => idsOf(CH132_M2_TREASURE).includes(h.figureId));
+    const ref = hits[0] ?? chart.houses[0];
+    const resultFigure = {
+      figureId: ref.figureId,
+      figureName: ref.figureName,
+      classicalName: ref.classicalName,
+      dotPattern: ref.dotPattern,
+      element: ref.element,
+      qualities: ref.qualities,
+      sourceHouses: hits.length ? hits.map((h) => h.houseNumber) : [ref.houseNumber],
+    };
+    return {
+      housesUsed: hits.map((h) => h.houseNumber),
+      steps: hits.length ? hits.map((h) => `H${h.houseNumber} = ${h.figureName} (a listed figure)`) : ['None of the three listed figures is in the chart.'],
+      resultFigure,
+    };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Trigger figures omitted', interpretation: "This chapter's trigger-figure list was not preserved in this transcription." }),
+  evaluate: (calc) =>
+    calc.housesUsed.length > 0
+      ? { outcome: 'descriptive', label: 'Listed figure in the chart', interpretation: "There's something there.", descriptiveAnswer: 'treasure' }
+      : { outcome: 'descriptive', label: 'No listed figure in the chart', interpretation: "There's nothing there.", descriptiveAnswer: 'nothing' },
 };
 
 const QUOTE_M3 = "Method 3: Also, if your h1 is a downward star or a stable star, it means there's something; but if it is not, there's nothing.";

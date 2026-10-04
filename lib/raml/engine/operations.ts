@@ -7,7 +7,7 @@
 
 import { addPatterns, buildChart } from '../casting';
 import type { Element, Pattern } from '@/content/stars';
-import { getStarByPattern } from '@/content/stars';
+import { STARS, getStarByPattern } from '@/content/stars';
 import { getClassicalAttribute } from '@/content/classicalAttributes';
 import { buildChartModel, qualitiesFor } from './chartModel';
 import type {
@@ -89,6 +89,27 @@ export function ADD_FIGURE_TO_HOUSE(chart: ChartModel, figure: ComputedFigure, h
   return {
     figure: result,
     trace: { operation: 'ADD_FIGURE_TO_HOUSE', description: `${figure.figureName} + ${houseLabel(h)} = ${result.figureName}` },
+  };
+}
+
+/** Add a NAMED CONSTANT figure (Nazir, Nutik, Itisal, Ifusal — the final
+ * Kanzul edition gives each one's figure) to a house's own figure: the "pick
+ * the constant figure of X and add it to any star found in house 1" shape.
+ * The constant is identified by its canonical STARS id; nothing is defined
+ * here — the caller supplies the id from the source. */
+export function ADD_CONSTANT_FIGURE_TO_HOUSE(
+  chart: ChartModel,
+  constantStarId: string,
+  houseNumber: number,
+): { figure: ComputedFigure; trace: OperationTrace } {
+  const star = STARS.find((s) => s.id === constantStarId);
+  if (!star) throw new Error(`Unknown constant figure "${constantStarId}"`);
+  const h = houseAt(chart, houseNumber);
+  const pattern = addPatterns(star.pattern, h.dotPattern);
+  const result = describeFigure(pattern, [houseNumber]);
+  return {
+    figure: result,
+    trace: { operation: 'ADD_CONSTANT_FIGURE_TO_HOUSE', description: `${star.name} (constant) + ${houseLabel(h)} = ${result.figureName}` },
   };
 }
 

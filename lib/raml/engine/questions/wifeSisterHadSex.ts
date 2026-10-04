@@ -4,8 +4,8 @@
 // closed" classification this project has no verified definition for (same
 // unresolved gap as chapter 1's own "single-dot star" method — needs_review,
 // not guessed); Method 2 asks for one specific LINE's state, which IS
-// manuscript-defined and fully computable; Method 3 depends entirely on
-// named figures the source transcription omitted.
+// manuscript-defined and fully computable; Method 3 checks H7 against two
+// named-figure lists, restored from the author-confirmed final edition.
 //
 // Prompt 6 audit: this question predates the `resultKind: 'descriptive'`
 // model (built in Prompt 4.5, one stage after this file was written in
@@ -19,8 +19,9 @@
 // migrated to match chapter 58's more considered treatment, with regression
 // tests confirming the fixture-chart calculation itself never changed.
 
-import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_LINE_STATE } from '../operations';
+import { ADD_FIGURE_TO_HOUSE, ADD_MULTIPLE_HOUSES, CHECK_HOUSE, CHECK_LINE_STATE, MATCH_FIGURE } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
+import { CH21_M3_NO, CH21_M3_YES, idsOf } from '../kanzulFinalEditionFigures';
 
 const CHAPTER_ID = 'if-your-wife-or-sister-has-had-sex';
 
@@ -74,20 +75,26 @@ const method2: MethodDefinition = {
 const method3: MethodDefinition = {
   id: 'wife-sex-method-3',
   label: 'Method 3',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    'The verdict depends on checking H7 against two lists of named figures, both transcribed as "[figures omitted — symbols not preserved]". Not implemented rather than guessed.',
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      "After casting the chart with your intention, check h7. If you see [figures omitted — symbols not preserved in this transcription] it means she does or he does have sex; but if it's: [figures omitted — symbols not preserved in this transcription] she didn't.",
+      "After casting the chart with your intention, check h7. If you see Usman, Nuhu, Mahadi, Ayuba, it means she does or he does have sex; but if it's: Issah, Kalla Allahu, Hassan & Hussein, Adam, she didn't.",
   },
-  calculate: () => {
-    throw new Error('Method 3 depends on named figures the source transcription omitted for both branches.');
+  calculate: (chart) => {
+    const { figure, trace } = CHECK_HOUSE(chart, 7);
+    return { housesUsed: [7], steps: [trace.description], resultFigure: figure };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Not computable', interpretation: 'This method cannot currently be verified against the source.' }),
+  evaluate: (calc) => {
+    if (idsOf(CH21_M3_YES).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return { outcome: 'descriptive', label: `${calc.resultFigure.figureName} at H7`, interpretation: 'She does (or he does) have sex.', descriptiveAnswer: 'yes' };
+    }
+    if (idsOf(CH21_M3_NO).some((id) => MATCH_FIGURE(calc.resultFigure, id))) {
+      return { outcome: 'descriptive', label: `${calc.resultFigure.figureName} at H7`, interpretation: "She didn't (he didn't).", descriptiveAnswer: 'no' };
+    }
+    return { outcome: 'uncertain', label: `${calc.resultFigure.figureName} at H7`, interpretation: 'The source lists eight figures for H7 — this figure is not among them.' };
+  },
 };
 
 export const wifeSisterHadSexQuestion: QuestionDefinition = {

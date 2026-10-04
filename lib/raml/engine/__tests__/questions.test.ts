@@ -98,10 +98,11 @@ describe('Court case / fight / war question (Kanzul Mikban ch.19)', () => {
     expect(m2.verdict!.outcome).toBe('mixed');
   });
 
-  it('marks Method 3 uncertain (named figures omitted from the source)', () => {
+  it('Method 3 (restored from the final edition): H4+H5+H10+H11 = Yussif is not one of the four listed figures -> uncertain verdict', () => {
     const m3 = result.methods.find((m) => m.method.id === 'court-method-3')!;
-    expect(m3.method.status).toBe('uncertain');
-    expect(m3.calculation).toBeNull();
+    expect(m3.method.status).toBe('verified');
+    expect(m3.calculation!.resultFigure.figureId).toBe('yussif');
+    expect(m3.verdict!.outcome).toBe('uncertain');
   });
 
   it('computes Method 4 correctly: H8+H1+H9+H11 = Umar, bad -> unfavourable', () => {

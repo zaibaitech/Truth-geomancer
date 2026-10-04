@@ -3,26 +3,24 @@
 // "if-this-money-the-work-or-the-lady"). One method: recast the first 4
 // houses as fresh Mothers (the same RECAST_FROM_HOUSES technique chapter
 // 34 already uses), then check the new chart's own first 4 houses against
-// a named list of trigger figures — the list itself was never
-// transcribed. The recast is shown; the trigger list is not.
+// a named list of five trigger figures — the list was
+// restored from the author-confirmed final edition.
 
 import { RECAST_FROM_HOUSES } from '../operations';
 import type { MethodDefinition, QuestionDefinition } from '../types';
+import { CH102_STABLE, idsOf } from '../kanzulFinalEditionFigures';
 
 const CHAPTER_ID = 'if-this-money-the-work-or-the-lady';
 
 const method1: MethodDefinition = {
   id: 'money-work-lady-stable-method-1',
   label: 'Method 1',
-  status: 'uncertain',
-  reviewReasonCode: 'figures_omitted_by_transcription',
-  reviewNote:
-    "The chapter names a trigger-figure list to check against the recast chart's own first 4 houses, but the list itself (\"[figures omitted — symbols not preserved in this transcription]\") was never transcribed.",
+  status: 'verified',
   source: {
     book: 'kanzul-mikban',
     chapterId: CHAPTER_ID,
     quote:
-      "After drawing the chart, pick the first 4 houses and use them as your Umuhat (mother stars), and form another chart, cancelling the old one. Check the first 4 houses of the new chart — if any of these stars below are found in any of them, it will be stable; but if not, it will not be stable in your life: [figures omitted — symbols not preserved in this transcription]",
+      "After drawing the chart, pick the first 4 houses and use them as your Umuhat (mother stars), and form another chart, cancelling the old one. Check the first 4 houses of the new chart — if any of these stars below are found in any of them, it will be stable; but if not, it will not be stable in your life: Adam, Kalla Allahu, Nuhu, Mahadi, Ali",
   },
   calculate: (chart) => {
     const { chart: newChart, trace } = RECAST_FROM_HOUSES(chart, [1, 2, 3, 4]);
@@ -36,9 +34,16 @@ const method1: MethodDefinition = {
       qualities: newH1.qualities,
       sourceHouses: [1, 2, 3, 4],
     };
-    return { housesUsed: [1, 2, 3, 4], steps: [trace.description, 'Trigger-figure list omitted from the transcription.'], resultFigure };
+    return { housesUsed: [1, 2, 3, 4], steps: [trace.description], resultFigure };
   },
-  evaluate: () => ({ outcome: 'uncertain', label: 'Trigger figures omitted', interpretation: "This chapter's trigger-figure list was not preserved in this transcription." }),
+  evaluate: (_calc, chart) => {
+    // Any listed figure in ANY of the new chart's first four houses = stable.
+    const { chart: newChart } = RECAST_FROM_HOUSES(chart, [1, 2, 3, 4]);
+    const hit = newChart.houses.slice(0, 4).find((h) => idsOf(CH102_STABLE).includes(h.figureId));
+    return hit
+      ? { outcome: 'descriptive', label: `${hit.figureName} in the new chart's H${hit.houseNumber}`, interpretation: 'It will be stable in your life.', descriptiveAnswer: 'stable' }
+      : { outcome: 'descriptive', label: 'No listed figure in the new first four houses', interpretation: 'It will not be stable in your life.', descriptiveAnswer: 'not-stable' };
+  },
 };
 
 export const moneyWorkLadyStableQuestion: QuestionDefinition = {

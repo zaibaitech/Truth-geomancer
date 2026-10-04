@@ -238,7 +238,14 @@ export type ReviewReasonCode =
   // distinguishing precisely — first added here since it recurs 4 times
   // in chapters 101-120 alone (Nazir ch.107, Nutik ch.108, Itisal ch.118,
   // Ifusal ch.119).
-  | 'constant_figure_undefined';
+  | 'constant_figure_undefined'
+  // Final Kanzul edition: the supplied figure lists exist, but two or more
+  // outcomes of the SAME method share figures (e.g. ch.7 M4, ch.13 M3), so the
+  // source gives no way to choose between them. No precedence is invented.
+  | 'source_ambiguous_overlapping_outcomes'
+  // Final Kanzul edition: the source stops short ("and so on, up to the end
+  // of the stars"), giving outcomes for only some figures (ch.142).
+  | 'source_incomplete';
 
 export interface MethodDefinition {
   id: string;

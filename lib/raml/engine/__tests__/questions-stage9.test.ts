@@ -35,12 +35,14 @@ describe('Is the prisoner male or female (ch.141) — gender classification inve
   });
 });
 
-describe('Where are the kidnappers (ch.142) — calculation and trigger figures both unrecoverable', () => {
+describe('Where are the kidnappers (ch.142) — outcomes restored, verdict held for the "own house" rule', () => {
   const result = runEngine(chart, 'where-kidnappers-are-keeping-a-person-hostage')!;
 
-  it('Method 1: uncertain, excluded', () => {
+  it('Method 1 is needs_review / source_incomplete: no verdict is shown', () => {
     const m1 = result.methods[0];
-    expect(m1.method.status).toBe('uncertain');
+    expect(m1.method.status).toBe('needs_review');
+    const def = QUESTION_REGISTRY['where-kidnappers-are-keeping-a-person-hostage'].methods[0];
+    expect(def.reviewReasonCode).toBe('source_incomplete');
     expect(m1.verdict).toBeNull();
   });
 

@@ -44,7 +44,7 @@ export const PRODUCT_PAYMENT_INSTRUCTIONS: Record<string, ProductPaymentInstruct
     product.id,
     {
       productId: product.id,
-      title: `${product.name} — Payment Instructions`,
+      title: 'Pay another way',
       instructions: PLACEHOLDER_INSTRUCTIONS,
       referenceGuidance: PLACEHOLDER_REFERENCE_GUIDANCE,
       whatToSubmit: PLACEHOLDER_WHAT_TO_SUBMIT,

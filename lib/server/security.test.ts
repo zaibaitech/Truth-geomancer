@@ -101,6 +101,9 @@ describe('client cannot grant or revoke entitlements', () => {
       'paystack',
       'paystackFulfilment',
       'paystackCatalogue',
+      // The checkout/payment ledger (customer details + a record of each started
+      // transaction). Writes only its own two tables; grants nothing.
+      'paystackPayments',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

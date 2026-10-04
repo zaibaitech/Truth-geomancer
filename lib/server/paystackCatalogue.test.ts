@@ -28,3 +28,15 @@ describe('Paystack price table', () => {
     expect(formatPrice({ minor: 15000, currency: 'GHS' })).toBe('GH₵150');
   });
 });
+
+describe('Kanzul Mikban is GHS 150 end to end', () => {
+  it('sends exactly 15000 pesewas in GHS, and the page label matches the same price object', () => {
+    const price = paystackPriceFor('kanzul-mikban')!;
+    expect(price).toEqual({ minor: 15000, currency: 'GHS' });
+    expect(formatPrice(price)).toBe('GH₵150');
+  });
+
+  it('never prices Kanzul at the Master of Geomancy price', () => {
+    expect(paystackPriceFor('kanzul-mikban')).not.toEqual(paystackPriceFor('master-of-geomancy-vol-1'));
+  });
+});

@@ -5,18 +5,30 @@
 // own server-to-server verification (lib/server/paystackFulfilment.ts)
 // stands in for it.
 //
-// The request carries a productId and an email, never an amount — the
-// price is read server-side from lib/server/paystackCatalogue.ts, so the
-// most a tampered request can do is name a different product (still only
-// one with a real, author-set price) and be charged that product's real
-// price.
+// The request carries a productId and the buyer's details (first/last name,
+// email, phone), never an amount or a user id — the price is read
+// server-side from lib/server/paystackCatalogue.ts and the user comes from
+// the session, so the most a tampered request can do is name a different
+// product (still only one with a real, author-set price) and be charged
+// that product's real price, for which it gets that product and nothing else.
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { getProductAccessStatus } from '@/lib/server/purchaseStatus';
 import { paystackPriceFor, formatPrice } from '@/lib/server/paystackCatalogue';
-import { initializeTransaction, newReference, PaystackApiError, PaystackConfigError } from '@/lib/server/paystack';
+import { validateCustomerDetails } from '@/lib/purchase/customer';
+import {
+  findOpenPayment,
+  markInitFailed,
+  markPending,
+  recordInitiating,
+  saveCustomerProfile,
+} from '@/lib/server/paystackPayments';
+import { syncCustomer, initializeTransaction, newReference, PaystackApiError, PaystackConfigError } from '@/lib/server/paystack';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
+
+/** A checkout this recent and still open is reused by a repeat click. */
+const OPEN_CHECKOUT_MAX_AGE_MS = 15 * 60 * 1000;
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -45,20 +57,25 @@ export async function POST(request: Request) {
   if (typeof body !== 'object' || body === null) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
-  const { productId, email } = body as Record<string, unknown>;
-  if (typeof productId !== 'string' || typeof email !== 'string') {
+  const input = body as Record<string, unknown>;
+  const { productId } = input;
+  if (typeof productId !== 'string') {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400, headers: NO_STORE_HEADERS });
   }
-  // Deliberately permissive — real deliverability is proven by Paystack's
-  // own checkout page accepting it, not by a regex here.
-  if (!email.includes('@') || email.length > 254) {
-    return NextResponse.json({ error: 'That email address does not look right.' }, { status: 400, headers: NO_STORE_HEADERS });
+  // Any `amount`/`price`/`userId` in the body is simply never read.
+  const details = validateCustomerDetails(input);
+  if (!details.ok) {
+    return NextResponse.json(
+      { error: 'Please check your details.', fieldErrors: details.errors },
+      { status: 400, headers: NO_STORE_HEADERS },
+    );
   }
+  const customer = details.value;
 
   const product = PRODUCT_CATALOGUE.find((p) => p.id === productId && p.active);
   const price = paystackPriceFor(productId);
   if (!product || !price) {
-    return NextResponse.json({ error: 'That product is not available for card payment.' }, { status: 404, headers: NO_STORE_HEADERS });
+    return NextResponse.json({ error: 'That product is not available for online payment.' }, { status: 404, headers: NO_STORE_HEADERS });
   }
 
   // getCurrentUser() (not getCurrentUserIfPresent()) on purpose, matching
@@ -68,7 +85,7 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
   const db = getDb();
 
-  // Don't take money for something this address already owns.
+  // Don't take money for something this account already owns.
   const status = await getProductAccessStatus(db, user.id, productId);
   if (status === 'active') {
     return NextResponse.json({ alreadyOwned: true }, { headers: NO_STORE_HEADERS });
@@ -78,32 +95,65 @@ export async function POST(request: Request) {
   try {
     origin = resolveAppOrigin(request);
   } catch {
-    return NextResponse.json({ error: 'Card payment is temporarily unavailable.' }, { status: 503, headers: NO_STORE_HEADERS });
+    return NextResponse.json({ error: 'Online payment is temporarily unavailable.' }, { status: 503, headers: NO_STORE_HEADERS });
   }
 
+  // A double-click (or a reload) must not start a second Paystack
+  // transaction: resume the checkout already open for this user + product.
+  const open = await findOpenPayment(db, user.id, productId, OPEN_CHECKOUT_MAX_AGE_MS);
+  if (open?.authorizationUrl) {
+    return NextResponse.json(
+      { authorizationUrl: open.authorizationUrl, reference: open.reference, price: formatPrice(price), resumed: true },
+      { headers: NO_STORE_HEADERS },
+    );
+  }
+  if (open) {
+    return NextResponse.json({ error: 'Your payment is already starting. Please wait a moment.' }, { status: 409, headers: NO_STORE_HEADERS });
+  }
+
+  await saveCustomerProfile(db, user.id, customer);
+
+  // Best effort: put the name/phone on Paystack's customer record too. A
+  // failure here never blocks checkout — customer_profiles already has them.
+  await syncCustomer(customer).catch((err) => {
+    console.error('Paystack customer sync failed:', err instanceof Error ? err.message : 'unknown error');
+  });
+
   const reference = newReference(productId);
+  await recordInitiating(db, {
+    reference,
+    userId: user.id,
+    productId,
+    amountMinor: price.minor,
+    currency: price.currency,
+    customerEmail: customer.email,
+  });
 
   try {
     const init = await initializeTransaction({
-      email,
+      email: customer.email,
       amountMinor: price.minor,
       currency: price.currency,
       reference,
       callbackUrl: `${origin}/api/paystack/callback`,
-      metadata: { userId: user.id, productId },
+      customer: { firstName: customer.firstName, lastName: customer.lastName, phone: customer.phone },
+      metadata: { userId: user.id, productId, entitlement: productId },
     });
+    await markPending(db, reference, init.authorization_url);
     return NextResponse.json(
       { authorizationUrl: init.authorization_url, reference, price: formatPrice(price) },
       { headers: NO_STORE_HEADERS },
     );
   } catch (err) {
+    await markInitFailed(db, reference).catch(() => {});
+    // Log only a reference and a message — never the key, never customer details.
     if (err instanceof PaystackConfigError) {
-      console.error('Paystack checkout: PAYSTACK_SECRET_KEY is not configured.');
+      console.error(`Paystack checkout: configuration problem — ${err.message}`);
     } else if (err instanceof PaystackApiError) {
       console.error(`Paystack initialize failed for ${reference}:`, err.message);
     } else {
-      console.error(`Paystack checkout failed for ${reference}:`, err);
+      console.error(`Paystack checkout failed for ${reference}:`, err instanceof Error ? err.message : 'unknown error');
     }
-    return NextResponse.json({ error: 'Could not start checkout. Please try again.' }, { status: 502, headers: NO_STORE_HEADERS });
+    return NextResponse.json({ error: 'Could not start secure payment. Please try again.' }, { status: 502, headers: NO_STORE_HEADERS });
   }
 }

@@ -8,7 +8,7 @@
 import { NextResponse } from 'next/server';
 import { fulfilCheckout } from '@/lib/server/paystackFulfilment';
 import { getDb } from '@/lib/server/db';
-import { PRODUCT_CATALOGUE } from '@/lib/access/products';
+import { getPayment } from '@/lib/server/paystackPayments';
 
 function resolveAppOrigin(request: Request): string {
   const configured = process.env.APP_BASE_URL;
@@ -16,6 +16,9 @@ function resolveAppOrigin(request: Request): string {
   return new URL(request.url).origin;
 }
 
+/** Where the buyer lands: always the product's own page, which reads live
+ * entitlement state — `payment` only picks the wording, it never unlocks
+ * anything (the page shows "activated" only if the entitlement exists). */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   // Paystack sends both `trxref` and `reference`, historically with the
@@ -25,27 +28,29 @@ export async function GET(request: Request) {
   const origin = resolveAppOrigin(request);
 
   if (!reference) {
-    return NextResponse.redirect(`${origin}/books`, { status: 303 });
+    return NextResponse.redirect(`${origin}/purchase`, { status: 303 });
   }
 
+  const db = getDb();
   let productId: string | null = null;
+  let payment: 'success' | 'cancelled' | 'failed' | 'pending' = 'pending';
   try {
-    const result = await fulfilCheckout(getDb(), reference);
-    if (result.outcome === 'granted') productId = result.productId;
+    productId = (await getPayment(db, reference))?.productId ?? null;
+    const result = await fulfilCheckout(db, reference);
+    if (result.outcome === 'granted') {
+      payment = 'success';
+    } else if (result.outcome === 'not-paid') {
+      payment = result.status === 'abandoned' ? 'cancelled' : result.status === 'failed' ? 'failed' : 'pending';
+    } else if (result.outcome === 'mismatch') {
+      payment = 'failed';
+    }
   } catch (err) {
     // Don't fail the redirect: the webhook is the reliable path and will
     // still land. The product page reads live entitlement state, so it
-    // will correctly show "not yet" rather than crash.
-    console.error(`Paystack callback fulfilment failed for ${reference}:`, err);
+    // will correctly show "being verified" rather than crash.
+    console.error(`Paystack callback fulfilment failed for ${reference}:`, err instanceof Error ? err.message : 'unknown error');
   }
 
-  // A verified purchase goes straight to the book it unlocked, so the buyer
-  // lands on the thing they paid for. Anything else (not yet confirmed,
-  // unrecognised reference) falls back to the library, where the buyer can
-  // see their status rather than a dead end.
-  const bookId = productId
-    ? PRODUCT_CATALOGUE.find((p) => p.id === productId)?.entitlementGrants.find((g) => g.kind === 'book')?.bookId
-    : undefined;
-  const destination = bookId ? `${origin}/books/${bookId}/read` : `${origin}/books`;
-  return NextResponse.redirect(destination, { status: 303 });
+  if (!productId) return NextResponse.redirect(`${origin}/purchase`, { status: 303 });
+  return NextResponse.redirect(`${origin}/purchase/${encodeURIComponent(productId)}?payment=${payment}`, { status: 303 });
 }

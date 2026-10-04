@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     // 500 so Paystack retries. fulfilCheckout() and the entitlement-granting
     // function it wraps are both idempotent, so a retry after a transient
     // failure here is always safe.
-    console.error(`Paystack webhook ${reference} failed:`, err);
+    console.error(`Paystack webhook ${reference} failed:`, err instanceof Error ? err.message : 'unknown error');
     return NextResponse.json({ error: 'Temporary failure.' }, { status: 500, headers: NO_STORE_HEADERS });
   }
 }

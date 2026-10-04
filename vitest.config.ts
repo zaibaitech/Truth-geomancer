@@ -7,6 +7,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  // tsconfig keeps JSX as 'preserve' for Next; tests that render a page to
+  // markup (lib/server/purchasePageRender.test.ts) need it compiled.
+  esbuild: { jsx: 'automatic' },
   test: {
     environment: 'node',
     include: ['lib/**/*.test.ts', 'content/**/*.test.ts'],

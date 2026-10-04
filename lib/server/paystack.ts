@@ -19,8 +19,8 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 const API = 'https://api.paystack.co';
 
 export class PaystackConfigError extends Error {
-  constructor() {
-    super('PAYSTACK_SECRET_KEY is not configured.');
+  constructor(message = 'PAYSTACK_SECRET_KEY is not configured.') {
+    super(message);
     this.name = 'PaystackConfigError';
   }
 }
@@ -35,9 +35,27 @@ export class PaystackApiError extends Error {
   }
 }
 
+export type PaystackMode = 'test' | 'live';
+
+/** Which Paystack environment PAYSTACK_SECRET_KEY belongs to. Switching to
+ * live is purely a matter of putting an sk_live_ key in the environment. */
+export function paystackMode(key: string | undefined): PaystackMode | null {
+  if (key?.startsWith('sk_test_')) return 'test';
+  if (key?.startsWith('sk_live_')) return 'live';
+  return null;
+}
+
 function secretKey(): string {
   const key = process.env.PAYSTACK_SECRET_KEY;
   if (!key) throw new PaystackConfigError();
+  // Test/live must never be mixed by accident: a key that is neither is
+  // rejected, and a live key outside production (a laptop, a Codespace, CI)
+  // is refused so a developer can never take real money from a dev build.
+  const mode = paystackMode(key);
+  if (!mode) throw new PaystackConfigError('PAYSTACK_SECRET_KEY must start with sk_test_ or sk_live_.');
+  if (mode === 'live' && process.env.NODE_ENV !== 'production') {
+    throw new PaystackConfigError('A live Paystack key is only accepted when NODE_ENV=production.');
+  }
   return key;
 }
 
@@ -97,8 +115,11 @@ export function initializeTransaction(params: {
   currency: string;
   reference: string;
   callbackUrl: string;
-  metadata: { userId: string; productId: string };
+  customer: { firstName: string; lastName: string; phone: string };
+  metadata: { userId: string; productId: string; entitlement: string };
 }): Promise<InitializeResult> {
+  // No `channels` on purpose: Paystack Checkout offers every method enabled
+  // for the account/transaction (card, mobile money, bank transfer, ...).
   return call<InitializeResult>('/transaction/initialize', {
     method: 'POST',
     body: JSON.stringify({
@@ -107,8 +128,51 @@ export function initializeTransaction(params: {
       currency: params.currency,
       reference: params.reference,
       callback_url: params.callbackUrl,
-      metadata: params.metadata,
+      first_name: params.customer.firstName,
+      last_name: params.customer.lastName,
+      phone: params.customer.phone,
+      metadata: {
+        ...params.metadata,
+        // Also kept on the transaction itself, independent of the customer record.
+        custom_fields: [
+          { display_name: 'Customer', variable_name: 'customer_name', value: `${params.customer.firstName} ${params.customer.lastName}` },
+          { display_name: 'Phone', variable_name: 'customer_phone', value: params.customer.phone },
+        ],
+      },
     }),
+  });
+}
+
+interface PaystackCustomer {
+  customer_code: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+}
+
+/**
+ * Make Paystack's own customer record (keyed by email) carry the buyer's
+ * name and phone, so the Paystack dashboard and receipts show them.
+ *
+ * Why this exists: /transaction/initialize silently ignores first_name /
+ * last_name / phone — the transaction's `customer` stays null for them
+ * (confirmed against the live test API). A transaction takes its customer
+ * from the record for its email, so the record is set up first. POST
+ * /customer on an email that already exists returns the existing record
+ * unchanged, hence the follow-up update when the details differ.
+ *
+ * Best effort and never a gate: Truth Geomancer's own customer_profiles is
+ * the source of truth, and checkout must not depend on this succeeding.
+ */
+export async function syncCustomer(c: { email: string; firstName: string; lastName: string; phone: string }): Promise<void> {
+  const created = await call<PaystackCustomer>('/customer', {
+    method: 'POST',
+    body: JSON.stringify({ email: c.email, first_name: c.firstName, last_name: c.lastName, phone: c.phone }),
+  });
+  if (created.first_name === c.firstName && created.last_name === c.lastName && created.phone === c.phone) return;
+  await call<PaystackCustomer>(`/customer/${encodeURIComponent(created.customer_code)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ first_name: c.firstName, last_name: c.lastName, phone: c.phone }),
   });
 }
 
@@ -120,7 +184,7 @@ export interface VerifiedTransaction {
   currency: string;
   paid_at: string | null;
   customer: { email: string };
-  metadata?: { userId?: string; productId?: string } | null;
+  metadata?: { userId?: string; productId?: string; entitlement?: string } | null;
 }
 
 /** Ask Paystack what actually happened to a reference — the authority on

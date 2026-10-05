@@ -77,7 +77,9 @@ describe('28-29: protected content is not statically bundled or public', () => {
 
 describe('30: service worker does not precache protected content', () => {
   it('SHELL_URLS never lists a book/practice/API path', () => {
-    const shellBlock = SW.slice(SW.indexOf('SHELL_URLS'), SW.indexOf('self.addEventListener'));
+    // The actual array declaration (the first textual mention of
+    // SHELL_URLS is in a historical comment).
+    const shellBlock = SW.slice(SW.indexOf('const SHELL_URLS = ['), SW.indexOf('];', SW.indexOf('const SHELL_URLS = [')));
     expect(shellBlock).not.toMatch(/\/books\/|\/raml\/practice\/|\/api\//);
   });
 });

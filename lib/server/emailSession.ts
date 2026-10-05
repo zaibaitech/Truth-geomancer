@@ -9,36 +9,43 @@
 // at a users.id that also has a verified email — see the Prompt 46
 // report's "Session Handling" section for why this was preferred over a
 // new, parallel cookie.
-import { cookies } from 'next/headers';
 import { getDb } from './db';
-import { getCurrentUserIfPresent } from './session';
-import { SESSION_COOKIE } from './session';
-
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+import { clearSessionCookies, getCurrentUserIfPresent, readSessionToken, setSessionCookie } from './session';
+import { revokeSessionByToken } from './sessions';
+import { catchUpPriorClaims } from './auth/claim';
 
 /** Sets the session cookie to `sessionToken` — the raw token
  * consumeLoginToken() returned. Only callable from a Route Handler/Server
  * Action (the same Next.js rule session.ts's getCurrentUser() already
  * documents); the magic-link verify route is the one caller. */
 export function setAuthenticatedSessionCookie(sessionToken: string): void {
-  cookies().set(SESSION_COOKIE, sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: ONE_YEAR_SECONDS,
-  });
+  setSessionCookie(sessionToken);
 }
 
-/** Clears the session cookie (logout). Never deletes the users row, never
- * touches entitlements/payment_requests/preview_usage — the account and
- * every record attached to its users.id are untouched. The browser
- * reverts to ordinary anonymous-identity behavior on its next request
- * (getCurrentUser() in session.ts creates a fresh anonymous user exactly
- * as it already does for any visitor with no cookie), per the existing,
- * unmodified architecture. */
+/** Server-side logout for THIS browser (auth/session redesign): revokes the
+ * session row behind the presented cookie — so a copied cookie stops working
+ * too — then clears the cookie. Every other device's session is untouched.
+ * Never deletes the users row or anything attached to it. */
+export async function revokeCurrentSession(): Promise<void> {
+  const current = readSessionToken();
+  if (current) await revokeSessionByToken(getDb(), current.token);
+  clearSessionCookies();
+}
+
+/** Completes a sign-in for THIS browser: revokes whatever session the
+ * browser held before (an anonymous one, or a different account's), then sets
+ * the new session cookie. The new token always comes fresh from the sign-in
+ * itself, so a pre-login token can never be fixated into an authenticated
+ * session. */
+export async function switchBrowserToSession(newSessionToken: string): Promise<void> {
+  const previous = readSessionToken();
+  if (previous && previous.token !== newSessionToken) await revokeSessionByToken(getDb(), previous.token);
+  setSessionCookie(newSessionToken);
+}
+
+/** Clears the cookie only (kept for callers that have already revoked). */
 export function clearSessionCookie(): void {
-  cookies().delete(SESSION_COOKIE);
+  clearSessionCookies();
 }
 
 export interface AuthenticatedUserStatus {
@@ -67,3 +74,14 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUserStatus> {
 // Re-exported so callers of this module never need to also import
 // lib/server/db directly just to pass a Db into emailAuth.ts's functions.
 export { getDb };
+
+/** For a signed-in account, picks up anything that reached one of its
+ * previously-claimed anonymous identities after the claim (a Paystack payment
+ * completing later grants to the anonymous id it was started under, by
+ * design). No-op for anonymous visitors. Never returns any identifier. */
+export async function catchUpCurrentAccount(): Promise<void> {
+  const user = await getCurrentUserIfPresent();
+  if (!user || !user.email) return;
+  const db = getDb();
+  await db.transaction((tx) => catchUpPriorClaims(tx, user.id));
+}

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
+import { SignInPrompt } from '@/components/auth/SignInPrompt';
 import { Card } from '@/components/ui/Card';
 import { PaymentRequestForm } from '@/components/purchase/PaymentRequestForm';
 import { PaystackCheckoutForm } from '@/components/purchase/PaystackCheckoutForm';
@@ -65,6 +66,9 @@ export default async function ProductPurchasePage({
   return (
     <div>
       <Header title={product.name} subtitle="Request access" />
+      <div className="px-4">
+        <SignInPrompt message="Already paid, or bought on another device?" />
+      </div>
       <div className="px-4 py-4">
         <Card>
           <p className="type-body text-sand/70">{product.description}</p>

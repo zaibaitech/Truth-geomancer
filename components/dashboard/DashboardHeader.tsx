@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Search, Bell, Settings } from 'lucide-react';
 import { Emblem } from '@/components/layout/Logo';
 import { PatternOverlay } from '@/components/ui/PatternOverlay';
+import { AccountButton } from '@/components/auth/AccountButton';
 
 function IconButton({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -37,6 +38,7 @@ export function DashboardHeader() {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
+          <AccountButton />
           <IconButton href="/search" label="Search">
             <Search size={15} />
           </IconButton>

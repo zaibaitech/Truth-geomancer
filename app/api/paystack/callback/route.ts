@@ -10,6 +10,12 @@ import { fulfilCheckout } from '@/lib/server/paystackFulfilment';
 import { getDb } from '@/lib/server/db';
 import { getPayment } from '@/lib/server/paystackPayments';
 
+// Auth/session redesign, Phase 0: this redirect is per-buyer and carries a
+// payment reference, so it must never be stored by a browser, proxy or CDN
+// (OWASP: explicit `no-store` on session-sensitive responses). Headers only —
+// fulfilment and every redirect target are unchanged.
+const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
+
 function resolveAppOrigin(request: Request): string {
   const configured = process.env.APP_BASE_URL;
   if (configured) return configured.replace(/\/+$/, '');
@@ -28,7 +34,7 @@ export async function GET(request: Request) {
   const origin = resolveAppOrigin(request);
 
   if (!reference) {
-    return NextResponse.redirect(`${origin}/purchase`, { status: 303 });
+    return NextResponse.redirect(`${origin}/purchase`, { status: 303, headers: NO_STORE_HEADERS });
   }
 
   const db = getDb();
@@ -51,6 +57,9 @@ export async function GET(request: Request) {
     console.error(`Paystack callback fulfilment failed for ${reference}:`, err instanceof Error ? err.message : 'unknown error');
   }
 
-  if (!productId) return NextResponse.redirect(`${origin}/purchase`, { status: 303 });
-  return NextResponse.redirect(`${origin}/purchase/${encodeURIComponent(productId)}?payment=${payment}`, { status: 303 });
+  if (!productId) return NextResponse.redirect(`${origin}/purchase`, { status: 303, headers: NO_STORE_HEADERS });
+  return NextResponse.redirect(`${origin}/purchase/${encodeURIComponent(productId)}?payment=${payment}`, {
+    status: 303,
+    headers: NO_STORE_HEADERS,
+  });
 }

@@ -6,8 +6,17 @@
 // unit-testable without mocking a Next.js request. The thin HTTP-cookie
 // wrapper that calls these functions from a real request lives in
 // session.ts.
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
+//
+// AUTH/SESSION REDESIGN (Phase 1): identity is now resolved through the
+// `sessions` table (lib/server/sessions.ts) — many independent sessions per
+// user — instead of the single users.session_token_hash column. Every
+// function keeps its original signature and meaning for callers; the
+// difference is that issuing a new session for a user no longer invalidates
+// that user's other sessions. users.session_token_hash is kept (schema is
+// additive-only) but new rows get an unusable placeholder in it.
+import { randomBytes, randomUUID } from 'node:crypto';
 import type { Db } from './db';
+import { createSession, resolveSession, retiredLegacyHash } from './sessions';
 
 export interface User {
   id: string;
@@ -28,14 +37,6 @@ function rowToUser(row: UserRow): User {
   return { id: row.id, email: row.email, createdAt: row.created_at, lastSeenAt: row.last_seen_at };
 }
 
-/** SHA-256 of the session token, hex-encoded. The database stores only
- * this hash, never the raw token — mirrors how a password or API key
- * would be stored, so a database read (backup, leak, admin query) never
- * yields a value that is itself usable as a session credential. */
-function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
-
 /** 256 bits of cryptographic randomness, base64url-encoded. This is the
  * ONLY thing that ever identifies a session to the server — unguessable
  * by construction, which is what makes "the browser cannot simply set
@@ -51,20 +52,29 @@ export function generateSessionToken(): string {
  * for identity: nothing anywhere in this codebase resolves a user from a
  * caller-supplied id — only from a token that must match a stored hash. */
 export async function getUserByToken(db: Db, token: string): Promise<User | null> {
-  const row = await db.queryOne<UserRow>('SELECT * FROM users WHERE session_token_hash = ?', [hashToken(token)]);
-  return row ? rowToUser(row) : null;
+  const resolved = await resolveSession(db, token);
+  return resolved ? resolved.user : null;
 }
 
-export async function createAnonymousUser(db: Db, token: string): Promise<User> {
+/** Inserts a users row with an unusable placeholder in the legacy
+ * session_token_hash column (identity now lives in `sessions`). */
+async function insertUser(db: Db, email: string | null): Promise<User> {
   const now = new Date().toISOString();
   const id = randomUUID();
-  await db.execute('INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, NULL, ?, ?)', [
+  await db.execute('INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?)', [
     id,
-    hashToken(token),
+    retiredLegacyHash(),
+    email,
     now,
     now,
   ]);
-  return { id, email: null, createdAt: now, lastSeenAt: now };
+  return { id, email, createdAt: now, lastSeenAt: now };
+}
+
+export async function createAnonymousUser(db: Db, token: string): Promise<User> {
+  const user = await insertUser(db, null);
+  await createSession(db, user.id, 'anonymous', token);
+  return user;
 }
 
 export async function touchLastSeen(db: Db, userId: string): Promise<string> {
@@ -135,27 +145,20 @@ export async function attachEmailToUser(db: Db, userId: string, normalizedEmail:
  * visit at all). This is the one legitimate "new users.id" case: it never
  * happens merely because a login link was requested (see emailAuth.ts). */
 export async function createUserWithEmail(db: Db, token: string, normalizedEmail: string): Promise<User> {
-  const now = new Date().toISOString();
-  const id = randomUUID();
-  await db.execute('INSERT INTO users (id, session_token_hash, email, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?)', [
-    id,
-    hashToken(token),
-    normalizedEmail,
-    now,
-    now,
-  ]);
-  return { id, email: normalizedEmail, createdAt: now, lastSeenAt: now };
+  const user = await insertUser(db, normalizedEmail);
+  await createSession(db, user.id, 'email', token);
+  return user;
 }
 
-/** Issues a fresh session token for an EXISTING user id and makes it the
- * only valid token for that row (session_token_hash is a single UNIQUE
- * column per user, so this intentionally supersedes any token that
- * previously matched this row — see the Prompt 46 report's "known
- * limitation" note on single-active-session-per-account). Returns the raw
- * token to set as the session cookie's value; only the hash is stored. */
-export async function rotateSessionToken(db: Db, userId: string): Promise<string> {
+/** Issues a brand-new, independent session for an EXISTING user id (used at
+ * sign-in — a fresh token every time, so a pre-login token can never be
+ * fixated into an authenticated one). Unlike the original single-token
+ * design, every other session this user already has stays valid: signing in
+ * on one device never signs another out. Returns the raw token to set as the
+ * session cookie; only its hash is stored. */
+export async function issueSession(db: Db, userId: string, kind: 'email' | 'anonymous' = 'email'): Promise<string> {
   const token = generateSessionToken();
-  const now = new Date().toISOString();
-  await db.execute('UPDATE users SET session_token_hash = ?, last_seen_at = ? WHERE id = ?', [hashToken(token), now, userId]);
+  await createSession(db, userId, kind, token);
+  await db.execute('UPDATE users SET last_seen_at = ? WHERE id = ?', [new Date().toISOString(), userId]);
   return token;
 }

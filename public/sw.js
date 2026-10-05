@@ -100,26 +100,80 @@
 // this deploy supersedes it. Bump on every deploy that changes a
 // SHELL_URL's output — not just the first time this class of bug is
 // found — is the actual rule; see the v6->v7 bump above for why.
-const APP_VERSION = 'v8';
+// AUTH/SESSION REDESIGN, PHASE 0 — bumped v8 -> v9, and the strategy
+// changed. Server responses for every per-user page already send
+// `Cache-Control: private, no-store`, but the Cache API ignores HTTP cache
+// headers: this worker used to serve `/books`, `/books/<id>`, `/purchase*`
+// and `/preview*` CACHE-FIRST, keyed only by URL. The first visit's
+// signed-out / "Not yet unlocked" / "pending" HTML (or RSC payload) was then
+// replayed after sign-in, purchase or approval — and to the NEXT person
+// using the same browser — until site data was cleared. Three rules now:
+//
+//  1. USER-SPECIFIC routes (USER_SPECIFIC_PREFIXES below, plus every
+//     /api/ call) are NETWORK-ONLY: never read from, never written to, any
+//     cache by this worker. Offline, a navigation to one falls back to the
+//     cached `/` shell, which carries no account state.
+//  2. Public pages are NETWORK-FIRST: the cached copy is used only when the
+//     network fails, so a deploy never leaves a stale page (or stale hashed
+//     asset references) behind, and no version bump is needed per deploy.
+//  3. Content-hashed static assets (/_next/static/*) are cache-first — their
+//     URL changes whenever their bytes do.
+//
+// On activate, besides retiring old-version shell/runtime caches, any entry
+// for a user-specific path still sitting in the CURRENT shell/runtime cache
+// is deleted. A reader's explicit book downloads ("tg-book-*", owned by
+// lib/offline/bookCache.ts) are never touched.
+const APP_VERSION = 'v9';
 const SHELL_CACHE = `tg-shell-${APP_VERSION}`;
 const RUNTIME_CACHE = `tg-runtime-${APP_VERSION}`;
 
-// The app shell: the tab-bar destinations and the icons/manifest the shell
-// itself needs, so the app opens and its navigation works with no network
-// at all. Deliberately excludes book content — a reader opts into that
-// separately via "Download for offline".
-const SHELL_URLS = [
-  '/',
-  '/books',
+// The app shell: public, account-free destinations and the icons/manifest
+// the shell itself needs, so the app opens with no network at all. Per-user
+// pages (/books, /raml, /settings …) are deliberately NOT precached: their
+// HTML is personalised by the session and must never be replayed.
+const SHELL_URLS = ['/', '/search', '/more', '/manifest.webmanifest', '/icon.svg', '/apple-icon.png'];
+
+// Every path whose server response depends on WHO is asking (the session
+// cookie): entitlement badges, payment/request status, preview availability,
+// the account itself, sign-in, and the protected reader/practice routes.
+// Also excludes all API calls. Kept as one list so the read-side guard and
+// the write-side gate below can never drift apart.
+const NO_OPPORTUNISTIC_CACHE_PREFIXES = [
+  '/api/',
+  '/raml/practice/',
   '/raml',
-  '/raml/history',
-  '/search',
+  '/books',
+  '/purchase',
+  '/preview',
   '/settings',
-  '/more',
-  '/manifest.webmanifest',
-  '/icon.svg',
-  '/apple-icon.png',
+  '/account',
+  '/signin',
+  '/auth',
+  '/admin',
 ];
+
+function isProtectedBookPath(pathname) {
+  // /books/<id>/read and /books/<id>/practice/<method> — already covered by
+  // the '/books' prefix above; kept as an explicit, named guard.
+  return /^\/books\/[^/]+\/(read|practice\/)/.test(pathname);
+}
+
+function matchesPrefix(pathname, prefix) {
+  if (prefix.endsWith('/')) return pathname.startsWith(prefix);
+  return pathname === prefix || pathname.startsWith(prefix + '/') || pathname.startsWith(prefix + '?');
+}
+
+function isUserSpecificPath(pathname) {
+  return NO_OPPORTUNISTIC_CACHE_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix)) || isProtectedBookPath(pathname);
+}
+
+function shouldOpportunisticallyCache(pathname) {
+  return !isUserSpecificPath(pathname);
+}
+
+function isImmutableAsset(pathname) {
+  return pathname.startsWith('/_next/static/');
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -131,84 +185,46 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((names) =>
+// Removes every cached entry for a user-specific path from one cache.
+function purgeUserSpecificEntries(cacheName) {
+  return caches.open(cacheName).then((cache) =>
+    cache.keys().then((requests) =>
       Promise.all(
-        names
-          // Only ever retire THIS worker's own shell/runtime caches by
-          // version. Never touch a "tg-book-*" cache — those are a
-          // reader's explicit downloads, versioned and removed only by
-          // lib/offline/bookCache.ts.
-          .filter(
-            (name) =>
-              (name.startsWith('tg-shell-') || name.startsWith('tg-runtime-')) &&
-              name !== SHELL_CACHE &&
-              name !== RUNTIME_CACHE,
-          )
-          .map((name) => caches.delete(name)),
+        requests
+          .filter((req) => isUserSpecificPath(new URL(req.url).pathname))
+          .map((req) => cache.delete(req)),
       ),
     ),
   );
-  self.clients.claim();
-});
-
-// Cache-first, falling back to network, falling back to the cached app
-// shell for a navigation that has nothing cached at all. Cache-first suits
-// this app well: book content changes rarely (a new deploy gets a new
-// APP_VERSION and fresh hashed asset URLs automatically), and a reader who
-// explicitly downloaded a book should get instant, reliable pages from it
-// rather than a race against the network. Every successful network
-// response is opportunistically saved to the runtime cache too, so pages a
-// reader merely visits (never explicitly downloaded) still tend to work
-// offline afterward — a bonus, never a promise: only "Available offline"
-// (lib/offline/bookCache.ts) is ever presented to a reader as guaranteed.
-// Prompt 30, Phase 12 — a real vulnerability this audit found: the
-// opportunistic "cache every successful same-origin GET" behavior below
-// used to apply to EVERY response, including protected, entitlement-gated
-// ones (/api/books/*, the book reader at /books/*/read, Kanzul method
-// practice at /raml/practice/*, Master's practice pages). Cache Storage
-// has no concept of WHO a cached response was for — once a response for
-// a given URL is in RUNTIME_CACHE, `caches.match()` above serves it to
-// ANY future request for that exact URL on this browser, entitled or not,
-// with no server round-trip at all. That means an entitled visitor merely
-// LOADING their purchased book (no explicit download click needed) would
-// silently leave a reusable, protected-content-bearing cache entry behind
-// for whoever uses this browser next. The list below excludes every such
-// path from automatic/opportunistic caching — the ONLY way protected book
-// content may still end up in Cache Storage is the reader's own explicit
-// "Download for offline" action (lib/offline/bookCache.ts), which writes
-// into its own book-specific cache, never RUNTIME_CACHE, and only after
-// the server has independently verified entitlement for THAT request.
-//
-// Prompt 59 — `/raml` (the Cast picker) joined this list. The picker HTML
-// is now personalized by book entitlement (free / unlocked / pending /
-// locked). Caching it would freeze the first visit's access snapshot
-// (almost always unpaid) and hide later approval. `/raml` as a prefix
-// also covers `/raml/history` and `/raml/practice/` (the latter was
-// already listed).
-//
-// This does not, and cannot, prevent a DIFFERENT anonymous identity later
-// sharing the SAME physical browser from finding and reading an
-// explicitly-downloaded book cache that a previous, legitimately-entitled
-// visitor left behind — Cache Storage is device-scoped, and this app's
-// identity model has no stronger per-user isolation to offer within a
-// single browser profile. See the Prompt 30 final report's "Anonymous
-// identity limitations" section for the honest, complete statement of
-// what is and is not enforced here.
-const NO_OPPORTUNISTIC_CACHE_PREFIXES = ['/api/', '/raml/practice/', '/raml'];
-
-function isProtectedBookPath(pathname) {
-  // /books/<id>/read and /books/<id>/practice/<method> — the book listing
-  // (/books) and a book's own detail page (/books/<id>) are public
-  // metadata, never excluded.
-  return /^\/books\/[^/]+\/(read|practice\/)/.test(pathname);
 }
 
-function shouldOpportunisticallyCache(pathname) {
-  if (NO_OPPORTUNISTIC_CACHE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return false;
-  if (isProtectedBookPath(pathname)) return false;
-  return true;
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((names) =>
+        Promise.all(
+          names
+            // Only ever retire THIS worker's own shell/runtime caches by
+            // version. Never touch a "tg-book-*" cache — those are a
+            // reader's explicit downloads, versioned and removed only by
+            // lib/offline/bookCache.ts.
+            .filter(
+              (name) =>
+                (name.startsWith('tg-shell-') || name.startsWith('tg-runtime-')) &&
+                name !== SHELL_CACHE &&
+                name !== RUNTIME_CACHE,
+            )
+            .map((name) => caches.delete(name)),
+        ),
+      )
+      .then(() => Promise.all([SHELL_CACHE, RUNTIME_CACHE].map(purgeUserSpecificEntries)))
+      .then(() => self.clients.claim()),
+  );
+});
+
+function offlineShell() {
+  return caches.match('/').then((shell) => shell || Response.error());
 }
 
 self.addEventListener('fetch', (event) => {
@@ -220,45 +236,43 @@ self.addEventListener('fetch', (event) => {
   // Never intercept the worker's own script or Next's dev-only endpoints.
   if (url.pathname === '/sw.js' || url.pathname.startsWith('/_next/webpack-hmr')) return;
 
-  // PROMPT 34: the same predicate that already excluded these paths from
-  // opportunistic WRITES now also excludes them from cache READS — every
-  // request for an entitlement-gated path (a protected book reader/
-  // practice route, the protected-content/practice APIs) always goes to
-  // the network, so the server's canAccessForUser() check runs on every
-  // single request, never short-circuited by a cache entry. This applies
-  // even to an entry this worker itself never wrote (e.g. one left over
-  // from before this exclusion existed at all, or from any future
-  // regression) — closing that off structurally, not just for the one
-  // incident the version bump above already cleared. Cache Storage
-  // remains reachable for these paths only through the reader's own
-  // explicit, server-verified "Download for offline" action
-  // (lib/offline/bookCache.ts), which writes into its own book-specific
-  // cache, never RUNTIME_CACHE, and is read by that feature's own code,
-  // never by this generic fetch handler.
+  // Rule 1 — user-specific: network only. Never consults the cache for this
+  // request and never writes, so no response that depends on the session can ever be
+  // stored or replayed by this worker (including an entry an older worker
+  // version wrote). Offline navigations get the account-free shell.
   if (!shouldOpportunisticallyCache(url.pathname)) {
+    event.respondWith(fetch(request).catch(() => offlineShell()));
+    return;
+  }
+
+  // Rule 3 — content-hashed assets: cache-first.
+  if (isImmutableAsset(url.pathname)) {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/').then((shell) => shell || Response.error())),
+      caches.match(request).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+            }
+            return response;
+          }),
+      ),
     );
     return;
   }
 
+  // Rule 2 — public pages: network-first, cached copy only when offline.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request)
-        .then((response) => {
-          if (response.ok && shouldOpportunisticallyCache(url.pathname)) {
-            const copy = response.clone();
-            caches
-              .open(RUNTIME_CACHE)
-              .then((cache) => cache.put(request, copy))
-              .catch(() => {});
-          }
-          return response;
-        })
-        .catch(() =>
-          caches.match('/').then((shell) => shell || Response.error()),
-        );
-    }),
+    fetch(request)
+      .then((response) => {
+        if (response.ok && shouldOpportunisticallyCache(url.pathname)) {
+          const copy = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() => caches.match(request).then((cached) => cached || offlineShell())),
   );
 });

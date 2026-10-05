@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
-import { clearSessionCookie } from '@/lib/server/emailSession';
+import { revokeCurrentSession } from '@/lib/server/emailSession';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 
-const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
-
-// Clears the session cookie only. Never deletes the users row, never
-// touches entitlements/payment_requests/preview_usage (Prompt 46 §21's
-// explicit requirement) — the account and everything attached to its
-// users.id remain exactly as they were.
-export async function POST() {
-  clearSessionCookie();
-  return NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS });
+// Auth/session redesign: logout is a SERVER-SIDE revocation of this browser's
+// session (a copied cookie stops working too), then the cookie is cleared.
+// Only this browser is signed out — every other device stays signed in. The
+// users row and everything attached to it (entitlements, payment requests,
+// previews) are untouched.
+//
+// `Clear-Site-Data: "cache"` asks the browser to drop its HTTP cache for this
+// origin, so a shared device keeps no cached copy of the signed-in pages.
+// Deliberately NOT "storage": that would also wipe Past Readings and any
+// downloaded books, which belong to the device, not the account.
+export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
+  }
+  await revokeCurrentSession();
+  return NextResponse.json(
+    { ok: true },
+    { headers: { 'Cache-Control': 'private, no-store', 'Clear-Site-Data': '"cache"' } },
+  );
 }

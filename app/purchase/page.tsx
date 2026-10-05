@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
+import { SignInPrompt } from '@/components/auth/SignInPrompt';
 import { Card } from '@/components/ui/Card';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
@@ -54,6 +55,9 @@ export default async function PurchasePage() {
   return (
     <div>
       <Header title="Get access" subtitle="Request access to a book or bundle" />
+      <div className="px-4">
+        <SignInPrompt message="Already paid, or bought on another device?" />
+      </div>
       <div className="space-y-3 px-4 py-4">
         {activeProducts.map((product, i) => {
           const status = statuses[i];

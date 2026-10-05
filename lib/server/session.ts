@@ -23,77 +23,92 @@ import { cookies } from 'next/headers';
 import { getDb } from './db';
 import { getOrCreateUser, getUserByToken, touchLastSeen, type User } from './identity';
 
-// Exported (Prompt 46) so lib/server/emailAuth.ts's session-cookie I/O can
-// set the SAME cookie a freshly-authenticated login rotates the value of,
-// rather than introducing a second, parallel "logged in" cookie — see that
-// file's own comment on why reusing this exact mechanism was preferred
-// over adding a new one.
-export const SESSION_COOKIE = 'tg_uid';
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+// AUTH/SESSION REDESIGN (Phase 1) — cookie naming.
+//
+// Production uses the `__Host-` prefix: the browser then REQUIRES Secure,
+// Path=/ and no Domain attribute, so the session can only ever be set by,
+// and sent to, the exact canonical host (truthgeomancer.com) — never a
+// sibling subdomain, and never over plain HTTP. Local development (plain
+// http://localhost) cannot satisfy Secure, so it uses the same name without
+// the prefix. The token inside is opaque, HttpOnly, never JS-readable, and
+// never placed in localStorage/sessionStorage/URLs.
+//
+// LEGACY: cookies issued before this redesign are named `tg_uid`. They are
+// still read (and their token still works — see lib/server/sessions.ts's
+// legacy migration). Route handlers re-issue such a token under the new name
+// and delete the old cookie, so a browser converges on exactly one cookie.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+export const SESSION_COOKIE = IS_PRODUCTION ? '__Host-tg_session' : 'tg_session';
+export const LEGACY_SESSION_COOKIE = 'tg_uid';
+/** Browser-side lifetime; the server enforces its own (shorter-or-equal)
+ * idle and absolute expiry on every request (lib/server/sessions.ts). */
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: COOKIE_MAX_AGE_SECONDS,
+  };
+}
+
+/** The raw session token this request carries, if any, and whether it came
+ * from the legacy cookie name. Read-only. */
+export function readSessionToken(): { token: string; legacyName: boolean } | null {
+  const store = cookies();
+  const current = store.get(SESSION_COOKIE)?.value;
+  if (current) return { token: current, legacyName: false };
+  const legacy = store.get(LEGACY_SESSION_COOKIE)?.value;
+  if (legacy) return { token: legacy, legacyName: true };
+  return null;
+}
+
+/** Sets the session cookie (Route Handler / Server Action only) and removes
+ * any legacy-named copy, so exactly one session cookie ever exists. */
+export function setSessionCookie(token: string): void {
+  const store = cookies();
+  store.set(SESSION_COOKIE, token, cookieOptions());
+  if (store.get(LEGACY_SESSION_COOKIE)) store.delete(LEGACY_SESSION_COOKIE);
+}
+
+/** Removes every session cookie name this app has ever used (logout).
+ * Expired with the SAME attributes it was set with: a browser ignores a
+ * `__Host-` Set-Cookie that lacks Secure, so a bare delete() (which sends no
+ * Secure) would leave the cookie in place. */
+export function clearSessionCookies(): void {
+  const store = cookies();
+  store.set(SESSION_COOKIE, '', { ...cookieOptions(), maxAge: 0 });
+  store.set(LEGACY_SESSION_COOKIE, '', { ...cookieOptions(), maxAge: 0 });
+}
 
 /** Resolves the current request's user from its session cookie, creating
  * a fresh anonymous user (and setting a fresh cookie) if none exists yet.
+ * Route Handlers / Server Actions only (it may write a cookie).
  *
- * The cookie value is an opaque, high-entropy token — never the
- * database's own user id — set:
- *   - `httpOnly: true`  — unreadable and unwritable by page JavaScript,
- *     so an XSS bug cannot steal or forge it via `document.cookie`.
- *   - `secure` in production — never sent over plain HTTP.
- *   - `sameSite: 'lax'` — sent on top-level navigation, not on a
- *     cross-site form/script request, which blocks the simplest
- *     CSRF-style abuse of this cookie.
- *
- * A visitor CAN still edit this cookie's value by hand in their own
- * browser's dev tools. That is expected, and harmless: an edited value
- * that doesn't hash-match any stored user is simply treated as "no
- * session" (see identity.ts's getOrCreateUser) — never as someone else's
- * identity. There is no way to set a cookie value that grants an
- * entitlement: entitlements live in a separate database table keyed by
- * the server-assigned user id, which the client never sees or controls,
- * and which this function never derives from anything the client sent
- * except by successful hash lookup.
- */
+ * The cookie value is an opaque, high-entropy token, never a user id. An
+ * edited or unknown value resolves to no session (never to someone else) and
+ * a new anonymous identity is created — see identity.ts getOrCreateUser. */
 export async function getCurrentUser(): Promise<User> {
-  const store = cookies();
-  const existingToken = store.get(SESSION_COOKIE)?.value ?? null;
-  const { user, token, isNew } = await getOrCreateUser(getDb(), existingToken);
+  const existing = readSessionToken();
+  const { user, token, isNew } = await getOrCreateUser(getDb(), existing?.token ?? null);
 
-  if (isNew || !existingToken) {
-    store.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: ONE_YEAR_SECONDS,
-    });
-  }
+  // New identity, no cookie yet, or a still-valid token under the legacy
+  // name: (re)issue it under the current name.
+  if (isNew || !existing || existing.legacyName) setSessionCookie(token);
 
   return user;
 }
 
 /** Read-only counterpart to getCurrentUser(), safe to call from a plain
- * Server Component page render — which Next.js forbids from writing a
- * cookie at all, so getCurrentUser()'s store.set() call would throw
- * there. This function never calls it: it only ever reads the existing
- * cookie and, if present, looks up (never creates) the matching user.
- *
- * Returning null for "no session cookie yet" is exact, not an
- * approximation: the ONLY way a real user acquires anything worth
- * checking access for is through a flow (a purchase/grant endpoint) that
- * is necessarily a Route Handler or Server Action — see
- * security.test.ts's "client cannot grant or revoke entitlements" suite —
- * and any such flow already persists a session cookie via
- * getCurrentUser() before or while granting. So a visitor with no cookie
- * at all has, by construction, no entitlement to find, and a Server
- * Component gating on `getCurrentUserIfPresent() === null` behaves
- * identically to one that could create-and-check a fresh anonymous user,
- * without needing to write a cookie it structurally cannot write.
- */
+ * Server Component render (which cannot write cookies). Returns null when
+ * there is no valid session — never creates a user or a cookie. */
 export async function getCurrentUserIfPresent(): Promise<User | null> {
-  const token = cookies().get(SESSION_COOKIE)?.value ?? null;
-  if (!token) return null;
+  const existing = readSessionToken();
+  if (!existing) return null;
   const db = getDb();
-  const user = await getUserByToken(db, token);
+  const user = await getUserByToken(db, existing.token);
   if (!user) return null;
   const lastSeenAt = await touchLastSeen(db, user.id);
   return { ...user, lastSeenAt };

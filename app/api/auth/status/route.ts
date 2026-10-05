@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/server/emailSession';
+import { catchUpCurrentAccount, getAuthenticatedUser } from '@/lib/server/emailSession';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -9,5 +9,6 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // (Prompt 46 §18/§19's explicit UI-exposure requirement).
 export async function GET() {
   const status = await getAuthenticatedUser();
+  if (status.authenticated) await catchUpCurrentAccount();
   return NextResponse.json(status, { headers: NO_STORE_HEADERS });
 }

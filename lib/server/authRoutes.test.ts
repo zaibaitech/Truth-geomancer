@@ -16,7 +16,7 @@ const EMAIL_PROVIDER = readFileSync('lib/server/emailProvider.ts', 'utf-8');
 const RATE_LIMIT = readFileSync('lib/server/rateLimit.ts', 'utf-8');
 const ADMIN_AUTH = readFileSync('lib/server/adminAuth.ts', 'utf-8');
 const ADMIN_SESSION = readFileSync('lib/server/adminSession.ts', 'utf-8');
-const SIGN_IN_FORM = readFileSync('components/auth/SignInForm.tsx', 'utf-8');
+const SIGN_IN_FLOW = readFileSync('components/auth/SignInFlow.tsx', 'utf-8');
 const ACCOUNT_SECTION = readFileSync('components/auth/AccountSection.tsx', 'utf-8');
 const SW = readFileSync('public/sw.js', 'utf-8');
 
@@ -45,7 +45,7 @@ const AUTH_FILES = [
   EMAIL_SESSION,
   EMAIL_PROVIDER,
   RATE_LIMIT,
-  SIGN_IN_FORM,
+  SIGN_IN_FLOW,
   ACCOUNT_SECTION,
 ];
 
@@ -94,10 +94,12 @@ describe('Q: admin authentication remains completely independent', () => {
 });
 
 describe('R: logout clears the session without deleting any user/account data', () => {
-  it('the logout route only clears the cookie — no DELETE statement anywhere in its own file or in clearSessionCookie', () => {
+  it('auth redesign: logout revokes this browser\'s session server-side and clears the cookie — and never deletes any row', () => {
     expect(LOGOUT_ROUTE).not.toMatch(/DELETE FROM/i);
     expect(EMAIL_SESSION).not.toMatch(/DELETE FROM/i);
-    expect(LOGOUT_ROUTE).toMatch(/clearSessionCookie/);
+    expect(LOGOUT_ROUTE).toMatch(/revokeCurrentSession/);
+    expect(EMAIL_SESSION).toMatch(/revokeSessionByToken/);
+    expect(EMAIL_SESSION).toMatch(/clearSessionCookies\(\)/);
   });
 });
 
@@ -120,8 +122,9 @@ describe('S: authentication API responses are excluded from Service Worker oppor
     expect(shouldOpportunisticallyCache('/api/auth/logout')).toBe(false);
   });
 
-  it('public/sw.js itself was not modified by Prompt 46 — the auth UI lives inside the existing /settings page rather than a new top-level route', () => {
-    expect(SW).not.toMatch(/auth|login|account/i);
+  it('auth/session redesign: sign-in, auth and account pages are on the service worker network-only list (never cached)', () => {
+    const prefixes = SW.slice(SW.indexOf('const NO_OPPORTUNISTIC_CACHE_PREFIXES'), SW.indexOf('];', SW.indexOf('const NO_OPPORTUNISTIC_CACHE_PREFIXES')));
+    for (const p of ["'/signin'", "'/auth'", "'/account'", "'/settings'", "'/api/'"]) expect(prefixes).toContain(p);
   });
 });
 

@@ -148,6 +148,46 @@ CREATE TABLE IF NOT EXISTS paystack_payments (
 );
 CREATE INDEX IF NOT EXISTS idx_paystack_payments_user_product
   ON paystack_payments(user_id, product_id, created_at);
+
+-- Same additive tables as lib/server/db/migrations/0006_sessions_codes_claims.sql.
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  token_hash TEXT NOT NULL UNIQUE,
+  kind TEXT NOT NULL CHECK (kind IN ('anonymous', 'email', 'legacy')),
+  created_at TEXT NOT NULL,
+  last_used_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  absolute_expires_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS email_verification_codes (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  code_salt TEXT NOT NULL,
+  claim_user_id TEXT REFERENCES users(id),
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  superseded_at TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_email_verification_codes_email
+  ON email_verification_codes(email, created_at);
+
+CREATE TABLE IF NOT EXISTS identity_claims (
+  id TEXT PRIMARY KEY,
+  anonymous_user_id TEXT NOT NULL REFERENCES users(id),
+  account_user_id TEXT NOT NULL REFERENCES users(id),
+  method TEXT NOT NULL,
+  claimed_at TEXT NOT NULL,
+  summary TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_identity_claims_account ON identity_claims(account_user_id);
+CREATE INDEX IF NOT EXISTS idx_identity_claims_anonymous ON identity_claims(anonymous_user_id);
 `;
 
 class SqliteDb implements Db {

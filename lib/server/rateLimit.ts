@@ -65,6 +65,15 @@ export class InMemoryRateLimiter implements RateLimiter {
 export const REQUEST_LINK_EMAIL_LIMIT = { maxAttempts: 5, windowMs: 60 * 60 * 1000 } as const;
 export const REQUEST_LINK_IP_LIMIT = { maxAttempts: 20, windowMs: 60 * 60 * 1000 } as const;
 export const VERIFY_IP_LIMIT = { maxAttempts: 30, windowMs: 60 * 60 * 1000 } as const;
+// Auth/session redesign: 6-digit sign-in codes. Requests are limited per
+// email and per IP (same numbers as magic-link requests); verification is
+// limited per IP and per email, on top of each code's own 5-attempt cap and
+// 10-minute life — at most ~15 guesses/hour against any one email out of
+// 1,000,000 possible codes.
+export const CODE_REQUEST_EMAIL_LIMIT = { maxAttempts: 5, windowMs: 60 * 60 * 1000 } as const;
+export const CODE_REQUEST_IP_LIMIT = { maxAttempts: 20, windowMs: 60 * 60 * 1000 } as const;
+export const CODE_VERIFY_IP_LIMIT = { maxAttempts: 30, windowMs: 60 * 60 * 1000 } as const;
+export const CODE_VERIFY_EMAIL_LIMIT = { maxAttempts: 15, windowMs: 60 * 60 * 1000 } as const;
 
 /** Best-effort client IP extraction, shared by every rate-limited route.
  * Vercel's edge network sets x-forwarded-for to the real client IP; this

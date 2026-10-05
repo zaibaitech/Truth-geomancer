@@ -12,13 +12,8 @@
 // consumeLoginToken's own comments for exactly how that is enforced.
 import { createHash, randomBytes } from 'node:crypto';
 import type { Db } from './db';
-import {
-  attachEmailToUser,
-  createUserWithEmail,
-  findUsersByEmail,
-  generateSessionToken,
-  rotateSessionToken,
-} from './identity';
+import { findUsersByEmail } from './identity';
+import { completeEmailSignIn } from './auth/signIn';
 
 const LOGIN_TOKEN_TTL_MS = 15 * 60 * 1000; // ~15 minutes, per Prompt 46 §5
 
@@ -105,7 +100,7 @@ export async function resolveUserForVerifiedEmail(db: Db, normalizedEmail: strin
 
 export type ConsumeResult =
   | { ok: true; userId: string; sessionToken: string }
-  | { ok: false; reason: 'not-found' | 'expired' | 'used' | 'conflict' | 'already-linked' };
+  | { ok: false; reason: 'not-found' | 'expired' | 'used' | 'conflict' };
 
 interface LoginTokenRow {
   token_hash: string;
@@ -117,24 +112,24 @@ interface LoginTokenRow {
 }
 
 /**
- * Verifies and atomically consumes a raw login token, then resolves and
- * returns the AUTHENTICATED users.id and a fresh session token bound to
- * it. Runs entirely inside db.transaction() (the same SERIALIZABLE-
- * isolation-with-retry abstraction every other multi-step write in this
- * codebase already uses — see lib/server/paymentRequests.ts's
- * approvePaymentRequest) so two concurrent requests for the same token
- * can never both succeed: the loser observes `used_at` already set (after
- * the transaction retries against the winner's committed write) and gets
- * `used`, never a second authenticated session.
+ * Verifies and atomically consumes a raw magic-link token, then signs the
+ * presenting browser in to the account for the token's email (auth/session
+ * redesign: lib/server/auth/signIn.ts). Runs inside db.transaction() so two
+ * concurrent attempts for the same token can never both succeed.
  *
- * This function NEVER calls getCurrentUser() or reads any cookie — the
- * token itself is the entire trust boundary, exactly like identity.ts's
- * getUserByToken() is for anonymous sessions and adminAuth.ts's
- * isAdminToken() is for admin sessions. The caller (the verify Route
- * Handler) is responsible for setting the returned sessionToken as the
- * session cookie; this function only ever returns it as a value.
+ * `browserUserId` is the users.id behind the session cookie of the browser
+ * presenting the link NOW (null if none). Its anonymous records are claimed
+ * into the account only when that is the same identity that requested the
+ * link (`row.user_id`) — i.e. the same browser started and finished the
+ * sign-in. A link opened anywhere else still signs that browser in, but
+ * claims nothing.
+ *
+ * The old 'already-linked' and anonymous-vs-existing 'conflict' refusals are
+ * gone: signing in now switches the browser instead of dead-ending. 'conflict'
+ * remains only for genuinely duplicated legacy email rows, where guessing
+ * which account to sign in to would be unsafe.
  */
-export async function consumeLoginToken(db: Db, rawToken: string): Promise<ConsumeResult> {
+export async function consumeLoginToken(db: Db, rawToken: string, browserUserId: string | null = null): Promise<ConsumeResult> {
   return db.transaction(async (tx) => {
     const hash = hashLoginToken(rawToken);
     const row = await tx.queryOne<LoginTokenRow>('SELECT * FROM email_login_tokens WHERE token_hash = ?', [hash]);
@@ -142,54 +137,19 @@ export async function consumeLoginToken(db: Db, rawToken: string): Promise<Consu
     if (row.used_at) return { ok: false, reason: 'used' } as const;
     if (new Date(row.expires_at).getTime() < Date.now()) return { ok: false, reason: 'expired' } as const;
 
-    // Mark used BEFORE resolving identity, and on every subsequent
-    // branch (success or not) — a token is spent by one verification
-    // attempt regardless of its outcome, so a conflict/already-linked
-    // result can never be retried into a different outcome by resending
-    // the same link.
+    // Spent by this one attempt, whatever its outcome.
     await tx.execute('UPDATE email_login_tokens SET used_at = ? WHERE token_hash = ? AND used_at IS NULL', [
       new Date().toISOString(),
       hash,
     ]);
 
-    if (row.user_id) {
-      // Claim path: this token was requested from a device that already
-      // had an anonymous identity. Never attach if that identity already
-      // has a DIFFERENT verified email on file — that would silently
-      // sever its real prior link rather than preserve it.
-      const [claimTarget] = await tx.query<{ id: string; email: string | null }>('SELECT id, email FROM users WHERE id = ?', [
-        row.user_id,
-      ]);
-      if (!claimTarget) return { ok: false, reason: 'not-found' } as const;
-      if (claimTarget.email && claimTarget.email !== row.email) {
-        return { ok: false, reason: 'already-linked' } as const;
-      }
-      const resolved = await resolveUserForVerifiedEmail(tx, row.email);
-      if (resolved.kind === 'conflict') return { ok: false, reason: 'conflict' } as const;
-      if (resolved.kind === 'one' && resolved.userId !== row.user_id) {
-        // The email is already claimed by a DIFFERENT existing account —
-        // never silently reattach it to this device's anonymous id.
-        return { ok: false, reason: 'conflict' } as const;
-      }
-      if (!claimTarget.email) {
-        await attachEmailToUser(tx, row.user_id, row.email);
-      }
-      const sessionToken = await rotateSessionToken(tx, row.user_id);
-      return { ok: true, userId: row.user_id, sessionToken } as const;
-    }
-
-    // No anonymous identity was present when this link was requested.
-    const resolved = await resolveUserForVerifiedEmail(tx, row.email);
-    if (resolved.kind === 'conflict') return { ok: false, reason: 'conflict' } as const;
-    if (resolved.kind === 'one') {
-      const sessionToken = await rotateSessionToken(tx, resolved.userId);
-      return { ok: true, userId: resolved.userId, sessionToken } as const;
-    }
-    // Genuinely new person: no prior anonymous identity, no existing
-    // account for this email. Exactly one new users row, created only
-    // now — after email ownership is proven — never at request time.
-    const sessionToken = generateSessionToken();
-    const user = await createUserWithEmail(tx, sessionToken, row.email);
-    return { ok: true, userId: user.id, sessionToken } as const;
+    const result = await completeEmailSignIn(tx, {
+      normalizedEmail: row.email,
+      browserUserId,
+      claimAllowed: browserUserId !== null && row.user_id === browserUserId,
+      method: 'magic-link',
+    });
+    if (!result.ok) return { ok: false, reason: 'conflict' } as const;
+    return { ok: true, userId: result.userId, sessionToken: result.sessionToken } as const;
   });
 }

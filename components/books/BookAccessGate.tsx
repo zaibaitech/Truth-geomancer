@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Clock, Lock, Sparkles, XCircle } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { SignInPrompt } from '@/components/auth/SignInPrompt';
 import type { ProductAccessStatus } from '@/lib/server/purchaseStatus';
 import type { PreviewStatus } from '@/lib/server/previewService';
 
@@ -70,6 +71,7 @@ export function BookAccessGate({
             View my requests
           </Link>
           <PreviewLine productId={productId} previewStatus={previewStatus} />
+          <SignInPrompt />
         </Card>
       </div>
     );
@@ -93,6 +95,7 @@ export function BookAccessGate({
             Submit a new request
           </Link>
           <PreviewLine productId={productId} previewStatus={previewStatus} />
+          <SignInPrompt />
         </Card>
       </div>
     );
@@ -113,6 +116,7 @@ export function BookAccessGate({
           Request access
         </Link>
         <PreviewLine productId={productId} previewStatus={previewStatus} />
+        <SignInPrompt />
       </Card>
     </div>
   );

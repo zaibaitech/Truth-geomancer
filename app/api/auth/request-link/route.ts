@@ -4,6 +4,7 @@ import { createLoginToken, normalizeEmail } from '@/lib/server/emailAuth';
 import { EmailDeliveryError, EmailProviderNotConfiguredError, getEmailProvider } from '@/lib/server/emailProvider';
 import { PostgresRateLimiter, REQUEST_LINK_EMAIL_LIMIT, REQUEST_LINK_IP_LIMIT, extractClientIp } from '@/lib/server/rateLimit';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // Prompt 46 §14: identical response for "email has an account", "email
@@ -54,6 +55,9 @@ function resolveAppOrigin(request: Request): string {
 // link is never itself a way to create a database row for a visitor who
 // doesn't already have one (Prompt 46 §4/§7's explicit requirement).
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 403, headers: NO_STORE_HEADERS });
+  }
   let body: unknown;
   try {
     body = await request.json();
@@ -110,7 +114,12 @@ export async function POST(request: Request) {
 
   // The token itself is the single-use credential — never the email
   // address, a user id, or any entitlement/payment detail (Prompt 52 §8).
-  const loginUrl = `${origin}/api/auth/verify?token=${token}`;
+  // Auth/session redesign: it travels in the URL FRAGMENT, which browsers
+  // never send to a server, so it can't land in access logs or a Referer.
+  // /auth/confirm asks the person to confirm and then POSTs it. (Links sent
+  // before this change still work: GET /api/auth/verify?token= redirects
+  // to the same page.)
+  const loginUrl = `${origin}/auth/confirm#token=${token}`;
 
   try {
     await getEmailProvider().sendMagicLinkEmail({ email: normalized, loginUrl });

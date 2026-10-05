@@ -143,7 +143,8 @@ describe('I: existing anonymous user can claim an unused email', () => {
     db = openDatabase(':memory:');
     const anon = await createAnonymousUser(db, generateLoginToken());
     const raw = await createLoginToken(db, 'claim@example.com', anon.id);
-    const result = await consumeLoginToken(db, raw);
+    // Auth redesign: the SAME browser (anon) presents the link it requested.
+    const result = await consumeLoginToken(db, raw, anon.id);
     expect(result).toEqual({ ok: true, userId: anon.id, sessionToken: expect.any(String) });
 
     const row = await db.queryOne<{ email: string | null }>('SELECT email FROM users WHERE id = ?', [anon.id]);
@@ -156,7 +157,7 @@ describe('J/K: existing account login resolves the existing users.id, never crea
     db = openDatabase(':memory:');
     const anon = await createAnonymousUser(db, generateLoginToken());
     const firstRaw = await createLoginToken(db, 'returning@example.com', anon.id);
-    const firstResult = await consumeLoginToken(db, firstRaw);
+    const firstResult = await consumeLoginToken(db, firstRaw, anon.id);
     expect(firstResult.ok).toBe(true);
     if (!firstResult.ok) return;
 
@@ -190,7 +191,7 @@ describe('L/M/N: entitlements, payment_requests, and preview_usage remain attach
     });
 
     const raw = await createLoginToken(db, 'claim2@example.com', anon.id);
-    const result = await consumeLoginToken(db, raw);
+    const result = await consumeLoginToken(db, raw, anon.id);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.userId).toBe(anon.id);
@@ -256,12 +257,9 @@ describe('O: conflicting duplicate email rows produce an explicit conflict, neve
 // Prompt 48 — closes the test gaps Prompt 47's security audit identified.
 // ---------------------------------------------------------------------------
 
-describe('Scenario D (Prompt 47 HIGH finding): anonymous user A attempts to claim an email that already belongs to existing user B', () => {
-  it('is refused as an explicit conflict — A and B are both left completely unchanged, no row is created, and no record is transferred', async () => {
+describe('Scenario D, auth redesign: an anonymous browser signs in to an email that already belongs to account B', () => {
+  async function setup() {
     db = openDatabase(':memory:');
-
-    // B already owns the email, via a real prior claim (attachEmailToUser
-    // — the same path a genuine first login takes), not a raw UPDATE.
     const userB = await createAnonymousUser(db, generateLoginToken());
     await attachEmailToUser(db, userB.id, 'shared@example.com');
     await grantEntitlement(db, userB.id, 'kanzul-mikban', 'manual-payment');
@@ -272,12 +270,6 @@ describe('Scenario D (Prompt 47 HIGH finding): anonymous user A attempts to clai
       maxUses: 3,
       active: true,
     });
-
-    // A is a genuinely separate, unrelated anonymous user with its own
-    // records, who requests a link for B's email — e.g. a typo, or an
-    // attempt to see what happens. Its own real anonymous session token
-    // is kept so we can prove afterward that A's own session survives
-    // untouched.
     const anonTokenA = generateLoginToken();
     const userA = await createAnonymousUser(db, anonTokenA);
     await grantEntitlement(db, userA.id, 'master-of-geomancy-vol-1', 'manual-payment');
@@ -288,96 +280,78 @@ describe('Scenario D (Prompt 47 HIGH finding): anonymous user A attempts to clai
       maxUses: 3,
       active: true,
     });
+    return { userA, userB, anonTokenA };
+  }
 
-    const beforeUserA = await db.queryOne('SELECT * FROM users WHERE id = ?', [userA.id]);
-    const beforeUserB = await db.queryOne('SELECT * FROM users WHERE id = ?', [userB.id]);
+  it('switches the browser to B (no dead end), claims A\'s records into B, keeps B\'s own records, creates no new user, and audits the claim', async () => {
+    const { userA, userB, anonTokenA } = await setup();
     const beforeUserCount = await countRows(db, 'users');
-    const beforeEntitlements = await db.query('SELECT * FROM entitlements ORDER BY id');
-    const beforePaymentRequests = await db.query('SELECT * FROM payment_requests ORDER BY id');
-    const beforePreviewUsage = await db.query('SELECT * FROM preview_usage ORDER BY user_id, preview_id');
+    const beforeB = await db.query('SELECT id FROM entitlements WHERE user_id = ? ORDER BY id', [userB.id]);
+    const totalRequests = (await db.query('SELECT id FROM payment_requests')).length;
 
-    // A requests a magic link for B's already-owned email — the request
-    // captures A's current anonymous id as the claim target, exactly as
-    // the real request-link route does via getCurrentUserIfPresent().
     const raw = await createLoginToken(db, 'shared@example.com', userA.id);
-    const result = await consumeLoginToken(db, raw);
+    const result = await consumeLoginToken(db, raw, userA.id);
+    expect(result).toEqual({ ok: true, userId: userB.id, sessionToken: expect.any(String) });
 
-    expect(result).toEqual({ ok: false, reason: 'conflict' });
+    // Everything A owned is now B's; B's own rows are all still there.
+    const entB = await db.query<{ product_id: string }>('SELECT product_id FROM entitlements WHERE user_id = ? ORDER BY product_id', [userB.id]);
+    expect(entB.map((e) => e.product_id)).toEqual(['kanzul-mikban', 'master-of-geomancy-vol-1']);
+    for (const row of beforeB as Array<{ id: string }>) {
+      expect(await db.queryOne('SELECT id FROM entitlements WHERE id = ? AND user_id = ?', [row.id, userB.id])).not.toBeNull();
+    }
+    expect(await db.query('SELECT id FROM entitlements WHERE user_id = ?', [userA.id])).toEqual([]);
+    expect(await db.query('SELECT id FROM payment_requests WHERE user_id = ?', [userB.id])).toHaveLength(totalRequests);
+    expect(await db.query('SELECT id FROM payment_requests WHERE user_id = ?', [userA.id])).toEqual([]);
+    expect(await db.query('SELECT preview_id FROM preview_usage WHERE user_id = ?', [userB.id])).toHaveLength(2);
 
-    // A is unchanged: still no email, same session_token_hash (no
-    // rotation happened for A — the conflict is detected and returned
-    // BEFORE rotateSessionToken is ever called).
-    const afterUserA = await db.queryOne('SELECT * FROM users WHERE id = ?', [userA.id]);
-    expect(afterUserA).toEqual(beforeUserA);
-    expect((afterUserA as { email: string | null }).email).toBeNull();
-
-    // B is unchanged: still owns the email, same session_token_hash (no
-    // session was ever authenticated as B by this attempt).
-    const afterUserB = await db.queryOne('SELECT * FROM users WHERE id = ?', [userB.id]);
-    expect(afterUserB).toEqual(beforeUserB);
-    expect((afterUserB as { email: string | null }).email).toBe('shared@example.com');
-
-    // No third users row was created.
+    // A is retired, not deleted; it is never given B's email; no new row.
+    const afterA = await db.queryOne<{ email: string | null }>('SELECT email FROM users WHERE id = ?', [userA.id]);
+    expect(afterA?.email).toBeNull();
     expect(await countRows(db, 'users')).toBe(beforeUserCount);
+    expect(await getUserByToken(db, anonTokenA)).toBeNull();
 
-    // Every entitlement/payment_request/preview_usage row, for BOTH
-    // accounts, is byte-for-byte unchanged — nothing was transferred,
-    // copied, or touched.
-    expect(await db.query('SELECT * FROM entitlements ORDER BY id')).toEqual(beforeEntitlements);
-    expect(await db.query('SELECT * FROM payment_requests ORDER BY id')).toEqual(beforePaymentRequests);
-    expect(await db.query('SELECT * FROM preview_usage ORDER BY user_id, preview_id')).toEqual(beforePreviewUsage);
+    // One audit row records exactly who was claimed into whom.
+    const audit = await db.query<{ anonymous_user_id: string; account_user_id: string; method: string }>(
+      'SELECT anonymous_user_id, account_user_id, method FROM identity_claims',
+    );
+    expect(audit).toEqual([{ anonymous_user_id: userA.id, account_user_id: userB.id, method: 'magic-link' }]);
 
-    // A's original anonymous session token still resolves to A — proving
-    // A's own session was never disturbed by the rejected attempt.
-    const stillA = await getUserByToken(db, anonTokenA);
-    expect(stillA?.id).toBe(userA.id);
+    // The token stays single-use.
+    expect(await consumeLoginToken(db, raw, userA.id)).toEqual({ ok: false, reason: 'used' });
+  });
 
-    // Token reuse after a conflict (Prompt 48 §6): the SAME token cannot
-    // be consumed again to try for a different outcome. The
-    // implementation marks used_at before branching into the
-    // conflict/already-linked/success decision (see consumeLoginToken's
-    // own comment), so a second attempt is rejected as already `used` —
-    // this is the existing, intentional, secure behavior: a conflict
-    // result still permanently spends the token, closing off any retry
-    // that might race a since-resolved conflict into a different outcome.
-    const secondAttempt = await consumeLoginToken(db, raw);
-    expect(secondAttempt).toEqual({ ok: false, reason: 'used' });
+  it('a link opened in a DIFFERENT browser than the one that requested it signs that browser in but claims nothing', async () => {
+    const { userA, userB, anonTokenA } = await setup();
+    const otherBrowser = await createAnonymousUser(db, generateLoginToken());
+    const raw = await createLoginToken(db, 'shared@example.com', userA.id);
+    const result = await consumeLoginToken(db, raw, otherBrowser.id);
+    expect(result).toEqual({ ok: true, userId: userB.id, sessionToken: expect.any(String) });
+    expect(await db.query('SELECT id FROM entitlements WHERE user_id = ?', [userA.id])).toHaveLength(1);
+    expect(await db.query('SELECT id FROM identity_claims')).toEqual([]);
+    expect((await getUserByToken(db, anonTokenA))?.id).toBe(userA.id);
   });
 });
 
-describe('already-linked (Prompt 47 MEDIUM finding): the current claim identity already has a DIFFERENT verified email', () => {
-  it('is refused with the existing "already-linked" reason — the original email stays attached, the new one is never attached anywhere, and no record changes', async () => {
+describe('a browser signed in to one email account signs in to a DIFFERENT email', () => {
+  it('switches to the second account without ever merging the two accounts', async () => {
     db = openDatabase(':memory:');
-
     const userA = await createAnonymousUser(db, generateLoginToken());
     await attachEmailToUser(db, userA.id, 'first@example.com');
     await grantEntitlement(db, userA.id, 'kanzul-mikban', 'manual-payment');
-    await createPaymentRequest(db, userA.id, 'kanzul-mikban', 'TXN-FIRST-EMAIL');
-
-    const beforeUsers = await db.query('SELECT * FROM users ORDER BY id');
     const beforeEntitlements = await db.query('SELECT * FROM entitlements ORDER BY id');
-    const beforePaymentRequests = await db.query('SELECT * FROM payment_requests ORDER BY id');
-    const beforeUserCount = await countRows(db, 'users');
 
-    // A different token, requested from the SAME already-linked
-    // anonymous session, for a DIFFERENT email.
     const raw = await createLoginToken(db, 'second@example.com', userA.id);
-    const result = await consumeLoginToken(db, raw);
+    const result = await consumeLoginToken(db, raw, userA.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.userId).not.toBe(userA.id);
 
-    expect(result).toEqual({ ok: false, reason: 'already-linked' });
-
-    const afterUserA = await db.queryOne<{ email: string | null }>('SELECT * FROM users WHERE id = ?', [userA.id]);
+    const afterUserA = await db.queryOne<{ email: string | null }>('SELECT email FROM users WHERE id = ?', [userA.id]);
     expect(afterUserA?.email).toBe('first@example.com');
-
-    // second@example.com was never attached to A, or created as anyone
-    // else's account.
-    const secondEmailOwners = await db.query('SELECT id FROM users WHERE email = ?', ['second@example.com']);
-    expect(secondEmailOwners).toEqual([]);
-
-    expect(await countRows(db, 'users')).toBe(beforeUserCount);
-    expect(await db.query('SELECT * FROM users ORDER BY id')).toEqual(beforeUsers);
+    const owners = await db.query<{ id: string }>('SELECT id FROM users WHERE email = ?', ['second@example.com']);
+    expect(owners).toEqual([{ id: result.userId }]);
     expect(await db.query('SELECT * FROM entitlements ORDER BY id')).toEqual(beforeEntitlements);
-    expect(await db.query('SELECT * FROM payment_requests ORDER BY id')).toEqual(beforePaymentRequests);
+    expect(await db.query('SELECT id FROM identity_claims')).toEqual([]);
   });
 });
 

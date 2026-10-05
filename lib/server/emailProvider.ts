@@ -11,8 +11,17 @@ export interface MagicLinkEmail {
   loginUrl: string;
 }
 
+/** Auth/session redesign, Phase 3: the 6-digit sign-in code. The code is
+ * only ever placed in the message body — never in a URL, never logged in
+ * production. */
+export interface SignInCodeEmail {
+  email: string;
+  code: string;
+}
+
 export interface EmailProvider {
   sendMagicLinkEmail(input: MagicLinkEmail): Promise<void>;
+  sendSignInCodeEmail(input: SignInCodeEmail): Promise<void>;
 }
 
 /** Thrown when production has no real provider configured (RESEND_API_KEY
@@ -55,6 +64,13 @@ class ConsoleEmailProvider implements EmailProvider {
     // eslint-disable-next-line no-console
     console.log(`[dev email] magic link for ${email}: ${loginUrl}`);
   }
+
+  // Development only (never selected when NODE_ENV is 'production' — see
+  // getEmailProvider): prints to the developer's own terminal, exactly like
+  // the magic link above. Production delivery is ResendEmailProvider.
+  async sendSignInCodeEmail({ email, code }: SignInCodeEmail): Promise<void> {
+    console.log(`[dev email] sign-in code for ${email}: ${code}`);
+  }
 }
 
 /** The subset of the Resend SDK's client this file actually calls —
@@ -82,6 +98,27 @@ function buildPlainTextBody(loginUrl: string): string {
   ].join('\n');
 }
 
+function buildCodePlainText(code: string): string {
+  return [
+    'Your Truth Geomancer sign-in code is:',
+    '',
+    code,
+    '',
+    'Enter it on the sign-in screen. It expires in 10 minutes and can be used once.',
+    "If you didn't request this, you can safely ignore this email — nobody can sign in without the code.",
+  ].join('\n');
+}
+
+function buildCodeHtml(code: string): string {
+  const escaped = escapeHtml(code);
+  return [
+    '<p>Your Truth Geomancer sign-in code is:</p>',
+    `<p style="font-size:28px;font-weight:bold;letter-spacing:6px">${escaped}</p>`,
+    '<p>Enter it on the sign-in screen. It expires in 10 minutes and can be used once.</p>',
+    "<p>If you didn't request this, you can safely ignore this email — nobody can sign in without the code.</p>",
+  ].join('');
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -106,7 +143,7 @@ function buildHtmlBody(loginUrl: string): string {
  * No click-tracking/link-rewriting is introduced here: this calls
  * Resend's transactional send API directly with the exact `loginUrl`
  * emailAuth.ts constructed (which already points straight at
- * `${APP_BASE_URL}/api/auth/verify?token=...`) — nothing in this class
+ * `${APP_BASE_URL}/auth/confirm#token=...`) — nothing in this class
  * rewrites, shortens, or proxies that URL (Prompt 52 §7). Resend does not
  * rewrite links by default; if a future change to the Resend account's
  * own dashboard settings enables click tracking, that is an operator
@@ -123,6 +160,23 @@ export class ResendEmailProvider implements EmailProvider {
   constructor(apiKey: string, fromAddress: string, client?: ResendLikeClient) {
     this.client = client ?? new Resend(apiKey);
     this.fromAddress = fromAddress;
+  }
+
+  async sendSignInCodeEmail({ email, code }: SignInCodeEmail): Promise<void> {
+    const { error } = await this.client.emails.send({
+      from: this.fromAddress,
+      to: email,
+      subject: 'Your Truth Geomancer sign-in code',
+      text: buildCodePlainText(code),
+      html: buildCodeHtml(code),
+    });
+    if (error) {
+      // Same sanitized line as sendMagicLinkEmail: never the code, the
+      // address, or Resend's own error detail.
+      // eslint-disable-next-line no-console
+      console.error('[email] Resend reported a delivery failure.');
+      throw new EmailDeliveryError();
+    }
   }
 
   async sendMagicLinkEmail({ email, loginUrl }: MagicLinkEmail): Promise<void> {

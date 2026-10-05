@@ -1,19 +1,23 @@
 import { Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from './Logo';
+import { AccountButton } from '@/components/auth/AccountButton';
 
 export function Header({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
     <header className="border-b border-sand/10 px-4 pb-3 pt-4">
       <div className="flex items-center justify-between">
         <Logo />
-        <Link
+        <div className="flex shrink-0 items-center gap-1.5">
+          <AccountButton />
+          <Link
           href="/settings"
           aria-label="Settings"
           className="flex h-8 w-8 items-center justify-center rounded-full border border-sand/15 text-sand/70"
         >
           <Settings size={16} />
-        </Link>
+          </Link>
+        </div>
       </div>
       {title ? (
         <div className="mt-3">

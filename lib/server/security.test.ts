@@ -104,6 +104,16 @@ describe('client cannot grant or revoke entitlements', () => {
       // The checkout/payment ledger (customer details + a record of each started
       // transaction). Writes only its own two tables; grants nothing.
       'paystackPayments',
+      // Auth/session redesign — the 6-digit code sign-in, the shared sign-in
+      // completion (which runs the audited anonymous-identity claim in the
+      // same transaction), and the same-origin guard. None of them reaches
+      // grantEntitlement/revokeEntitlement/consumePreviewUse (still enforced
+      // by the tests above); the claim only re-points EXISTING rows from the
+      // browser's own anonymous id to the verified account, audited in
+      // identity_claims (lib/server/auth/claim.ts).
+      'auth/emailCodes',
+      'auth/signIn',
+      'auth/requestGuards',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

@@ -20,6 +20,7 @@ vi.mock('next/navigation', () => ({
     throw new Error('NEXT_NOT_FOUND');
   },
   useRouter: () => ({ refresh() {}, push() {} }),
+  usePathname: () => '/purchase',
 }));
 
 import ProductPurchasePage from '../../app/purchase/[productId]/page';

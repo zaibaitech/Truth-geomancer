@@ -3,6 +3,7 @@ import { Search, Bell, Settings } from 'lucide-react';
 import { Emblem } from '@/components/layout/Logo';
 import { PatternOverlay } from '@/components/ui/PatternOverlay';
 import { AccountButton } from '@/components/auth/AccountButton';
+import type { AuthStatus } from '@/components/auth/useAuthStatus';
 
 function IconButton({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -21,7 +22,7 @@ function IconButton({ href, label, children }: { href: string; label: string; ch
 // original, more generous spacing from sm: up where the room exists. The
 // logo/tagline/icon sizes themselves are unchanged — the prompt is explicit
 // that legibility must not be sacrificed here, only unnecessary whitespace.
-export function DashboardHeader() {
+export function DashboardHeader({ initialAuth = null }: { initialAuth?: AuthStatus | null } = {}) {
   return (
     <header className="relative overflow-hidden border-b border-sand/10 bg-gradient-to-b from-ink-light/60 to-ink px-4 pb-3 pt-3.5 sm:pb-4 sm:pt-5">
       <PatternOverlay opacity={0.045} />
@@ -38,7 +39,7 @@ export function DashboardHeader() {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <AccountButton />
+          <AccountButton initialStatus={initialAuth} />
           <IconButton href="/search" label="Search">
             <Search size={15} />
           </IconButton>

@@ -171,7 +171,7 @@ describe('session cookie attributes', () => {
 describe('sign-in is discoverable where it is naturally needed', () => {
   it('the main header and dashboard header both render the AccountButton', () => {
     expect(read('components/layout/Header.tsx')).toMatch(/<AccountButton initialStatus=\{initialAuth\} \/>/);
-    expect(read('components/dashboard/DashboardHeader.tsx')).toMatch(/<AccountButton \/>/);
+    expect(read('components/dashboard/DashboardHeader.tsx')).toMatch(/<AccountButton initialStatus=\{initialAuth\} \/>/);
   });
 
   it('every book access gate card offers sign-in', () => {
@@ -218,5 +218,13 @@ describe('purchase pages pass the server-known sign-in state (no blank entry poi
     expect(page).toMatch(/const auth = \{ authenticated: Boolean\(user\?\.email\), email: user\?\.email \?\? null \};/);
     expect(page).toMatch(/<Header [^>]*initialAuth=\{auth\}/);
     expect(page).toMatch(/<SignInPrompt [^>]*initialStatus=\{auth\}/);
+  });
+});
+
+describe('homepage passes the server-known sign-in state, without personal data', () => {
+  it('app/page.tsx resolves the session and passes only the yes/no (the page is the offline shell)', () => {
+    const page = read('app/page.tsx');
+    expect(page).toMatch(/const initialAuth = \{ authenticated: Boolean\(user\?\.email\), email: null \};/);
+    expect(page).toMatch(/<DashboardHeader initialAuth=\{initialAuth\} \/>/);
   });
 });

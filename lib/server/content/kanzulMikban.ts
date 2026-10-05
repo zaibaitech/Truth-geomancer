@@ -38,6 +38,104 @@ export const KM_EDITION_NOTE: string[] = [
   "The dot-figures throughout the original were reconstructed from hand-drawn manuscript photographs; where a figure could not be read with confidence, this transcription marks the gap rather than guessing. Readers relying on this text for precise ritual or divinatory use are encouraged to verify any critical figure against the original manuscript pages.",
 ];
 
+export interface KmFrontMatterSection {
+  id: string;
+  title: string;
+  /** 1 = a main heading, 2 = a sub-heading under the main heading above it. */
+  level: 1 | 2;
+  paragraphs: string[];
+  /** A figure the source prints inside this section, as a canonical STARS id
+   * (the edition's own page-3 example: "even, odd, odd, even" = Ali). */
+  exampleFigureStarId?: string;
+}
+
+/** The authoritative edition's title pages (pages 1-2). */
+export const KM_TITLE_PAGE = {
+  title: "Kanzul Mikban",
+  subtitle: "A Manual of Geomancy (‘Ilm al-Raml)",
+  edition: "Transcribed and Compiled Edition",
+};
+
+/** The authoritative edition's front matter (pages 3-6), verbatim: the note on
+ * this edition and the glossary. The table of contents is the reader's chapter list. */
+export const KM_FRONT_MATTER: KmFrontMatterSection[] = [
+  {
+    id: "a-note-on-this-edition",
+    title: "A Note on This Edition",
+    level: 1,
+    paragraphs: ["This edition transcribes a handwritten manuscript notebook of geomantic (‘ilm al-raml) divination methods, gathered under the title Kanzul Mikban. It has been prepared for readability while preserving the wording and structure of the original as closely as possible."],
+  },
+  {
+    id: "reading-the-geomantic-figures",
+    title: "Reading the Geomantic Figures",
+    level: 2,
+    paragraphs: ["Each geomantic figure consists of four lines, read from the top line to the bottom line as in the original. Each line is shown as a small mark: a single diamond for an odd (single-dot) line, or two diamonds side by side for an even (double-dot) line. For example, the figure below has an even, odd, odd, even sequence of lines, top to bottom:"],
+    exampleFigureStarId: "ali",
+  },
+  {
+    id: "a-note-on-sources-for-the-figures",
+    title: "A Note on Sources for the Figures",
+    level: 2,
+    paragraphs: ["The dot-figures throughout this text were reconstructed from two sources: a direct, best-effort reading of the hand-drawn figures in the original manuscript photographs, and the compiler’s own knowledge of the correct figure for a given named star, supplied directly during the preparation of this edition. Readers relying on this text for precise ritual or divinatory use are encouraged to verify any critical figure against the original manuscript pages."],
+  },
+  {
+    id: "a-note-on-chapter-numbering",
+    title: "A Note on Chapter Numbering",
+    level: 2,
+    paragraphs: ["The chapters in this edition are numbered to match the numbers hand-written and circled by the author directly on the manuscript pages themselves, rather than the numbering used in the notebook’s own typed table of contents (where the same chapters were numbered nine places lower). The manuscript pages were taken as the primary source wherever the two disagreed."],
+  },
+  {
+    id: "a-glossary-of-terms-used-in-this-book",
+    title: "A Glossary of Terms Used in This Book",
+    level: 1,
+    paragraphs: ["This book assumes the reader already knows how to cast a geomancy chart, and moves straight into what each resulting chart means. If you have never encountered geomancy before, the terms below are used constantly throughout the chapters without being defined in the text itself."],
+  },
+  {
+    id: "the-chart-and-its-houses",
+    title: "The Chart and Its Houses",
+    level: 2,
+    paragraphs: ["A completed chart is made up of sixteen positions, called houses and numbered h1 through h16. Each house holds one figure — a stack of four lines, each line either a single dot (an odd count) or two dots side by side (an even count). Casting the chart — the process that fills all sixteen houses from an initial set of markings — is not covered in this book and is assumed knowledge; what follows here is entirely about reading a chart once it has already been cast."],
+  },
+  {
+    id: "elements",
+    title: "Elements",
+    level: 2,
+    paragraphs: ["Every figure is also associated with one of four elements — Fire, Air, Water, and Sand (earth) — and many methods ask you to isolate a specific element from a house or group of houses rather than reading the whole figure."],
+  },
+  {
+    id: "describing-a-star",
+    title: "Describing a Star",
+    level: 2,
+    paragraphs: ["The book regularly describes a figure (also called a star) using paired qualities: opened or closed (a single dot is opened, a double dot is closed), upward or downward, good, bad, or middle-good, male or female, day or night, and stable or unstable. These qualities are used throughout to characterize a figure once it has been identified in a chart."],
+  },
+  {
+    id: "groups-of-houses",
+    title: "Groups of Houses",
+    level: 2,
+    paragraphs: ["Several methods refer to the “first 4,” “second 4,” “third 4,” or “last 4” houses — meaning houses h1–h4, h5–h8, h9–h12, and h13–h16 respectively. A few chapters also use traditional names for these groups, for example Umuhat for the first four."],
+  },
+  {
+    id: "named-figures-and-special-techniques",
+    title: "Named Figures and Special Techniques",
+    level: 2,
+    paragraphs: ["Each of the sixteen possible figures also carries a traditional name (Adam, Ali, Umar, Mahadi, and so on), used throughout the book interchangeably with its dot-pattern. The book also refers to a handful of named techniques and constant figures used as recurring checks — among them Sirri Sa'ael (also called Damir), Itisal, Ifusal, and Nazir — and to sadaka, meaning a charitable offering, in several of the remedies given in the Dreams chapter."],
+  },
+];
+
+/** The authoritative edition's "Opening Invocation" (page 19), which comes
+ * immediately before Chapter One. */
+export const KM_OPENING_INVOCATION: KmFrontMatterSection = {
+  id: "opening-invocation",
+  title: "Opening Invocation",
+  level: 1,
+  paragraphs: [
+    "In the name of Allah, the Most Gracious, the Most Merciful.",
+    "Alhamdulillahi Always.",
+    "O Allah, bestow Your blessings upon our master Muhammad, the opener of what was closed, the seal of what came before, the defender of the truth with the truth, the guide to Your straight path, and upon his family, in accordance with his immense worth and lofty status.",
+    "This is a book called Kanzul Mikban, in the knowledge of geomancy.",
+  ],
+};
+
 export const KM_CHAPTERS: KmChapter[] = [
   {
     id: "traveling-business-and-if-you-will-return-from",
@@ -57,7 +155,7 @@ export const KM_CHAPTERS: KmChapter[] = [
       "Method 1: After drawing the chart, pick h3, h7, h11 and h15 and add them. If the water or fire element is opened (single dot), you will get money that day; if it's not, you will not get money.",
       "Method 2: After drawing the chart, pick h2 and h11 and add them. Add the result to h7 and check if it's in the chart — you will get money, but if it's not in the chart, you will not get anything.",
       "Method 3: Pick h3, h7, h11 and h15 water elements and form a star. If the water or fire element of that star is opened (single dot), then you will get money; if it's not, you will not get money that day.",
-      "Method 4: Also, check your Sirri Sa'ael (Damir); if it's any of the stars below, you will get whatever you are asking for or about: [figures omitted — symbols not preserved in this transcription]",
+      "Method 4: Also, check your Sirri Sa'ael (Damir); if it's any of the stars below, you will get whatever you are asking for or about: Usman, Nuhu, Mahadi, Ayuba",
     ],
   },
   {
@@ -84,8 +182,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 5,
     title: "If You Will Win a Fight, War, or Court Case",
     paragraphs: [
-      "After drawing the chart, check h6. If you see any of the following stars there, it means you will win it: Kalla Allahu, Ayuba, Musah, Mahadi, Adam, Ibrahim, Yunus (figures restored from the manuscript scan, shown by name). If you found any of the following stars in h1",
-      "and h8, it means it's not good and it will be difficult to succeed. They are as follows: Hassan & Hussein, Issah, Yunus, Ayuba (figures restored from the manuscript scan, shown by name).",
+      "After drawing the chart, check h6. If you see any of the following stars there, it means you will win it: Kalla Allahu, Ayuba, Musah, Mahadi, Adam, Ibrahim, Yunus. If you found any of the following stars in h1",
+      "and h8, it means it's not good and it will be difficult to succeed. They are as follows: Hassan & Hussein, Issah, Yunus, Ayuba.",
     ],
   },
   {
@@ -93,7 +191,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 6,
     title: "If You Want to Know Where Your Enemy or a Thief Is Hidden",
     paragraphs: [
-      "After drawing the chart, check h4 and h10. If you see any of the stars below in any of the houses, it means you will see or get him/her in an opened land or desert: Musah, Adam, Iddris, Ayuba (figures restored from the manuscript scan, shown by name).",
+      "After drawing the chart, check h4 and h10. If you see any of the stars below in any of the houses, it means you will see or get him/her in an opened land or desert: Musah, Adam, Iddris, Ayuba.",
     ],
   },
   {
@@ -104,7 +202,7 @@ export const KM_CHAPTERS: KmChapter[] = [
       "Method 1: After drawing the chart, pick h1, h7, h4 and h10, and add them. If you get a downward star and it's found in the chart, you will get her and it's good; but if it's an upward star and not found in the chart, it's not good for you.",
       "Method 2: Pick h4, h8, h14 and h16 sand elements and form a star. If found in the chart, it's good; but if it's not in the chart, it's not good for you even if you get her/him.",
       "Method 3: Pick h4, h6, h12 and h16 and add them. If your result is a sand star or fire star, it's good; if it's otherwise, it's not good for you.",
-      "Method 4: Check h7. If you see [figures omitted — symbols not preserved in this transcription] it means you will get a colored or white lady with a child. She's a sick person and will bring you a lot of financial difficulties. She will not get you a child nor blessings in the relationship or marriage. If it's, it means you will get a short lady/man; she/he cannot stay in the marriage — there will be a divorce even if you marry her/him. If it's, you will get a colored and beautiful lady; she will bring you lots of success and children. If it's, you will get a dark lady far from your town — it's also a good marriage. If it's, you will get a colored lady; it's good, but she will have too much jealousy and wouldn't want you to marry another.",
+      "Method 4: Check h7. If you see Iddris, Umar, Yunus, Ayuba, it means you will get a colored or white lady with a child. She's a sick person and will bring you a lot of financial difficulties. She will not get you a child nor blessings in the relationship or marriage. If it's Sulemana, it means you will get a short lady/man; she/he cannot stay in the marriage — there will be a divorce even if you marry her/him. If it's Nuhu, you will get a colored and beautiful lady; she will bring you lots of success and children. If it's Usman, you will get a dark lady far from your town — it's also a good marriage. If it's Umar, you will get a colored lady; it's good, but she will have too much jealousy and wouldn't want you to marry another.",
     ],
   },
   {
@@ -154,7 +252,7 @@ export const KM_CHAPTERS: KmChapter[] = [
   },
   {
     id: "if-you-want-to-know-if-you-will-2",
-    number: 11,
+    number: null,
     title: "If You Want to Know If You Will Be Successful in Life, at Home, or Have to Travel Away from Home",
     paragraphs: [
       "Method 1: Pick (h1 and h2) then (h7 and h8) and add them. If it's a downward star, you will be successful at home; but if it's an upward star, you have to run from home.",
@@ -177,7 +275,7 @@ export const KM_CHAPTERS: KmChapter[] = [
       "Method 1: Pick h1 fire element, h5 air element, h4 water element, and h10 sand element, and form a star. If it's a good and downward star, and also found in the chart, you will get children early and many kids. If it's a good star but not in the chart, you will get kids but not early. If it's a bad star, you won't.",
       "Method 2: Pick h1, h5, h11 and h14 and add them. If it's fire star, you will have kids very fast. If it's air star, you will get kids but it",
       "will take a long time. If it's water or sand star, it will be difficult to have a kid with her.",
-      "Method 3: If you found the following stars in house 5, it means she will get pregnant early for you: [figures omitted — symbols not preserved in this transcription]. [figures omitted — symbols not preserved in this transcription]. If it's [figures omitted — symbols not preserved in this transcription] she will get pregnant early with no problems. If it's: [figures omitted — symbols not preserved in this transcription] it takes time before she can get pregnant. If it's [figures omitted — symbols not preserved in this transcription] she will get pregnant early but it will be disturbing her — mostly it's jinn spirits that normally cause these problems. If it's [figures omitted — symbols not preserved in this transcription] she will be getting miscarriages, or the kids will be dying — it's caused by witchcraft of enemies, sometimes jinn spirits, which is difficult to cure. If it's: [figures omitted — symbols not preserved in this transcription] it's difficult for her to have a kid.",
+      "Method 3: If you found the following stars in house 5, it means she will get pregnant early for you: Mahadi, Usman, Nuhu. Adam, Issah, Ayuba. If it's Usman, Yunus, Mahadi, Ibrahim, she will get pregnant early with no problems. If it's: Adam, Yussif, Musah, Kalla Allahu, it takes time before she can get pregnant. If it's Hassan & Hussein, Issah, Iddris, she will get pregnant early but it will be disturbing her — mostly it's jinn spirits that normally cause these problems. If it's Ayuba, Umar, she will be getting miscarriages, or the kids will be dying — it's caused by witchcraft of enemies, sometimes jinn spirits, which is difficult to cure. If it's: Umar, Ali, it's difficult for her to have a kid.",
       "Method 4: Pick h6 and h10 and add them. If it's a downward star, she will (have kids); but if it's upward, she will not.",
       "Method 5: Pick h2, h5, h7 and h15 water elements and form a star. If the water element is opened (single dot), she will — and if it's a good star too, she will — but if it's not, she will not have kids.",
     ],
@@ -227,8 +325,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If You Will Get Your Stolen Things Back",
     paragraphs: [
       "Part A — If they will steal you:",
-      "Method 1: Pick h4 and h10 and add them. If you get: [figures omitted — symbols not preserved in this transcription] they will steal you no matter what happens; but if it's not any of the above stars, they won't steal you.",
-      "Method 2: Pick h9 and h10 and add them. If you get [figures omitted — symbols not preserved in this transcription] don't do any business with your money — you will get defrauded. Or don't stay in that area — they will steal your money.",
+      "Method 1: Pick h4 and h10 and add them. If you get: Usman, Sulemana, Ibrahim, Yunus, they will steal you no matter what happens; but if it's not any of the above stars, they won't steal you.",
+      "Method 2: Pick h9 and h10 and add them. If you get Nuhu, Ayuba, Ibrahim, Sulemana, don't do any business with your money — you will get defrauded. Or don't stay in that area — they will steal your money.",
       "Method 3: Pick h1 and h5 and add them. If your result is in the chart, it means they will steal you; but if it's not found, they won't steal you — you can stay there and do your business. Part B — If you will get your stolen things back:",
       "Method 1: After casting the chart, pick h1 and h5 and add them. If your result is found in the chart, you will see them, or it's not gone far from you and you can still get them; but if it's not found in the chart, you won't see them again.",
       "Method 2: Pick h7 and h8 and add them. If it's a downward star, you will get them back; but if it's an upward star, you won't get them again.",
@@ -312,10 +410,10 @@ export const KM_CHAPTERS: KmChapter[] = [
   {
     id: "if-there-will-be-a-fight-argument-etc",
     number: 26,
-    title: "If There Will Be a Fight, Argument, etc",
+    title: "If There Will Be a Fight, Argument, etc.",
     paragraphs: [
-      ". After casting the chart, check h2 and h1. If you found: [figures omitted — symbols not preserved in this transcription] it means there will be a fight or misunderstanding in the family or",
-      "between some people in town. But if you found:, in h9, it means there will be peace. If you draw a chart and your Sirri Sa'ael (Damir) is [figures omitted — symbols not preserved in this transcription] it means you will have a fight with, or disagreement with, someone. If you found any of the above stars in h8, it means the fight is going to be very bad and may affect many people around you. If you found any of the stars above in h12, it means the fight may claim the life of some good people, or a person, in your family or around you. Get a red sheep or cow for Muslims to recite the Qur'an, for the whole family, to avert the problem. If you found: [figures omitted — symbols not preserved in this transcription] in h14, it means you will get a car, motorbike, bicycle, a horse, or something that can take you from place to place.",
+      ". After casting the chart, check h2 and h1. If you found: Ayuba, Sulemana, it means there will be a fight or misunderstanding in the family or",
+      "between some people in town. But if you found: Ali, Issah, in h9, it means there will be peace. If you draw a chart and your Sirri Sa'ael (Damir) is Ayuba, Sulemana, Musah, it means you will have a fight with, or disagreement with, someone. If you found any of the above stars in h8, it means the fight is going to be very bad and may affect many people around you. If you found any of the stars above in h12, it means the fight may claim the life of some good people, or a person, in your family or around you. Get a red sheep or cow for Muslims to recite the Qur'an, for the whole family, to avert the problem. If you found: Usman, Yunus, Mahadi in h14, it means you will get a car, motorbike, bicycle, a horse, or something that can take you from place to place.",
     ],
   },
   {
@@ -343,7 +441,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If You Will Be Successful Where You Are Going",
     paragraphs: [
       "After casting the chart, pick h3, h7, h11 and h15 and add them. If the element of the star you got is opened (single dot), then you will be successful in the place where you want to go; but if it's closed, it won't work. The stars that have their water elements opened",
-      "(single dot) are as follows: [figures omitted — symbols not preserved in this transcription]",
+      "(single dot) are as follows: Nuhu, Yunus, Hassan & Hussein, Ali, Mahadi, Issah, Ibrahim, Iddris",
     ],
   },
   {
@@ -360,7 +458,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: null,
     title: "Continued from Part 1 — Reading the Gift/Visitor Figures (end of Chapter Twenty-Eight/Twenty-Nine material)",
     paragraphs: [
-      "— Reading the Gift/Visitor Figures (end of Chapter Twenty- Eight/Twenty-Nine material)...through her you will be successful. If you get:, it means you will get gold and diamond, or you will get animals, and after that you will get a lot of blessings. If you get:, it means you will get all your requests from Allah without stress or time delay.",
+      "...through her you will be successful. If you get:, it means you will get gold and diamond, or you will get animals, and after that you will get a lot of blessings. If you get:, it means you will get all your requests from Allah without stress or time delay.",
     ],
   },
   {
@@ -387,7 +485,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If It Will Rain Today or Not",
     paragraphs: [
       "Method 1: After casting the chart, check if Ali is following each other in the chart. If they are, then it will rain.",
-      "Method 2: After drawing the chart, check h4. If you found Kallah Allahu there, it is going to rain.",
+      "Method 2: After drawing the chart, check h4. If you found Kallah Allahu ⟦kalla-allahu⟧ there, it is going to rain.",
       "Method 3: If you found Iddris in h9, it is going to rain, insha'Allah.",
       "Method 4: Also, when water stars are following each other in a chart, it talks about rain.",
     ],
@@ -477,8 +575,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 42,
     title: "If You Will Get What You Want from Where You Are Going",
     paragraphs: [
-      "Method 1: After drawing the chart, pick h4 and h15 and add them. If it's a good and downward star like: [figures omitted — symbols not preserved in this transcription] it's good and you will be successful. If it's money or job, or a lady/man, that",
-      "you want, it will be good and stable. If it's a good and upward star like: [figures omitted — symbols not preserved in this transcription] you will get it but it won't be stable — it will leave you, or you will lose it as time goes on. If it's middle-good star, they will be tossing you up and down, or you will keep long before you get it. Forget it if it's a bad star — it won't work for you.",
+      "Method 1: After drawing the chart, pick h4 and h15 and add them. If it's a good and downward star like: Mahadi, Usman, Nuhu, it's good and you will be successful. If it's money or job, or a lady/man, that",
+      "you want, it will be good and stable. If it's a good and upward star like: Adam, Kalla Allahu, you will get it but it won't be stable — it will leave you, or you will lose it as time goes on. If it's middle-good star, they will be tossing you up and down, or you will keep long before you get it. Forget it if it's a bad star — it won't work for you.",
       "Method 2: Pick h1 and h5 and add them. If you get a good star, it's good to go; but if it's a bad star, don't go, please — it won't work for you.",
     ],
   },
@@ -512,7 +610,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "How to Make One Win Over the Other Opponents (Enemies)",
     paragraphs: [
       "After drawing the chart, pick h12 and put it, or mix it, inside h11 on a paper. Then fold it and put a heavy stone on it — for example,",
-      "fixing Star (1) Yusuf inside Star (3) Mahadi [talismanic diagram in the original — not reproduced here; see original scan].",
+      "fixing Star (1) Yusuf ⟦yussif⟧ inside Star (3) Mahadi [talismanic diagram in the original — not reproduced here; see original scan].",
     ],
   },
   {
@@ -538,7 +636,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 49,
     title: "If Something Is Closer to You or Far Away from You",
     paragraphs: [
-      "After drawing the chart, pick h5, h7, h11 and h13 and add them. If it's fire stars [figures omitted — symbols not preserved in this transcription] or water stars [figures omitted — symbols not preserved in this transcription] it's closer to you; but if it's air stars or sand star [figures omitted — symbols not preserved in this transcription] or [figures omitted — symbols not preserved in this transcription] it's far away from you.",
+      "After drawing the chart, pick h5, h7, h11 and h13 and add them. If it's fire stars Yussif, Musah, Sulemana, Kalla Allahu or water stars Ibrahim, Iddris, Issah, Hassan & Hussein, it's closer to you; but if it's air stars or sand star Usman, Umar, Mahadi, Ali or Nuhu, Yunus, Sulemana, Ayuba, it's far away from you.",
     ],
   },
   {
@@ -639,7 +737,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     paragraphs: [
       "Method 1: After casting the chart, pick h1, h5, h9 and h13 and add them. Use whatever star you get to talk to the person.",
       "Method 2: After drawing the chart, let the querent him/herself choose any star of his/her choice. Whatever star he/she chose, that is the problem that brought him/her.",
-      "Method 3: After drawing the chart, add Yusuf: to any star found in a house and use it to talk.",
+      "Method 3: After drawing the chart, add Yusuf: ⟦yussif⟧ to any star found in a house and use it to talk.",
     ],
   },
   {
@@ -647,7 +745,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 60,
     title: "If She/He Loves You or Not",
     paragraphs: [
-      "Method 1: After drawing the chart, pick h1 and h5 and add them. If it's a good and downward star like: [figures omitted — symbols not preserved in this transcription] then he/she really loves you very much. If it's a good and upward star like [figures omitted — symbols not preserved in this transcription] it means he/she does, but not much, or there might be a divorce or separation in future. If it's a middle-good star, it means there's double dating or cheating. If it's a bad star, it means she/he doesn't love you at all.",
+      "Method 1: After drawing the chart, pick h1 and h5 and add them. If it's a good and downward star like: Mahadi, Usman, Nuhu, then he/she really loves you very much. If it's a good and upward star like Adam, Kalla Allahu, it means he/she does, but not much, or there might be a divorce or separation in future. If it's a middle-good star, it means there's double dating or cheating. If it's a bad star, it means she/he doesn't love you at all.",
       "Method 2: After drawing the chart, check h7. If it's a good star, he/she loves you. If it's a middle-good star, he/she is double dating. And if it's a bad star, he/she does not love you.",
     ],
   },
@@ -656,7 +754,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 61,
     title: "If a Marriage Is Good or Not",
     paragraphs: [
-      "Method 1: After casting the chart, check h7. If it's a good star like22121 [figures omitted — symbols not preserved in this transcription] then it's very good. If it's a middle- good star, it's partially good. If it's a bad star, it's not good at all.",
+      "Method 1: After casting the chart, check h7. If it's a good star like22121 Nuhu, Kalla Allahu, Adam, then it's very good. If it's a middle- good star, it's partially good. If it's a bad star, it's not good at all.",
       "Method 2: Pick h3, h7, h11 and h14 and add them. If it's a good star, it's good; if it's a bad star, it's not good.",
     ],
   },
@@ -750,7 +848,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If a Pregnant Woman Will Have Childbirth Problems in Her Marriage",
     paragraphs: [
       "Method 1: After casting the chart, check h7. If it's Yunus, it means it will be difficult for her to have kids.",
-      "Method 2: Check h5; if it's Yusuf, it means she's going to have a childbirth problem in her life.",
+      "Method 2: Check h5; if it's Yusuf ⟦yussif⟧, it means she's going to have a childbirth problem in her life.",
     ],
   },
   {
@@ -775,8 +873,8 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 73,
     title: "If a Woman Has Married More Than One Man at the Same Time (Polyandry)",
     paragraphs: [
-      "After drawing the chart, check h7. If it's Ibrahim, it means she has 4 men at the same time. If it's Umar or Yunus, it means she has 3 men. If it's Adam or Kallah Allahu, it means she has 5 men. If it's Osman/Uthman, Nuhu, or Iddris, it means she has just one man. If it's Musah, it means she has married two brothers from the same mother at",
-      "the same time, and one has died, leaving one. If it's Sulemana, it means her first husband will die before she marries again. If it's Ali, it means she has married just one man and he died. If it's Issah, it means she has not married at all. If it's Yusuf, Mahadi, Hassan and Hussein, or Ayuba, it means she has married two men from different families.",
+      "After drawing the chart, check h7. If it's Ibrahim, it means she has 4 men at the same time. If it's Umar or Yunus, it means she has 3 men. If it's Adam or Kallah Allahu ⟦kalla-allahu⟧, it means she has 5 men. If it's Osman/Uthman ⟦usman⟧, Nuhu, or Iddris, it means she has just one man. If it's Musah, it means she has married two brothers from the same mother at",
+      "the same time, and one has died, leaving one. If it's Sulemana, it means her first husband will die before she marries again. If it's Ali, it means she has married just one man and he died. If it's Issah, it means she has not married at all. If it's Yusuf ⟦yussif⟧, Mahadi, Hassan and Hussein ⟦hassan-hussein⟧, or Ayuba, it means she has married two men from different families.",
     ],
   },
   {
@@ -792,7 +890,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 75,
     title: "If He/She Is a Womanizer or a Harlot",
     paragraphs: [
-      "After drawing the chart, pick h7 and h9 and add them. If the star is Kallah Allah or Yusuf, then he/she is sleeping around; but if it's not, she/he is not.",
+      "After drawing the chart, pick h7 and h9 and add them. If the star is Kallah Allah ⟦kalla-allahu⟧ or Yusuf ⟦yussif⟧, then he/she is sleeping around; but if it's not, she/he is not.",
     ],
   },
   {
@@ -926,7 +1024,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 90,
     title: "If Someone's Misery Will Be Taken Away from Him/Her or Not",
     paragraphs: [
-      "Method 1: After drawing the chart, count all the dots of the bad stars in the chart and start subtracting 12, 12. If your result is 9, it means; if it's 12, it means; if it's 1, it means, etc. Check if the star is a good star or a bad star.",
+      "Method 1: After drawing the chart, count all the dots of the bad stars in the chart and start subtracting 12, 12. If your result is 9, it means Kalla Allahu; if it's 12, it means Nuhu; if it's 1, it means Yussif, etc. Check if the star is a good star or a bad star.",
       "Method 2: Count all the good stars in the chart. If they are more than the bad stars, it means your misery will come to an end; but if the bad stars are more than the good stars, it means it will be difficult for you to overcome it in your life.",
     ],
   },
@@ -968,7 +1066,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 95,
     title: "The Stars That Talk About Your Youthful Time, Middle Age, and Old Age",
     paragraphs: [
-      "1. Youthful — [figures omitted — symbols not preserved in this transcription] 2. Middle-Youth — [figures omitted — symbols not preserved in this transcription] 3. Youth and Old Age — [figures omitted — symbols not preserved in this transcription]",
+      "1. Youthful — Yunus, Hassan & Hussein, Umar, Nuhu, Iddris, Issah 2. Middle-Youth — Usman, Musah, Kalla Allahu, Ibrahim, Ali, Yussif 3. Youth and Old Age — Adam, Ayuba, Sulemana",
     ],
   },
   {
@@ -1076,7 +1174,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 106,
     title: "Parts of the Human Body and the Stars Representing Them",
     paragraphs: [
-      "1. Head — 10. Right thigh — 2. Neck — 11. Left thigh — 3. Chest — 12. Right leg — 4. Right side — 13. Left leg — 5. Left side — 14. Navel — 6. Right hand — 15. Manhood — 7. Left hand — 16. Womanhood — 8. Ribs — 9. Backbone (Back) —",
+      "1. Head — Sulemana 10. Right thigh — Issah 2. Neck — Sulemana 11. Left thigh — Usman 3. Chest — Iddris 12. Right leg — Mahadi 4. Right side — Kalla Allahu 13. Left leg — Hassan & Hussein 5. Left side — Nuhu 14. Navel — Umar 6. Right hand — Yussif 15. Manhood — Ibrahim 7. Left hand — Yunus 16. Womanhood — Ayuba 8. Ribs — Ali 9. Backbone (Back) Musah —",
     ],
   },
   {
@@ -1084,7 +1182,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 107,
     title: "If You Will See What You Are Searching For or Not (Nazir)",
     paragraphs: [
-      "After drawing the chart, pick the constant figure of Nazir",
+      "After drawing the chart, pick the constant figure of Nazir ⟦adam⟧",
       "and add it to any star found in house 1. If the star is found in the chart, you will see it, and the vice versa. If it's found in the first 4 houses in the chart (Umuhat), you will see it within some seconds or days. If it's found in the second 4 houses (Banat), you will see it within some minutes or weeks. If it's found in the third 4 houses (Hafidat), you will see it within some hours or months. And if you found it in the last 4 houses (Sumurakat), you may not see it again, or you may see it within many hours or years.",
     ],
   },
@@ -1093,7 +1191,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 108,
     title: "If You Will Get to Talk to Someone, or If Conversation Will Take Place Between Two People",
     paragraphs: [
-      "After drawing the chart, pick the constant figure of Nutik",
+      "After drawing the chart, pick the constant figure of Nutik ⟦umar⟧",
       "and add it to any star found in house 1. Check if it's found in the chart — it means conversation will take place, and vice versa. If it's",
       "found in the first 4, second 4, third 4, or last 4 houses in the chart, the explanation is the same as above (for how soon).",
     ],
@@ -1103,7 +1201,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 118,
     title: "If You Will Get What You Are Searching For, in a Place (Itisal)",
     paragraphs: [
-      "After casting the chart, pick the constant figure of Itisal and add it to any star found in house 1, and check if it is found in the chart. If it is, you will get it; but if it is not in the chart, you will not get it. If it is found in the first 4, second 4, third 4, or last 4 houses, it is the same explanation as above in (Nazir).",
+      "After casting the chart, pick the constant figure of Itisal ⟦iddris⟧ and add it to any star found in house 1, and check if it is found in the chart. If it is, you will get it; but if it is not in the chart, you will not get it. If it is found in the first 4, second 4, third 4, or last 4 houses, it is the same explanation as above in (Nazir).",
     ],
   },
   {
@@ -1111,7 +1209,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 119,
     title: "If You Won't Get What You Are Searching For (Ifusal)",
     paragraphs: [
-      "To know what will block or stop you from getting what you want: after drawing the chart, pick the constant figure of Ifusal and add it to any star found in house 1, and check if it is found in the chart. If it is, it means you won't get what you are searching for.",
+      "To know what will block or stop you from getting what you want: after drawing the chart, pick the constant figure of Ifusal ⟦ayuba⟧ and add it to any star found in house 1, and check if it is found in the chart. If it is, it means you won't get what you are searching for.",
       "If you want to know how long it will take, check the star: if it is found in the first 4, second 4, third 4, or last 4 houses, it is the same explanation as in Nazir.",
     ],
   },
@@ -1129,7 +1227,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     number: 121,
     title: "If You Will Get Knowledge or Not in Your Life",
     paragraphs: [
-      "After casting the chart, check h1. If you get Adam, or Ali, found in h9 or h11, it means you will get knowledge and wisdom in future.",
+      "After casting the chart, check h1. If you get Adam ⟦usman⟧, or Ali, found in h9 or h11, it means you will get knowledge and wisdom in future.",
     ],
   },
   {
@@ -1223,7 +1321,7 @@ export const KM_CHAPTERS: KmChapter[] = [
     title: "If There's a Hidden Treasure (Gold/Money) in a Particular Place",
     paragraphs: [
       "Method 1: After casting the chart, pick h4 and h6 and add them. If it's one of the following stars, there is [treasure]; but if it's not, there is nothing there. The stars are as follows: Usman, Yussif, Sulemana, Iddris",
-      "Method 2: Also, if you get Usman, Mahadi, Nuhu or in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
+      "Method 2: Also, if you get Usman, Mahadi, or Nuhu in your chart, then there's something; but if it's not any of the above stars, then there's nothing there.",
       "Method 3: Also, if your h1 is a downward star or a stable star, it means there's something; but if it is not, there's nothing.",
     ],
   },

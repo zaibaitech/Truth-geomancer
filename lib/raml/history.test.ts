@@ -43,6 +43,7 @@ import {
   type ReadingRecord,
 } from './history';
 import type { Pattern } from '@/content/stars';
+import { toCustomerReading } from '@/lib/server/raml/readingService';
 
 // ---------------------------------------------------------------------------
 // A localStorage stand-in, so the storage-bound behaviour is really exercised
@@ -228,7 +229,9 @@ describe('replay', () => {
       // The result as history rebuilds it, from storage alone.
       const roundTripped = parseHistory(serializeHistory([record({ questionId })]))[0];
       const replayed = (await describeReading(roundTripped)).result;
-      expect(replayed, questionId).toEqual(original);
+      // History shows the customer-safe wording (internal review notes replaced by
+      // the neutral source-limitation line); every computed field is identical.
+      expect(replayed, questionId).toEqual(toCustomerReading(original));
     }
   });
 
@@ -443,7 +446,7 @@ describe('migration from the pre-history records', () => {
     const entry = await describeReading(toRecord(legacy)!);
     expect(entry.title).toBe('Business, profit, and loss');
     expect(entry.intentionText).toBe('Will the shop work out?');
-    expect(entry.result).toEqual(runReading(buildChart(MOTHERS), 'business-profit-and-loss'));
+    expect(entry.result).toEqual(toCustomerReading(runReading(buildChart(MOTHERS), 'business-profit-and-loss')!));
   });
 
   it('persists the migration once, in place, without losing anything', () => {

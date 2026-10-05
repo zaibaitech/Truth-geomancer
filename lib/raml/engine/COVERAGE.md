@@ -5355,3 +5355,15 @@ above.
   M1/M2 and ch.95.
 - **Registry totals now:** 142 questions / 233 methods — 205 verified, 20
   needs_review, 8 uncertain; 0 methods coded `figures_omitted_by_transcription`.
+
+### PDF-to-app parity (later)
+
+The book text itself was then brought to parity with the authoritative PDF
+(`KANZUL_PDF_PARITY_REPORT.md`, `kanzul-pdf-parity.test.ts`): every figure the
+edition draws is now in the app text — including chapters 29, 42, 49, 60, 61 and
+the other chapters previously left with an illustrative placeholder — so **no
+`[figures omitted]` placeholder remains**, the front matter and Opening
+Invocation are shown, and chapter 11 is unnumbered as printed. The engine
+classifications above are unchanged: a method the book fully describes but the
+engine cannot apply (ch.7 M4, ch.13 M3, ch.142) shows its text in full and is
+only withheld from the automatic reading.

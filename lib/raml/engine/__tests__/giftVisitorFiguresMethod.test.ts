@@ -195,7 +195,8 @@ describe('the verdict reports only the found fact and the gift-figure match — 
 
       if (f.giftNumber === null) {
         expect(verdict.outcome).toBe('uncertain');
-        expect(verdict.interpretation).toContain('is not one of the eight figures this restoration has recovered');
+        expect(verdict.interpretation).toContain('is not one of the eight figures the source gives a specific gift/visitor meaning for');
+        expect(verdict.interpretation).not.toMatch(/restoration|recovered|not yet/i); // no internal wording reaches a customer
         expect(verdict.descriptiveAnswer).toBeUndefined();
       } else {
         expect(verdict.outcome).toBe('descriptive');

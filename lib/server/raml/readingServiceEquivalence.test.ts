@@ -10,7 +10,9 @@ import { describe, expect, it } from 'vitest';
 import { runReading } from '@/lib/raml/engine';
 import { resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
 import { fixtureChart } from '@/lib/raml/engine/__tests__/fixtures';
-import { getReadingResult } from './readingService';
+import { QUESTION_REGISTRY } from '@/lib/raml/engine/questions';
+import { AUTOMATIC_READING_UNAVAILABLE_NOTICE, SOURCE_INCOMPLETE_NOTICE } from '@/lib/raml/customerText';
+import { getReadingResult, toCustomerReading } from './readingService';
 
 const chart = fixtureChart();
 
@@ -24,20 +26,50 @@ const CASES = {
   insufficient: 'if-a-pregnancy-is-going-to-be-stable',
 } as const;
 
-describe('getReadingResult produces byte-identical output to calling runReading() directly', () => {
+describe('getReadingResult equals runReading() with only the customer-facing wording changed', () => {
   for (const [label, questionId] of Object.entries(CASES)) {
     it(`${label}: ${questionId}`, () => {
-      expect(getReadingResult(chart, questionId)).toEqual(runReading(chart, questionId));
+      expect(getReadingResult(chart, questionId)).toEqual(toCustomerReading(runReading(chart, questionId)!));
     });
   }
 
   it('a consolidated duplicate resolves to the same result as its canonical question', () => {
     const resolved = resolveEngineQuestionId('if-a-sick-person-has-long-life-repeated');
-    expect(getReadingResult(chart, resolved)).toEqual(runReading(chart, resolved));
+    expect(getReadingResult(chart, resolved)).toEqual(toCustomerReading(runReading(chart, resolved)!));
   });
 
   it('an unregistered question returns null from both, identically', () => {
     expect(getReadingResult(chart, 'not-a-real-question-id')).toBeNull();
     expect(runReading(chart, 'not-a-real-question-id')).toBeNull();
+  });
+});
+
+// Customer-safe wording must never change what was computed: for EVERY registered
+// question, the result differs from the raw engine result only in review notes,
+// source quotes and the embedded interpretation sentence.
+describe('customer-safe wording changes text only, for every registered question', () => {
+  const strip = (r: NonNullable<ReturnType<typeof runReading>>) => ({
+    ...r,
+    detailedInterpretation: '',
+    methodResults: r.methodResults.map((m) => ({ ...m, reviewNote: m.reviewNote ? 'note' : null, sourceQuote: '' })),
+  });
+  it('outcomes, figures, houses, verdicts and statuses are identical to the engine\'s own', () => {
+    for (const id of Object.keys(QUESTION_REGISTRY)) {
+      const raw = runReading(chart, id)!;
+      expect(strip(getReadingResult(chart, id)!), id).toEqual(strip(raw));
+    }
+  });
+
+  it('no reading exposes internal review, audit or transcription wording', () => {
+    const INTERNAL = /final edition|author|audit|restor|prompt \d|this project|codebase|not yet|figures omitted|types\.ts|KM_EDITION_NOTE|withheld rather/i;
+    for (const id of Object.keys(QUESTION_REGISTRY)) {
+      const r = getReadingResult(chart, id)!;
+      expect(r.detailedInterpretation, id).not.toMatch(INTERNAL);
+      for (const m of r.methodResults) {
+        expect(m.reviewNote ?? '', `${id}/${m.id} note`).not.toMatch(INTERNAL);
+        expect(m.sourceQuote, `${id}/${m.id} quote`).not.toMatch(INTERNAL);
+        if (m.reviewNote) expect([SOURCE_INCOMPLETE_NOTICE, AUTOMATIC_READING_UNAVAILABLE_NOTICE]).toContain(m.reviewNote);
+      }
+    }
   });
 });

@@ -45,7 +45,18 @@ import { getCurrentUserIfPresent } from "@/lib/server/session";
 import { getDb } from "@/lib/server/db";
 import { getProductAccessStatus } from "@/lib/server/purchaseStatus";
 import { getPreviewStatusForUser } from "@/lib/server/previewService";
-import { KM_CHAPTERS } from "@/lib/server/content/kanzulMikban";
+import {
+  KM_CHAPTERS,
+  KM_FRONT_MATTER,
+  KM_OPENING_INVOCATION,
+  KM_TITLE_PAGE,
+} from "@/lib/server/content/kanzulMikban";
+import {
+  KanzulFrontMatterSections,
+  KanzulTitlePage,
+} from "@/components/books/KanzulFrontMatter";
+import { KANZUL_ENTRIES_CONTINUED_IN_NEXT_ENTRY } from "@/lib/raml/kanzulStarText";
+import { SOURCE_INCOMPLETE_NOTICE, cleanSourceText } from "@/lib/raml/customerText";
 import { CHAPTERS, DEDICATION, INTRODUCTION } from "@/lib/server/content/masterOfGeomancy";
 
 const ELEMENTS: Element[] = ["fire", "air", "water", "sand"];
@@ -67,9 +78,11 @@ function ChapterHeading({
 }) {
   return (
     <div className={first ? "" : "mt-12 border-t border-sand/10 pt-8"}>
-      <p className="type-label uppercase tracking-widest text-sand/65">
-        {eyebrow}
-      </p>
+      {eyebrow ? (
+        <p className="type-label uppercase tracking-widest text-sand/65">
+          {eyebrow}
+        </p>
+      ) : null}
       <h2 className="font-logo text-xl leading-snug text-sand-light">
         {title}
       </h2>
@@ -117,6 +130,28 @@ function ReaderHeader({ book }: { book: { id: string; title: string } }) {
   );
 }
 
+function FigureBody({
+  chapterId,
+  paragraphs,
+}: {
+  chapterId: string;
+  paragraphs: string[];
+}) {
+  if (chapterId === "dreams-and-their-interpretations") {
+    return <DreamInterpretationsBody paragraphs={paragraphs} />;
+  }
+  return (
+    <GiftVisitorFiguresBody
+      paragraphs={paragraphs}
+      startNumber={
+        chapterId === "reading-the-gift-visitor-figures-end-of-chapter"
+          ? 7
+          : undefined
+      }
+    />
+  );
+}
+
 export default async function BookReaderPage({ params }: { params: { id: string } }) {
   const book = getBookById(params.id);
   if (!book) notFound();
@@ -152,7 +187,13 @@ export default async function BookReaderPage({ params }: { params: { id: string 
       >
         <div className="px-4 py-5">
           {book.id === "kanzul-mikban"
-            ? KM_CHAPTERS.map((chapter, i) => (
+            ? [
+                <KanzulTitlePage key="title-page" {...KM_TITLE_PAGE} />,
+                <KanzulFrontMatterSections
+                  key="front-matter"
+                  sections={[...KM_FRONT_MATTER, KM_OPENING_INVOCATION]}
+                />,
+                ...KM_CHAPTERS.map((chapter, i) => (
                 <section
                   key={chapter.id}
                   id={chapter.id}
@@ -160,28 +201,38 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                 >
                   <ChapterHeading
                     eyebrow={
-                      chapter.number !== null
-                        ? `Chapter ${chapter.number}`
-                        : "Continued"
+                      chapter.number !== null ? `Chapter ${chapter.number}` : ""
                     }
                     title={chapter.title}
-                    first={i === 0}
+                    first={false}
                   />
                   <div className="mt-4">
-                    {chapter.id === "dreams-and-their-interpretations" ? (
-                      <DreamInterpretationsBody
-                        paragraphs={chapter.paragraphs}
-                      />
-                    ) : chapter.id === "continued-from-chapter-twenty-eight" ? (
-                      <GiftVisitorFiguresBody
-                        paragraphs={chapter.paragraphs}
-                      />
-                    ) : chapter.id ===
+                    {chapter.id === "dreams-and-their-interpretations" ||
+                    chapter.id === "continued-from-chapter-twenty-eight" ||
+                    chapter.id ===
                       "reading-the-gift-visitor-figures-end-of-chapter" ? (
-                      <GiftVisitorFiguresBody
-                        paragraphs={chapter.paragraphs}
-                        startNumber={7}
-                      />
+                      <>
+                        {/* These three bodies split the paragraph text around
+                            each figure, so internal transcription markers are
+                            removed first (customerText.ts); a neutral line
+                            follows only if something was actually removed and
+                            the passage does not simply continue in the next
+                            entry of the edition. */}
+                        <FigureBody
+                          chapterId={chapter.id}
+                          paragraphs={chapter.paragraphs.map(
+                            (p) => cleanSourceText(p).text,
+                          )}
+                        />
+                        {!KANZUL_ENTRIES_CONTINUED_IN_NEXT_ENTRY.has(chapter.id) &&
+                        chapter.paragraphs.some(
+                          (p) => cleanSourceText(p).removedMarker,
+                        ) ? (
+                          <p className="mb-5 type-evidence italic text-sand/65">
+                            {SOURCE_INCOMPLETE_NOTICE}
+                          </p>
+                        ) : null}
+                      </>
                     ) : (
                       <ChapterMethodPractice
                         chapterId={chapter.id}
@@ -190,7 +241,8 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                     )}
                   </div>
                 </section>
-              ))
+                )),
+              ]
             : [
                 <section
                   key="dedication"

@@ -57,8 +57,8 @@ export function InsufficientNotice({
                 interpretation (e.g. "the source only defines the X
                 trigger — this is not addressed") is shown instead — never
                 the generic fallback, which would wrongly claim a fully
-                verified rule was "not yet verified". */
-                (m.reviewNote ?? m.interpretation ?? 'Not yet verified against the source manuscript.')}
+                verified rule was withheld. */
+                (m.reviewNote ?? m.interpretation ?? 'Source information incomplete for this method.')}
           </p>
         ))}
       </div>

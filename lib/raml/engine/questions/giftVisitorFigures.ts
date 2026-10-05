@@ -148,8 +148,8 @@ const method1: MethodDefinition = {
 
     return {
       outcome: 'uncertain',
-      label: `${calc.resultFigure.figureName} — no gift interpretation recovered yet`,
-      interpretation: `${foundSentence} ${calc.resultFigure.figureName} is not one of the eight figures this restoration has recovered a specific gift/visitor meaning for — the manuscript pages naming the other eight have not yet been located, so no meaning is guessed here.`,
+      label: `${calc.resultFigure.figureName} — no gift interpretation in the source`,
+      interpretation: `${foundSentence} ${calc.resultFigure.figureName} is not one of the eight figures the source gives a specific gift/visitor meaning for, so no meaning is given.`,
     };
   },
 };

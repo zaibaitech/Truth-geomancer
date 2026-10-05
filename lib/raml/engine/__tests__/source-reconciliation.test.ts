@@ -33,10 +33,10 @@ describe('Kanzul Mikban source boundaries', () => {
   const numbered = KM_CHAPTERS.filter((c) => c.number !== null);
   const unnumbered = KM_CHAPTERS.filter((c) => c.number === null);
 
-  it('has exactly 153 transcription entries — 142 numbered chapters + 11 unnumbered fragments', () => {
+  it('has exactly 153 entries — 141 numbered chapters + 12 unnumbered headings (the PDF edition prints 154 headings; the 154th is the Opening Invocation, kept in KM_OPENING_INVOCATION)', () => {
     expect(KM_CHAPTERS.length).toBe(153);
-    expect(numbered.length).toBe(142);
-    expect(unnumbered.length).toBe(11);
+    expect(numbered.length).toBe(141);
+    expect(unnumbered.length).toBe(12);
   });
 
   it('the highest numbered chapter is 151 — 153 was never a chapter number', () => {
@@ -44,11 +44,15 @@ describe('Kanzul Mikban source boundaries', () => {
     expect(numbered.some((c) => (c.number as number) > 151)).toBe(false);
   });
 
-  it('chapters 109-117 are the ONLY gap in the 1-151 numbering, and are intentional (the source says so)', () => {
+  it('numbering matches the edition: the only gaps in 1-151 are 11 (the heading the edition prints WITHOUT a chapter number) and 109-117 (absent from the edition)', () => {
     const present = new Set(numbered.map((c) => c.number as number));
     const missing: number[] = [];
     for (let n = 1; n <= 151; n++) if (!present.has(n)) missing.push(n);
-    expect(missing).toEqual([109, 110, 111, 112, 113, 114, 115, 116, 117]);
+    expect(missing).toEqual([11, 109, 110, 111, 112, 113, 114, 115, 116, 117]);
+    // ...and that unnumbered heading sits exactly between Chapter Ten and Chapter Twelve.
+    const i = KM_CHAPTERS.findIndex((c) => c.number === 12);
+    expect(KM_CHAPTERS[i - 1].number).toBeNull();
+    expect(KM_CHAPTERS[i - 2].number).toBe(10);
   });
 
   it('no registered question or method ever cites a chapter outside the real source', () => {

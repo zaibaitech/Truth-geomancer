@@ -24,11 +24,13 @@ function GiftVisitorItem({
   const starName = STARS.find((s) => s.id === starId)?.name ?? starId;
   return (
     <div className="rounded-xl border border-sand/10 bg-ink px-3 py-3">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        <span className="type-body text-sand-light">{markerText}</span>
-        <FigureGlyph pattern={pattern} size="sm" />
-        <span className="sr-only">({starName})</span>
-        <span className="type-body leading-[1.7] text-sand/80">{rest}</span>
+      <div className="type-body leading-[1.7] text-sand/80">
+        <div className="inline-flex max-w-full items-center gap-2 align-middle">
+          <span className="text-sand-light">{markerText}</span>
+          <FigureGlyph pattern={pattern} size="sm" />
+          <span className="sr-only">({starName})</span>
+        </div>
+        <span>{rest}</span>
       </div>
     </div>
   );

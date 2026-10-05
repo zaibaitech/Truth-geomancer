@@ -40,10 +40,13 @@ describe('1. "Try this method" appears where a method is executable', () => {
 });
 
 describe('2. The original source text is preserved, never rewritten', () => {
-  it('renders every paragraph through the exact same ProseParagraph the plain Prose component uses', () => {
-    expect(CHAPTER_CTA).toContain("from './Prose'");
-    expect(CHAPTER_CTA).toContain('<ProseParagraph');
+  it('renders every paragraph through StarProseParagraph — the Prose paragraph markup plus each named star\'s figure — and the text is never rewritten (see kanzulStarText.test.ts, which renders it)', () => {
+    expect(CHAPTER_CTA).toContain("from './StarProseParagraph'");
+    expect(CHAPTER_CTA).toContain('<StarProseParagraph');
     expect(CHAPTER_CTA).toContain('paragraphs.map');
+    const star = readFileSync(path.resolve(__dirname, '../../components/books/StarProseParagraph.tsx'), 'utf8');
+    expect(star).toContain('manuscript-paragraph');
+    expect(star).toContain('splitFigureText');
   });
 });
 

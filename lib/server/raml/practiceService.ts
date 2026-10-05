@@ -20,6 +20,7 @@ import { catalogEntry } from '@/lib/raml/questionCatalog';
 import { canAccessForUser } from '../accessService';
 import type { Db } from '../db';
 import { hydrateCanonicalStars } from './chartValidation';
+import { cleanSourceText, customerSafeRow } from '@/lib/raml/customerText';
 
 export type PracticeMethodResult =
   | {
@@ -66,5 +67,12 @@ export async function getPracticeMethodForUser(
     row = reading?.methodResults.find((m) => m.id === method.id) ?? null;
   }
 
-  return { ok: true, questionId: question.id, label: method.label, sourceQuote: method.source.quote, sourceLabel, row };
+  return {
+    ok: true,
+    questionId: question.id,
+    label: method.label,
+    sourceQuote: cleanSourceText(method.source.quote).text,
+    sourceLabel,
+    row: row ? customerSafeRow(row, method.reviewReasonCode ?? null) : row,
+  };
 }

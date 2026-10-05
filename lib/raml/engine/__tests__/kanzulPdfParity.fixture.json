@@ -1,0 +1,1566 @@
+{
+"source": {
+"file": "docs/Kanzul-Mikban-Final-Edition.pdf",
+"sha256": "de1d3b7d8fccd987396ab93eba6a69f272c15bf1ec0331368943da655782cea8",
+"pages": 116,
+"figureImages": 16
+},
+"frontMatter": [
+{
+"title": "A Note on This Edition",
+"level": 1,
+"text": "This edition transcribes a handwritten manuscript notebook of geomantic (‘ilm al-raml) divination methods, gathered under the title Kanzul Mikban. It has been prepared for readability while preserving the wording and structure of the original as closely as possible."
+},
+{
+"title": "Reading the Geomantic Figures",
+"level": 2,
+"text": "Each geomantic figure consists of four lines, read from the top line to the bottom line as in the original. Each line is shown as a small mark: a single diamond for an odd (single-dot) line, or two diamonds side by side for an even (double-dot) line. For example, the figure below has an even, odd, odd, even sequence of lines, top to bottom:"
+},
+{
+"title": "A Note on Sources for the Figures",
+"level": 2,
+"text": "The dot-figures throughout this text were reconstructed from two sources: a direct, best-effort reading of the hand-drawn figures in the original manuscript photographs, and the compiler’s own knowledge of the correct figure for a given named star, supplied directly during the preparation of this edition. Readers relying on this text for precise ritual or divinatory use are encouraged to verify any critical figure against the original manuscript pages."
+},
+{
+"title": "A Note on Chapter Numbering",
+"level": 2,
+"text": "The chapters in this edition are numbered to match the numbers hand-written and circled by the author directly on the manuscript pages themselves, rather than the numbering used in the notebook’s own typed table of contents (where the same chapters were numbered nine places lower). The manuscript pages were taken as the primary source wherever the two disagreed."
+},
+{
+"title": "A Glossary of Terms Used in This Book",
+"level": 1,
+"text": "This book assumes the reader already knows how to cast a geomancy chart, and moves straight into what each resulting chart means. If you have never encountered geomancy before, the terms below are used constantly throughout the chapters without being defined in the text itself."
+},
+{
+"title": "The Chart and Its Houses",
+"level": 2,
+"text": "A completed chart is made up of sixteen positions, called houses and numbered h1 through h16. Each house holds one figure — a stack of four lines, each line either a single dot (an odd count) or two dots side by side (an even count). Casting the chart — the process that fills all sixteen houses from an initial set of markings — is not covered in this book and is assumed knowledge; what follows here is entirely about reading a chart once it has already been cast."
+},
+{
+"title": "Elements",
+"level": 2,
+"text": "Every figure is also associated with one of four elements — Fire, Air, Water, and Sand (earth) — and many methods ask you to isolate a specific element from a house or group of houses rather than reading the whole figure."
+},
+{
+"title": "Describing a Star",
+"level": 2,
+"text": "The book regularly describes a figure (also called a star) using paired qualities: opened or closed (a single dot is opened, a double dot is closed), upward or downward, good, bad, or middle-good, male or female, day or night, and stable or unstable. These qualities are used throughout to characterize a figure once it has been identified in a chart."
+},
+{
+"title": "Groups of Houses",
+"level": 2,
+"text": "Several methods refer to the “first 4,” “second 4,” “third 4,” or “last 4” houses — meaning houses h1–h4, h5–h8, h9–h12, and h13–h16 respectively. A few chapters also use traditional names for these groups, for example Umuhat for the first four."
+},
+{
+"title": "Named Figures and Special Techniques",
+"level": 2,
+"text": "Each of the sixteen possible figures also carries a traditional name (Adam, Ali, Umar, Mahadi, and so on), used throughout the book interchangeably with its dot-pattern. The book also refers to a handful of named techniques and constant figures used as recurring checks — among them Sirri Sa'ael (also called Damir), Itisal, Ifusal, and Nazir — and to sadaka, meaning a charitable offering, in several of the remedies given in the Dreams chapter."
+}
+],
+"invocationLines": [
+"In the name of Allah, the Most Gracious, the Most Merciful.",
+"Alhamdulillahi Always.",
+"O Allah, bestow Your blessings upon our master Muhammad, the",
+"opener of what was closed, the seal of what came before, the",
+"defender of the truth with the truth, the guide to Your straight",
+"path, and upon his family, in accordance with his immense worth",
+"and lofty status.",
+"This is a book called Kanzul Mikban, in the knowledge of",
+"geomancy."
+],
+"entries": [
+{
+"page": 19,
+"number": null,
+"title": "Opening Invocation",
+"tokens": "in the name of allah the most gracious the most merciful alhamdulillahi always o allah bestow your blessings upon our master muhammad the opener of what was closed the seal of what came before the defender of the truth with the truth the guide to your straight path and upon his family in accordance with his immense worth and lofty status this is a book called kanzul mikban in the knowledge of geomancy",
+"figures": []
+},
+{
+"page": 19,
+"number": 1,
+"title": "Traveling, Business, and If You Will Return from the Trip or Not",
+"tokens": "method 1 after drawing the chart pick h1 and h8 then h9 and h11 and add all of them if its a good and upward star you will return with money and peacefully if its a good and downward star you will return peacefully but without money if its a bad star its not good at all for you to travel method 2 after drawing the chart pick h1 and h7 then h4 and h8 add all and check the result you get if its fire or air star you will return with money if its water or sand star you will come back with nothing method 3 after casting the chart pick h3 h7 h11 and h15 fire elements and form one star then pick h3 h7 h11 and h15 air elements and form a star then pick h3 h7 h11 and h15 water elements and form a star then pick h3 h7 h11 and h15 sand elements and form a star you will have 4 stars at the end add them and check the star if its a good and singledot star and also found in the chart it means the trip is good and safe but if its a good doubledot star and also found in the chart it means you will go and come in peace but you wont get money from the trip if its not found in the chart at all it means its not good to travel",
+"figures": []
+},
+{
+"page": 20,
+"number": 2,
+"title": "If You Want to Know If You Will Get Money Today or Not",
+"tokens": "method 1 after drawing the chart pick h3 h7 h11 and h15 and add them if the water or fire element is opened single dot you will get money that day if its not you will not get money method 2 after drawing the chart pick h2 and h11 and add them add the result to h7 and check if its in the chart you will get money but if its not in the chart you will not get anything method 3 pick h3 h7 h11 and h15 water elements and form a star if the water or fire element of that star is opened single dot then you will get money if its not you will not get money that day method 4 also check your sirri saael damir if its any of the stars below you will get whatever you are asking for or about S:usman S:nuhu S:mahadi S:ayuba",
+"figures": [
+"usman",
+"nuhu",
+"mahadi",
+"ayuba"
+]
+},
+{
+"page": 21,
+"number": 3,
+"title": "Business, Profit, and Loss",
+"tokens": "method 1 pick h1 and h5 then h4 and h6 add all and check if its a good star you will get a lot of profit if its a bad star you wont get any profit method 2 pick h2 and h6 h11 and h13 and add them then add the result to h16 if you get a good star and its also found in the chart you will get more profit from the business if its a good star but not found in the chart it means you will go and come in peace but you will not get any profit if its a bad star it means its not good to travel at all or embark on that business trip method 3 also after drawing the chart check h2 and h6 if you see a bad star in both houses it means its not good but if its a good star its good to embark on the business trip",
+"figures": []
+},
+{
+"page": 22,
+"number": 4,
+"title": "Hunting in Water and on Land, and Searching for Anything",
+"tokens": "after drawing the chart check h10 if you find the following stars it means you will be successful in your search S:usman S:mahadi S:iddris S:nuhu S:sulemana S:ayuba S:yunus if its any of the above stars you will get whatever you are asking for or searching for for example job money title promotion marriage etc",
+"figures": [
+"usman",
+"mahadi",
+"iddris",
+"nuhu",
+"sulemana",
+"ayuba",
+"yunus"
+]
+},
+{
+"page": 22,
+"number": 5,
+"title": "If You Will Win a Fight, War, or Court Case",
+"tokens": "after drawing the chart check h6 if you see any of the following stars there it means you will win it S:kalla-allahu S:ayuba S:musah S:mahadi S:adam S:ibrahim S:yunus if you found any of the following stars in h1 and h8 it means its not good and it will be difficult to succeed they are as follows S:hassan-hussein S:issah S:yunus S:ayuba",
+"figures": [
+"kalla-allahu",
+"ayuba",
+"musah",
+"mahadi",
+"adam",
+"ibrahim",
+"yunus",
+"hassan-hussein",
+"issah",
+"yunus",
+"ayuba"
+]
+},
+{
+"page": 23,
+"number": 6,
+"title": "If You Want to Know Where Your Enemy or a Thief Is Hidden",
+"tokens": "after drawing the chart check h4 and h10 if you see any of the stars below in any of the houses it means you will see or get himher in an opened land or desert S:musah S:adam S:iddris S:ayuba",
+"figures": [
+"musah",
+"adam",
+"iddris",
+"ayuba"
+]
+},
+{
+"page": 23,
+"number": 7,
+"title": "Marriage and Its Blessings",
+"tokens": "method 1 after drawing the chart pick h1 h7 h4 and h10 and add them if you get a downward star and its found in the chart you will get her and its good but if its an upward star and not found in the chart its not good for you method 2 pick h4 h8 h14 and h16 sand elements and form a star if found in the chart its good but if its not in the chart its not good for you even if you get herhim method 3 pick h4 h6 h12 and h16 and add them if your result is a sand star or fire star its good if its otherwise its not good for you method 4 check h7 if you see S:iddris S:umar S:yunus S:ayuba it means you will get a colored or white lady with a child shes a sick person and will bring you a lot of financial difficulties she will not get you a child nor blessings in the relationship or marriage if its S:sulemana it means you will get a short ladyman shehe cannot stay in the marriage there will be a divorce even if you marry herhim if its S:nuhu you will get a colored and beautiful lady she will bring you lots of success and children if its S:usman you will get a dark lady far from your town its also a good marriage if its S:umar you will get a colored lady its good but she will have too much jealousy and wouldnt want you to marry another",
+"figures": [
+"iddris",
+"umar",
+"yunus",
+"ayuba",
+"sulemana",
+"nuhu",
+"usman",
+"umar"
+]
+},
+{
+"page": 24,
+"number": null,
+"title": "Sub-topic: If She's Going to Stay in the Marriage or Not",
+"tokens": "method 1 pick h9 and h8 and add them if you get an upward star she will not stay forever if its a downward star she will stay inshaallah method 2 pick h2 and h7 then h4 and h10 add them all and check if its a good and downward star she will stay and enjoy the stay if its a good and upward star she will leave even though she enjoys the stay if its a bad and downward star she will not enjoy the stay and will also not leave if its a bad and upward star she will leave immediately because she will not enjoy her stay and will leave faster than expected",
+"figures": []
+},
+{
+"page": 25,
+"number": 8,
+"title": "If One Will Stay in a Particular Place or Not, and If It's Good or Not",
+"tokens": "pick h2 and h16 and add them if its a downward star heshe will stay there forever if its an upward star heshe will leave one day if its a good star its good to stay if its a bad star its not good",
+"figures": []
+},
+{
+"page": 25,
+"number": 9,
+"title": "Sickness (If He/She Will Survive)",
+"tokens": "method 1 after drawing the chart pick h4 and h6 and add it to h8 add all and check if its a good star its sickness from allah if its a bad star its from humans if its found in the chart heshe has a long life if not found in the chart heshe will not survive it method 2 after drawing the chart pick h2 h5 h8 and h11 and add them all if its found in the chart heshe will survive the sickness if its not found in the chart heshe will not survive method 3 if you find the following stars in h6 heshe will be healed inshaallah S:iddris S:adam S:kalla-allahu S:yussif S:umar S:issah but if you find stars like S:ibrahim S:ayuba S:ali S:musah it means it will be difficult for himher to survive",
+"figures": [
+"iddris",
+"adam",
+"kalla-allahu",
+"yussif",
+"umar",
+"issah",
+"ibrahim",
+"ayuba",
+"ali",
+"musah"
+]
+},
+{
+"page": 26,
+"number": 10,
+"title": "If Your Lost Thing Is Still Around or Is Gone",
+"tokens": "method 1 pick h1 and h5 and add them if your result is found in the chart its still around you or still in town if its not found in the chart its out of town method 2 pick h5 and h16 and add them if your result is an upward star its out of town if its a downward star its still around you method 3 pick h8 and h9 and add them if its a downward star and also found in the chart then you will get it back but if its a downward star and not found in the chart you wont see it though you may hear about it if its an upward star and found in the chart you will hear about it method 4 pick h5 and h6 and add them if its an upward star you will get it if its a downward star you wont get it again also if its in the chart you will see it if its not in the chart you wont see it again method 5 also pick h1 and h7 and add them if its found in the chart you will get it back if its not in the chart you wont get it again note if you found this configuration in h5 and h6 written as S:musah in the original term unclear it means you will get calamitya fight or a fireburning problem around you if you want to know if you will get your lost money back or not method 1 pick h5 h15 h6 and h10 and add them if its a water star you will get it again if its a fire star you will get it but it will take a longer time if its an air star theres a probability that you will get it again you may only hear about it far away if its a sand star forget about it method 2 pick h2 h5 h8 and h11 and add them if its a good star and also found in the chart you will get it early and easier if its a good star and not found in the chart you will get it but not early if its a bad or middlegood star and found in the chart you will only hear about it but wont get it if its a bad star and not found in the chart you wont see it or hear about it method 3 check h2 and h6 if both are downward stars you will get it back if they are not forget it method 4 pick h6 and h9 and add them if its a downward star you will get it back if its an upward star forget it",
+"figures": []
+},
+{
+"page": 28,
+"number": null,
+"title": "If You Want to Know If You Will Be Successful in Life, at Home, or Have to Travel Away from Home",
+"tokens": "method 1 pick h1 and h2 then h7 and h8 and add them if its a downward star you will be successful at home but if its an upward star you have to run from home method 2 pick the same stars above and add them if its water or sand star stay at home if its fire or air run from home",
+"figures": []
+},
+{
+"page": 29,
+"number": 12,
+"title": "If You Want to Know If You Will Be Rich in Life or Not",
+"tokens": "pick h1 h7 h4 and h8 and add them if its fire or air star you will be rich but if its water or sand star it will be difficult you need serious prayers if its a good star but water or sand star you will be feeding and clothing alright but you wont be rich if its a bad star and also water or sand star you can only feed from hand to mouth some will end up begging to feed may allah almighty have mercy on us",
+"figures": []
+},
+{
+"page": 29,
+"number": 13,
+"title": "If You Will Get Children from a Lady You Want to Marry",
+"tokens": "method 1 pick h1 fire element h5 air element h4 water element and h10 sand element and form a star if its a good and downward star and also found in the chart you will get children early and many kids if its a good star but not in the chart you will get kids but not early if its a bad star you wont method 2 pick h1 h5 h11 and h14 and add them if its fire star you will have kids very fast if its air star you will get kids but it will take a long time if its water or sand star it will be difficult to have a kid with her method 3 if you found the following stars in house 5 it means she will get pregnant early for you S:mahadi S:usman S:nuhu S:adam S:issah S:ayuba if its S:usman S:yunus S:mahadi S:ibrahim she will get pregnant early with no problems if its S:adam S:yussif S:musah S:kalla-allahu it takes time before she can get pregnant if its S:hassan-hussein S:issah S:iddris she will get pregnant early but it will be disturbing her mostly its jinn spirits that normally cause these problems if its S:ayuba S:umar she will be getting miscarriages or the kids will be dying its caused by witchcraft of enemies sometimes jinn spirits which is difficult to cure if its S:umar S:ali its difficult for her to have a kid method 4 pick h6 and h10 and add them if its a downward star she will have kids but if its upward she will not method 5 pick h2 h5 h7 and h15 water elements and form a star if the water element is opened single dot she will and if its a good star too she will but if its not she will not have kids",
+"figures": [
+"mahadi",
+"usman",
+"nuhu",
+"adam",
+"issah",
+"ayuba",
+"usman",
+"yunus",
+"mahadi",
+"ibrahim",
+"adam",
+"yussif",
+"musah",
+"kalla-allahu",
+"hassan-hussein",
+"issah",
+"iddris",
+"ayuba",
+"umar",
+"umar",
+"ali"
+]
+},
+{
+"page": 31,
+"number": 14,
+"title": "If a Pregnancy Is Going to Be Stable or Not (Good Condition)",
+"tokens": "pick h1 h5 h4 and h10 and add them if its a good star it will be stable if its a bad star it wont if you get the star in the chart its a genuine pregnancy if its not found its not a real pregnancy if you want to know if its really pregnancy or its sickness method 1 pick h1 h5 h11 and h14 and add them if its fire star its pregnancy if its air star its sickness if its water star its meat not a full human if its sand star its only blood if its a good star it will be saved if its a bad star it will be difficult to cure the sickness or the problem method 2 pick h1 and h6 and add them if its a good star it will be successful if its a bad star its going to be a very serious problem method 3 check h4 if its fire star its pregnancy if its air star its sickness if its water star its food or meat if its sand star its blood",
+"figures": []
+},
+{
+"page": 32,
+"number": 15,
+"title": "If Things Will Be Better for the Questioner or Not",
+"tokens": "pick h2 and h6 then h3 and h7 then h8 and h9 then h13 and h15 then add them all if you get a good star you will be wealthy and have a good life if its a bad star it will be difficult to be successful in life if its a middlegood star things will be difficult and sometimes it will be better if its a bad star it will be more difficult if its a good star its going to be blessing upon blessing if the star repeats itself a number of times it also shows how your life will be whether its a good bad or middlegood star",
+"figures": []
+},
+{
+"page": 32,
+"number": 16,
+"title": "If You Will Overcome Your Enemy or Not",
+"tokens": "method 1 pick h1 and h12 h8 and h13 and add all if you get fire or air star you will overcome himher and heshe will die if its water star you will overcome himher but heshe will not die if its sand star you will never succeed you cannot do anything to himher you will end up hurting yourself if you dont stop method 2 pick h1 and h12 then h13 and h14 and add them all if you get a good star you will be saved by allah almighty from his charms and problems and you are likely to overcome himher but if its a bad star please avoid himher you will be hurt if you try doing anything to himher",
+"figures": []
+},
+{
+"page": 33,
+"number": 17,
+"title": "If Something Will Happen in an Hour, Day, Week, Month, or Year",
+"tokens": "method 1 pick h1 and h6 then h4 and h16 and add all if you get S:ali S:nuhu S:umar S:issah S:mahadi S:adam S:yussif then it will happen within an hour or a day or 110 days if any of the above is found in the first four houses then it will happen within an hour method 2 pick h1 and h13 then h4 and h12 then h7 and h10 then h15 and h16 and add all if you get S:ayuba S:umar S:issah S:ibrahim S:iddris S:mahadi S:adam S:yussif in the first four stars it will happen very fast less than an hour or an hours time but if its found in the chart it will happen within 7 days and if its S:kalla-allahu S:sulemana S:ali S:nuhu S:hassan-hussein S:yunus S:usman S:musah then it will happen within a month or a year if you use the method above and the star is found in the chart it means the year will be good if not the year will be hard",
+"figures": [
+"ali",
+"nuhu",
+"umar",
+"issah",
+"mahadi",
+"adam",
+"yussif",
+"ayuba",
+"umar",
+"issah",
+"ibrahim",
+"iddris",
+"mahadi",
+"adam",
+"yussif",
+"kalla-allahu",
+"sulemana",
+"ali",
+"nuhu",
+"hassan-hussein",
+"yunus",
+"usman",
+"musah"
+]
+},
+{
+"page": 34,
+"number": 18,
+"title": "If You Will Get Your Stolen Things Back",
+"tokens": "part a if they will steal you method 1 pick h4 and h10 and add them if you get S:usman S:sulemana S:ibrahim S:yunus they will steal you no matter what happens but if its not any of the above stars they wont steal you method 2 pick h9 and h10 and add them if you get S:nuhu S:ayuba S:ibrahim S:sulemana dont do any business with your money you will get defrauded or dont stay in that area they will steal your money method 3 pick h1 and h5 and add them if your result is in the chart it means they will steal you but if its not found they wont steal you you can stay there and do your business part b if you will get your stolen things back method 1 after casting the chart pick h1 and h5 and add them if your result is found in the chart you will see them or its not gone far from you and you can still get them but if its not found in the chart you wont see them again method 2 pick h7 and h8 and add them if its a downward star you will get them back but if its an upward star you wont get them again method 3 pick h2 h6 h9 and h16 and add them if your result is found in the chart you will get them if its not found in the chart you wont see them again some scholars also say that after picking h2 h6 h9 and h16 and adding them if you get a good and downward star you will get them back peacefully if its a good and upward star you will hear about them but you might not get them if its a middlegood or bad star upward or downward you wont get them back",
+"figures": [
+"usman",
+"sulemana",
+"ibrahim",
+"yunus",
+"nuhu",
+"ayuba",
+"ibrahim",
+"sulemana"
+]
+},
+{
+"page": 35,
+"number": 19,
+"title": "If You Will Win a Case in Court, Chief Palace, a Fight, or War",
+"tokens": "method 1 after casting the chart pick h1 h5 h9 and h14 and add them if you get a good star you will win the case if its middle good star the case will keep long in court and you may win it with prayers if its a bad star you will lose method 2 pick h8 h11 h7 and h16 and add them add the results to h1 and check if its a good star you will win the case if its not you will lose it if its a middlegood star you may win it with serious prayers method 3 pick h4 h5 h10 and h11 and add them if you get S:mahadi S:umar S:adam S:musah in h4 and h10 you will win the case but if they are found in h5 and h11 you will lose the case method 4 pick h8 h1 h9 and h11 and add them if you get a good and upward star you will win the case and even get money out of it if its a good and downward star you will win the case without money if its a bad star you will lose the case note the above method 4 can also be used for travelling that is if its a good and upward star you will go and come in peace and with money if its a good and downward star you will go and come in peace but you wont get money or profit from your trip if its a bad star please dont travel at all its not safe",
+"figures": [
+"mahadi",
+"umar",
+"adam",
+"musah"
+]
+},
+{
+"page": 37,
+"number": 20,
+"title": "Who Will Win an Election or a Chieftaincy Title",
+"tokens": "after casting the chart pick h1 h5 h9 and h13 and add them if you get a good star heshe will win but if its a bad star heshe will not choose the one you want to win and name himher first if its a middlegood star its going to be a bracket too close to call if its not found in the chart it means the election might not come on schedule or it will be delayed due to some misunderstanding you can also use h10 h12 h14 and h15 and add them same explanation as above",
+"figures": []
+},
+{
+"page": 37,
+"number": 21,
+"title": "If Your Wife or Sister Has Had Sex or Not",
+"tokens": "method 1 after drawing the chart pick h6 and h16 and add them add the result to h7 and check if its an opened star she does have sex but if its a closed star she didnt method 2 after drawing the chart pick h7 and h13 and add them if the stars water line is active water element is opened meaning single dot she does have sex but if its closed she didnt method 3 after casting the chart with your intention check h7 if you see S:usman S:nuhu S:mahadi S:ayuba it means she does or he does have sex but if its S:issah S:kalla-allahu S:hassan-hussein S:adam she didnt",
+"figures": [
+"usman",
+"nuhu",
+"mahadi",
+"ayuba",
+"issah",
+"kalla-allahu",
+"hassan-hussein",
+"adam"
+]
+},
+{
+"page": 38,
+"number": null,
+"title": "If It's Good to Stay in a Particular House",
+"tokens": "method 1 after casting the chart pick sand element of h4 h8 h14 and h16 and form a star if its a good star its good to stay but if its a bad star please leave the house method 2 after casting the chart pick h8 h9 h2 and h6 and add them if its a good star its good to stay but if its a bad star please run for your dear life method 3 after drawing the chart check if the downward stars are more than the upward stars then you can stay but if they are not its not good for you to stay",
+"figures": []
+},
+{
+"page": 38,
+"number": 22,
+"title": "If It's Good to Stay in a Town or Not",
+"tokens": "method 1 after drawing the chart check h4 if its a good star its good to stay but if its a bad star its not safe for you method 2 after casting the chart count all the good stars in the chart if they are more than the bad stars you can stay but if they are not dont stay",
+"figures": []
+},
+{
+"page": 39,
+"number": 23,
+"title": "Is There Much Trees, Water, Sand, or Stones in the Area You Are Going To",
+"tokens": "after drawing the chart pick h1 h7 h4 and h8 and add them if its fire star the area has much stones if its an air star the area has much trees if its water star the area has much water if its sand star the area has much sand",
+"figures": []
+},
+{
+"page": 39,
+"number": 24,
+"title": "If You Will Be Safe Entering a Canoe, or Will Get Fish from Fishing",
+"tokens": "method 1 after drawing the chart pick h10 h12 h14 and h15 and add them if your result is a downward star you may not return or come out of the water safely but if its an upward star you will come out in peace method 2 pick h1 h5 h9 and h13 and add them if its a downward star you or the whole people in the canoe are not safe and may not return but if its an upward star you will be returned safely also if its a good and downward star they will see all of you and bring you out of the water but if its a bad star you wont even be seen if its a good and upward star you will get more fish or money and vice versa",
+"figures": []
+},
+{
+"page": 40,
+"number": 25,
+"title": "If There Are Armed Robbers on Your Way",
+"tokens": "after casting the chart pick h9 h8 h12 and h16 and add them if your result is a water star then you dont have to travel you may meet armed robbers on your way which will involve bloodshed or accident",
+"figures": []
+},
+{
+"page": 40,
+"number": 26,
+"title": "If There Will Be a Fight, Argument, etc.",
+"tokens": "after casting the chart check h2 and h1 if you found S:ayuba S:sulemana it means there will be a fight or misunderstanding in the family or between some people in town but if you found S:ali S:issah in h9 it means there will be peace if you draw a chart and your sirri saael damir is S:ayuba S:sulemana S:musah it means you will have a fight with or disagreement with someone if you found any of the above stars in h8 it means the fight is going to be very bad and may affect many people around you if you found any of the stars above in h12 it means the fight may claim the life of some good people or a person in your family or around you get a red sheep or cow for muslims to recite the quran for the whole family to avert the problem if you found S:usman S:yunus S:mahadi in h14 it means you will get a car motorbike bicycle a horse or something that can take you from place to place",
+"figures": [
+"ayuba",
+"sulemana",
+"ali",
+"issah",
+"ayuba",
+"sulemana",
+"musah",
+"usman",
+"yunus",
+"mahadi"
+]
+},
+{
+"page": 41,
+"number": 27,
+"title": "About Farming and Food in the Year",
+"tokens": "method 1 after casting the chart pick h1 h7 h4 and h8 and add them if you get stars of the east S:yussif S:adam S:kalla-allahu S:musah it means they will get a bumper harvest in that year if you get the stars of the west S:usman S:mahadi S:ali S:umar west people will get a bumper harvest that year if you get stars of the north S:iddris S:ibrahim S:issah S:hassan-hussein people of the north will get a bumper harvest more than all in that year if you get stars of the south S:nuhu S:yunus S:sulemana S:ayuba people from the south will get a bumper harvest in that year method 2 general harvest calamity and what kind this year after casting the chart pick h1 h5 h10 and h15 and add them if you get fire stars S:yussif S:kalla-allahu S:adam S:musah there will be good harvest but locusts and grasshoppers are going to eat or spoil most of it write suratul falaq and suratul nass 7 times each on paper and make it 5 layers bury them in the farm also write them the same number wash them and mix it with the things you are going to sow if you get air stars S:usman S:mahadi S:ali S:umar you will get a bumper harvest but animals beasts will eat or spoil a lot of them that year write suratul nabaa 1 time each on 5 papers and make them layers bury them in the farm also write it 5 times wash it and mix it with what you are going to sow if you get water stars S:iddris S:ibrahim S:hassan-hussein S:issah you will get a bumper harvest but worms or maggots will eat or spoil a lot of them write ayatul kursiyy 9 times on each paper and make them 5 layers bury them in the farm also write it the same number and mix it with what you are going to sow it also means that years rainfall will not be much which will cause a low harvest pray a lot for rainfall in that year if you get sandearth stars S:nuhu S:yunus S:sulemana S:ayuba you will get a bumper harvest and nothing bad will happen that year no calamity will befall your farms inshaallah",
+"figures": [
+"yussif",
+"adam",
+"kalla-allahu",
+"musah",
+"usman",
+"mahadi",
+"ali",
+"umar",
+"iddris",
+"ibrahim",
+"issah",
+"hassan-hussein",
+"nuhu",
+"yunus",
+"sulemana",
+"ayuba",
+"yussif",
+"kalla-allahu",
+"adam",
+"musah",
+"usman",
+"mahadi",
+"ali",
+"umar",
+"iddris",
+"ibrahim",
+"hassan-hussein",
+"issah",
+"nuhu",
+"yunus",
+"sulemana",
+"ayuba"
+]
+},
+{
+"page": 43,
+"number": 28,
+"title": "If You Will Get Money or Good Strangers That Same Day or Not",
+"tokens": "after drawing the chart pick the water element of h5 h7 h11 and h14 and form a star add it to h7 and check if its found in the chart it means you will get money or very good visitors that day if the water element of the star is opened single dot its very close but if its closed it will take a longer time if the star repeats many times in the chart it will happen early if not it will take a long time if its fire and downward star a man will visit you with money a child will also come to you with something like cooked food if its fire and upward star you wont get anything except good conversation if its air star a lady will visit you with gifts or money after her a man will come with a sadaqa gift for you to pray for him if its water stars and the water element is opened single dot you will get something from the visitor but if its closed double dot you wont get anything if its sandearth star a man will come before the woman in most cases they are always visitors that you already know or family members",
+"figures": []
+},
+{
+"page": 44,
+"number": 29,
+"title": "If You Will Be Successful Where You Are Going",
+"tokens": "after casting the chart pick h3 h7 h11 and h15 and add them if the element of the star you got is opened single dot then you will be successful in the place where you want to go but if its closed it wont work the stars that have their water elements opened single dot are as follows S:nuhu S:yunus S:hassan-hussein S:ali S:mahadi S:issah S:ibrahim S:iddris",
+"figures": [
+"nuhu",
+"yunus",
+"hassan-hussein",
+"ali",
+"mahadi",
+"issah",
+"ibrahim",
+"iddris"
+]
+},
+{
+"page": 45,
+"number": null,
+"title": "Reading the Gift/Visitor Figures (continued from Chapter Twenty-Eight)",
+"tokens": "if you use the method above and get S:ibrahim it means your prayers and supplications are answered it wont reach 7 days if you get S:iddris it means you will get something white like cloth or a shirt money etc you will get the gift from a great person if you get S:issah it means you will get something that breathes or that has life you will get it from a sick person or from a servant if you get S:hassan-hussein it means you will get a cutlass or knife from a knife or cutlass seller if you get S:ali it means you will get an animal from an animal seller or buyer you will get a lot of things from people if you get S:nuhu it means you will get a beautiful lady you will get something good from her or text continues onto the next page not yet transcribed",
+"figures": [
+"ibrahim",
+"iddris",
+"issah",
+"hassan-hussein",
+"ali",
+"nuhu"
+]
+},
+{
+"page": 46,
+"number": null,
+"title": "Continued from Part 1 — Reading the Gift/Visitor Figures (end of Chapter Twenty- Eight/Twenty-Nine material)",
+"tokens": "through her you will be successful if you get S:mahadi it means you will get gold and diamond or you will get animals and after that you will get a lot of blessings if you get S:yunus it means you will get all your requests from allah without stress or time delay",
+"figures": [
+"mahadi",
+"yunus"
+]
+},
+{
+"page": 46,
+"number": 30,
+"title": "If You Will Be Successful and Get What You Want from the Trip/Traveling",
+"tokens": "after casting the chart pick h1 h8 h7 and h11 and add them add the results to h16 if the star is an upward star it means the trip is good and safe and if the water element of the star is opened it means you will get a lot of profit in your business trip if the star is a downward star please be patient about a month or 10 days or at least 3 days before you travel if its S:hassan-hussein it means you will get a lot of profit but it will not be stable you will lose it after that if its S:issah it means you will get a lot of money and benefits from the trip but you will be very very sick you may spend all the money on the sickness",
+"figures": [
+"hassan-hussein",
+"issah"
+]
+},
+{
+"page": 47,
+"number": 31,
+"title": "About a Lost Thing / Stolen Things",
+"tokens": "after drawing the chart pick h4 and h5 and add them if you get fire or air star it means the thief is a male but if its water or sand star it means the thief is female if the star is found in the first 4 houses mothers houses it means the thief is in the same house with you if its found in the second 4 houses childrens houses it means the thief is in the same area with you if its found in the third 4 houses alfafidat it means the thief is in the same town with you if the star is found in the last 4 houses sumurakat it means the thief is not in the same town with you heshe is gone far away",
+"figures": []
+},
+{
+"page": 48,
+"number": 32,
+"title": "If It Will Rain Today or Not",
+"tokens": "method 1 after casting the chart check if S:ali is following each other in the chart if they are then it will rain method 2 after drawing the chart check h4 if you found kallah allahu S:kalla-allahu there it is going to rain method 3 if you found S:iddris in h9 it is going to rain inshaallah method 4 also when water stars are following each other in a chart it talks about rain",
+"figures": [
+"ali",
+"kalla-allahu",
+"iddris"
+]
+},
+{
+"page": 49,
+"number": 33,
+"title": "If Someone Loves You Much, Less, or Not at All",
+"tokens": "if you want to know if someone loves you or hates you and can harm you make your intentions straight about it and make a long line and start cancelling 4 4 until its equal to 4 3 2 or 1 dot if its one dot heshe is your enemy and can cause harm to you if its 2 dots heshe loves you very much and can stand for you in anything if its 3 dots heshe is pretending to love you but its not real love if its 4 dots heshe does not love nor hate you",
+"figures": []
+},
+{
+"page": 49,
+"number": 34,
+"title": "If Your Enemies Are Working Against You or Not",
+"tokens": "method 1 after casting the chart pick h3 h7 h11 and h15 and use them to form new umuhat mother houses and cancel the old chart use the umuhat to form another chart and check h13 of the new chart you have drawn check the water element of h13 if its opened single dot or closed double dot if its a single dot they are not working on you or they are but its not working on you because you are spiritually active but if its double dots they are seriously working on you to destroy you method 2 after casting the chart pick h1 and h12 and add them if it is a good star they are not working on you but if its a bad star they are working on you seriously",
+"figures": []
+},
+{
+"page": 50,
+"number": 35,
+"title": "If Your Family Is Doing Well (While You Are Far from Them)",
+"tokens": "if you are far from your family and want to know how they are doing pick h1 h4 h7 and h10 and add them if the star is found in the first 4 houses umuhat they are doing very well if its found in the second 4 houses banaat they are doing well but they are facing financial problems if its found in the third 4 houses hafidat they are facing financial problems and some of them are sick if its found in the last 4 houses sumurakat they are in danger or they are in a situation that they cant handle themselves",
+"figures": []
+},
+{
+"page": 50,
+"number": 36,
+"title": "If You Want to Locate Someone or Something",
+"tokens": "method 1 after casting the chart pick h1 fire element h2 air element h3 water element and h4 sand element and form a star if the star is fire star like S:yussif S:adam S:musah S:kalla-allahu it means its in the eastern part of the place if its air star like S:usman S:mahadi S:umar S:ali it means its in the western part of the place you are if its water star like S:iddris S:ibrahim S:hassan-hussein S:issah it means its in the northern part of the place you are and if its a sand star like S:nuhu S:ayuba S:yunus S:sulemana it means its in the southern part of the place you are method 2 you can also make just one star and use it to locate it either its in the north south east or west part of the place",
+"figures": [
+"yussif",
+"adam",
+"musah",
+"kalla-allahu",
+"usman",
+"mahadi",
+"umar",
+"ali",
+"iddris",
+"ibrahim",
+"hassan-hussein",
+"issah",
+"nuhu",
+"ayuba",
+"yunus",
+"sulemana"
+]
+},
+{
+"page": 51,
+"number": 37,
+"title": "How to Predict a Game, Who Will Win or Lose",
+"tokens": "method 1 after casting the chart put your team on the right side of the chart and your opponents team on the left after that use h1 as your team and h2 as the other team if h1 is a good star more than h2 it means your team will win but if its a bad star it will not if they are all good stars it means both teams will score a draw if they are all middlegood or bad stars there will be a goalless draw or no win method 2 after drawing the chart pick h1 fire element h2 air element h3 water element and h4 sand element and form a star check where you can locate it in the chart if its on the right side your team will win but if its not your team may lose",
+"figures": []
+},
+{
+"page": 52,
+"number": 38,
+"title": "If Two Lovers Will Be Compatible for Marriage (Their Star Signs)",
+"tokens": "method 1 after drawing the chart pick h4 and h15 and add them if its a good star they will be compatible but if its a bad star they will not if its a middlegood star there will be problems though its not bad method 2 after drawing the chart pick h1 and h7 and add them if its a good star its good and vice versa",
+"figures": []
+},
+{
+"page": 53,
+"number": 39,
+"title": "If Your Visitor, or the Person That Comes to You, Is a Good or Bad Person",
+"tokens": "method 1 after drawing the chart check h1 if its a good star heshe is a good person if its a bad star the person has bad intentions method 2 pick h9 and h12 and add them after drawing the chart if its a good star the person is good but if its a bad star heshe is having bad intentions towards you if its a middlegood star heshe comes to test you to know what to do or heshe has no good or bad intentions towards you",
+"figures": []
+},
+{
+"page": 53,
+"number": 40,
+"title": "If Spiritual Work You Want to Do for Someone Will Work or Not",
+"tokens": "method 1 after drawing the chart pick h1 and h5 and add them if its a good star it will work very fast and easier if its middlegood star it will take a long time to work if its a bad star it wont work at all method 2 after casting the chart pick h5 and h11 and add them if its a good star it will work if its a bad star it wont work and if its a middlegood star it will be very long before it will work",
+"figures": []
+},
+{
+"page": 54,
+"number": 41,
+"title": "The Person That Took an Item / Stole Something",
+"tokens": "method 1 after drawing the chart check h1 if its a male star then its a man that stole it if its a female star its a lady that took it method 2 pick h6 and h8 and add them if its a good and downward star the thing is still in town and can still be found if its a good and upward star its out of town and might be difficult to get it back though you may hear about it if its a bad and downward star you will not see it again though its in town",
+"figures": []
+},
+{
+"page": 54,
+"number": 42,
+"title": "If You Will Get What You Want from Where You Are Going",
+"tokens": "method 1 after drawing the chart pick h4 and h15 and add them if its a good and downward star like S:mahadi S:usman S:nuhu its good and you will be successful if its money or job or a ladyman that you want it will be good and stable if its a good and upward star like S:adam S:kalla-allahu you will get it but it wont be stable it will leave you or you will lose it as time goes on if its middlegood star they will be tossing you up and down or you will keep long before you get it forget it if its a bad star it wont work for you method 2 pick h1 and h5 and add them if you get a good star its good to go but if its a bad star dont go please it wont work for you",
+"figures": [
+"mahadi",
+"usman",
+"nuhu",
+"adam",
+"kalla-allahu"
+]
+},
+{
+"page": 55,
+"number": 43,
+"title": "The Real Behavior/Character or Life of Someone You Want to Get Married to (in Future)",
+"tokens": "after casting the chart pick h3 h7 h11 and h14 and add them add the results to h12 and check what star it is if its a good star heshe will have a good behavior and vice versa",
+"figures": []
+},
+{
+"page": 56,
+"number": 44,
+"title": "If a Lady or Man Will Accept Your Love Proposal or Not",
+"tokens": "after drawing the chart pick h7 h9 h11 and h15 and add them if its found in the chart then she will accept it inshaallah but if its not in the chart you may not get himher it wont be accepted",
+"figures": []
+},
+{
+"page": 56,
+"number": 45,
+"title": "If You Will Get the Lost Thing Back",
+"tokens": "after casting the chart count all the water and air elements and fire and sand elements if water and air elements are more than the fire and sand elements then you will get it back and the vice versa",
+"figures": []
+},
+{
+"page": 56,
+"number": 46,
+"title": "How to Make One Win Over the Other Opponents (Enemies)",
+"tokens": "after drawing the chart pick h12 and put it or mix it inside h11 on a paper then fold it and put a heavy stone on it for example fixing star 1 yusuf S:yussif inside star 3 S:mahadi talismanic diagram in the original not reproduced here see original scan",
+"figures": [
+"yussif"
+]
+},
+{
+"page": 57,
+"number": 47,
+"title": "If a Lady Is Pregnant or Not",
+"tokens": "method 1 after casting the chart check h5 if you found S:mahadi it means shes pregnant method 2 if you also found S:ibrahim in h5 it means shes pregnant",
+"figures": [
+"mahadi",
+"ibrahim"
+]
+},
+{
+"page": 57,
+"number": 48,
+"title": "If It's a Male or Female Child",
+"tokens": "method 1 after drawing the chart check h1 if its a male star or female star then thats it method 2 check h10 and h11 if both houses are male stars then its a male and if they are female stars too its female",
+"figures": []
+},
+{
+"page": 58,
+"number": 49,
+"title": "If Something Is Closer to You or Far Away from You",
+"tokens": "after drawing the chart pick h5 h7 h11 and h13 and add them if its fire stars S:yussif S:musah S:sulemana S:kalla-allahu or water stars S:ibrahim S:iddris S:issah S:hassan-hussein its closer to you but if its air stars or sand star S:usman S:umar S:mahadi S:ali or S:nuhu S:yunus S:sulemana S:ayuba its far away from you",
+"figures": [
+"yussif",
+"musah",
+"sulemana",
+"kalla-allahu",
+"ibrahim",
+"iddris",
+"issah",
+"hassan-hussein",
+"usman",
+"umar",
+"mahadi",
+"ali",
+"nuhu",
+"yunus",
+"sulemana",
+"ayuba"
+]
+},
+{
+"page": 58,
+"number": 50,
+"title": "If You Will Get Gold in a Place Where You Are Working",
+"tokens": "after drawing the chart pick h1 h10 h11 and h14 and add them if you get water or sand star you will get gold there inshaallah but if its fire or air stars you wont get anything",
+"figures": []
+},
+{
+"page": 59,
+"number": 51,
+"title": "If Things Are Going to Be Well This Year or Not (Yearly News)",
+"tokens": "after drawing the chart pick h1 h6 h10 and h16 and add them all if the star is a good and downward air star or it is a good downward water star or a good downward sand star then it is going to be a good and successful year with a lot of money and long life but if its a good and fire star it will be good but you will be facing financial problems if it is a bad star it is going to be a very difficult year a lot of problems and sicknesses",
+"figures": []
+},
+{
+"page": 59,
+"number": 52,
+"title": "The Friendship Between Two People, If It's Good or Not",
+"tokens": "after casting the chart pick h11 and h15 and add them if it is a good star their friendship is going to be strong and last forever but if its a bad star the friendship will not last a long time enemies will come between them and separate them",
+"figures": []
+},
+{
+"page": 60,
+"number": null,
+"title": "The Consequence of Friendship Between Two People",
+"tokens": "after drawing the chart pick h1 and h3 and add them if it is a good star success will come between them along with love and happiness but if it is a bad star something terrible or a calamity will come between them",
+"figures": []
+},
+{
+"page": 60,
+"number": 53,
+"title": "If a Querent Is Asking About Someone or About Him/Herself",
+"tokens": "after drawing the chart pick h1 and h7 and add them if its a downward star heshe is asking about himherself but if its an upward star heshe is asking about someone else",
+"figures": []
+},
+{
+"page": 60,
+"number": 54,
+"title": "Where Your Success Is, or Where You Will Make It in Life",
+"tokens": "after drawing the chart pick h1 h7 h4 and h8 and add all of them if you get fire stars it means its in the eastern part of the world if its air stars it means its in the western part of the world if its water stars it means its in the northern part of the world and if its sand stars its in the southern part",
+"figures": []
+},
+{
+"page": 61,
+"number": 55,
+"title": "The Whereabouts of a Thief or Robbers",
+"tokens": "after drawing the chart pick h1 and h12 and add them then add the result to h13 and check where you can locate the star in the chart if its found in the first 4 houses it means the thief is in the same house or compound with you if its found in the second 4 houses it means heshe is in the same area with you if its found in the third 4 houses it means heshe is in the same town with you and if its found in the last 4 houses it means heshe is out of town",
+"figures": []
+},
+{
+"page": 61,
+"number": 56,
+"title": "About a Pregnancy, If It's a Boy or a Girl",
+"tokens": "method 1 after casting the chart count all the dots in the chart and start subtracting 3 3 3 if your result is 1 or 3 it means its a male child but if its 2 its a female child",
+"figures": []
+},
+{
+"page": 62,
+"number": null,
+"title": "Additional Methods — If You Want to Know If She's Pregnant",
+"tokens": "method 1 pick h5 and h15 and add them if its an upward star shes not pregnant but if its a downward star shes pregnant method 2 after casting the chart pick h7 and h10 and add them if its a good star shes pregnant but if its a bad star shes not method 3 pick h5 and h6 and add them if the star is a male star then the baby is a male and the vice versa note text continues onto the next page not yet transcribed",
+"figures": []
+},
+{
+"page": 62,
+"number": 57,
+"title": "When to Travel, Daytime or Night Time",
+"tokens": "after drawing the chart pick h5 and h8 then h6 and h7 and add all if you get fire or air star it means daytime is good if you get water or sand star it means night time is good for you to travel",
+"figures": []
+},
+{
+"page": 63,
+"number": 58,
+"title": "If Couples Have Had Sex or Not",
+"tokens": "after casting the chart pick h7 and h13 and add them then add it to h12 if the water element of the star is active single dot it means they have had sex if its not it means they didnt additional method repeated later in the notebook after casting the chart pick h5 and h1 and add them check the water element of the star if its opened single dot it means they have had sex if its closed they didnt do anything",
+"figures": []
+},
+{
+"page": 63,
+"number": 59,
+"title": "The Secret of the Querent in a Chart",
+"tokens": "method 1 after casting the chart pick h1 h5 h9 and h13 and add them use whatever star you get to talk to the person method 2 after drawing the chart let the querent himherself choose any star of hisher choice whatever star heshe chose that is the problem that brought himher method 3 after drawing the chart add yusuf S:yussif to any star found in a house and use it to talk",
+"figures": [
+"yussif"
+]
+},
+{
+"page": 64,
+"number": 60,
+"title": "If She/He Loves You or Not",
+"tokens": "method 1 after drawing the chart pick h1 and h5 and add them if its a good and downward star like S:mahadi S:usman S:nuhu then heshe really loves you very much if its a good and upward star like S:adam S:kalla-allahu it means heshe does but not much or there might be a divorce or separation in future if its a middlegood star it means theres double dating or cheating if its a bad star it means shehe doesnt love you at all method 2 after drawing the chart check h7 if its a good star heshe loves you if its a middlegood star heshe is double dating and if its a bad star heshe does not love you",
+"figures": [
+"mahadi",
+"usman",
+"nuhu",
+"adam",
+"kalla-allahu"
+]
+},
+{
+"page": 65,
+"number": 61,
+"title": "If a Marriage Is Good or Not",
+"tokens": "method 1 after casting the chart check h7 if its a good star like22121 S:nuhu S:kalla-allahu S:adam then its very good if its a middle good star its partially good if its a bad star its not good at all method 2 pick h3 h7 h11 and h14 and add them if its a good star its good if its a bad star its not good",
+"figures": [
+"nuhu",
+"kalla-allahu",
+"adam"
+]
+},
+{
+"page": 65,
+"number": 62,
+"title": "If the Prayers Done for Someone Have Been Answered or Not",
+"tokens": "pick the water elements of the first 4 houses second 4 houses third 4 houses and last 4 houses then add all and check if the water element of that star is opened its answered and vice versa",
+"figures": []
+},
+{
+"page": 65,
+"number": 63,
+"title": "If the Lady or Man You Are Going to Marry Is Related to You by Family",
+"tokens": "after casting the chart check h7 if it repeats in the first 4 houses 14 it means a close family member if its in the second 4 58 it means an extended family member if its in the third 4 912 it means an area member or someone from a friends family if its in the last 4 1316 it means shehe is not related to you in any way or not even your tribe if its not found in the chart it means heshe is not a fellow citizen",
+"figures": []
+},
+{
+"page": 66,
+"number": 64,
+"title": "If a Marriage Will Last Forever",
+"tokens": "method 1 after drawing the chart check h3 if its a good star it will last forever if its a middlegood star they will have disagreements all the time or no peace in the marriage if its a bad star it wont last forever method 2 after the chart is drawn pick h4 h11 h7 and 14 and add them check if its a good middlegood or a bad star",
+"figures": []
+},
+{
+"page": 66,
+"number": null,
+"title": "Additional Method — Someone's Behavior (also see Chapter Forty-Three)",
+"tokens": "after drawing the chart pick h3 h7 h11 and h14 and add them add the results to h12 if you get a good star it means good behavior and vice versa",
+"figures": []
+},
+{
+"page": 67,
+"number": 65,
+"title": "If a Partner Has a Particular Disease or Sickness",
+"tokens": "method 1 check h6 after drawing the chart if you get S:issah there it means heshe has a particular illness or sickness method 2 after drawing the chart check h14 if you get S:issah there it means heshe has a particular sickness method 3 if you check h6 and found S:ayuba there it means heshe has jinn spirits or a spiritual problem affecting the marriage",
+"figures": [
+"issah",
+"issah",
+"ayuba"
+]
+},
+{
+"page": 67,
+"number": 66,
+"title": "If Someone Has Married Before, or If He/She Is Married",
+"tokens": "check house 10 after drawing the chart if its a downward star heshe is married or has married before but if its an upward star shehe is not",
+"figures": []
+},
+{
+"page": 68,
+"number": null,
+"title": "Additional Method — If She/He Is Still in the Marriage or Not",
+"tokens": "after drawing the chart pick h5 h9 h10 and h11 and add them all if its found in the chart heshe is still in the marriage if its not in the chart shehe is not in the marriage",
+"figures": []
+},
+{
+"page": 68,
+"number": 67,
+"title": "If He/She Is Enjoying the Marriage",
+"tokens": "after drawing the chart pick firefire elements airair elements waterwater elements and sandsand elements and add them all if you get a good and downward star shehe is enjoying the marriage if its good and upward star heshe is in the marriage but with no happiness or enjoyment if its a bad star it means the marriage is on and off if the star is not in the chart it means heshe is not in the marriage anymore",
+"figures": []
+},
+{
+"page": 69,
+"number": 68,
+"title": "If Your Partner Is Cheating on You",
+"tokens": "after drawing the chart check h7 if its a man that comes to check and you found a male star in h7 it means his wife or girlfriend is cheating and if its a lady that comes to find out and a female star is found in h7 it means her man is cheating",
+"figures": []
+},
+{
+"page": 69,
+"number": 69,
+"title": "If Your Ex-Husband/Wife Will Re-Marry Again After the Divorce",
+"tokens": "after drawing the chart pick h5 and h7 and add them if its a good star heshe is going to marry again if its a middlegood star heshe will not marry but will only have relationships or will be sleeping around if its a bad star heshe will not marry have relationships or sleep around shehe will just live hisher life without sex or love relationships",
+"figures": []
+},
+{
+"page": 70,
+"number": 70,
+"title": "If a Pregnant Woman Will Have Childbirth Problems in Her Marriage",
+"tokens": "method 1 after casting the chart check h7 if its S:yunus it means it will be difficult for her to have kids method 2 check h5 if its yusuf S:yussif it means shes going to have a childbirth problem in her life",
+"figures": [
+"yunus",
+"yussif"
+]
+},
+{
+"page": 70,
+"number": 71,
+"title": "If a Man Will Have Manhood Problems in His Marriage or Life",
+"tokens": "method 1 after drawing the chart check h3 if its S:sulemana it means he will have manhood problems in future method 2 after drawing the chart check h5 if its S:ayuba it means he will have weak manhood or it will die fail in future",
+"figures": [
+"sulemana",
+"ayuba"
+]
+},
+{
+"page": 71,
+"number": 72,
+"title": "If a Lady or Man Has Feelings for You or Not",
+"tokens": "after drawing the chart pick h7 and h11 and add them then add the results to h5 and check if its a good star there is feeling if its a bad star there are no feelings at all but if its a middlegood star it means there will be feelings in future",
+"figures": []
+},
+{
+"page": 71,
+"number": 73,
+"title": "If a Woman Has Married More Than One Man at the Same Time (Polyandry)",
+"tokens": "after drawing the chart check h7 if its S:ibrahim it means she has 4 men at the same time if its S:umar or S:yunus it means she has 3 men if its S:adam or kallah allahu S:kalla-allahu it means she has 5 men if its osmanuthman S:usman S:nuhu or S:iddris it means she has just one man if its S:musah it means she has married two brothers from the same mother at the same time and one has died leaving one if its S:sulemana it means her first husband will die before she marries again if its S:ali it means she has married just one man and he died if its S:issah it means she has not married at all if its yusuf S:yussif S:mahadi hassan and hussein S:hassan-hussein or S:ayuba it means she has married two men from different families",
+"figures": [
+"ibrahim",
+"umar",
+"yunus",
+"adam",
+"kalla-allahu",
+"usman",
+"nuhu",
+"iddris",
+"musah",
+"sulemana",
+"ali",
+"issah",
+"yussif",
+"mahadi",
+"hassan-hussein",
+"ayuba"
+]
+},
+{
+"page": 72,
+"number": 74,
+"title": "If Someone Is an Adulterous Son/Daughter (Born Out of Wedlock)",
+"tokens": "if you want to know if someone was born out of wedlock or not draw the chart and pick sandsand elements and form a star that is pick the elements of h4 h8 h12 and h16 and form one star check the star in the chart if its found it means heshe was born out of wedlock but if its not in the chart heshe is not",
+"figures": []
+},
+{
+"page": 73,
+"number": 75,
+"title": "If He/She Is a Womanizer or a Harlot",
+"tokens": "after drawing the chart pick h7 and h9 and add them if the star is kallah allah S:kalla-allahu or yusuf S:yussif then heshe is sleeping around but if its not shehe is not",
+"figures": [
+"kalla-allahu",
+"yussif"
+]
+},
+{
+"page": 73,
+"number": 76,
+"title": "If Your Ex-Husband, Wife, Girlfriend, or Boyfriend Will Return or Not",
+"tokens": "method 1 after casting the chart check the water element of h8 h9 h11 and h15 if all are active then shehe will return method 2 check the water element of h5 h6 and h7 if they are all active then shehe will return back to you but if they are closed heshe will not",
+"figures": []
+},
+{
+"page": 74,
+"number": 77,
+"title": "If the Pregnancy Is Healthy or Not",
+"tokens": "method 1 after drawing the chart check the present houses h4 7 10 and h15 if they are all good stars then it will be healthy and stable till birth method 2 after drawing the chart check h8 if its a good star its in good condition and kicking but if its a bad star its not safe",
+"figures": []
+},
+{
+"page": 74,
+"number": 78,
+"title": "The Number of Months of a Pregnancy (How Old Is the Pregnancy)",
+"tokens": "after drawing the chart count all the single dots of the stars from h1 to h6 if it is more than 9 then subtract 99 from it until it is equal to 9 or less than 9 whatever number you get thats the number of months",
+"figures": []
+},
+{
+"page": 75,
+"number": 79,
+"title": "The Number of Babies in a Pregnancy",
+"tokens": "after drawing the chart check h10 if S:musah is there it means its more than one baby check h5 if it repeats in the chart twice it means twins if it repeats thrice it means more than two if it repeats more than 3 times it means more than 3 babies",
+"figures": []
+},
+{
+"page": 75,
+"number": 80,
+"title": "If a Pregnancy Is Yours or Not (D.N.A.)",
+"tokens": "method 1 after drawing the chart pick h1 and h5 and add them if its found in the chart the pregnancy is yours but if its not in the chart its not yours method 2 check h10 and h11 after casting the chart if both are good stars then its yours but if they are not its not yours",
+"figures": []
+},
+{
+"page": 76,
+"number": 81,
+"title": "If She Will Put to Bed Peacefully or Not",
+"tokens": "after drawing the chart check h5 if its a good star she will put to bed peacefully but if its a middlegood star she will have a peaceful delivery but it takes a longer time if its a bad star it leads to a lot of complications like too much bleeding or loss of blood operations deaths etc",
+"figures": []
+},
+{
+"page": 76,
+"number": 82,
+"title": "The Time She Will Put to Bed",
+"tokens": "method 1 after casting the chart pick h1 and h5 and add them if its fire star it means within some days if its air star its weeks if its water star its a month and if its sand star its more than 1 or 2 months method 2 after casting the chart pick h1 h4 h5 and h7 and use them to form your first 4 houses umuhat and text continues onto the next page not yet transcribed",
+"figures": []
+},
+{
+"page": 77,
+"number": 83,
+"title": "If It's Day or Night That She Will Put to Bed",
+"tokens": "after drawing the chart pick h1 and h5 and add them if its a day star she will deliver in the daytime if its a night star she will put to bed at night",
+"figures": []
+},
+{
+"page": 77,
+"number": 84,
+"title": "If Your Enemy Is from Your Father's, Mother's, Wife's, Boyfriend's/Girlfriend's, or Your Friend's Family",
+"tokens": "after drawing the chart check h3 h4 and h5 if h3 is a bad star the enmity is from a love relationship a wife or husband or close friends if h4 is a bad star the enmity is from your fathers family if h5 is a bad star the enmity is from your mothers family",
+"figures": []
+},
+{
+"page": 78,
+"number": 85,
+"title": "How the Future of Two People's Friendship Will Be",
+"tokens": "after casting the chart pick h1 and h11 and add them if its a good and upward star their friendship will be good but short they wont follow each other for a long time and will go their separate ways peacefully if its a good and downward star their friendship will be good forever if its a bad and upward star their friendship will not go far and they will separate with anger if its a bad and downward star their friendship will keep long but they will be angry with each other in secret if its a stable and a bad star their friendship will be long but there will be problems between them all the time if its a good and stable star their friendship will be longer and successful if its a good and unstable star their friendship will be on and off if its a bad and unstable star their friendship will be bad and they cannot stay together",
+"figures": []
+},
+{
+"page": 78,
+"number": null,
+"title": "Additional Topic — Secrets Between Two Friends Who Follow Each Other in the Chart",
+"tokens": "after casting the chart check h4 and h15 if both houses are good stars or stable stars then there can be a lot of secrets and neither will tell the secrets to anyone but if not the secrets will come out all the time",
+"figures": []
+},
+{
+"page": 79,
+"number": 86,
+"title": "If It's Business or Handwork That Will Benefit You",
+"tokens": "after drawing the chart pick h2 and h10 and add them if its an upward or unstable star then business will fit you but if its a downward or stable star its through handwork that will help you become successful in life",
+"figures": []
+},
+{
+"page": 79,
+"number": 87,
+"title": "When Your Suffering and Pain or Sadness Will End",
+"tokens": "after drawing the chart pick h6 and h12 and add them if its a good star it will end early if its a middlegood star it will end but take a long time if its a bad star pray hard it will be difficult to have it taken away in your life you have to do a lot of sacrifices and supplications",
+"figures": []
+},
+{
+"page": 80,
+"number": 88,
+"title": "If You Will Get a Position/Rank or Not",
+"tokens": "after drawing the chart count all the single dots of h1 h2 h4 h5 h10 h11 and h15 and subtract 12 from it check which house corresponds to whats left for example if your answer is 3 it means S:mahadi if your answer is 7 it means S:umar then check the star if its good bad or middlegood if its a good star you will get it early and easier if its middlegood you will get it but it will take a longer time if its a bad star it will be difficult to get it",
+"figures": [
+"mahadi",
+"umar"
+]
+},
+{
+"page": 80,
+"number": 89,
+"title": "If Your Success or Wealth Will Remain Forever or Not",
+"tokens": "after drawing the chart count all the single dots of h1 h2 h4 h5 h10 h11 and h15 and start subtracting 12 12 check whatever number you get in the chart where you can see it for example if its 5 it means S:ibrahim if you get 2 it means S:adam etc then check if its a good star it means it will remain forever if its a bad star it will soon be cut off and you will be suffering again if its a middlegood star it will only reduce but you wont be poor",
+"figures": [
+"ibrahim",
+"adam"
+]
+},
+{
+"page": 81,
+"number": 90,
+"title": "If Someone's Misery Will Be Taken Away from Him/Her or Not",
+"tokens": "method 1 after drawing the chart count all the dots of the bad stars in the chart and start subtracting 12 12 if your result is 9 it means S:kalla-allahu if its 12 it means S:nuhu if its 1 it means S:yussif etc check if the star is a good star or a bad star method 2 count all the good stars in the chart if they are more than the bad stars it means your misery will come to an end but if the bad stars are more than the good stars it means it will be difficult for you to overcome it in your life",
+"figures": [
+"kalla-allahu",
+"nuhu",
+"yussif"
+]
+},
+{
+"page": 81,
+"number": 91,
+"title": "If Something Is Present, Past, or Future",
+"tokens": "after casting the chart pick the present houses h1 h4 h7 and h10 and add them then pick the past houses h2 h5 h8 and h11 and add them then pick the houses of the future h3 h6 h9 and h12 and add them then add all the results together and check if its a present past or future star",
+"figures": []
+},
+{
+"page": 82,
+"number": 92,
+"title": "The Ending Part of Anything You Want to Do in Your Life",
+"tokens": "after casting the chart check h4 h14 and h15 if they are all good stars or two of them are good stars then it will be good and the vice versa",
+"figures": []
+},
+{
+"page": 82,
+"number": 93,
+"title": "If Someone Has Long Life or Not",
+"tokens": "after drawing the chart pick h1 and h9 and add them if it is found in the first 4 houses it means long life if it is found in the last 4 houses it means short life if it is found in the second or third 4 houses it means midlong life if it is not found in the chart at all it means only allah almighty knows",
+"figures": []
+},
+{
+"page": 83,
+"number": 94,
+"title": "The Lifespan and When Someone Will Die",
+"tokens": "after casting the chart check h8 if it is S:ayuba it means very long life until old age if its S:sulemana it means within hisher old age if its S:adam it means after old age the person will die if it is S:umar it means early young age man or lady will be the time heshe will die if it is S:usman it means at the end of puberty time if it is S:nuhu it means at hisher youthful time if it is S:yussif it means at hisher first year at puberty if it is S:ali it means in the middle of hisher puberty time if it is S:musah it means at the beginning of hisher puberty time if it is S:iddris it means at the age of 10 years if it is S:issah it means heshe will die while still small if it is S:hassan-hussein it means the same heshe will die as a small boygirl if it is S:ibrahim it means before heshe attains puberty time if it is S:kalla-allahu it means in the middle of hisher life thats from 40 and above if it is S:mahadi it means in the middle of hisher youthful agetime note in the original almighty allah knows best the beginning and the end of every living thing",
+"figures": [
+"ayuba",
+"sulemana",
+"adam",
+"umar",
+"usman",
+"nuhu",
+"yussif",
+"ali",
+"musah",
+"iddris",
+"issah",
+"hassan-hussein",
+"ibrahim",
+"kalla-allahu",
+"mahadi"
+]
+},
+{
+"page": 84,
+"number": 95,
+"title": "The Stars That Talk About Your Youthful Time, Middle Age, and Old Age",
+"tokens": "1 youthful S:yunus S:hassan-hussein S:umar S:nuhu S:iddris S:issah 2 middleyouth S:usman S:musah S:kalla-allahu S:ibrahim S:ali S:yussif 3 youth and old age S:adam S:ayuba S:sulemana",
+"figures": [
+"yunus",
+"hassan-hussein",
+"umar",
+"nuhu",
+"iddris",
+"issah",
+"usman",
+"musah",
+"kalla-allahu",
+"ibrahim",
+"ali",
+"yussif",
+"adam",
+"ayuba",
+"sulemana"
+]
+},
+{
+"page": 85,
+"number": 96,
+"title": "If a Sick Person Has Long Life or Not",
+"tokens": "after casting the chart pick h1 and h9 and add them after that check the air element if it is a single dot there is long life but if it is double dots there is no long life",
+"figures": []
+},
+{
+"page": 85,
+"number": null,
+"title": "Additional Method — If a Sick Person Has Long Life (repeated later in the notebook)",
+"tokens": "pick all of the first 4 houses water elements the second 4 houses water elements the third 4 houses water elements and the last 4 houses water elements and add them if the water element is closed heshe has long life and the vice versa",
+"figures": []
+},
+{
+"page": 85,
+"number": 97,
+"title": "Where One Will Die (Place of Death)",
+"tokens": "after casting the chart check h8 if it is S:mahadi or S:adam one will die in hisher hometown in a masjidmosque or where they teach quran makaranta if it is S:usman one will die in hisher hometown the same day with a scholar or wellknown person in your town if it is S:hassan-hussein one will die in a village or on mountains if it is S:ali or S:musah it means one will die in a farm or bush if it is S:yussif one will die in a very rich or wealthy place or a rainy or watery place if it is S:sulemana one will die in a place where they break stone or in mountains if it is S:ayuba one will die in an old shrine or a damaged or dirty place if it is S:umar one will die in a fearful or robberyprone place if it is S:iddris one will die in a peaceful or joyful place or around a river or sea if it is S:kalla-allahu one will die in a big town or city a wellrespected wellarranged place if it is S:nuhu one will die in a palace a flagstaff house or where there is a river if it is S:issah one will die in a damaged place a place of war or among animals if it is S:yunus one will die in a place of knowledge a joyful place cool or where there are a lot of trees if it is S:ibrahim one will die in a waterlogged area or where water runs a cool and peaceful place",
+"figures": [
+"mahadi",
+"adam",
+"usman",
+"hassan-hussein",
+"ali",
+"musah",
+"yussif",
+"sulemana",
+"ayuba",
+"umar",
+"iddris",
+"kalla-allahu",
+"nuhu",
+"issah",
+"yunus",
+"ibrahim"
+]
+},
+{
+"page": 87,
+"number": 98,
+"title": "The Causes of Someone's Death",
+"tokens": "after casting the chart check h8 if the star repeats in h1 it means one will die by himherself suicide by hanging food poisoning by himherself shooting himherself etc if it repeats in h2 it means one will die because of money or through money if it repeats in h3 it means one will die through hisher family members or close relatives if it repeats in h4 it means one will die because of lands and properties or chieftaincy titles if it repeats in h5 it means one will die through love or relationships and children if it repeats in h6 it means one will die through slavery having been a servant or friendships if it repeats in h7 it means one will die through rivalry jealousy and enviousness in a relationshipmarriage if it repeats in h8 it means one will die out of fear inheritance or riskdanger if it repeats in h9 it means one will die through travelling business knowledgeseeking or lottery if it repeats in h10 it means one will die through kingship or chieftaincy issues cases or job searching if it repeats in h11 it means one will die through friendship and lovers or expectations if it repeats in h12 it means one will die through enmity and friendship if it repeats in h13 h14 h15 and h16 it means one will die through the same causes as h1 h2 h3 and h4 respectively in the same way",
+"figures": []
+},
+{
+"page": 88,
+"number": 99,
+"title": "If Someone or Something Good Will Come to You Today or Not",
+"tokens": "after drawing the chart pick h1 and h7 and add them if it is a good star be expecting positive results but if its not a good star dont be expecting anything good that day if its a middlegood star it means you may get something not very interesting or with not much benefit",
+"figures": []
+},
+{
+"page": 88,
+"number": 100,
+"title": "If Today Is a Good Day or Not",
+"tokens": "after drawing the chart pick h2 and h8 and add them if its a good star it will be good but if its a bad star expect bad news that day if its a middlegood star there will be no good news or bad news that day",
+"figures": []
+},
+{
+"page": 89,
+"number": 101,
+"title": "As a Stranger, If the Food You Want to Eat Is from the Market or Home-Prepared",
+"tokens": "after drawing the chart pick h6 and h10 and add them if the star repeats in h6 it means the food is from the same house home prepared if it repeats in h10 it means its from the market if its not repeated in either place but repeated in different houses it means the food is from a different house",
+"figures": []
+},
+{
+"page": 89,
+"number": 102,
+"title": "If This Money, the Work, or the Lady/Husband Will Be Stable in Your Life",
+"tokens": "after drawing the chart pick the first 4 houses and use them as your umuhat mother stars and form another chart cancelling the old one check the first 4 houses of the new chart if any of these stars below are found in any of them it will be stable but if not it will not be stable in your life S:adam S:kalla-allahu S:nuhu S:mahadi S:ali",
+"figures": [
+"adam",
+"kalla-allahu",
+"nuhu",
+"mahadi",
+"ali"
+]
+},
+{
+"page": 90,
+"number": 103,
+"title": "If the Querent Is Sick or Not",
+"tokens": "method 1 after drawing the chart pick h1 and h9 and add them if the air element is opened heshe is not sick but if it is closed shehe is not well method 2 after casting the chart check h9 if the fire element is closed it means heshe is not sick but if the air element is closed it means heshe is not well",
+"figures": []
+},
+{
+"page": 90,
+"number": 104,
+"title": "If the Sickness Is from Human, Jinn, or God Almighty",
+"tokens": "after casting the chart pick h4 h6 h5 and h8 and add them if the result is a good star its from god if its a bad star its from jinn if it is a middlegood star it is from a human being",
+"figures": []
+},
+{
+"page": 91,
+"number": null,
+"title": "Additional Method — If a Sick Person Has Long Life (repeated again in the notebook)",
+"tokens": "after drawing the chart pick h1 and h9 and add them if the air element is opened heshe has long life and may survive if the air element is closed it means heshe has no long life",
+"figures": []
+},
+{
+"page": 91,
+"number": 105,
+"title": "Which Part of the Body Is Paining the Sick Person",
+"tokens": "after drawing the chart pick the fire element of h3 h7 h10 and h15 and form a star then pick the air element of h3 h7 h10 and h15 and form a star then pick the water element of h3 h7 h10 and h15 and form a star then pick the sand element of h3 h7 h10 and h15 and form a star then add all 4 stars and check where you can locate it among the parts of the human body see chapter one hundred and six below",
+"figures": []
+},
+{
+"page": 92,
+"number": 106,
+"title": "Parts of the Human Body and the Stars Representing Them",
+"tokens": "1 head S:sulemana 10 right thigh S:issah 2 neck S:sulemana 11 left thigh S:usman 3 chest S:iddris 12 right leg S:mahadi 4 right side S:kalla-allahu 13 left leg S:hassan-hussein 5 left side S:nuhu 14 navel S:umar 6 right hand S:yussif 15 manhood S:ibrahim 7 left hand S:yunus 16 womanhood S:ayuba 8 ribs S:ali 9 backbone back S:musah",
+"figures": [
+"sulemana",
+"issah",
+"sulemana",
+"usman",
+"iddris",
+"mahadi",
+"kalla-allahu",
+"hassan-hussein",
+"nuhu",
+"umar",
+"yussif",
+"ibrahim",
+"yunus",
+"ayuba",
+"ali",
+"musah"
+]
+},
+{
+"page": 93,
+"number": 107,
+"title": "If You Will See What You Are Searching For or Not (Nazir)",
+"tokens": "after drawing the chart pick the constant figure of nazir S:adam and add it to any star found in house 1 if the star is found in the chart you will see it and the vice versa if its found in the first 4 houses in the chart umuhat you will see it within some seconds or days if its found in the second 4 houses banat you will see it within some minutes or weeks if its found in the third 4 houses hafidat you will see it within some hours or months and if you found it in the last 4 houses sumurakat you may not see it again or you may see it within many hours or years",
+"figures": [
+"adam"
+]
+},
+{
+"page": 93,
+"number": 108,
+"title": "If You Will Get to Talk to Someone, or If Conversation Will Take Place Between Two People",
+"tokens": "after drawing the chart pick the constant figure of nutik S:umar and add it to any star found in house 1 check if its found in the chart it means conversation will take place and vice versa if its found in the first 4 second 4 third 4 or last 4 houses in the chart the explanation is the same as above for how soon",
+"figures": [
+"umar"
+]
+},
+{
+"page": 94,
+"number": 118,
+"title": "If You Will Get What You Are Searching For, in a Place (Itisal)",
+"tokens": "after casting the chart pick the constant figure of itisal S:iddris and add it to any star found in house 1 and check if it is found in the chart if it is you will get it but if it is not in the chart you will not get it if it is found in the first 4 second 4 third 4 or last 4 houses it is the same explanation as above in nazir",
+"figures": [
+"iddris"
+]
+},
+{
+"page": 94,
+"number": 119,
+"title": "If You Won't Get What You Are Searching For (Ifusal)",
+"tokens": "to know what will block or stop you from getting what you want after drawing the chart pick the constant figure of ifusal S:ayuba and add it to any star found in house 1 and check if it is found in the chart if it is it means you wont get what you are searching for if you want to know how long it will take check the star if it is found in the first 4 second 4 third 4 or last 4 houses it is the same explanation as in nazir",
+"figures": [
+"ayuba"
+]
+},
+{
+"page": 95,
+"number": 120,
+"title": "If You Have Enemies and How Many",
+"tokens": "after casting the chart check if you see S:nuhu in the chart if it is there it means you have enemies but if its not in the chart it means you dont have enemies or you have some but they cannot or could not do anything to you the number of times it repeats is the number of enemies you have if it repeats 3 times you have 3 enemies if 2 times they are 2 also after casting the chart check h12 if you get S:musah it means you have a lot of enemies in your life",
+"figures": [
+"nuhu",
+"musah"
+]
+},
+{
+"page": 96,
+"number": 121,
+"title": "If You Will Get Knowledge or Not in Your Life",
+"tokens": "after casting the chart check h1 if you get S:adam S:usman or S:ali found in h9 or h11 it means you will get knowledge and wisdom in future",
+"figures": [
+"usman",
+"ali"
+]
+},
+{
+"page": 97,
+"number": 122,
+"title": "If You Will Get What You Want, or If Your Intentions Will Be Gotten (Very Close) [Note: the Table of Contents lists this chapter's title as \"if someone has long life or not (sick person)\" — but the content found at this position in the manuscript body is about intentions/getting what you want, as given here. This appears to be a mismatch in the original notebook between its own Table of Contents and body, not a transcription error; the \"long life/sick person\" topic appears repeatedly elsewhere, in Chapters Ninety-Three, Ninety-Six, and as an additional method near Chapter Hundred and Four.]",
+"tokens": "method 1 after casting the chart check h7 and h12 if both are downward stars or stable stars it means heshe will get what heshe wants and its very close method 2 if h11 is a downward star or a stable star it means it will be gotten very fast",
+"figures": []
+},
+{
+"page": 98,
+"number": 123,
+"title": "If Something Will Burn",
+"tokens": "after drawing the chart check the fire elements of h5 h6 h8 and h9 if they are all opened then something will burn or it has already burnt",
+"figures": []
+},
+{
+"page": 98,
+"number": 124,
+"title": "If Something Has Really Been Stolen or Not",
+"tokens": "method 1 after casting the chart check if you get S:umar S:yunus S:issah S:hassan-hussein in the chart if so it is true it has been stolen but if none of these stars is found in the chart it means its a lie method 2 after drawing the chart pick h1 and h5 and add them if it is found in the chart its true and vice versa",
+"figures": [
+"umar",
+"yunus",
+"issah",
+"hassan-hussein"
+]
+},
+{
+"page": 99,
+"number": 125,
+"title": "If They Will Return a Stolen Thing Back",
+"tokens": "after casting the chart check h1 and h2 if they are both good stars then check h7 and h8 if they are bad stars it means you will get the stolen thing back but if h7 and h8 are good stars and h1 and h2 are bad stars you wont get it again if one of the stars in h1 and h2 or h7 and h8 is a bad or middlegood star then check h2 if its a good star it will be brought back but if its a bad star they wont bring it back",
+"figures": []
+},
+{
+"page": 99,
+"number": 126,
+"title": "The Number of Thieves",
+"tokens": "after drawing the chart check h7 the number of times h7 repeats in the chart is the number of thieves",
+"figures": []
+},
+{
+"page": 100,
+"number": 127,
+"title": "The Description of the Thief",
+"tokens": "after drawing the chart use h1 as the thiefs description a male star or a female star found there indicates a male or female thief some also use the star found in h7 for the description this passage was faint and heavily corrected in the original notebook the general method is as above but some detail may not be captured exactly please check the original scan",
+"figures": []
+},
+{
+"page": 100,
+"number": 128,
+"title": "If the Thief or the Stolen Thing Is in Town or Out of Town",
+"tokens": "after drawing the chart pick h1 and check if it repeats in the chat as the thief if it is found in the chart heshe is still in town if it is not found in the chart heshe is gone out of town",
+"figures": []
+},
+{
+"page": 101,
+"number": 129,
+"title": "If It Is the Accused Person That Stole the Thing or Not",
+"tokens": "after drawing the chart check h4 if it is a downward or stable star then it is himher but if its an upward or unstable star heshe is not the one",
+"figures": []
+},
+{
+"page": 101,
+"number": 130,
+"title": "The Thief from Among the Accused People",
+"tokens": "method 1 after drawing the chart pick 2 peoples names and place one on your right and one on your left then after drawing the chart check h4 if it is a downward or stable star then its the person on the right but if its an upward or unstable star its the person on the left if there are many people do this for all of them method 2 directional method after drawing the chart with that intention place the accused peoples names one on the east side and the other on the west side see the diagram of the four directions in the original notebook draw the chart and divide it into two the umuhat houses 14 and any stars under them on one side and the banat houses 58 and any stars under them on the other count the single dots of each star on each side and check which side has more dots if the east side has more single dots that is where the thief is and vice versa",
+"figures": []
+},
+{
+"page": 102,
+"number": 131,
+"title": "If Something Was Buried, or Has Been Buried, in a Particular Place",
+"tokens": "method 1 after drawing the chart check h4 and h6 if both are downward stars it means something was buried there but if they are not nothing was buried there method 2 also if h6 and h4 are good and stable stars then something is buried there and vice versa method 3 also check h6 and h8 if both are downward stars then something is buried there",
+"figures": []
+},
+{
+"page": 103,
+"number": 132,
+"title": "If There's a Hidden Treasure (Gold/Money) in a Particular Place",
+"tokens": "method 1 after casting the chart pick h4 and h6 and add them if its one of the following stars there is treasure but if its not there is nothing there the stars are as follows S:usman S:yussif S:sulemana S:iddris method 2 also if you get S:usman S:mahadi or S:nuhu in your chart then theres something but if its not any of the above stars then theres nothing there method 3 also if your h1 is a downward star or a stable star it means theres something but if it is not theres nothing",
+"figures": [
+"usman",
+"yussif",
+"sulemana",
+"iddris",
+"usman",
+"mahadi",
+"nuhu"
+]
+},
+{
+"page": 103,
+"number": 133,
+"title": "How Deep Something Is Buried",
+"tokens": "after drawing the chart count all the single dots from h1 to h15 and start subtracting 12 12 if your result is from 1 to 4 it means it is an inch deep if your result is from 5 to 8 it means an arms length or a cubit deep if your result is from 9 to 12 it means the height of a human being statureheight deep",
+"figures": []
+},
+{
+"page": 104,
+"number": 134,
+"title": "Where a Traveller Has Travelled To",
+"tokens": "after casting the chart pick h1 and h7 and add them to h15 if the star is found in the first 4 houses umuhat it means heshe has gone to the east side if it is found in the second 4 houses banat it means heshe has gone to the west side if it is found in the third 4 houses hafidat it means heshe has gone to the north side and if it is found in the last 4 houses sumurakat it means heshe has gone to the south side",
+"figures": []
+},
+{
+"page": 104,
+"number": 135,
+"title": "If the Traveller Has Travelled by Air, Water, or Land",
+"tokens": "after casting the chart count all the dots of the air elements the dots of the water elements and the dots of the sand elements and check which one has more dots if the air dots are more heshe travelled by air if the water dots are more heshe travelled by water if the sand dots are more heshe travelled by car train motorbike or bicycle etc",
+"figures": []
+},
+{
+"page": 105,
+"number": 136,
+"title": "If the Traveller Has Reached Where He/She Is Going or Not",
+"tokens": "after drawing the chart check h1 if its a downward star heshe has reached home safely if its not a downward star heshe has not reached yet if house 1 repeats in h3 or h9 heshe is still on the way if it repeats in h7 heshe has reached the town but not home yet",
+"figures": []
+},
+{
+"page": 105,
+"number": 137,
+"title": "If Someone Is Truthful or Not",
+"tokens": "method 1 after drawing the chart check h13 and h14 if h13 is a good star heshe is telling the truth or is a truthful person but if its h14 that is a good star it means the querent is not truthful method 2 pick h1 and h5 and add them if it is found in the chart it is true yes but if it is not found in the chart it is not true no",
+"figures": []
+},
+{
+"page": 106,
+"number": 138,
+"title": "If a Prisoner Will Come Out of Prison and How Long It Will Take",
+"tokens": "after drawing the chart check h6 if its a good star heshe will be removed from the prison if h8 and h16 are bad stars it will take a long time before heshe is removed",
+"figures": []
+},
+{
+"page": 106,
+"number": 139,
+"title": "If the Prisoner Will Be Removed Peacefully",
+"tokens": "after casting the chart pick h1 and h3 and add them if it is a good and upward star heshe will be removed peacefully and happily if it is a bad and upward star it will take a longer time before they can remove himher with sadness and a lot of stress",
+"figures": []
+},
+{
+"page": 106,
+"number": 140,
+"title": "How Long the Prisoner Will Stay in Prison/Cells",
+"tokens": "after drawing the chart pick h1 and h3 and add them if its a good and downward star heshe will stay in the cells for a while before they remove himher if its a bad and downward star heshe is going for life imprisonment it will be difficult to get himher out of the prison",
+"figures": []
+},
+{
+"page": 107,
+"number": 141,
+"title": "If the Prisoner Is Male or Female",
+"tokens": "after drawing the chart pick h1 and h7 and add them if its a male star hes a male and vice versa",
+"figures": []
+},
+{
+"page": 107,
+"number": 142,
+"title": "Where Kidnappers Are Keeping a Person Hostage",
+"tokens": "after drawing the chart check which star is found in its own house if its S:yussif heshe is kidnapped in hisher own house if its S:adam heshe is in one of the closest houses or a neighbors if its S:mahadi heshe is in one of hisher family members house if its S:iddris heshe is in hisher fathers or mothers house if its S:ibrahim heshe is in one of hisher childrens house if its S:issah heshe is in a sick persons house close to him or her if its S:umar heshe is in his or her girlfriendsboyfriends or wifeshusbands house if its S:ayuba heshe is in a funeral house if its S:kalla-allahu heshe is on a journey they are taking himher somewhere out of towns if its S:sulemana heshe is in a chiefs kings or a wellknown and respected persons house if its S:ali heshe is in hisher exs house if its S:nuhu heshe is in hisher enemys house and so on up to the end of the stars",
+"figures": [
+"yussif",
+"adam",
+"mahadi",
+"iddris",
+"ibrahim",
+"issah",
+"umar",
+"ayuba",
+"kalla-allahu",
+"sulemana",
+"ali",
+"nuhu"
+]
+},
+{
+"page": 108,
+"number": 143,
+"title": "The Consequence of a Prisoner",
+"tokens": "method 1 after drawing the chart pick h1 and h6 and add them then pick h12 and h15 and add them then add all of them together if its a good star it is going to be well after the prison but if its a bad star its not going to be easy after prison method 2 pick h3 and h12 then h1 and h4 and add them all together if its a good star its going to be well and vice versa",
+"figures": []
+},
+{
+"page": 109,
+"number": 144,
+"title": "If You Will Get Your Debts, Deposit, or Savings Back",
+"tokens": "after drawing the chart pick h1 and h7 then h2 and h8 and add them all if its a good star and repeats in the chart itself they will pay you or you will get the money back if its a bad star they wont pay you and you wont get the money back if its a middle good star it will take a longer time before you get it",
+"figures": []
+},
+{
+"page": 109,
+"number": 145,
+"title": "If Someone Will Get a Particular Position or Chieftaincy Title",
+"tokens": "after drawing the chart pick h1 and h10 then h11 and h13 and add them all if its a good star heshe will get it if its a middlegood star heshe may get it with prayers if its a bad star heshe will never get it allah knows best",
+"figures": []
+},
+{
+"page": 110,
+"number": 146,
+"title": "If You Will Own a House in Your Life",
+"tokens": "after casting the chart pick h1 and h4 then h11 and h15 and add them all if its a good star you will own a house in your life if its a bad star you will never own a house if its a middlegood star you will own a house with prayers and sacrifices",
+"figures": []
+},
+{
+"page": 110,
+"number": 147,
+"title": "If This Apartment You Are Going to Is Safe/Good for You",
+"tokens": "after casting the chart pick h1 and h4 then add it to h5 if its a good star its good and safe if its a bad star it is not if its a middlegood star you have to do a lot of prayers and sacrifices spiritual cleansing",
+"figures": []
+},
+{
+"page": 111,
+"number": 148,
+"title": "If You Will Receive the Expected Message",
+"tokens": "after casting the chart pick h1 and h5 then add it to h15 if its a good star you will get it easily if its a bad star you wont get it at all if its a middlegood star you may get it with serious prayer and sacrifices",
+"figures": []
+},
+{
+"page": 111,
+"number": 149,
+"title": "Which Day a Pregnant Woman Will Put to Bed",
+"tokens": "after casting the chart count all the dots of h1 h4 h5 h7 and h15 and start subtracting 7 7 if its 1 thats sunday 2 is monday 3 is tuesday and so on through the week to saturday the full dayby day list runs off the edge of the scanned page only the first three days are legible please check the original for days 47",
+"figures": []
+},
+{
+"page": 112,
+"number": 150,
+"title": "If You Will Get Back to Work After Getting a Problem in the Workplace",
+"tokens": "pick h1 and h6 and add them to h10 if its a good star you will if its a bad star you will not if its a middlegood star with prayer you will get your place back",
+"figures": []
+},
+{
+"page": 112,
+"number": 151,
+"title": "Dreams and Their Interpretations",
+"tokens": "if you want to know the meaning of a dream make only the first 4 stars umuhat and pair them 1 if its S:yussif it means enmity but long life it also talks about sickness and family problems do the sadaka charitable offering of a red cock red money and a red shirtjalabia on friday 2 if its S:adam it means heavy money is coming to you or a lucrative job or business it also talks about a business trip or someone coming to pay you their debts do the sadaka of your cloth or shirt any amount of money and a blackwhite hen 3 if its S:mahadi it means you will get a good stranger a visitor or a message it also talks about a love relationship or marriage that will soon come do the sadaka of 100 kola nuts a black cock and any amount of money your business or money will be tied up for a little while before it opens 4 if its S:yussif it means you will get a stranger wearing white clothes it also talks about a manlady you will meet on your journey who might become your wife or husband in future and about an intelligent child you will have in future do the sadaka of white cloth a white cock and one white kola nut 5 if its S:ibrahim it means a message a messenger or a childpregnancy that you will soon get it also talks about travelling across water or a flood do the sadaka of a white house bird white rice and cows milk or the head of a sheep or goat 6 if its S:issah it means you will get a lot of money but you may use it all for your treatment you will be sick for some time but inshaallah you will be fine after that do the sadaka of salt a white item unclear in the original and a white housebird 7 if its S:iddris it means your house might get burnt or a nearby house it also talks about a cut or blood on your body meat that someone might bring you as sadaka a colored manlady coming into your life and being stolen from or that you will be do the sadaka of a red cock or duck gold and red money 8 if its S:ayuba it means a new funeral or that there will be many funerals that month or week it talks about panic and fear do the sadaka of a mixedcolor cock mixedcolor foods and a black cloth 9 if its S:kalla-allahu it means you will soon travel the travelling is good and you will go and come in peace and safety do the sadaka of black metal and a cock that has 3 colors give them to a traveller or a stranger 10 if its S:sulemana it means you are cheating people and should stop or that someone will cheat you so be careful it also talks about promotion or chieftaincy issues do the sadaka of a guinea fowl and a black clothwhite ram for the recitation of the quran or as charity khayrat on your behalf 11 if its S:ali it means the expectations you are thinking about will soon come it also talks about an ex who wants to come back to you though the expectations are not good for you do the sadaka of a red goat your sandals and 4 white kola nuts 12 if its S:nuhu it means money that is supposed to come to you has been blocked by an enemy it also talks about a debt that you owe or that is owed to you that will cause enmity between you and that person do the sadaka of a red goat red shirt money and red cereals 13 if its S:hassan-hussein it means all your success has been blocked and it will be very difficult to unblock do the sadaka of 2 fowls from the same mother one released to the north and the other to the south 14 if its S:yunus it means your ancestors are asking for food from you it also talks about your success having been blocked you have to do sadaka to your ancestors so that things will be better for you make food with a white hen and share it around your area 15 if its S:usman it means success love and leadership await you in future it also talks about a relationship or marriage do the sadaka of white cloth 7 white kola nuts white rice cows milk and a white hen 16 if its S:musah it means your enemies are many envious and jealous people are around you and a lot of people are looking up to you to help them it also talks about how you will lead people in future do the sadaka of a black cock and massan 21 quantityterm unclear in the original",
+"figures": [
+"yussif",
+"adam",
+"mahadi",
+"yussif",
+"ibrahim",
+"issah",
+"iddris",
+"ayuba",
+"kalla-allahu",
+"sulemana",
+"ali",
+"nuhu",
+"hassan-hussein",
+"yunus",
+"usman",
+"musah"
+]
+}
+]
+}

@@ -69,7 +69,7 @@ const method2: MethodDefinition = {
     const h4 = CHECK_HOUSE(chart, 4).figure.qualities.fortune.value;
     const h6 = CHECK_HOUSE(chart, 6).figure.qualities.fortune.value;
     if (h4 === 'good' && h6 === 'good') {
-      return { outcome: 'uncertain', label: 'Both good — stability unknown', interpretation: 'Both H4 and H6 are good, but this rule also requires both to be stable, which this project has no sourced classification for.' };
+      return { outcome: 'uncertain', label: 'Both good — stability unknown', interpretation: 'Both H4 and H6 are good, but this rule also requires both to be stable, and the source does not define stability for a figure.' };
     }
     return { outcome: 'descriptive', label: 'Not both good', interpretation: "H4 and H6 aren't both good stars, so the AND-condition fails regardless of stability — nothing is buried there.", descriptiveAnswer: 'not-buried' };
   },

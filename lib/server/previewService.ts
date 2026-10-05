@@ -17,6 +17,7 @@ import { getPreviewPolicy } from '@/lib/access/previewPolicy';
 import { canAccessForUser } from './accessService';
 import { consumePreviewUse, getPreviewUsage } from './previews';
 import type { Db } from './db';
+import { cleanSourceText, customerSafeRow } from '@/lib/raml/customerText';
 
 export type PreviewStatus = 'entitled' | 'available' | 'consumed' | 'unconfigured';
 
@@ -109,9 +110,9 @@ export async function executeBookPreview(db: Db, userId: string, bookId: string,
       kind: 'method',
       questionId: found.question.id,
       label: found.method.label,
-      sourceQuote: found.method.source.quote,
+      sourceQuote: cleanSourceText(found.method.source.quote).text,
       sourceLabel,
-      row,
+      row: row ? customerSafeRow(row, found.method.reviewReasonCode ?? null) : row,
     };
   }
 

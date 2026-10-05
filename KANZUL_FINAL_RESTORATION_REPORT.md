@@ -1,5 +1,7 @@
 # Kanzul Mikban — Final Edition Restoration Report
 
+> **Superseded in part by `KANZUL_PDF_PARITY_REPORT.md`.** The figure-list placeholders this report counts as remaining (27 across 11 entries) have since been replaced with the edition's figures, and the book text now matches the PDF entry-for-entry. The engine classifications below (ambiguous / contradiction / anomaly / incomplete) still stand.
+
 Project: **Truth Geomancer**. Status: implemented in the working tree, **not committed, not pushed, not deployed**.
 
 ## 1. Final source used

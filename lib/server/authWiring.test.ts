@@ -228,3 +228,9 @@ describe('homepage passes the server-known sign-in state, without personal data'
     expect(page).toMatch(/<DashboardHeader initialAuth=\{initialAuth\} \/>/);
   });
 });
+
+describe('Settings stays reachable after leaving the homepage header', () => {
+  it('the More page still links to /settings', () => {
+    expect(read('app/more/page.tsx')).toMatch(/href: '\/settings'/);
+  });
+});

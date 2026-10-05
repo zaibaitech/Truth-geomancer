@@ -53,8 +53,9 @@ describe('homepage header sign-in entry point (server-rendered)', () => {
     expect(m).not.toContain('reader@example.com');
   });
 
-  it('the rest of the header is unchanged: search, notifications and settings remain', async () => {
+  it('the header keeps Search and Notifications; Settings has moved to the More tab', async () => {
     const h = header(await html());
-    for (const label of ['Search', 'Notifications', 'Settings']) expect(h).toContain(`aria-label="${label}"`);
+    for (const label of ['Search', 'Notifications']) expect(h).toContain(`aria-label="${label}"`);
+    expect(h).not.toContain('href="/settings"');
   });
 });

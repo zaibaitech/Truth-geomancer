@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signInHref } from '@/lib/auth/returnTo';
-import { useAuthStatus } from './useAuthStatus';
+import { useAuthStatus, type AuthStatus } from './useAuthStatus';
 
 /**
  * Inline "Already bought it? Sign in" for the places sign-in is naturally
@@ -11,8 +11,15 @@ import { useAuthStatus } from './useAuthStatus';
  * Returns the person to this exact page afterwards. Shows nothing while the
  * status is loading, and a quiet "Signed in as …" line once signed in.
  */
-export function SignInPrompt({ message = 'Already have access on another device?' }: { message?: string }) {
-  const status = useAuthStatus();
+export function SignInPrompt({
+  message = 'Already have access on another device?',
+  initialStatus = null,
+}: {
+  message?: string;
+  /** Server-resolved state, so the prompt is in the first HTML (see useAuthStatus). */
+  initialStatus?: AuthStatus | null;
+}) {
+  const status = useAuthStatus(initialStatus);
   const pathname = usePathname() ?? '/';
   if (status === null) return null;
   if (status.authenticated) {

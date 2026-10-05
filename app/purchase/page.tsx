@@ -52,11 +52,15 @@ export default async function PurchasePage() {
     activeProducts.map((product) => (user && db ? getProductAccessStatus(db, user.id, product.id) : Promise.resolve('none' as const))),
   );
 
+  // Server-known sign-in state, so the Sign in entry points are in the first
+  // HTML rather than appearing only after a client-side status check.
+  const auth = { authenticated: Boolean(user?.email), email: user?.email ?? null };
+
   return (
     <div>
-      <Header title="Get access" subtitle="Request access to a book or bundle" />
+      <Header title="Get access" subtitle="Request access to a book or bundle" initialAuth={auth} />
       <div className="px-4">
-        <SignInPrompt message="Already paid, or bought on another device?" />
+        <SignInPrompt message="Already paid, or bought on another device?" initialStatus={auth} />
       </div>
       <div className="space-y-3 px-4 py-4">
         {activeProducts.map((product, i) => {

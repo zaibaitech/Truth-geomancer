@@ -13,9 +13,13 @@ export interface AuthStatus {
   email: string | null;
 }
 
-export function useAuthStatus(): AuthStatus | null {
+// `initial` lets a Server Component that already resolved the session pass it
+// in, so the first (server-rendered) HTML shows the right state immediately
+// instead of nothing until the client-side check completes. The live check
+// still runs and replaces it.
+export function useAuthStatus(initial: AuthStatus | null = null): AuthStatus | null {
   const pathname = usePathname();
-  const [status, setStatus] = useState<AuthStatus | null>(null);
+  const [status, setStatus] = useState<AuthStatus | null>(initial);
 
   useEffect(() => {
     let cancelled = false;

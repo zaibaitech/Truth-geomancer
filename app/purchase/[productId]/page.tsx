@@ -63,11 +63,15 @@ export default async function ProductPurchasePage({
     phone: profile?.phone ?? '',
   };
 
+  // Server-known sign-in state, so the Sign in entry points are in the first
+  // HTML rather than appearing only after a client-side status check.
+  const auth = { authenticated: Boolean(user?.email), email: user?.email ?? null };
+
   return (
     <div>
-      <Header title={product.name} subtitle="Request access" />
+      <Header title={product.name} subtitle="Request access" initialAuth={auth} />
       <div className="px-4">
-        <SignInPrompt message="Already paid, or bought on another device?" />
+        <SignInPrompt message="Already paid, or bought on another device?" initialStatus={auth} />
       </div>
       <div className="px-4 py-4">
         <Card>

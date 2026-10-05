@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserRound } from 'lucide-react';
 import { signInHref } from '@/lib/auth/returnTo';
-import { useAuthStatus } from './useAuthStatus';
+import { useAuthStatus, type AuthStatus } from './useAuthStatus';
 
 /**
  * The always-visible account entry in the app header (auth/session
@@ -13,8 +13,8 @@ import { useAuthStatus } from './useAuthStatus';
  * known it renders an invisible placeholder of the same size, so it never
  * flashes "Sign in" at someone who is already signed in.
  */
-export function AccountButton() {
-  const status = useAuthStatus();
+export function AccountButton({ initialStatus = null }: { initialStatus?: AuthStatus | null }) {
+  const status = useAuthStatus(initialStatus);
   const pathname = usePathname() ?? '/';
 
   // Already on the sign-in screens: a second "Sign in" would only loop back.

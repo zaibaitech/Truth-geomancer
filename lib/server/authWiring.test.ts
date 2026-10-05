@@ -170,7 +170,7 @@ describe('session cookie attributes', () => {
 
 describe('sign-in is discoverable where it is naturally needed', () => {
   it('the main header and dashboard header both render the AccountButton', () => {
-    expect(read('components/layout/Header.tsx')).toMatch(/<AccountButton \/>/);
+    expect(read('components/layout/Header.tsx')).toMatch(/<AccountButton initialStatus=\{initialAuth\} \/>/);
     expect(read('components/dashboard/DashboardHeader.tsx')).toMatch(/<AccountButton \/>/);
   });
 
@@ -209,5 +209,14 @@ describe('sign-in is discoverable where it is naturally needed', () => {
     ]) {
       expect(SIGN_IN_FLOW).toContain(text);
     }
+  });
+});
+
+describe('purchase pages pass the server-known sign-in state (no blank entry point before hydration)', () => {
+  it.each(['app/purchase/page.tsx', 'app/purchase/[productId]/page.tsx'])('%s', (path) => {
+    const page = read(path);
+    expect(page).toMatch(/const auth = \{ authenticated: Boolean\(user\?\.email\), email: user\?\.email \?\? null \};/);
+    expect(page).toMatch(/<Header [^>]*initialAuth=\{auth\}/);
+    expect(page).toMatch(/<SignInPrompt [^>]*initialStatus=\{auth\}/);
   });
 });

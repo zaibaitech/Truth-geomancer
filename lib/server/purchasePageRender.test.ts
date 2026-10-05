@@ -113,3 +113,36 @@ describe.each(PRODUCTS)('real purchase page: $id', ({ id, price, minor }) => {
     expect(input(m, 'firstName')).not.toBeNull();
   });
 });
+
+// Purchase-page sign-in entry points must be in the SERVER-rendered HTML, not
+// only appear after a client-side status check (production QA found the page
+// showed no Sign in before that check completed).
+describe('purchase page sign-in entry point (server-rendered)', () => {
+  const signInLinks = (m: string) => m.match(/<a[^>]*href="\/signin\?returnTo=[^"]*"[^>]*>Sign in<\/a>/g) ?? [];
+
+  it('a signed-out visitor sees Sign in in the header and in the body, both returning to a same-site path', async () => {
+    const m = await html('master-of-geomancy-vol-1');
+    const links = signInLinks(m);
+    expect(links).toHaveLength(2);
+    for (const a of links) expect(a).toMatch(/href="\/signin\?returnTo=%2F[^"]*"/);
+    expect(m).toContain('Already paid, or bought on another device?');
+    // Purchase controls are still there.
+    expect(m).toContain('Continue to secure payment');
+  });
+
+  it('an anonymous identity (no email) is still offered Sign in', async () => {
+    const u = (await getOrCreateUser(db, null)).user;
+    current = { id: u.id, email: null };
+    expect(signInLinks(await html('kanzul-mikban'))).toHaveLength(2);
+  });
+
+  it('a signed-in customer sees their account state instead — no Sign in controls', async () => {
+    const u = (await getOrCreateUser(db, null)).user;
+    await attachEmailToUser(db, u.id, 'signed-in@example.com');
+    current = { id: u.id, email: 'signed-in@example.com' };
+    const m = await html('master-of-geomancy-vol-1');
+    expect(signInLinks(m)).toHaveLength(0);
+    expect(m).toContain('Signed in as signed-in@example.com');
+    expect(m).toContain('Continue to secure payment');
+  });
+});

@@ -2,14 +2,24 @@ import { Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from './Logo';
 import { AccountButton } from '@/components/auth/AccountButton';
+import type { AuthStatus } from '@/components/auth/useAuthStatus';
 
-export function Header({ title, subtitle }: { title?: string; subtitle?: string }) {
+export function Header({
+  title,
+  subtitle,
+  initialAuth = null,
+}: {
+  title?: string;
+  subtitle?: string;
+  /** Optional server-resolved sign-in state for the account button. */
+  initialAuth?: AuthStatus | null;
+}) {
   return (
     <header className="border-b border-sand/10 px-4 pb-3 pt-4">
       <div className="flex items-center justify-between">
         <Logo />
         <div className="flex shrink-0 items-center gap-1.5">
-          <AccountButton />
+          <AccountButton initialStatus={initialAuth} />
           <Link
           href="/settings"
           aria-label="Settings"

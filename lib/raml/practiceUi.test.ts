@@ -76,10 +76,10 @@ describe('4. Uses the existing casting interface — never a second casting mech
     // Phase 1: a practice cast is saved through savePracticeChart(), which
     // stores the Mothers with the existing saveReading() and rebuilds the
     // chart with the same buildChart() the History screen uses.
-    expect(FLOW).toMatch(/savePracticeChart\(questionId, mothers\)/);
+    expect(FLOW).toMatch(/savePracticeChart\(questionId, mothers, \{ chapterId, methodId: method\.id \}\)/);
     const helper = repoFile('lib/raml/methodPractice.ts');
     const fn = helper.slice(helper.indexOf('export function savePracticeChart'), helper.indexOf('export function isWholeChartRow'));
-    expect(fn).toContain('saveReading({ questionId, mothers })');
+    expect(fn).toContain('saveReading({ questionId, mothers, ...(practice ? { practice } : {}) })');
     expect(fn).toContain('buildChart(record.mothers)');
   });
 

@@ -179,7 +179,7 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
     // Saved through the existing history store (savePracticeChart ->
     // saveReading) so it becomes the current chart for every other method;
     // the chart itself comes from the same buildChart(mothers).
-    const saved = savePracticeChart(questionId, mothers);
+    const saved = savePracticeChart(questionId, mothers, { chapterId, methodId: method.id });
     setChart(saved.chart);
     setExisting({ chart: saved.chart, record: saved.record });
     setPracticeSaved(saved.persisted);

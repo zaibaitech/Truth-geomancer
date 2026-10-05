@@ -226,7 +226,7 @@ describe('E. no saved chart: cast once, save it, return to the method', () => {
 
   it('a completed practice cast is saved, becomes the current chart, and continues this same method', () => {
     const fn = FLOW.slice(FLOW.indexOf('function onCastComplete'), FLOW.indexOf('function toggleHouse'));
-    expect(fn).toContain('savePracticeChart(questionId, mothers)');
+    expect(fn).toContain('savePracticeChart(questionId, mothers, { chapterId, methodId: method.id })');
     expect(fn).toContain('setExisting({ chart: saved.chart, record: saved.record })');
     expect(fn).toContain("setStage('walkthrough')");
   });

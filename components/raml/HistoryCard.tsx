@@ -49,6 +49,14 @@ export function HistoryStateBadge({ entry }: { entry: HistoryEntry }) {
   );
 }
 
+/** The figure a saved practice produced — only for a counted result of a
+ * named-house method (a whole-chart method's figure is a reference only). */
+function practiceFigure(entry: HistoryEntry): string | null {
+  const row = entry.practice?.row;
+  if (!row || !row.counted || row.housesUsed.length === 0) return null;
+  return row.resultFigureName;
+}
+
 function formatDate(iso: string) {
   try {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
@@ -69,13 +77,31 @@ export function HistoryCard({
   return (
     <div className="flex items-start gap-2 rounded-2xl border border-sand/10 bg-ink-card p-3">
       <Link href={`/raml/history/${entry.record.id}`} className="min-w-0 flex-1">
-        <p className="type-body font-medium text-sand-light">{entry.title}</p>
+        {entry.practice ? (
+          // Practice polish: a saved METHOD PRACTICE is labelled as one, with
+          // the source question as context — never as a question the user
+          // asked, and never with the whole question's combined verdict.
+          <>
+            <p className="type-label uppercase tracking-widest text-clay-light">Method practice</p>
+            <p className="mt-0.5 type-body font-medium text-sand-light">{entry.practice.heading}</p>
+            {entry.practice.sourceQuestion ? (
+              <p className="mt-1 type-label text-sand/65">
+                Source question: “{entry.practice.sourceQuestion}”
+              </p>
+            ) : null}
+            {practiceFigure(entry) ? (
+              <p className="mt-1 type-label text-sand-light">Result: {practiceFigure(entry)}</p>
+            ) : null}
+          </>
+        ) : (
+          <p className="type-body font-medium text-sand-light">{entry.title}</p>
+        )}
         {entry.intentionText ? (
           <p className="mt-1 line-clamp-2 type-label italic text-sand/70">“{entry.intentionText}”</p>
         ) : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <HistoryStateBadge entry={entry} />
-          {entry.sourceLabel ? <span className="type-label text-sand/65">{entry.sourceLabel}</span> : null}
+          {entry.sourceLabel && !entry.practice ? <span className="type-label text-sand/65">{entry.sourceLabel}</span> : null}
         </div>
         <p className="mt-1.5 type-label text-sand/65">{formatDate(entry.record.createdAt)}</p>
       </Link>

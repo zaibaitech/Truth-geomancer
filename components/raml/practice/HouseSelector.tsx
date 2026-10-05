@@ -15,8 +15,41 @@ import { houseInfo } from '@/lib/raml/houses';
  * elsewhere — same figure, same star name — just not interactive here.
  */
 // Long house titles ("Transformation", "Illness & Enemies") must wrap
-// inside a 360px-wide quarter tile rather than run past its border.
-const WRAP = 'block w-full min-w-0 break-words hyphens-auto';
+// inside a 360px-wide quarter tile rather than run past its border — at the
+// agreed 14px label floor a quarter tile is ~60-68px wide, narrower than
+// "Transformation" (~100px). Practice polish: words are never split at an
+// arbitrary letter. Titles wrap between words first, then only at the
+// dictionary hyphenation points below (soft hyphens: invisible unless the
+// line actually breaks there, so the visible text is unchanged). The
+// overflow-wrap fallback only ever applies if a single syllable still cannot
+// fit (e.g. at the largest reader size), so text can never escape its tile.
+const WRAP = 'block w-full min-w-0 hyphens-manual break-words';
+
+const SHY = '\u00AD';
+/** Dictionary syllable breaks for the house-role title words that can be
+ * wider than a tile. Display-only; the titles themselves (lib/raml/houses.ts)
+ * are unchanged. */
+const TITLE_HYPHENATION: Record<string, string> = {
+  Transformation: ['Trans', 'for', 'ma', 'tion'].join(SHY),
+  Children: ['Chil', 'dren'].join(SHY),
+  Marriage: ['Mar', 'riage'].join(SHY),
+  Enemies: ['En', 'e', 'mies'].join(SHY),
+  Religion: ['Re', 'li', 'gion'].join(SHY),
+  Reconciler: ['Rec', 'on', 'cil', 'er'].join(SHY),
+  Witness: ['Wit', 'ness'].join(SHY),
+  Siblings: ['Sib', 'lings'].join(SHY),
+  Illness: ['Ill', 'ness'].join(SHY),
+  Hidden: ['Hid', 'den'].join(SHY),
+  Career: ['Ca', 'reer'].join(SHY),
+  Travel: ['Trav', 'el'].join(SHY),
+};
+
+export function hyphenateHouseTitle(title: string): string {
+  return title
+    .split(' ')
+    .map((word) => TITLE_HYPHENATION[word] ?? word)
+    .join(' ');
+}
 
 export function HouseSelector({
   chart,
@@ -40,7 +73,7 @@ export function HouseSelector({
   const requiredSet = new Set(required);
 
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-4 gap-1.5">
       {chart.houses.map((h) => {
         const info = houseInfo(h.n);
         const isRequired = requiredSet.has(h.n);
@@ -54,7 +87,7 @@ export function HouseSelector({
               <span className="type-label text-sand/65">H{h.n}</span>
               <FigureGlyph pattern={h.pattern} size="sm" />
               <span className={`type-label text-sand-light ${WRAP}`}>{h.star.name}</span>
-              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
+              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{hyphenateHouseTitle(info.title)}</span>}
             </Card>
           );
         }
@@ -69,7 +102,7 @@ export function HouseSelector({
               <span className="type-label font-medium text-clay-light">H{h.n}</span>
               <FigureGlyph pattern={h.pattern} size="sm" />
               <span className={`type-label text-sand-light ${WRAP}`}>{h.star.name}</span>
-              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
+              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{hyphenateHouseTitle(info.title)}</span>}
             </div>
           );
         }
@@ -89,7 +122,7 @@ export function HouseSelector({
               H{h.n}
             </span>
             <FigureGlyph pattern={h.pattern} size="sm" />
-            {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
+            {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{hyphenateHouseTitle(info.title)}</span>}
           </button>
         );
       })}

@@ -8,6 +8,8 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { CastingResultView } from '@/components/raml/CastingResultView';
 import { HistoryStateBadge } from '@/components/raml/HistoryCard';
+import { FigureGlyph } from '@/components/raml/FigureGlyph';
+import { PracticeChartPanel } from '@/components/raml/practice/PracticeChartPanel';
 import { describeReading, deleteReading, getReading, type HistoryEntry } from '@/lib/raml/history';
 
 function formatDate(iso: string) {
@@ -67,7 +69,55 @@ export default function SavedReadingPage({ params }: { params: { id: string } })
         </div>
       ) : null}
 
-      {state === 'found' && entry ? (
+      {state === 'found' && entry && entry.practice ? (
+        // Practice polish: a saved METHOD PRACTICE shows that one method's
+        // own result, chart and working — the same row the practice screen
+        // showed — with the source question as context only.
+        <div className="space-y-4 px-4 pb-6">
+          <Card>
+            <p className="type-label uppercase tracking-widest text-clay-light">Method practice</p>
+            <h2 className="mt-1 type-section font-semibold text-sand-light">{entry.practice.heading}</h2>
+            {entry.practice.sourceQuestion ? (
+              <p className="mt-1.5 type-meta text-sand/65">Source question: “{entry.practice.sourceQuestion}”</p>
+            ) : null}
+            <p className="mt-1.5 type-label text-sand/65">{formatDate(entry.record.createdAt)}</p>
+            <div className="mt-3 border-t border-sand/10 pt-3">
+              <p className="type-meta uppercase tracking-widest text-sand/65">Result</p>
+              {entry.practice.row && entry.practice.row.counted && entry.practice.row.housesUsed.length > 0 && entry.practice.row.resultPattern ? (
+                <div className="mt-2 flex items-center gap-3">
+                  <FigureGlyph pattern={entry.practice.row.resultPattern} size="md" />
+                  <p className="type-body font-medium text-sand-light">{entry.practice.row.resultFigureName}</p>
+                </div>
+              ) : null}
+              <div className="mt-2">
+                <HistoryStateBadge entry={entry} />
+              </div>
+              {entry.practice.row?.interpretation ? (
+                <p className="mt-1.5 type-verdict text-sand-light">According to the source: {entry.practice.row.interpretation}</p>
+              ) : null}
+              {entry.unavailableReason ? <p className="mt-1.5 type-meta text-sand/70">{entry.unavailableReason}</p> : null}
+            </div>
+          </Card>
+
+          {entry.chart && entry.practice.row ? <PracticeChartPanel chart={entry.chart} row={entry.practice.row} /> : null}
+
+          <div className="flex gap-2">
+            <Link
+              href={`/raml/practice/${entry.practice.chapterId}/${entry.practice.methodId}`}
+              className="flex-1 rounded-xl border border-sand/15 py-3 text-center type-body text-sand/70"
+            >
+              Practise this method again
+            </Link>
+            <button
+              onClick={handleDelete}
+              aria-label="Delete this reading from this device"
+              className="flex items-center justify-center rounded-xl border border-clay/25 px-4 text-clay-light"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+      ) : state === 'found' && entry ? (
         entry.stateKind !== 'unreconstructable' && entry.chart ? (
           <CastingResultView
             chart={entry.chart}

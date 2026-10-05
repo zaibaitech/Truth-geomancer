@@ -161,10 +161,11 @@ describe('I. long house titles wrap inside their tile', () => {
     const html = renderToStaticMarkup(
       createElement(HouseSelector, { chart: buildChart(MOTHERS), required: [8], selected: new Set<number>(), onToggle: () => {} }),
     );
-    const transformation = html.match(/<span class="([^"]*)">Transformation<\/span>/);
+    // Practice polish: the title carries dictionary soft hyphens (invisible
+    // unless the line breaks there) and manual hyphenation.
+    const transformation = html.match(/<span class="([^"]*)">Trans\u00ADfor\u00ADma\u00ADtion<\/span>/);
     expect(transformation).not.toBeNull();
-    expect(transformation![1]).toContain('break-words');
-    expect(transformation![1]).toContain('hyphens-auto');
+    expect(transformation![1]).toContain('hyphens-manual');
     expect(transformation![1]).toContain('min-w-0');
   });
 

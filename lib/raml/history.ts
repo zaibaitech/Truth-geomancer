@@ -34,8 +34,9 @@
 // until they're back online. See the Prompt 27C final report's "Offline
 // verification" section for the full reasoning.
 import { buildChart, type Chart } from './casting';
-import type { ReadingResult } from './engine/reading';
+import type { ReadingMethodRow, ReadingResult } from './engine/reading';
 import { catalogEntry } from './questionCatalog';
+import { QUESTION_REGISTRY_META } from './questionRegistryMeta';
 import { summariseReading } from './readingSummary';
 import { isSourceSilentReading } from './resultPresentation';
 import { METHOD_STATUS_LABEL, SOURCE_SILENT_HEADING } from './statusLanguage';
@@ -58,6 +59,17 @@ export interface ReadingRecord {
   intentionText?: string;
   /** The four Mothers — the whole chart is derived from these. */
   mothers: [Pattern, Pattern, Pattern, Pattern];
+  /** Present only when this chart was cast from a Kanzul METHOD PRACTICE
+   * (practice polish): which one method the user applied. Optional and
+   * additive — every record without it is exactly the reading it always
+   * was. Like everything else here it stores identity, never a result: the
+   * method's result is replayed from the chart, so it cannot go stale. */
+  practice?: PracticeRef;
+}
+
+export interface PracticeRef {
+  chapterId: string;
+  methodId: string;
 }
 
 /** The pre-Prompt-16 record, still in some users' browsers: `question` held
@@ -112,6 +124,8 @@ export function toRecord(value: unknown): ReadingRecord | null {
         ? raw.question.trim()
         : undefined;
 
+  const practice = toPracticeRef((raw as { practice?: unknown }).practice);
+
   return {
     v: SCHEMA_VERSION,
     id: raw.id,
@@ -119,7 +133,20 @@ export function toRecord(value: unknown): ReadingRecord | null {
     questionId,
     ...(intentionText ? { intentionText } : {}),
     mothers: raw.mothers,
+    ...(practice ? { practice } : {}),
   };
+}
+
+const ID_PATTERN = /^[a-z0-9-]{1,200}$/;
+
+/** A stored practice reference survives only when both ids are plain slugs;
+ * anything else is dropped and the record reads as an ordinary reading. */
+function toPracticeRef(value: unknown): PracticeRef | null {
+  if (!value || typeof value !== 'object') return null;
+  const { chapterId, methodId } = value as Record<string, unknown>;
+  if (typeof chapterId !== 'string' || !ID_PATTERN.test(chapterId)) return null;
+  if (typeof methodId !== 'string' || !ID_PATTERN.test(methodId)) return null;
+  return { chapterId, methodId };
 }
 
 /** Newest first, junk dropped. Never throws, whatever is in storage. */
@@ -173,8 +200,26 @@ export type HistoryStateKind =
   // reading route is reachable; nothing about it was lost or invalidated.
   | 'network-required';
 
+/** Set only for a saved METHOD PRACTICE: the one method applied, its own
+ * result, and the source question shown as context — never as a question the
+ * user asked. */
+export interface PracticeEntry {
+  chapterId: string;
+  methodId: string;
+  methodLabel: string;
+  /** e.g. "Kanzul Mikban · Chapter 1 · Method 1". */
+  heading: string;
+  /** The source passage's question, as context only. */
+  sourceQuestion: string | null;
+  /** The method's own computed row (the same one the practice screen shows),
+   * or null when it could not be fetched. */
+  row: ReadingMethodRow | null;
+}
+
 export interface HistoryEntry {
   record: ReadingRecord;
+  /** Non-null only for a saved method practice. */
+  practice: PracticeEntry | null;
   /** The traditional question, in plain language. */
   title: string;
   /** The manuscript's own heading, when it differs from the title. */
@@ -253,8 +298,11 @@ export async function describeReading(record: ReadingRecord): Promise<HistoryEnt
     chart = null;
   }
 
+  if (record.practice) return describePractice(record, record.practice, chart);
+
   const base = {
     record,
+    practice: null,
     intentionText,
     sourceTitle: entry && entry.hasShortTitle ? entry.sourceTitle : null,
     chapterNumber: entry?.chapterNumber ?? null,
@@ -377,6 +425,81 @@ export async function describeReading(record: ReadingRecord): Promise<HistoryEnt
   };
 }
 
+/** Fetches ONE method's computed row for a saved practice chart from the
+ * existing, entitlement-gated practice route — the same call and the same
+ * row the practice screen uses. Null on any failure (offline, no access). */
+async function fetchPracticeRow(chart: Chart, ref: PracticeRef): Promise<ReadingMethodRow | null> {
+  try {
+    const res = await fetch('/api/raml/practice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chapterId: ref.chapterId, methodId: ref.methodId, chart }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { row: ReadingMethodRow | null };
+    return data.row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export const PRACTICE_UNAVAILABLE_MESSAGE =
+  "This method's result couldn't be loaded right now — it needs a connection and Kanzul Mikban access. Nothing was lost.";
+
+/** A saved METHOD PRACTICE is described by that one method's own result —
+ * never by replaying the whole question (which would report every method's
+ * combined verdict, e.g. "Mixed / Conflicting indications"). */
+async function describePractice(record: ReadingRecord, ref: PracticeRef, chart: Chart | null): Promise<HistoryEntry> {
+  const entry = catalogEntry(ref.chapterId);
+  const chapterNumber = entry?.chapterNumber ?? null;
+  const methodLabel =
+    QUESTION_REGISTRY_META[ref.chapterId]?.methods.find((m) => m.id === ref.methodId)?.label ?? 'Method';
+  const sourceLabel = chapterNumber !== null ? `Kanzul Mikban, Chapter ${chapterNumber}` : 'Kanzul Mikban';
+  const heading = `${chapterNumber !== null ? `Kanzul Mikban · Chapter ${chapterNumber}` : 'Kanzul Mikban'} · ${methodLabel}`;
+  const sourceQuestion = entry?.title ?? null;
+  const row = chart ? await fetchPracticeRow(chart, ref) : null;
+
+  const wholeChart = row !== null && row.housesUsed.length === 0;
+  const state: { kind: HistoryStateKind; label: string } = !chart
+    ? { kind: 'unreconstructable', label: 'Cannot be reconstructed' }
+    : !row || row.resultPattern === null
+      ? { kind: 'network-required', label: 'Result unavailable' }
+      : !row.counted
+        ? { kind: 'not-defined-in-source', label: 'Condition not met' }
+        : row.outcome === 'favourable'
+          ? { kind: 'favourable', label: 'Favourable' }
+          : row.outcome === 'unfavourable'
+            ? { kind: 'unfavourable', label: 'Unfavourable' }
+            : row.outcome === 'descriptive'
+              ? { kind: 'descriptive', label: row.outcomeLabel ?? 'Descriptive' }
+              : { kind: 'mixed', label: row.outcomeLabel ?? 'Mixed' };
+  const figure = row && row.counted && !wholeChart ? row.resultFigureName : null;
+
+  return {
+    record,
+    practice: { chapterId: ref.chapterId, methodId: ref.methodId, methodLabel, heading, sourceQuestion, row },
+    intentionText: record.intentionText ?? null,
+    title: heading,
+    sourceTitle: null,
+    sourceLabel,
+    chapterNumber,
+    consolidatedNote: null,
+    stateKind: state.kind,
+    stateLabel: state.label,
+    interpretation: row?.interpretation ?? null,
+    result: null,
+    chart,
+    unavailableReason: !chart
+      ? UNRECONSTRUCTABLE_MESSAGE
+      : state.kind === 'network-required'
+        ? PRACTICE_UNAVAILABLE_MESSAGE
+        : null,
+    haystack: ['method practice', heading, sourceQuestion ?? '', figure ?? '', state.label, record.intentionText ?? '']
+      .join(' ')
+      .toLowerCase(),
+  };
+}
+
 export function describeHistory(records: ReadingRecord[]): Promise<HistoryEntry[]> {
   return Promise.all(records.map(describeReading));
 }
@@ -494,6 +617,8 @@ export function saveReading(input: {
   questionId: string;
   intentionText?: string;
   mothers: [Pattern, Pattern, Pattern, Pattern];
+  /** Only for a chart cast from a Kanzul method practice. */
+  practice?: PracticeRef;
 }): { record: ReadingRecord; persisted: boolean } {
   const text = input.intentionText?.trim();
   const record: ReadingRecord = {
@@ -503,6 +628,7 @@ export function saveReading(input: {
     questionId: input.questionId || 'general',
     ...(text ? { intentionText: text } : {}),
     mothers: input.mothers,
+    ...(input.practice ? { practice: { chapterId: input.practice.chapterId, methodId: input.practice.methodId } } : {}),
   };
   const persisted = writeRecords([record, ...listReadings()]);
   return { record, persisted };

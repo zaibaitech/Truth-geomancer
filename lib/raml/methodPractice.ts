@@ -39,7 +39,7 @@ import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 // practice route instead — see lib/server/raml/practiceService.ts.
 import { QUESTION_REGISTRY_META, type PublicMethodMeta } from './questionRegistryMeta';
 import { catalogEntry } from './questionCatalog';
-import { listReadings, saveReading, type ReadingRecord } from './history';
+import { listReadings, saveReading, type PracticeRef, type ReadingRecord } from './history';
 import { buildChart, type Chart } from './casting';
 import type { Pattern } from '@/content/stars';
 import { resolveQuestionCasting } from './engine/castingRequirement';
@@ -199,8 +199,11 @@ export function mostRecentChart(): { chart: Chart; record: ReadingRecord } | nul
 export function savePracticeChart(
   questionId: string,
   mothers: [Pattern, Pattern, Pattern, Pattern],
+  practice?: PracticeRef,
 ): { chart: Chart; record: ReadingRecord; persisted: boolean } {
-  const { record, persisted } = saveReading({ questionId, mothers });
+  // Practice polish: `practice` marks the record as a METHOD PRACTICE so Past
+  // Readings shows that one method's result, not the whole question's.
+  const { record, persisted } = saveReading({ questionId, mothers, ...(practice ? { practice } : {}) });
   return { chart: buildChart(record.mothers), record, persisted };
 }
 

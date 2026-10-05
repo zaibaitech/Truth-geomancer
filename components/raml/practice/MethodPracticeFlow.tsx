@@ -1,15 +1,27 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { CastingBoard } from '../CastingBoard';
 import { HouseSelector } from './HouseSelector';
+import { CurrentChartPreview } from './CurrentChartPreview';
 import { FigureGlyph } from '../FigureGlyph';
-import { buildChart, type Chart } from '@/lib/raml/casting';
+import { RecastWorkingDiagram } from '../reading/RecastWorkingDiagram';
+import { DreamWorkingPanel } from '../DreamWorkingPanel';
+import type { Chart } from '@/lib/raml/casting';
+import type { ReadingRecord } from '@/lib/raml/history';
 import { OUTCOME_TONE, type ReadingMethodRow } from '@/lib/raml/engine/reading';
-import { findPracticableMethod, mostRecentChart, chapterSourceLabel, practiceResultState } from '@/lib/raml/methodPractice';
+import {
+  findPracticableMethod,
+  mostRecentChart,
+  savePracticeChart,
+  isWholeChartRow,
+  chapterSourceLabel,
+  practiceResultState,
+} from '@/lib/raml/methodPractice';
 // Prompt 27: only `.title` is read here (line ~122's chapter subheading) —
 // the public metadata export carries it, so the full chapter text never
 // needs to enter this client component's import graph.
@@ -36,7 +48,10 @@ interface PracticeApiResult {
 }
 
 type Stage = 'intro' | 'casting' | 'walkthrough';
-type WalkthroughStep = 'houses' | 'working' | 'result';
+// 'whole' (Phase 1) replaces 'houses' for a method that reads the whole
+// chart (an empty housesUsed): there is nothing to select, so no selection
+// step — and never a "0 of 0 houses selected" counter — is shown.
+type WalkthroughStep = 'houses' | 'whole' | 'working' | 'result';
 
 // Prompt 21 — descriptive stage labels, not a raw step count. Keyed by STAGE
 // KIND rather than stepIndex: a method with more than one working line (see
@@ -46,6 +61,7 @@ type WalkthroughStep = 'houses' | 'working' | 'result';
 // actual number and order of steps still comes entirely from `steps` below.
 const STAGE_LABEL: Record<WalkthroughStep, string> = {
   houses: 'Step 1 · Select the houses',
+  whole: 'Step 1 · The whole chart',
   working: 'Step 2 · See the calculation',
   result: 'Step 3 · See the result',
 };
@@ -63,7 +79,19 @@ const STAGE_LABEL: Record<WalkthroughStep, string> = {
 export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string; methodId: string }) {
   const practicable = findPracticableMethod(chapterId, methodId);
   const chapter = KM_CHAPTERS.find((c) => c.id === chapterId);
-  const existing = useMemo(() => mostRecentChart(), []);
+  // Phase 1: the user's CURRENT chart — the most recent saved reading,
+  // whether it was cast in the Reading flow or in an earlier practice
+  // session. Read after mount (localStorage only exists in the browser), so
+  // the server render and the first client render agree; `existingChecked`
+  // keeps the intro from flashing "no chart" before the check has run.
+  const [existing, setExisting] = useState<{ chart: Chart; record: ReadingRecord } | null>(null);
+  const [existingChecked, setExistingChecked] = useState(false);
+  useEffect(() => {
+    setExisting(mostRecentChart());
+    setExistingChecked(true);
+  }, []);
+  // false only when a chart cast here could not be stored by the browser.
+  const [practiceSaved, setPracticeSaved] = useState<boolean | null>(null);
 
   const [stage, setStage] = useState<Stage>('intro');
   const [chart, setChart] = useState<Chart | null>(null);
@@ -125,6 +153,11 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
 
   const { method, questionId } = practicable;
   const sourceLabel = chapterSourceLabel(chapterId);
+  // Same rule CastingFlow uses for the board's wording: a method whose own
+  // public casting metadata displays only the Mothers and their pairing
+  // (Chapter 151) gets the "Mother 1-4" board copy. Wording only — the board
+  // and its four-Mother output are identical either way.
+  const mothersOnly = method.casting?.display === 'mothers_and_pairing';
 
   function startCasting() {
     setStage('casting');
@@ -140,7 +173,13 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   }
 
   function onCastComplete(mothers: [Pattern, Pattern, Pattern, Pattern]) {
-    setChart(buildChart(mothers));
+    // Saved through the existing history store (savePracticeChart ->
+    // saveReading) so it becomes the current chart for every other method;
+    // the chart itself comes from the same buildChart(mothers).
+    const saved = savePracticeChart(questionId, mothers);
+    setChart(saved.chart);
+    setExisting({ chart: saved.chart, record: saved.record });
+    setPracticeSaved(saved.persisted);
     setSelectedHouses(new Set());
     setStepIndex(0);
     setJustCast(true);
@@ -171,10 +210,61 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
       <div>
         {header}
         <div className="space-y-4 px-4 pb-6">
+          {!existingChecked ? (
+            <Card>
+              <p role="status" className="type-body text-sand/65">Looking for your current chart…</p>
+            </Card>
+          ) : existing ? (
+            <Card>
+              <p className="type-meta uppercase tracking-widest text-sand/65">Your current chart</p>
+              <div className="mt-2">
+                <CurrentChartPreview chart={existing.chart} record={existing.record} />
+              </div>
+              <div className="mt-4 space-y-2.5">
+                <button
+                  type="button"
+                  onClick={useExistingChart}
+                  className="min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
+                >
+                  Apply to current chart
+                </button>
+                <p className="text-center type-meta text-sand/65">Use the chart you already cast.</p>
+                <button
+                  type="button"
+                  onClick={startCasting}
+                  className="min-h-[48px] w-full rounded-xl border border-sand/15 py-3 type-body text-sand-light"
+                >
+                  Cast a new chart
+                </button>
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <p className="type-meta uppercase tracking-widest text-sand/65">Create a chart</p>
+              <p className="mt-1.5 type-body text-sand-light">This method needs a chart to continue.</p>
+              <p className="mt-1 type-meta text-sand/65">
+                Cast a chart to continue — you’ll come straight back to {method.label}, and the chart is kept as your
+                current chart for other methods.
+              </p>
+              <button
+                type="button"
+                onClick={startCasting}
+                className="mt-4 min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
+              >
+                Cast a chart
+              </button>
+            </Card>
+          )}
+
           <Card>
             <p className="type-meta uppercase tracking-widest text-sand/65">How this method works</p>
+            {/* Phase 1: casting and practising are two different things —
+                this never implies a method needs a fresh casting. */}
+            <p className="mt-2 type-body text-sand/80">
+              Casting creates a chart. Practising applies this method to a chart you already have.
+            </p>
             <ol className="mt-2 space-y-1.5 type-body text-sand/80">
-              <li>1. Cast a chart</li>
+              <li>1. Start from your chart</li>
               <li>2. Follow the houses specified by the source</li>
               <li>3. Perform the source operation</li>
               <li>4. See the traditional result</li>
@@ -192,27 +282,6 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
             )}
             <p className="mt-1.5 type-meta text-sand/65">{sourceLabel} · {method.label}</p>
           </Card>
-
-          <div className="space-y-2.5">
-            {existing ? (
-              <button
-                type="button"
-                onClick={useExistingChart}
-                className="min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
-              >
-                Practice with this chart
-              </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={startCasting}
-              className={`min-h-[52px] w-full rounded-xl py-3 type-body font-semibold ${
-                existing ? 'border border-sand/15 text-sand-light' : 'bg-clay text-ink'
-              }`}
-            >
-              Cast a chart
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -223,8 +292,19 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
       <div>
         {header}
         <div className="px-4 pb-6">
-          <p className="mb-3 text-center type-label text-clay-light">Casting for: {method.label}</p>
-          <CastingBoard onComplete={onCastComplete} />
+          <button
+            type="button"
+            onClick={() => setStage('intro')}
+            className="mb-2 flex min-h-[44px] items-center gap-1.5 type-meta text-sand/70"
+          >
+            <ArrowLeft size={14} aria-hidden /> Back to {method.label}
+          </button>
+          <p className="mb-1 text-center type-label text-clay-light">Casting for: {method.label}</p>
+          <p className="mx-auto mb-4 max-w-[20rem] text-center type-meta text-sand/65">
+            When the chart is complete you’ll return straight to this method. It is saved as your current chart, so
+            other methods can use it too.
+          </p>
+          <CastingBoard onComplete={onCastComplete} mothersOnly={mothersOnly} />
         </div>
       </div>
     );
@@ -247,6 +327,17 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   }
 
   const resultState = practiceResultState(row);
+
+  // Phase 1: after a cast made here, say (once) that the chart was kept as
+  // the current chart — on every outcome screen, including the "doesn't
+  // trigger" one, so the user knows other methods can reuse it.
+  const savedChartNote = justCast ? (
+    <p className="type-meta text-sand/65">
+      {practiceSaved === false
+        ? 'This browser would not let the app save the chart, so other methods can’t reuse it.'
+        : 'Saved as your current chart — other methods can use it without casting again.'}
+    </p>
+  ) : null;
 
   if (resultState === 'failure' || !row) {
     // A verified method's calculation should never fail — this is a defensive
@@ -290,6 +381,7 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
       <div>
         {header}
         <div className="space-y-4 px-4 pb-6">
+          {savedChartNote}
           <Card>
             <p className="type-body font-semibold text-sand-light">This chart does not trigger this method’s defined condition.</p>
             <p className="mt-1.5 type-body text-sand/70">
@@ -332,7 +424,12 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   }
 
   const workingCount = row.calculationSteps.length;
-  const steps: WalkthroughStep[] = ['houses', ...Array<WalkthroughStep>(workingCount).fill('working'), 'result'];
+  const wholeChart = isWholeChartRow(row);
+  const steps: WalkthroughStep[] = [
+    wholeChart ? 'whole' : 'houses',
+    ...Array<WalkthroughStep>(workingCount).fill('working'),
+    'result',
+  ];
   const current = steps[stepIndex] ?? 'result';
   const requiredHouses = Array.from(new Set(row.housesUsed));
   const selectedRequiredCount = requiredHouses.filter((h) => selectedHouses.has(h)).length;
@@ -353,13 +450,31 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
           {STAGE_LABEL[current]}
         </p>
 
+        {justCast && stepIndex === 0 ? (
+          <div>
+            <p className="type-body text-sand-light">
+              <span className="font-medium">Chart ready.</span>{' '}
+              {wholeChart ? 'Now apply this method to it.' : 'Now follow the houses specified by this method.'}
+            </p>
+            <div className="mt-1">{savedChartNote}</div>
+          </div>
+        ) : null}
+
+        {current === 'whole' ? (
+          <>
+            <div>
+              <p className="type-body font-medium text-sand-light">This method reads the whole chart.</p>
+              <p className="mt-1 type-meta text-sand/65">
+                There are no particular houses to select — the source operation looks across all sixteen houses of
+                your chart.
+              </p>
+            </div>
+            <HouseSelector chart={chart} required={[]} selected={selectedHouses} onToggle={toggleHouse} />
+          </>
+        ) : null}
+
         {current === 'houses' ? (
           <>
-            {justCast ? (
-              <p className="type-body text-sand-light">
-                <span className="font-medium">Chart ready.</span> Now follow the houses specified by this method.
-              </p>
-            ) : null}
             <div>
               <p className="type-meta uppercase tracking-widest text-sand/65">Select the houses used by this method</p>
               <p className="mt-1.5 type-body font-medium text-sand-light">
@@ -382,22 +497,38 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
             <p className="type-meta uppercase tracking-widest text-sand/65">Source operation</p>
             <p className="mt-2 type-evidence text-sand-light">{row.calculationSteps[stepIndex - 1]}</p>
             <p className="mt-2 type-meta text-sand/65">This is the operation specified by {method.label}.</p>
+            {/* Phase 1: the same recast diagram the Reading flow's
+                Calculation Details draws, driven by the row's own casting
+                metadata — shown once, on the first working step. */}
+            {stepIndex === 1 && row.casting.inspects === 'recast' ? <RecastWorkingDiagram method={row} /> : null}
           </Card>
         ) : null}
 
         {current === 'result' ? (
           <>
+            {/* Phase 1: Chapter 151's own Mothers-and-pairing working, the
+                same panel the Reading flow shows, computed from this chart. */}
+            {row.casting.display === 'mothers_and_pairing' ? <DreamWorkingPanel chart={chart} /> : null}
             <Card>
               <p className="type-meta uppercase tracking-widest text-sand/65">Method result</p>
-              <div className="mt-2 flex items-center gap-3">
-                {row.resultPattern ? <FigureGlyph pattern={row.resultPattern} size="md" /> : null}
-                <div>
-                  <p className="type-body font-medium text-sand-light">{row.resultFigureName}</p>
-                  <p className="type-meta text-sand/65">
-                    {[row.resultFortune, row.resultDirection, row.resultElement].filter(Boolean).join(' · ')}
-                  </p>
+              {wholeChart ? (
+                // A whole-chart method has no single result figure: the
+                // engine's resultFigure for it is only a representative
+                // reference, so it is never presented as the result here.
+                <p className="mt-2 type-body text-sand/70">
+                  This method reads the whole chart, so there is no single result figure to show.
+                </p>
+              ) : (
+                <div className="mt-2 flex items-center gap-3">
+                  {row.resultPattern ? <FigureGlyph pattern={row.resultPattern} size="md" /> : null}
+                  <div>
+                    <p className="type-body font-medium text-sand-light">{row.resultFigureName}</p>
+                    <p className="type-meta text-sand/65">
+                      {[row.resultFortune, row.resultDirection, row.resultElement].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="mt-4 border-t border-sand/10 pt-3">
                 {row.outcomeLabel ? (
                   <Badge tone={row.outcome ? OUTCOME_TONE[row.outcome] : 'neutral'}>{row.outcomeLabel}</Badge>
@@ -424,6 +555,9 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
               ) : null}
             </Card>
 
+            <p className="type-meta text-sand/65">
+              Your chart stays as your current chart. Open another method from the book to apply it to the same chart.
+            </p>
             <Link
               href={`/books/kanzul-mikban/read#${chapterId}`}
               className="block min-h-[48px] w-full rounded-xl border border-sand/15 py-3 text-center type-body text-sand-light"

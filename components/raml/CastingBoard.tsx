@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { RotateCcw, Check } from 'lucide-react';
+import { RotateCcw, Check, ArrowLeft } from 'lucide-react';
 import {
   activeDrawIndex,
   emptyTapGrid,
@@ -28,6 +28,15 @@ const MOTHER_NAMES = ['Mother 1', 'Mother 2', 'Mother 3', 'Mother 4'];
  * "Umuhat mother stars." It never assigns Fire/Air/Water/Earth to these four
  * casting rows — that came from another app and is not established here, so
  * the rows are labelled plainly as what they are while being drawn. */
+/** Right-to-left guidance (Phase 1). The Master of Geomancy, Vol. 1,
+ * Chapter 1 describes working the dots of each line from the right to the
+ * left, and this board's per-line odd/even mark is the Cancelling Method's
+ * result. This is a cue for the person casting ONLY: the board still just
+ * counts marks per line, the direction never changes the odd/even remainder,
+ * and no tap is accepted or rejected by where it lands. */
+const METHOD_NAME = 'The Cancelling Method';
+const DIRECTION_CUE = 'Draw from right to left.';
+
 const LINES = [{ label: 'Line 1' }, { label: 'Line 2' }, { label: 'Line 3' }, { label: 'Line 4' }] as const;
 
 /** One short tick per accepted tap, where the device offers one. Progressive
@@ -129,6 +138,13 @@ export function CastingBoard({
         {mothersOnly
           ? 'Draw the four Mothers (Umuhat). Each Mother has four lines — don’t count your taps, follow your intuition.'
           : 'Don’t count your taps — follow your intuition.'}
+      </p>
+
+      <p className="mx-auto mb-5 -mt-2 flex w-fit max-w-full items-center justify-center gap-1.5 rounded-full border border-sand/15 px-3 py-1 text-center type-meta text-sand/70">
+        <ArrowLeft size={13} aria-hidden className="shrink-0" />
+        <span>
+          {METHOD_NAME} · {DIRECTION_CUE}
+        </span>
       </p>
 
       {/* One live region for the whole board: it says that a mark registered,

@@ -24,7 +24,10 @@ const RESULT_TABS = repoFile('components/raml/ResultTabs.tsx');
 
 describe('1. "Try this method" appears where a method is executable', () => {
   it('drives the CTA from the existing practicability metadata, not a hard-coded button per paragraph', () => {
-    expect(CHAPTER_CTA).toContain('practicableMethodsForChapter');
+    // Phase 1: via practiceEntryPointsForChapter, which splits the same
+    // practicableMethodsForChapter() list into inline + fallback entry points.
+    expect(CHAPTER_CTA).toContain('practiceEntryPointsForChapter');
+    expect(repoFile('lib/raml/methodPractice.ts')).toMatch(/practiceEntryPointsForChapter[\s\S]*practicableMethodsForChapter\(chapterId, paragraphs\)/);
     expect(CHAPTER_CTA).not.toMatch(/Method 1[\s\S]*Method 2[\s\S]*Method 3/); // no hand-listed method text
   });
 
@@ -70,8 +73,14 @@ describe('4. Uses the existing casting interface — never a second casting mech
   });
 
   it('builds the chart with the same buildChart() the rest of the app uses, not a new reducer', () => {
-    expect(FLOW).toContain("import { buildChart, type Chart } from '@/lib/raml/casting'");
-    expect(FLOW).toMatch(/buildChart\(mothers\)/);
+    // Phase 1: a practice cast is saved through savePracticeChart(), which
+    // stores the Mothers with the existing saveReading() and rebuilds the
+    // chart with the same buildChart() the History screen uses.
+    expect(FLOW).toMatch(/savePracticeChart\(questionId, mothers\)/);
+    const helper = repoFile('lib/raml/methodPractice.ts');
+    const fn = helper.slice(helper.indexOf('export function savePracticeChart'), helper.indexOf('export function isWholeChartRow'));
+    expect(fn).toContain('saveReading({ questionId, mothers })');
+    expect(fn).toContain('buildChart(record.mothers)');
   });
 
   it('never redefines reduceCount, addRows or addPatterns — no parallel casting engine', () => {
@@ -82,7 +91,8 @@ describe('4. Uses the existing casting interface — never a second casting mech
 describe('5/12. Chart reuse — offers the existing chart before forcing a new cast', () => {
   it('offers to reuse the most recently cast chart via the same reconstruction history.ts uses', () => {
     expect(FLOW).toContain('mostRecentChart');
-    expect(FLOW).toContain('Practice with this chart');
+    expect(FLOW).toContain('Apply to current chart');
+    expect(FLOW).toContain('Cast a new chart');
     expect(FLOW).toContain('Cast a chart');
   });
 
@@ -197,10 +207,13 @@ describe('Prompt 21 — clearer mobile UX for the practice flow', () => {
     expect(castFn).toContain('setJustCast(true)');
   });
 
-  it('never turns the transition into a second full page — it renders inside the existing houses step', () => {
-    const housesBlock = FLOW.slice(FLOW.indexOf("current === 'houses' ?"), FLOW.indexOf("current === 'working' ?"));
-    expect(housesBlock).toContain('justCast');
-    expect(housesBlock).toContain('HouseSelector');
+  it('never turns the transition into a second full page — it renders inside the walkthrough\'s first step', () => {
+    // Phase 1: shown above either first step ('houses' or the whole-chart
+    // step), so it is guarded on stepIndex 0 rather than living inside the
+    // houses block only.
+    const walkthrough = FLOW.slice(FLOW.indexOf('STAGE_LABEL[current]'), FLOW.indexOf("current === 'working' ?"));
+    expect(walkthrough).toContain('justCast && stepIndex === 0');
+    expect(walkthrough).toContain('HouseSelector');
   });
 });
 
@@ -248,11 +261,12 @@ describe('9. Multiple methods launch independent contexts (route-level)', () => 
 });
 
 describe('13. How this method works — a concise, static introduction before the first step', () => {
-  it('shows the four-point mechanism the prompt specifies, once, before casting', () => {
+  it('shows the four-point mechanism, once, before the walkthrough — starting from the user\'s chart, not a fresh cast (Phase 1)', () => {
     expect(FLOW).toContain('How this method works');
-    for (const line of ['Cast a chart', 'Follow the houses specified by the source', 'Perform the source operation', 'See the traditional result']) {
+    for (const line of ['Start from your chart', 'Follow the houses specified by the source', 'Perform the source operation', 'See the traditional result']) {
       expect(FLOW).toContain(line);
     }
+    expect(FLOW).not.toContain('1. Cast a chart');
   });
 });
 

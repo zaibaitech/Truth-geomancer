@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { STARS } from '@/content/stars';
 import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import { ChapterMethodPractice } from '@/components/books/ChapterMethodPractice';
+import { practiceEntryPointsForChapter } from './methodPractice';
 import { KANZUL_PLAIN_STAR_NAMES, parseBodyPartTable, splitStarNames } from './kanzulStarText';
 
 const chapter = (n: number) => KM_CHAPTERS.find((c) => c.number === n)!;
@@ -20,6 +21,21 @@ const textOf = (html: string) => decode(html.replace(/<[^>]+>/g, ''));
 /** [starId, pattern shown beside it] for every figure chip, in order. */
 const chips = (html: string) =>
   Array.from(html.matchAll(/data-star-figure="([a-z-]+)".*?aria-label="Figure pattern ([\d-]+)"/g)).map((m) => [m[1], m[2]] as const);
+/** Removes the reader's own practice links (never chapter text) from a
+ * chapter's rendered text: the inline "Try this method" button and the
+ * Phase 1 fallback list (its heading, its "Practise this method" links and,
+ * when there is more than one, each method's engine label). */
+const withoutReaderUi = (text: string, c: (typeof KM_CHAPTERS)[number]) => {
+  const { fallback } = practiceEntryPointsForChapter(c.id, c.paragraphs);
+  const ui = [
+    'Try this method',
+    'Practise these methods with your chart',
+    'Practise with your chart',
+    'Practise this method',
+    ...(fallback.length > 1 ? fallback.map((m) => ` · ${m.method.label}`) : []),
+  ];
+  return ui.reduce((t, s) => t.split(s).join(''), text);
+};
 const canonical = (id: string) => STARS.find((s) => s.id === id)!.pattern.join('-');
 
 describe('no restoration / audit wording is shown to customers', () => {
@@ -76,8 +92,9 @@ describe('the reader draws the canonical figure beside each named star', () => {
   it('the name stays visible and the paragraph text is unchanged (figures only added)', () => {
     for (const n of [5, 6, 9, 17, 27, 94, 97, 142]) {
       const c = chapter(n);
-      // "Try this method" is the reader's own link, not chapter text.
-      expect(textOf(render(c)).replace(/Try this method/g, '').replace(/\s+/g, '')).toBe(c.paragraphs.join('').replace(/\s+/g, ''));
+      // "Try this method" and the Phase 1 end-of-chapter practice links are
+      // the reader's own UI, not chapter text.
+      expect(withoutReaderUi(textOf(render(c)), c).replace(/\s+/g, '')).toBe(c.paragraphs.join('').replace(/\s+/g, ''));
     }
   });
 

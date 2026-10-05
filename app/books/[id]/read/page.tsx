@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ContentGuard } from "@/components/books/ContentGuard";
 import { Prose } from "@/components/books/Prose";
-import { ChapterMethodPractice } from "@/components/books/ChapterMethodPractice";
+import { ChapterMethodPractice, ChapterPracticeLinks } from "@/components/books/ChapterMethodPractice";
 import { DreamInterpretationsBody } from "@/components/books/DreamInterpretationsBody";
 import { GiftVisitorFiguresBody } from "@/components/books/GiftVisitorFiguresBody";
 import { BookAccessGate } from "@/components/books/BookAccessGate";
@@ -232,6 +232,7 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                             {SOURCE_INCOMPLETE_NOTICE}
                           </p>
                         ) : null}
+                        <ChapterPracticeLinks chapterId={chapter.id} />
                       </>
                     ) : (
                       <ChapterMethodPractice

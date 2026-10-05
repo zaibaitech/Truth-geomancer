@@ -39,8 +39,9 @@ import { KM_CHAPTER_META } from '@/content/manuscripts/kanzulMikbanMeta';
 // practice route instead — see lib/server/raml/practiceService.ts.
 import { QUESTION_REGISTRY_META, type PublicMethodMeta } from './questionRegistryMeta';
 import { catalogEntry } from './questionCatalog';
-import { listReadings, type ReadingRecord } from './history';
+import { listReadings, saveReading, type ReadingRecord } from './history';
 import { buildChart, type Chart } from './casting';
+import type { Pattern } from '@/content/stars';
 // Type-only — erased at compile time, so this adds nothing to the client
 // bundle (unlike importing a value from engine/reading.ts, which this file
 // deliberately avoids elsewhere for that reason). Needed only to type
@@ -118,6 +119,42 @@ export function practicableMethodsForChapter(chapterId: string, paragraphs?: str
   }));
 }
 
+/** Phase 1 (practice discoverability): every practicable method's entry
+ * point(s) in its own chapter, split in two.
+ *
+ * `inline` — the existing, unchanged placement: the first method whose own
+ *   label literally prefixes a paragraph gets the "Try this method" button
+ *   right after that paragraph.
+ * `fallback` — every other practicable method (no literal label match, a
+ *   label the source doesn't print, a chapter whose body is rendered by a
+ *   figure-specific component, or two methods resolving to one paragraph).
+ *   These get a "Practise this method" link at the end of the chapter.
+ *
+ * Together the two lists always cover exactly `practicableMethodsForChapter`
+ * — same methods, same registry order, nothing added — so a verified method
+ * can never silently end up with no visible way in. Nothing here reads or
+ * changes the source wording; the split is decided from the same
+ * `paragraphIndex` the inline button already used. */
+export interface ChapterPracticeEntryPoints {
+  inline: Map<number, PracticableMethod>;
+  fallback: PracticableMethod[];
+}
+
+export function practiceEntryPointsForChapter(chapterId: string, paragraphs?: string[]): ChapterPracticeEntryPoints {
+  const inline = new Map<number, PracticableMethod>();
+  const fallback: PracticableMethod[] = [];
+  for (const m of practicableMethodsForChapter(chapterId, paragraphs)) {
+    if (m.paragraphIndex !== null && !inline.has(m.paragraphIndex)) inline.set(m.paragraphIndex, m);
+    else fallback.push(m);
+  }
+  return { inline, fallback };
+}
+
+/** The practice route for one method — the single place its URL is built. */
+export function practiceHref(m: Pick<PracticableMethod, 'chapterId' | 'method'>): string {
+  return `/raml/practice/${m.chapterId}/${m.method.id}`;
+}
+
 /** Resolve one specific method for the practice route. Returns null for
  * anything not practicable — an unknown chapter, an unknown method id, or a
  * method that exists but is not `verified` — so the practice screen can
@@ -147,6 +184,33 @@ export function mostRecentChart(): { chart: Chart; record: ReadingRecord } | nul
   const [record] = listReadings();
   if (!record) return null;
   return { chart: buildChart(record.mothers), record };
+}
+
+/** Phase 1: a chart cast from inside the practice flow is saved through the
+ * SAME `saveReading()` the Reading flow uses (no second store), filed under
+ * the method's own question id, so it immediately becomes the "current
+ * chart" (`mostRecentChart`) for every other method the user practises next.
+ * The chart itself is rebuilt from the saved Mothers with the same
+ * `buildChart()` the History screen uses. `persisted` is false when the
+ * browser refuses to store it; the chart is still returned so the user can
+ * finish this method. */
+export function savePracticeChart(
+  questionId: string,
+  mothers: [Pattern, Pattern, Pattern, Pattern],
+): { chart: Chart; record: ReadingRecord; persisted: boolean } {
+  const { record, persisted } = saveReading({ questionId, mothers });
+  return { chart: buildChart(record.mothers), record, persisted };
+}
+
+/** Phase 1: true when a computed method row reads the chart as a whole
+ * rather than named houses — the engine reports that as an empty
+ * `housesUsed`. Such a row's `resultFigure` is only a representative
+ * reference figure (see e.g. willItRain.ts / enemiesHowMany.ts comments),
+ * so the practice UI must not show a house-selection step or present that
+ * figure as the method's result. Reads the row only; decides nothing about
+ * the geomancy. */
+export function isWholeChartRow(row: Pick<ReadingMethodRow, 'housesUsed'>): boolean {
+  return row.housesUsed.length === 0;
 }
 
 /** Prompt 54 — the three states a Practice walkthrough's result row can be

@@ -14,16 +14,28 @@ import { houseInfo } from '@/lib/raml/houses';
  * A house not in `required` renders exactly as ChartGrid already shows it
  * elsewhere — same figure, same star name — just not interactive here.
  */
+// Long house titles ("Transformation", "Illness & Enemies") must wrap
+// inside a 360px-wide quarter tile rather than run past its border.
+const WRAP = 'block w-full min-w-0 break-words hyphens-auto';
+
 export function HouseSelector({
   chart,
   required,
   selected,
   onToggle,
+  readOnly = false,
+  hideTitles = false,
 }: {
   chart: Chart;
   required: number[];
   selected: Set<number>;
   onToggle: (n: number) => void;
+  /** Phase 1 corrective QA: the same grid as a non-interactive record —
+   * required houses outlined, nothing tappable (outcome screens). */
+  readOnly?: boolean;
+  /** For a chart that is not the querent's own shield (a recast's second
+   * chart), whose house numbers must not carry the original roles' titles. */
+  hideTitles?: boolean;
 }) {
   const requiredSet = new Set(required);
 
@@ -38,12 +50,27 @@ export function HouseSelector({
           // Rendered exactly as ChartGrid already shows every house — same
           // classes, same contrast — just not part of this method.
           return (
-            <Card key={h.n} padding="p-2" className="flex flex-col items-center gap-1.5 text-center">
+            <Card key={h.n} padding="px-1 py-2" className="flex min-w-0 flex-col items-center gap-1.5 text-center">
               <span className="type-label text-sand/65">H{h.n}</span>
               <FigureGlyph pattern={h.pattern} size="sm" />
-              <span className="type-label text-sand-light">{h.star.name}</span>
-              <span className="type-label text-sand/65">{info.title}</span>
+              <span className={`type-label text-sand-light ${WRAP}`}>{h.star.name}</span>
+              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
             </Card>
+          );
+        }
+
+        if (readOnly) {
+          return (
+            <div
+              key={h.n}
+              aria-label={`House ${h.n}${hideTitles ? '' : `, ${info.title}`}: ${h.star.name}. Used by this method.`}
+              className="flex min-h-[84px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-clay bg-clay/15 px-1 py-2 text-center"
+            >
+              <span className="type-label font-medium text-clay-light">H{h.n}</span>
+              <FigureGlyph pattern={h.pattern} size="sm" />
+              <span className={`type-label text-sand-light ${WRAP}`}>{h.star.name}</span>
+              {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
+            </div>
           );
         }
 
@@ -54,7 +81,7 @@ export function HouseSelector({
             onClick={() => onToggle(h.n)}
             aria-pressed={isSelected}
             aria-label={`House ${h.n}, ${info.title}. ${isSelected ? 'Selected' : 'Required — tap to select'}.`}
-            className={`flex min-h-[84px] flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center transition-colors ${
+            className={`flex min-h-[84px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-2 text-center transition-colors ${
               isSelected ? 'border-clay bg-clay/15' : 'border-clay/40 bg-ink-card'
             }`}
           >
@@ -62,7 +89,7 @@ export function HouseSelector({
               H{h.n}
             </span>
             <FigureGlyph pattern={h.pattern} size="sm" />
-            <span className="type-label text-sand/65">{info.title}</span>
+            {hideTitles ? null : <span className={`type-label text-sand/65 ${WRAP}`}>{info.title}</span>}
           </button>
         );
       })}

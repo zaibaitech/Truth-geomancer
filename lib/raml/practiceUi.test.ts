@@ -91,7 +91,7 @@ describe('4. Uses the existing casting interface — never a second casting mech
 describe('5/12. Chart reuse — offers the existing chart before forcing a new cast', () => {
   it('offers to reuse the most recently cast chart via the same reconstruction history.ts uses', () => {
     expect(FLOW).toContain('mostRecentChart');
-    expect(FLOW).toContain('Apply to current chart');
+    expect(FLOW).toContain('Practice with this chart');
     expect(FLOW).toContain('Cast a new chart');
     expect(FLOW).toContain('Cast a chart');
   });

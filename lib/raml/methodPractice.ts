@@ -42,6 +42,8 @@ import { catalogEntry } from './questionCatalog';
 import { listReadings, saveReading, type ReadingRecord } from './history';
 import { buildChart, type Chart } from './casting';
 import type { Pattern } from '@/content/stars';
+import { resolveQuestionCasting } from './engine/castingRequirement';
+import { resolveEngineQuestionId } from './questionAvailability';
 // Type-only — erased at compile time, so this adds nothing to the client
 // bundle (unlike importing a value from engine/reading.ts, which this file
 // deliberately avoids elsewhere for that reason). Needed only to type
@@ -236,4 +238,48 @@ export function practiceResultState(row: ReadingMethodRow | null): PracticeResul
   if (!row || row.resultPattern === null) return 'failure';
   if (!row.counted) return 'uncertain';
   return 'result';
+}
+
+/** Phase 1 corrective QA (C): what kind of chart the "current chart" is,
+ * read only from what it was saved for — never from its figures.
+ *
+ * 'mothers_only' — saved for a question whose own public casting metadata
+ *   reads only the four Mothers and their pairing (Chapter 151's Dream
+ *   reading today; the same generic rule CastingFlow already uses for the
+ *   board wording, never a question-id check). The saved Mothers still
+ *   rebuild a full 16-house chart, but the user cast it for a reading that
+ *   never showed one, so a full-chart method must not use it without the
+ *   user explicitly choosing to.
+ * 'general'      — a plain chart reading.
+ * 'question'     — cast for any other traditional question. */
+export type CurrentChartKind = 'mothers_only' | 'general' | 'question';
+
+export function isMothersOnlyQuestion(questionId: string): boolean {
+  const casting = resolveQuestionCasting(QUESTION_REGISTRY_META[resolveEngineQuestionId(questionId)]);
+  return casting.showPairingWorking && !casting.showFullShieldTabs;
+}
+
+export function currentChartKind(record: Pick<ReadingRecord, 'questionId'>): CurrentChartKind {
+  if (!record.questionId || record.questionId === 'general') return 'general';
+  return isMothersOnlyQuestion(record.questionId) ? 'mothers_only' : 'question';
+}
+
+/** True when the current chart should NOT be the default for this method:
+ * it was cast for a Mothers-only (Dream) reading and this method is not
+ * itself a Mothers-only method. The user can still choose it explicitly. */
+export function needsExplicitChartChoice(record: Pick<ReadingRecord, 'questionId'>, practiceQuestionId: string): boolean {
+  return currentChartKind(record) === 'mothers_only' && !isMothersOnlyQuestion(practiceQuestionId);
+}
+
+/** Phase 1 corrective QA (H): the second chart a recast method reads, for
+ * DISPLAY. The engine's RECAST_FROM_HOUSES builds it as
+ * buildChart(the figures already in `motherHouses`); this rebuilds exactly
+ * that from the method row's own public `recastMotherHouses`, with the same
+ * unchanged buildChart(), so the user can see the chart the engine read.
+ * No rule is evaluated here. Null when the row is not a recast method. */
+export function recastChartFor(chart: Chart, row: Pick<ReadingMethodRow, 'casting'>): Chart | null {
+  const houses = row.casting.recastMotherHouses;
+  if (row.casting.inspects !== 'recast' || !houses || houses.length !== 4) return null;
+  const mothers = houses.map((n) => chart.houses[n - 1].pattern) as [Pattern, Pattern, Pattern, Pattern];
+  return buildChart(mothers);
 }

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { CastingBoard } from '../CastingBoard';
 import { HouseSelector } from './HouseSelector';
 import { CurrentChartPreview } from './CurrentChartPreview';
+import { PracticeChartPanel } from './PracticeChartPanel';
 import { FigureGlyph } from '../FigureGlyph';
 import { RecastWorkingDiagram } from '../reading/RecastWorkingDiagram';
 import { DreamWorkingPanel } from '../DreamWorkingPanel';
@@ -19,6 +20,7 @@ import {
   mostRecentChart,
   savePracticeChart,
   isWholeChartRow,
+  needsExplicitChartChoice,
   chapterSourceLabel,
   practiceResultState,
 } from '@/lib/raml/methodPractice';
@@ -158,6 +160,7 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
   // (Chapter 151) gets the "Mother 1-4" board copy. Wording only — the board
   // and its four-Mother output are identical either way.
   const mothersOnly = method.casting?.display === 'mothers_and_pairing';
+  const explicitChoice = existing !== null && needsExplicitChartChoice(existing.record, questionId);
 
   function startCasting() {
     setStage('casting');
@@ -220,23 +223,50 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
               <div className="mt-2">
                 <CurrentChartPreview chart={existing.chart} record={existing.record} />
               </div>
-              <div className="mt-4 space-y-2.5">
-                <button
-                  type="button"
-                  onClick={useExistingChart}
-                  className="min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
-                >
-                  Apply to current chart
-                </button>
-                <p className="text-center type-meta text-sand/65">Use the chart you already cast.</p>
-                <button
-                  type="button"
-                  onClick={startCasting}
-                  className="min-h-[48px] w-full rounded-xl border border-sand/15 py-3 type-body text-sand-light"
-                >
-                  Cast a new chart
-                </button>
-              </div>
+              {explicitChoice ? (
+                // Corrective QA (C): a chart cast for a Mothers-only (Dream)
+                // reading is never used for a full-chart method by default —
+                // it is named as such, casting a new chart is the primary
+                // action, and using it anyway is an explicit choice.
+                <div className="mt-4 space-y-2.5">
+                  <p className="type-meta text-sand-light">
+                    This chart was cast for a Dream reading, which reads only its four Mothers. This method reads a full
+                    16-house chart — cast a new chart for it, or choose to use the full chart built from these Mothers.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={startCasting}
+                    className="min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
+                  >
+                    Cast a new chart
+                  </button>
+                  <button
+                    type="button"
+                    onClick={useExistingChart}
+                    className="min-h-[48px] w-full rounded-xl border border-sand/15 py-3 type-body text-sand-light"
+                  >
+                    Use this Dream chart anyway
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={useExistingChart}
+                    className="min-h-[52px] w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
+                  >
+                    Practice with this chart
+                  </button>
+                  <p className="text-center type-meta text-sand/65">Use the chart you already cast.</p>
+                  <button
+                    type="button"
+                    onClick={startCasting}
+                    className="min-h-[48px] w-full rounded-xl border border-sand/15 py-3 type-body text-sand-light"
+                  >
+                    Cast a new chart
+                  </button>
+                </div>
+              )}
             </Card>
           ) : (
             <Card>
@@ -388,11 +418,25 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
               This method was fully evaluated for your chart. The source only defines an outcome for one specific
               condition, and this chart doesn’t meet it — so no result is shown for this case, rather than a guessed one.
             </p>
+            {/* Corrective QA (E): the figure the calculation actually
+                produced, so the user can see what was checked — never for a
+                whole-chart method, whose figure is only a reference. */}
+            {!isWholeChartRow(row) && row.resultPattern ? (
+              <div className="mt-3 flex items-center gap-3">
+                <FigureGlyph pattern={row.resultPattern} size="md" />
+                <div className="min-w-0">
+                  <p className="type-meta text-sand/65">Figure produced</p>
+                  <p className="type-body font-medium text-sand-light">{row.resultFigureName}</p>
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 border-t border-sand/10 pt-3">
               {row.outcomeLabel ? <Badge tone={row.outcome ? OUTCOME_TONE[row.outcome] : 'neutral'}>{row.outcomeLabel}</Badge> : null}
               <p className="mt-1.5 type-verdict text-sand-light">According to the source: {row.interpretation}</p>
             </div>
           </Card>
+
+          <PracticeChartPanel chart={chart} row={row} />
 
           <Card>
             <p className="type-meta uppercase tracking-widest text-sand/65">Source method</p>
@@ -536,6 +580,8 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
                 <p className="mt-1.5 type-verdict text-sand-light">According to the source, this indicates: {row.interpretation}</p>
               </div>
             </Card>
+
+            <PracticeChartPanel chart={chart} row={row} />
 
             <Card>
               <p className="type-meta uppercase tracking-widest text-sand/65">Source method</p>

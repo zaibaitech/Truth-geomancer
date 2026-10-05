@@ -4,6 +4,7 @@ import { FigureGlyph } from '../FigureGlyph';
 import type { Chart } from '@/lib/raml/casting';
 import type { ReadingRecord } from '@/lib/raml/history';
 import { catalogEntry } from '@/lib/raml/questionCatalog';
+import { currentChartKind } from '@/lib/raml/methodPractice';
 
 /**
  * Phase 1: a compact, read-only preview of the user's current chart (the
@@ -13,12 +14,23 @@ import { catalogEntry } from '@/lib/raml/questionCatalog';
  * screen uses, and nothing here can change it.
  */
 export function CurrentChartPreview({ chart, record }: { chart: Chart; record: ReadingRecord }) {
-  const castFor = catalogEntry(record.questionId)?.title ?? 'A general reading';
+  const entry = catalogEntry(record.questionId);
+  const castFor = entry?.title ?? 'A general reading';
   const when = formatWhen(record.createdAt);
+  // Corrective QA (B/C): say plainly what kind of chart this is and where it
+  // came from, so it is never used without the user knowing which it is.
+  const kind = currentChartKind(record);
+  const source =
+    kind === 'general'
+      ? 'General reading chart'
+      : `${kind === 'mothers_only' ? 'Dream reading chart' : 'Question chart'}${
+          entry?.chapterNumber != null ? ` · Kanzul Mikban, Chapter ${entry.chapterNumber}` : ''
+        }`;
 
   return (
     <div>
-      <p className="type-meta text-sand/65">
+      <p className="type-body font-medium text-sand-light">{source}</p>
+      <p className="mt-0.5 type-meta text-sand/65">
         {when ? `Cast ${when}` : 'Cast earlier'} · {castFor}
       </p>
       {record.intentionText ? (

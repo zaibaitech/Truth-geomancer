@@ -196,14 +196,17 @@ describe('D. an existing saved chart is the normal starting point', () => {
     expect(PREVIEW).toContain('FigureGlyph');
   });
 
-  it('offers "Apply to current chart" as the primary action and keeps "Cast a new chart" available', () => {
-    const existingBlock = FLOW.slice(FLOW.indexOf('Your current chart'), FLOW.indexOf('Create a chart'));
+  it('offers "Practice with this chart" as the primary action and keeps "Cast a new chart" available (compatible chart)', () => {
+    // Corrective QA: the compatible-chart branch is the one after the
+    // Dream-chart (explicitChoice) branch.
+    const existingBlock = FLOW.slice(FLOW.indexOf('Use this Dream chart anyway'), FLOW.indexOf('Create a chart'));
     expect(existingBlock).toContain('onClick={useExistingChart}');
-    expect(existingBlock).toContain('Apply to current chart');
+    expect(existingBlock).toContain('Practice with this chart');
     expect(existingBlock).toContain('Use the chart you already cast.');
     expect(existingBlock).toContain('Cast a new chart');
-    expect(existingBlock.indexOf('Apply to current chart')).toBeLessThan(existingBlock.indexOf('Cast a new chart'));
-    expect(existingBlock).toMatch(/bg-clay[^"]*"\s*>\s*Apply to current chart/);
+    expect(existingBlock.indexOf('Practice with this chart')).toBeLessThan(existingBlock.indexOf('Cast a new chart'));
+    expect(existingBlock).toMatch(/bg-clay[^"]*"\s*>\s*Practice with this chart/);
+    expect(FLOW).not.toContain('Apply to current chart');
   });
 
   it('applying the current chart goes straight to the walkthrough — the casting board is never shown', () => {

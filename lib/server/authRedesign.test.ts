@@ -223,7 +223,7 @@ describe('anonymous -> account claim', () => {
       reference: 'ref-1',
       userId: anon.id,
       productId: 'kanzul-mikban',
-      amountMinor: 15000,
+      amountMinor: 18000,
       currency: 'GHS',
       customerEmail: 'payer@example.com',
     });

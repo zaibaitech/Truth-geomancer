@@ -8,7 +8,7 @@ import { PaymentRequestForm } from '@/components/purchase/PaymentRequestForm';
 import { PaystackCheckoutForm } from '@/components/purchase/PaystackCheckoutForm';
 import { PaymentVerifying } from '@/components/purchase/PaymentVerifying';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
-import { PRODUCT_CATALOGUE } from '@/lib/access/products';
+import { PURCHASABLE_PRODUCTS } from '@/lib/access/products';
 import { getPaymentInstructions } from '@/lib/access/paymentInstructions';
 import { paystackPriceFor, formatPrice } from '@/lib/server/paystackCatalogue';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
@@ -34,7 +34,7 @@ export default async function ProductPurchasePage({
   params: { productId: string };
   searchParams?: { payment?: string };
 }) {
-  const product = PRODUCT_CATALOGUE.find((p) => p.id === params.productId && p.active);
+  const product = PURCHASABLE_PRODUCTS.find((p) => p.id === params.productId);
   if (!product) notFound();
 
   const instructions = getPaymentInstructions(product.id);

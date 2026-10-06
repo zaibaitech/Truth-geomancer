@@ -3,6 +3,7 @@
 // the customer entitlement check (hasEntitlementAccess, the same rule protected
 // routes apply to customers), plus the user's own payment-request history, and
 // never the reverse (a payment request is never treated as access).
+import { PRODUCT_CATALOGUE } from '@/lib/access/products';
 import { hasEntitlementAccess } from './accessService';
 import { getPaymentRequestsForUser } from './paymentRequests';
 import type { Db } from './db';
@@ -21,7 +22,13 @@ export type ProductAccessStatus = 'active' | 'pending' | 'rejected' | 'none';
 export async function getProductAccessStatus(db: Db, userId: string, productId: string): Promise<ProductAccessStatus> {
   // Customer ownership only (entitlement). Staff reading authority is NOT
   // ownership: it must never mark a product as bought or block checkout.
-  if (await hasEntitlementAccess(db, userId, { kind: 'book', bookId: productId })) return 'active';
+  // A product is owned when every book it grants is covered. For a single book
+  // that is the book id itself; for a bundle it is each member book, so owning
+  // both books individually (or the bundle itself) counts as already owning it.
+  const grantedBooks = PRODUCT_CATALOGUE.find((p) => p.id === productId)?.entitlementGrants.flatMap((g) => (g.kind === 'book' ? [g.bookId] : [])) ?? [];
+  const bookIds = grantedBooks.length > 0 ? grantedBooks : [productId];
+  const owned = await Promise.all(bookIds.map((bookId) => hasEntitlementAccess(db, userId, { kind: 'book', bookId })));
+  if (owned.every(Boolean)) return 'active';
 
   const allRequests = await getPaymentRequestsForUser(db, userId);
   const requests = allRequests.filter((r) => r.productId === productId);

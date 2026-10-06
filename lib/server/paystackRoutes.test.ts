@@ -73,7 +73,7 @@ function post(body: unknown) {
 const initCalls = () => calls.filter((c) => c.url.endsWith('/transaction/initialize'));
 
 describe('checkout: the server decides the amount and currency', () => {
-  it('charges GHS 150 (15000 pesewas) for Kanzul Mikban and passes the customer to Paystack', async () => {
+  it('charges GHS 180 (18000 pesewas) for Kanzul Mikban and passes the customer to Paystack', async () => {
     const res = await post({ productId: 'kanzul-mikban', ...DETAILS });
     expect(res.status).toBe(200);
     expect((await res.json()).authorizationUrl).toMatch(/^https:\/\/checkout\.paystack\.com\//);
@@ -81,7 +81,7 @@ describe('checkout: the server decides the amount and currency', () => {
     expect(initCalls()).toHaveLength(1);
     const sent = initCalls()[0].body!;
     expect(sent).toMatchObject({
-      amount: '15000',
+      amount: '18000',
       currency: 'GHS',
       email: 'ama@example.com',
       first_name: 'Ama',
@@ -96,20 +96,30 @@ describe('checkout: the server decides the amount and currency', () => {
 
   it('ignores a client-supplied amount, currency, userId or price', async () => {
     await post({ productId: 'kanzul-mikban', ...DETAILS, amount: 1, price: 1, amountMinor: 1, currency: 'USD', userId: 'attacker' });
-    expect(initCalls()[0].body).toMatchObject({ amount: '15000', currency: 'GHS', metadata: { userId } });
+    expect(initCalls()[0].body).toMatchObject({ amount: '18000', currency: 'GHS', metadata: { userId } });
   });
 
-  it('charges Master of Geomancy its own GHS 100 (10000 pesewas), through the same shared route', async () => {
+  it('charges Master of Geomancy its own GHS 120 (12000 pesewas), through the same shared route', async () => {
     const res = await post({ productId: 'master-of-geomancy-vol-1', ...DETAILS });
     expect(res.status).toBe(200);
     expect(initCalls()[0].body).toMatchObject({
-      amount: '10000',
+      amount: '12000',
       currency: 'GHS',
       email: 'ama@example.com',
       first_name: 'Ama',
       last_name: 'Mensah',
       phone: '+233241234567',
       metadata: { userId, productId: 'master-of-geomancy-vol-1', entitlement: 'master-of-geomancy-vol-1' },
+    });
+  });
+
+  it('charges the Complete Geomancy Library GHS 250 (25000 pesewas) and ignores any client price', async () => {
+    const res = await post({ productId: 'complete-geomancy-library', ...DETAILS, amount: 100, price: 100, currency: 'USD' });
+    expect(res.status).toBe(200);
+    expect(initCalls()[0].body).toMatchObject({
+      amount: '25000',
+      currency: 'GHS',
+      metadata: { userId, productId: 'complete-geomancy-library' },
     });
   });
 
@@ -208,7 +218,7 @@ describe('end to end: checkout → verify → entitlement → access', () => {
       id: 99,
       status: 'success',
       reference,
-      amount: 15000,
+      amount: 18000,
       currency: 'GHS',
       paid_at: '2026-01-01T00:00:00Z',
       customer: { email: DETAILS.email },
@@ -250,7 +260,7 @@ describe('end to end: checkout → verify → entitlement → access', () => {
   });
 
   it('an unknown reference redirects without granting', async () => {
-    verifyData = { status: 'success', reference: 'forged', amount: 15000, currency: 'GHS', customer: { email: DETAILS.email }, metadata: { userId, productId: 'kanzul-mikban' } };
+    verifyData = { status: 'success', reference: 'forged', amount: 18000, currency: 'GHS', customer: { email: DETAILS.email }, metadata: { userId, productId: 'kanzul-mikban' } };
     const res = await callback(new Request('https://x/cb?reference=forged'));
     expect(res.headers.get('location')).toBe('https://app.example.com/purchase');
     expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
@@ -283,7 +293,7 @@ describe('end to end: checkout → verify → entitlement → access', () => {
   });
 
   it('a webhook for the wrong amount grants nothing', async () => {
-    const reference = await startAndPay({ amount: 10000 });
+    const reference = await startAndPay({ amount: 12000 });
     expect(await (await webhook(signed(reference))).json()).toEqual({ outcome: 'mismatch' });
     expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
   });

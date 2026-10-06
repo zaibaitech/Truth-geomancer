@@ -4,14 +4,14 @@
 // none is invented here"), because the manual payment-request workflow
 // never needed one — the author eyeballs whatever a buyer claims to have
 // sent. Paystack checkout genuinely does need a real number to charge, so
-// it lives here, scoped to exactly the two figures the author actually
-// gave, rather than widening Product's own contract for every caller of it.
+// it lives here, rather than widening Product's own contract for every
+// caller of it. The checkout route resolves the price from this table only;
+// a client-supplied amount is never read.
 //
 // A productId with no entry here simply has no "pay by card" option — the
 // manual request form (components/purchase/PaymentRequestForm.tsx) is still
-// available for it. The bundle product (master-kanzul-bundle) has no entry
-// because no bundle price has been given; inventing one would repeat
-// exactly the mistake products.ts's own design note warns against.
+// available for it. The legacy bundle (master-kanzul-bundle) has no entry:
+// it is no longer sold, only honoured for existing holders.
 export type Currency = 'GHS';
 
 export interface PaystackPrice {
@@ -27,9 +27,20 @@ function ghs(amount: number): PaystackPrice {
 }
 
 const PRICES: Record<string, PaystackPrice> = {
-  'master-of-geomancy-vol-1': ghs(100),
-  'kanzul-mikban': ghs(150),
+  'master-of-geomancy-vol-1': ghs(120),
+  'kanzul-mikban': ghs(180),
+  'complete-geomancy-library': ghs(250),
 };
+
+/** Sum of the members' individual prices minus the bundle price, or null if
+ * any price is missing. Display only — never used to charge. */
+export function bundleSaving(bundleId: string, memberIds: string[]): PaystackPrice | null {
+  const bundle = PRICES[bundleId];
+  const members = memberIds.map((id) => PRICES[id]);
+  if (!bundle || members.some((m) => !m)) return null;
+  const individual = members.reduce((sum, m) => sum + m.minor, 0);
+  return { minor: individual - bundle.minor, currency: bundle.currency };
+}
 
 export function paystackPriceFor(productId: string): PaystackPrice | null {
   return PRICES[productId] ?? null;

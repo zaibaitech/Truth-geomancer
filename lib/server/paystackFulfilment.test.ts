@@ -62,7 +62,7 @@ function verified(reference: string, userId: string, over: Record<string, unknow
     id: 4242,
     status: 'success',
     reference,
-    amount: 15000,
+    amount: 18000,
     currency: 'GHS',
     paid_at: '2026-01-01T00:00:00.000Z',
     customer: { email: EMAIL },
@@ -72,7 +72,7 @@ function verified(reference: string, userId: string, over: Record<string, unknow
 }
 
 describe('fulfilCheckout grants real access only for a genuinely verified payment', () => {
-  it('grants Kanzul Mikban for a successful GHS 150.00 payment and records the transaction', async () => {
+  it('grants Kanzul Mikban for a successful GHS 180.00 payment and records the transaction', async () => {
     const { userId } = await startCheckout('ref_ok');
     stubVerifyResponse(verified('ref_ok', userId));
 
@@ -83,13 +83,13 @@ describe('fulfilCheckout grants real access only for a genuinely verified paymen
     expect(entitlements[0]).toMatchObject({ productId: 'kanzul-mikban', source: 'paystack', status: 'active' });
 
     const payment = await getPayment(db, 'ref_ok');
-    expect(payment).toMatchObject({ status: 'success', amountMinor: 15000, currency: 'GHS', customerEmail: EMAIL, userId });
+    expect(payment).toMatchObject({ status: 'success', amountMinor: 18000, currency: 'GHS', customerEmail: EMAIL, userId });
   });
 
-  it('also grants Master of Geomancy at its own GHS 100 price', async () => {
+  it('also grants Master of Geomancy at its own GHS 120 price', async () => {
     const { userId } = await startCheckout('ref_master', 'master-of-geomancy-vol-1');
     stubVerifyResponse(
-      verified('ref_master', userId, { amount: 10000, metadata: { userId, productId: 'master-of-geomancy-vol-1' } }),
+      verified('ref_master', userId, { amount: 12000, metadata: { userId, productId: 'master-of-geomancy-vol-1' } }),
     );
     expect((await fulfilCheckout(db, 'ref_master')).outcome).toBe('granted');
   });
@@ -136,7 +136,7 @@ describe('fulfilCheckout grants real access only for a genuinely verified paymen
 
   it('refuses a payment for less than the price', async () => {
     const { userId } = await startCheckout('ref_low');
-    stubVerifyResponse(verified('ref_low', userId, { amount: 10000 })); // the GHS 100 that must never unlock Kanzul
+    stubVerifyResponse(verified('ref_low', userId, { amount: 12000 })); // the GHS 120 that must never unlock Kanzul
     expect((await fulfilCheckout(db, 'ref_low')).outcome).toBe('mismatch');
     expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
   });
@@ -210,11 +210,11 @@ describe('fulfilCheckout grants real access only for a genuinely verified paymen
       reference: 'ref_bundle',
       userId,
       productId: 'master-kanzul-bundle',
-      amountMinor: 10000,
+      amountMinor: 12000,
       currency: 'GHS',
       customerEmail: EMAIL,
     });
-    stubVerifyResponse(verified('ref_bundle', userId, { amount: 10000, metadata: { userId, productId: 'master-kanzul-bundle' } }));
+    stubVerifyResponse(verified('ref_bundle', userId, { amount: 12000, metadata: { userId, productId: 'master-kanzul-bundle' } }));
     expect((await fulfilCheckout(db, 'ref_bundle')).outcome).toBe('mismatch');
     expect(await getActiveEntitlementsForUser(db, userId)).toHaveLength(0);
   });

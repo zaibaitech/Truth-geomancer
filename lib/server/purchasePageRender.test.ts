@@ -26,8 +26,8 @@ vi.mock('next/navigation', () => ({
 import ProductPurchasePage from '../../app/purchase/[productId]/page';
 
 const PRODUCTS = [
-  { id: 'master-of-geomancy-vol-1', price: 'GH₵100', minor: 10000 },
-  { id: 'kanzul-mikban', price: 'GH₵150', minor: 15000 },
+  { id: 'master-of-geomancy-vol-1', price: 'GH₵120', minor: 12000 },
+  { id: 'kanzul-mikban', price: 'GH₵180', minor: 18000 },
 ];
 
 async function html(productId: string, searchParams?: { payment?: string }) {

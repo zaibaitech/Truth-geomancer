@@ -88,10 +88,32 @@ export const BUNDLE_PRODUCT: Product = {
   entitlementGrants: [...MASTER_PRODUCT.entitlementGrants, ...KANZUL_PRODUCT.entitlementGrants],
 };
 
+/** The premium bundle sold by card: Master of Geomancy Vol. 1 + Kanzul Mikban.
+ * Same union-of-grants pattern as BUNDLE_PRODUCT, so buying it needs no new
+ * fulfilment logic — one entitlement row for this product id grants both books
+ * (and is idempotent per user + product). Its price lives server-side in
+ * lib/server/paystackCatalogue.ts. */
+export const COMPLETE_LIBRARY_PRODUCT: Product = {
+  id: 'complete-geomancy-library',
+  name: 'Complete Geomancy Library',
+  description: 'The Master of Geomancy, Vol. 1 and Kanzul Mikban together.',
+  active: true,
+  entitlementGrants: [...MASTER_PRODUCT.entitlementGrants, ...KANZUL_PRODUCT.entitlementGrants],
+};
+
 /** The full catalogue. Easy to extend later (a new book, a future course)
  * without touching access.ts — the access module only ever reads
  * `Product.entitlementGrants` generically. */
-export const PRODUCT_CATALOGUE: Product[] = [MASTER_PRODUCT, KANZUL_PRODUCT, BUNDLE_PRODUCT];
+export const PRODUCT_CATALOGUE: Product[] = [MASTER_PRODUCT, KANZUL_PRODUCT, COMPLETE_LIBRARY_PRODUCT, BUNDLE_PRODUCT];
+
+/** Products that stay in the catalogue so existing entitlements keep granting
+ * access, but are no longer offered to new buyers. */
+export const LEGACY_PRODUCT_IDS: readonly string[] = [BUNDLE_PRODUCT.id];
+
+/** Active products a visitor may start a new purchase of. */
+export const PURCHASABLE_PRODUCTS: Product[] = PRODUCT_CATALOGUE.filter(
+  (product) => product.active && !LEGACY_PRODUCT_IDS.includes(product.id),
+);
 
 // ---------------------------------------------------------------------------
 // Prompt 65: which purchasable products grant access to one particular book —

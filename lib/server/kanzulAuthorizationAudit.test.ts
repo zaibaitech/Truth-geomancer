@@ -98,7 +98,7 @@ describe('Kanzul API resources — denied without the Kanzul entitlement', () =>
       reference: 'ref_pending',
       userId: currentUser,
       productId: 'kanzul-mikban',
-      amountMinor: 15000,
+      amountMinor: 18000,
       currency: 'GHS',
       customerEmail: 'a@b.co',
     });
@@ -174,7 +174,7 @@ describe('the client cannot choose identity, product or success', () => {
       reference: 'ref_payer',
       userId: payer,
       productId: 'kanzul-mikban',
-      amountMinor: 15000,
+      amountMinor: 18000,
       currency: 'GHS',
       customerEmail: 'payer@example.com',
     });
@@ -190,7 +190,7 @@ describe('the client cannot choose identity, product or success', () => {
                 id: 1,
                 status: 'success',
                 reference: 'ref_payer',
-                amount: 15000,
+                amount: 18000,
                 currency: 'GHS',
                 paid_at: null,
                 customer: { email: 'payer@example.com' },
@@ -217,7 +217,7 @@ describe('the client cannot choose identity, product or success', () => {
       reference: 'ref_master',
       userId: user,
       productId: 'master-of-geomancy-vol-1',
-      amountMinor: 10000,
+      amountMinor: 12000,
       currency: 'GHS',
       customerEmail: 'a@b.co',
     });
@@ -233,7 +233,7 @@ describe('the client cannot choose identity, product or success', () => {
                 id: 2,
                 status: 'success',
                 reference: 'ref_master',
-                amount: 15000, // tampered to look like Kanzul's price
+                amount: 18000, // tampered to look like Kanzul's price
                 currency: 'GHS',
                 customer: { email: 'a@b.co' },
                 metadata: { userId: user, productId: 'kanzul-mikban' }, // tampered label

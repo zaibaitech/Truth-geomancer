@@ -1,3 +1,4 @@
+import { FigureAttributes } from './FigureAttributes';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { OUTCOME_TONE } from '@/lib/raml/engine/reading';
@@ -30,7 +31,6 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
       <p className="mb-3 type-section font-semibold text-sand-light">Verified Methods</p>
       <div className="space-y-4">
         {methods.map((m) => {
-          const qualities = [m.resultFortune, m.resultDirection, m.resultElement].filter(Boolean) as string[];
           return (
             <div key={m.id} className="rounded-xl border border-sand/10 bg-ink px-4 py-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -75,10 +75,13 @@ export function CalculationDetails({ methods, detailedInterpretation }: { method
               {m.resultFigureName ? (
                 <div className="mt-3">
                   <p className="type-meta uppercase tracking-widest text-sand/65">Result figure</p>
-                  <p className="mt-0.5 type-evidence text-sand/70">
-                    {m.resultFigureName}
-                    {qualities.length > 0 ? ` (${qualities.join(' · ')})` : ''}
-                  </p>
+                  <p className="mt-0.5 type-evidence text-sand/70">{m.resultFigureName}</p>
+                  <FigureAttributes
+                    basis={m.interpretationBasis}
+                    quality={m.figureQuality}
+                    facts={{ fortune: m.resultFortune, direction: m.resultDirection, element: m.resultElement }}
+                    className="type-evidence text-sand/65"
+                  />
                 </div>
               ) : null}
 

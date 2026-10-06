@@ -19,6 +19,9 @@
 // clearly separated, plus the specific method's own interpretation and a
 // short, honestly-derived note on how it relates to the overall reading.
 
+import { interpretationBasisForMethod } from './methodBasisTable';
+import type { InterpretationBasis } from '@/lib/raml/interpretationBasis';
+import { figureQualityContext, type FigureQualityContext } from '@/content/kanzulFigureQuality';
 import { CATEGORIES } from '@/content/intentions';
 // Prompt 27 (protected-content migration): swapped from the full
 // content/manuscripts/kanzul-mikban.ts (now server-only, relocated to
@@ -129,6 +132,11 @@ export interface ReadingIndicator {
   direction: string | null;
   methodLabel: string;
   methodStatus: RuleStatus;
+  /** Which figure attribute this method's rule actually reads — tells the UI
+   * which of element/fortune/direction is the deciding one. Null = unknown. */
+  interpretationBasis: InterpretationBasis | null;
+  /** Contextual Kanzul figure quality, only for star-quality methods (else null). */
+  figureQuality: FigureQualityContext | null;
   housesUsed: number[];
   /** THIS method's own outcome for this figure. Null when the method
    * produced no verdict at all (needs_review/uncertain status), which is
@@ -173,6 +181,11 @@ export interface ReadingMethodRow {
   resultElement: string | null;
   resultFortune: string | null;
   resultDirection: string | null;
+  /** Which figure attribute this method's rule actually reads (see
+   * lib/raml/interpretationBasis.ts). Null = unknown. */
+  interpretationBasis: InterpretationBasis | null;
+  /** Contextual Kanzul figure quality, only for star-quality methods (else null). */
+  figureQuality: FigureQualityContext | null;
   sourceQuote: string;
   sourceLabel: string;
   /** Client-safe casting classification for this method (Prompt 74) — enums
@@ -280,6 +293,12 @@ function buildRelevance(
   return `Gives a differing indication: ${interpretation}`;
 }
 
+/** The contextual figure quality, only for methods whose own rule reads star
+ * quality. The method's outcome is unchanged — this is explanatory context. */
+function contextualQuality(methodId: string, figureId: string, engineFortune: string | null | undefined): FigureQualityContext | null {
+  return interpretationBasisForMethod(methodId) === 'star_quality' ? figureQualityContext(figureId, engineFortune ?? null) : null;
+}
+
 function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overallOutcome: MethodOutcome | 'insufficient_data'): ReadingIndicator {
   const figure = m.calculation!.resultFigure;
   const fortune = figure.qualities.fortune;
@@ -300,6 +319,8 @@ function buildIndicator(role: 'primary' | 'supporting', m: MethodResult, overall
     direction: direction.status === 'verified' && direction.value ? DIRECTION_LABEL[direction.value] : null,
     methodLabel: m.method.label,
     methodStatus: m.method.status,
+    interpretationBasis: interpretationBasisForMethod(m.method.id),
+    figureQuality: contextualQuality(m.method.id, figure.figureId, fortune.status === 'verified' ? fortune.value : null),
     housesUsed: figure.sourceHouses,
     methodOutcome: outcome,
     methodOutcomeLabel,
@@ -431,6 +452,8 @@ export function composeReading(result: EngineResult, question: QuestionDefinitio
       resultElement: resultFigure ? ELEMENT_LABEL[resultFigure.element] : null,
       resultFortune: fortune?.status === 'verified' && fortune.value ? FORTUNE_LABEL[fortune.value] : null,
       resultDirection: direction?.status === 'verified' && direction.value ? DIRECTION_LABEL[direction.value] : null,
+      interpretationBasis: interpretationBasisForMethod(m.method.id),
+      figureQuality: resultFigure ? contextualQuality(m.method.id, resultFigure.figureId, fortune?.status === 'verified' ? fortune.value : null) : null,
       sourceQuote: m.method.source.quote,
       sourceLabel: sourceLabelFor(m.method.source),
       casting: toPublicCastingMeta(getEffectiveCastingRequirement(m.method)),

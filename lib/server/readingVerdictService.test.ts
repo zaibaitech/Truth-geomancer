@@ -79,7 +79,7 @@ describe('3: the reading-verdicts response never carries the full protected para
     for (const v of allVerdicts) {
       expect(v).not.toHaveProperty('methodText');
       expect(Object.keys(v).sort()).toEqual(
-        ['ambiguous', 'calculationSteps', 'housesUsed', 'interpretation', 'label', 'result'].sort(),
+        ['ambiguous', 'calculationSteps', 'figureQuality', 'housesUsed', 'interpretation', 'interpretationBasis', 'label', 'result'].sort(),
       );
     }
   });

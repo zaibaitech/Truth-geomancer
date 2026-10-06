@@ -1,5 +1,6 @@
 'use client';
 
+import { FigureAttributes } from '@/components/raml/reading/FigureAttributes';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
@@ -122,9 +123,11 @@ export function KanzulPreviewFlow() {
               <FigureGlyph pattern={row.resultPattern} size="md" />
               <div>
                 <p className="type-body font-medium text-sand-light">{row.resultFigureName}</p>
-                <p className="type-meta text-sand/65">
-                  {[row.resultFortune, row.resultDirection, row.resultElement].filter(Boolean).join(' · ')}
-                </p>
+                <FigureAttributes
+                  basis={row.interpretationBasis}
+                  quality={row.figureQuality}
+                  facts={{ fortune: row.resultFortune, direction: row.resultDirection, element: row.resultElement }}
+                />
               </div>
             </div>
             <div className="mt-4 border-t border-sand/10 pt-3">

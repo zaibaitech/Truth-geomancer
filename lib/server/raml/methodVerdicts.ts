@@ -32,6 +32,8 @@ import {
 import type { Fortune, UpDown } from '@/content/classicalAttributes';
 import { getParsedMethods, type Axis, type ParsedMethod } from './methodParser';
 import { getStarById } from '@/content/stars';
+import type { InterpretationBasis } from '@/lib/raml/interpretationBasis';
+import { KANZUL_QUALITY_LABEL, KANZUL_QUALITY_UNRESOLVED_NOTE, kanzulQualityOf, type KanzulQuality } from '@/content/kanzulFigureQuality';
 
 export interface MethodVerdictResult {
   label: string;
@@ -41,6 +43,42 @@ export interface MethodVerdictResult {
   result: CombinedFigure;
   interpretation: string;
   ambiguous: boolean;
+  /** Which figure attribute this method's own rule reads (label only — it
+   * never changes the outcome). Derived from the parsed rule's Axis. */
+  interpretationBasis: InterpretationBasis;
+  /** For a star-quality method: the figure's quality from the Kanzul contextual
+   * layer (content/kanzulFigureQuality.ts), or 'unresolved'. Null for every
+   * method that does not ask for figure quality. */
+  figureQuality: KanzulQuality | 'unresolved' | null;
+}
+
+/**
+ * The basis follows from the method's existing Axis — what its parsed rule
+ * already tests — not from the resulting figure and not from any global rule.
+ * Exhaustive over Axis['kind'], so a new axis kind can't be left unlabelled.
+ */
+const BASIS_BY_AXIS: Record<Axis['kind'], InterpretationBasis> = {
+  fortune: 'star_quality',
+  fortuneUpdown: 'star_quality',
+  element: 'element',
+  elementOpenedClosed: 'element',
+  updown: 'source_specific',
+  foundInChart: 'source_specific',
+  fortuneFoundInChart: 'source_specific',
+  updownFoundInChart: 'source_specific',
+  namedStar: 'source_specific',
+};
+
+export function basisForAxis(axis: Axis): InterpretationBasis {
+  return BASIS_BY_AXIS[axis.kind];
+}
+
+/** The figure's contextual quality for a method that reads it; null otherwise. */
+function figureQualityFor(axis: Axis, combined: CombinedFigure): KanzulQuality | 'unresolved' | null {
+  // 'fortuneFoundInChart' keeps its source_specific basis (found-in-chart is its
+  // own rule) but its outcome also reads figure quality, so it carries the context.
+  const readsQuality = basisForAxis(axis) === 'star_quality' || axis.kind === 'fortuneFoundInChart';
+  return readsQuality ? kanzulQualityOf(combined.starId) ?? 'unresolved' : null;
 }
 
 export type MethodVerdictFn = (chart: Chart) => MethodVerdictResult[];
@@ -67,22 +105,28 @@ function stayMethod1(chart: Chart): MethodVerdictResult {
     result,
     interpretation,
     ambiguous,
+    // Method 1 reads only the up/down direction of the resulting figure.
+    interpretationBasis: 'source_specific',
+    figureQuality: null,
   };
 }
 
 function stayMethod2(chart: Chart): MethodVerdictResult {
   const { group1, group2, final } = combineHouseGroups(chart, [[2, 7], [4, 10]]);
-  const ambiguous = final.upDown === 'level' || final.fortune === 'neutral';
+  const quality = kanzulQualityOf(final.starId);
+  const ambiguous = final.upDown === 'level' || (quality !== 'good' && quality !== 'bad');
 
   let interpretation: string;
-  if (final.upDown === 'level' || final.fortune === 'neutral') {
+  if (quality === null) {
+    interpretation = `${KANZUL_QUALITY_UNRESOLVED_NOTE} Read Method 2's own wording above alongside the resulting figure to judge for yourself.`;
+  } else if (final.upDown === 'level' || quality === 'middle-good') {
     interpretation =
       "This combined figure doesn't land cleanly on one side of the good/bad or upward/downward split the book uses here — read Method 2's own wording above alongside the resulting figure to judge for yourself.";
-  } else if (final.fortune === 'good' && final.upDown === 'downward') {
+  } else if (quality === 'good' && final.upDown === 'downward') {
     interpretation = 'She will stay and enjoy the stay.';
-  } else if (final.fortune === 'good' && final.upDown === 'upward') {
+  } else if (quality === 'good' && final.upDown === 'upward') {
     interpretation = 'She will leave even though she enjoys the stay.';
-  } else if (final.fortune === 'bad' && final.upDown === 'downward') {
+  } else if (quality === 'bad' && final.upDown === 'downward') {
     interpretation = 'She will not enjoy the stay, but she will also not leave.';
   } else {
     interpretation =
@@ -102,6 +146,9 @@ function stayMethod2(chart: Chart): MethodVerdictResult {
     result: final,
     interpretation,
     ambiguous,
+    // Method 2 reads the figure's good/middle-good/bad quality plus direction.
+    interpretationBasis: 'star_quality',
+    figureQuality: quality ?? 'unresolved',
   };
 }
 
@@ -116,20 +163,27 @@ const ELEMENT_INDEX: Record<'fire' | 'air' | 'water' | 'sand', number> = {
   sand: 3,
 };
 
-function computeKey(chart: Chart, axis: Axis, combined: CombinedFigure): string {
+/** Null means "no key": the method's wording can't be resolved for this figure
+ * (its Kanzul contextual quality is unresolved), so it stays uncertain. */
+function qualityKey(combined: CombinedFigure, second: string): string | null {
+  const quality = kanzulQualityOf(combined.starId);
+  return quality ? `${quality}|${second}` : null;
+}
+
+function computeKey(chart: Chart, axis: Axis, combined: CombinedFigure): string | null {
   switch (axis.kind) {
     case 'updown':
       return combined.upDown;
     case 'fortune':
-      return combined.fortune === 'neutral' ? 'middle-good' : combined.fortune;
+      return kanzulQualityOf(combined.starId);
     case 'fortuneUpdown':
-      return `${combined.fortune}|${combined.upDown}`;
+      return qualityKey(combined, combined.upDown);
     case 'element':
       return combined.element;
     case 'foundInChart':
       return isFoundInChart(chart, combined.pattern) ? 'found' : 'not found';
     case 'fortuneFoundInChart':
-      return `${combined.fortune}|${isFoundInChart(chart, combined.pattern) ? 'found' : 'not found'}`;
+      return qualityKey(combined, isFoundInChart(chart, combined.pattern) ? 'found' : 'not found');
     case 'updownFoundInChart':
       return `${combined.upDown}|${isFoundInChart(chart, combined.pattern) ? 'found' : 'not found'}`;
     case 'elementOpenedClosed':
@@ -142,7 +196,8 @@ function computeKey(chart: Chart, axis: Axis, combined: CombinedFigure): string 
 function factsSummary(chart: Chart, axis: Axis, combined: CombinedFigure): string {
   const bits = [`${combined.starName} (classically ${combined.classicalName})`];
   if (axis.kind === 'fortune' || axis.kind === 'fortuneUpdown' || axis.kind === 'fortuneFoundInChart') {
-    bits.push(combined.fortune);
+    const quality = kanzulQualityOf(combined.starId);
+    bits.push(quality ? `figure quality: ${KANZUL_QUALITY_LABEL[quality]}` : 'figure quality: not classified');
   }
   if (axis.kind === 'updown' || axis.kind === 'fortuneUpdown' || axis.kind === 'updownFoundInChart') {
     bits.push(combined.upDown);
@@ -183,6 +238,8 @@ function evaluateNamedStar(chart: Chart, pm: ParsedMethod): MethodVerdictResult 
       result: resultFigure,
       interpretation: matched.outcome.text,
       ambiguous: false,
+      interpretationBasis: 'source_specific',
+      figureQuality: null,
     };
   }
 
@@ -200,6 +257,8 @@ function evaluateNamedStar(chart: Chart, pm: ParsedMethod): MethodVerdictResult 
     result: resultFigure,
     interpretation,
     ambiguous: true,
+    interpretationBasis: 'source_specific',
+    figureQuality: null,
   };
 }
 
@@ -208,7 +267,9 @@ function evaluateParsedMethod(chart: Chart, pm: ParsedMethod): MethodVerdictResu
 
   const combined = evaluateHouses(chart, pm.houses);
   const key = computeKey(chart, pm.axis, combined);
-  const outcome = pm.outcomes.find((o) => o.match === key);
+  const outcome = key === null ? undefined : pm.outcomes.find((o) => o.match === key);
+  const basis = basisForAxis(pm.axis);
+  const figureQuality = figureQualityFor(pm.axis, combined);
   const calculationSteps = buildCalcSteps(chart, pm.houses, combined);
 
   if (outcome) {
@@ -220,6 +281,8 @@ function evaluateParsedMethod(chart: Chart, pm: ParsedMethod): MethodVerdictResu
       result: combined,
       interpretation: outcome.text,
       ambiguous: false,
+      interpretationBasis: basis,
+      figureQuality,
     };
   }
 
@@ -229,8 +292,13 @@ function evaluateParsedMethod(chart: Chart, pm: ParsedMethod): MethodVerdictResu
     housesUsed: pm.houses,
     calculationSteps,
     result: combined,
-    interpretation: `The method's wording above doesn't spell out an outcome for this exact result — here's what your chart actually produced so you can judge for yourself: ${factsSummary(chart, pm.axis, combined)}.`,
+    interpretation:
+      key === null
+        ? `${KANZUL_QUALITY_UNRESOLVED_NOTE} Here's what your chart produced so you can judge for yourself: ${factsSummary(chart, pm.axis, combined)}.`
+        : `The method's wording above doesn't spell out an outcome for this exact result — here's what your chart actually produced so you can judge for yourself: ${factsSummary(chart, pm.axis, combined)}.`,
     ambiguous: true,
+    interpretationBasis: basis,
+    figureQuality,
   };
 }
 

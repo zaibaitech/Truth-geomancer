@@ -1,3 +1,4 @@
+import { FigureAttributes } from './FigureAttributes';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { FigureGlyph } from '../FigureGlyph';
@@ -11,8 +12,6 @@ import type { ReadingIndicator } from '@/lib/raml/engine/reading';
  * never implied to be the same thing. A "Bad" figure producing a
  * "Favourable" method outcome is real and stays visible as exactly that. */
 export function FigureCard({ indicator }: { indicator: ReadingIndicator }) {
-  const qualities = [indicator.fortune, indicator.direction, indicator.element].filter(Boolean) as string[];
-
   return (
     <Card className={indicator.role === 'primary' ? 'border-clay/25' : ''}>
       <div className="flex items-center gap-3">
@@ -22,7 +21,11 @@ export function FigureCard({ indicator }: { indicator: ReadingIndicator }) {
             {indicator.role === 'primary' ? 'Primary indication' : 'Supporting indicator'}
           </p>
           <p className="type-body font-medium text-sand-light">{indicator.figureName}</p>
-          {qualities.length > 0 ? <p className="type-meta text-sand/65">{qualities.join(' · ')}</p> : null}
+          <FigureAttributes
+            basis={indicator.interpretationBasis}
+            quality={indicator.figureQuality}
+            facts={{ fortune: indicator.fortune, direction: indicator.direction, element: indicator.element }}
+          />
         </div>
       </div>
 

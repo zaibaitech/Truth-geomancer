@@ -16,11 +16,32 @@ import { describe, expect, it } from 'vitest';
 import { fixtureChart } from '@/lib/raml/engine/__tests__/fixtures';
 import { getMethodVerdicts } from './methodVerdicts';
 
+// interpretationBasis and figureQuality were added AFTER this fixture was captured. The captured
+// values below are compared with that one additive label removed, so they still
+// prove every pre-existing field (outcome text, figure, ambiguity) is unchanged;
+// the label itself is asserted separately.
+function withoutBasis<T extends { interpretationBasis?: unknown; figureQuality?: unknown } | null>(list: T[] | null): Array<Omit<NonNullable<T>, 'interpretationBasis' | 'figureQuality'> | null> | null {
+  if (!list) return null;
+  return list.map((v) => {
+    if (!v) return null;
+    const { interpretationBasis: _basis, figureQuality: _quality, ...rest } = v as NonNullable<T>;
+    return rest;
+  });
+}
+
 describe('methodVerdicts/methodParser behavioral fixture (captured pre-move)', () => {
   const chart = fixtureChart();
 
+  it('hand-authored tier carries its interpretation basis (additive label)', () => {
+    const verdicts = getMethodVerdicts('if-she-s-going-to-stay-in-the', chart)!;
+    expect(verdicts.map((v) => v!.interpretationBasis)).toEqual(['source_specific', 'star_quality']);
+    // Method 1 reads up/down only (no quality); Method 2 reads the contextual quality.
+    expect(verdicts[0]!.figureQuality).toBeNull();
+    expect(verdicts[1]!.figureQuality).not.toBeNull();
+  });
+
   it('hand-authored tier: if-she-s-going-to-stay-in-the', () => {
-    expect(getMethodVerdicts('if-she-s-going-to-stay-in-the', chart)).toEqual([
+    expect(withoutBasis(getMethodVerdicts('if-she-s-going-to-stay-in-the', chart))).toEqual([
       {
         label: 'Method 1',
         methodText:

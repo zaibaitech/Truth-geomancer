@@ -242,6 +242,8 @@ function row(overrides: Partial<ReadingMethodRow>): ReadingMethodRow {
     resultElement: 'Fire',
     resultFortune: null,
     resultDirection: null,
+    interpretationBasis: null,
+    figureQuality: null,
     sourceQuote: 'After drawing the chart, check h4.',
     sourceLabel: 'Kanzul Mikban, Chapter 32',
     casting: publicCastingDefault(),

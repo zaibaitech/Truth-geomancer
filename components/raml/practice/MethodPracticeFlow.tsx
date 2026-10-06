@@ -1,5 +1,6 @@
 'use client';
 
+import { FigureAttributes } from '@/components/raml/reading/FigureAttributes';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -567,9 +568,11 @@ export function MethodPracticeFlow({ chapterId, methodId }: { chapterId: string;
                   {row.resultPattern ? <FigureGlyph pattern={row.resultPattern} size="md" /> : null}
                   <div>
                     <p className="type-body font-medium text-sand-light">{row.resultFigureName}</p>
-                    <p className="type-meta text-sand/65">
-                      {[row.resultFortune, row.resultDirection, row.resultElement].filter(Boolean).join(' · ')}
-                    </p>
+                    <FigureAttributes
+                      basis={row.interpretationBasis}
+                      quality={row.figureQuality}
+                      facts={{ fortune: row.resultFortune, direction: row.resultDirection, element: row.resultElement }}
+                    />
                   </div>
                 </div>
               )}

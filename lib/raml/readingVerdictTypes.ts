@@ -6,6 +6,8 @@
 // from lib/server/) means the client components that reference this shape
 // never need to import anything server-only.
 import type { CombinedFigure } from './classicalVerdict';
+import type { InterpretationBasis } from './interpretationBasis';
+import type { KanzulQuality } from '@/content/kanzulFigureQuality';
 
 export interface PublicMethodVerdict {
   label: string;
@@ -14,6 +16,10 @@ export interface PublicMethodVerdict {
   result: CombinedFigure;
   interpretation: string;
   ambiguous: boolean;
+  /** Which figure attribute the method's own rule reads — see interpretationBasis.ts. */
+  interpretationBasis: InterpretationBasis;
+  /** Contextual figure quality (or 'unresolved') for star-quality methods; null otherwise. */
+  figureQuality: KanzulQuality | 'unresolved' | null;
 }
 
 /** Keyed by chapter id, index-aligned with that chapter's paragraphs —

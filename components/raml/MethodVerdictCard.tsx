@@ -1,10 +1,8 @@
 import { FigureGlyph } from './FigureGlyph';
-import { Badge } from '@/components/ui/Badge';
+import { contextualOnlyQuality } from '@/content/kanzulFigureQuality';
+import { FigureAttributes } from '@/components/raml/reading/FigureAttributes';
 import { FORTUNE_LABEL, UPDOWN_LABEL } from '@/content/classicalAttributes';
 import type { PublicMethodVerdict } from '@/lib/raml/readingVerdictTypes';
-
-const FORTUNE_TONE = { good: 'sand', bad: 'fire', neutral: 'neutral' } as const;
-const UPDOWN_TONE = { upward: 'air', downward: 'water', level: 'neutral' } as const;
 
 export function MethodVerdictCard({ verdict }: { verdict: PublicMethodVerdict }) {
   const { result } = verdict;
@@ -25,10 +23,16 @@ export function MethodVerdictCard({ verdict }: { verdict: PublicMethodVerdict })
         <FigureGlyph pattern={result.pattern} size="sm" />
         <div>
           <p className="type-body font-medium text-sand-light">{result.starName}</p>
-          <div className="mt-1 flex flex-wrap gap-1">
-            <Badge tone={FORTUNE_TONE[result.fortune]}>{FORTUNE_LABEL[result.fortune]}</Badge>
-            <Badge tone={UPDOWN_TONE[result.upDown]}>{UPDOWN_LABEL[result.upDown]}</Badge>
-          </div>
+          <FigureAttributes
+            className="mt-1 type-meta text-sand/65"
+            basis={verdict.interpretationBasis}
+            quality={verdict.figureQuality ? contextualOnlyQuality(verdict.figureQuality) : null}
+            facts={{
+              fortune: FORTUNE_LABEL[result.fortune],
+              direction: UPDOWN_LABEL[result.upDown],
+              element: result.element.charAt(0).toUpperCase() + result.element.slice(1),
+            }}
+          />
         </div>
       </div>
 

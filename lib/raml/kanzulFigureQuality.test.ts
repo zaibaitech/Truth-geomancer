@@ -24,31 +24,46 @@ import { KM_CHAPTERS } from '@/lib/server/content/kanzulMikban';
 import type { Pattern } from '@/content/stars';
 
 const GOOD = ['nuhu', 'iddris', 'mahadi', 'usman', 'kalla-allahu', 'adam'];
-const MIDDLE = ['ibrahim', 'ali', 'musah', 'yussif'];
-const BAD = ['hassan-hussein', 'umar', 'ayuba', 'issah'];
-const UNRESOLVED = ['yunus', 'sulemana'];
+const MIDDLE = ['ibrahim', 'ali', 'musah', 'yussif', 'yunus'];
+const BAD = ['hassan-hussein', 'umar', 'ayuba', 'issah', 'sulemana'];
+// A figure id with no entry has no quality: methods then stay uncertain rather than guess.
+const UNKNOWN_FIGURE = 'not-a-figure';
 
 describe('kanzulFigureQuality — the contextual classification', () => {
   it.each(GOOD)('%s is good', (id) => expect(kanzulQualityOf(id)).toBe('good'));
   it.each(MIDDLE)('%s is middle-good', (id) => expect(kanzulQualityOf(id)).toBe('middle-good'));
   it.each(BAD)('%s is bad', (id) => expect(kanzulQualityOf(id)).toBe('bad'));
 
-  it.each(UNRESOLVED)('%s is unresolved and carries no quality', (id) => {
-    expect(kanzulQualityOf(id)).toBeNull();
-    expect(isKanzulQualityUnresolved(id)).toBe(true);
-    expect(KANZUL_FIGURE_QUALITY[id]).toMatchObject({ quality: null, status: 'unresolved', confidence: 'none' });
+  it('Yunus: Kanzul middle-good, classical neutral (middle-good) — source-confirmed', () => {
+    expect(kanzulQualityOf('yunus')).toBe('middle-good');
+    expect(CLASSICAL_ATTRIBUTES.yunus.fortune).toBe('neutral');
+    expect(KANZUL_FIGURE_QUALITY.yunus).toMatchObject({ quality: 'middle-good', status: 'contextual', confidence: 'high' });
   });
 
-  it('covers exactly the sixteen figures, 6 good / 4 middle / 4 bad / 2 unresolved', () => {
+  it('Sulemana: Kanzul bad, classical bad — source-confirmed', () => {
+    expect(kanzulQualityOf('sulemana')).toBe('bad');
+    expect(CLASSICAL_ATTRIBUTES.sulemana.fortune).toBe('bad');
+    expect(KANZUL_FIGURE_QUALITY.sulemana).toMatchObject({ quality: 'bad', status: 'contextual', confidence: 'high' });
+  });
+
+  it('a figure with no entry has no quality and is never guessed', () => {
+    expect(kanzulQualityOf(UNKNOWN_FIGURE)).toBeNull();
+    expect(isKanzulQualityUnresolved(UNKNOWN_FIGURE)).toBe(false);
+    expect(figureQualityContext(UNKNOWN_FIGURE).quality).toBe('unresolved');
+  });
+
+  it('covers exactly the sixteen figures, 6 good / 5 middle / 5 bad / 0 unresolved', () => {
     expect(Object.keys(KANZUL_FIGURE_QUALITY).sort()).toEqual(Object.keys(CLASSICAL_ATTRIBUTES).sort());
     const count = (q: string | null) => Object.values(KANZUL_FIGURE_QUALITY).filter((e) => e.quality === q).length;
-    expect([count('good'), count('middle-good'), count('bad'), count(null)]).toEqual([6, 4, 4, 2]);
+    expect([count('good'), count('middle-good'), count('bad'), count(null)]).toEqual([6, 5, 5, 0]);
   });
 
   it('every entry names its provenance, and none claims Kanzul Mikban as the source', () => {
     for (const entry of Object.values(KANZUL_FIGURE_QUALITY)) {
       expect(entry.provenance.length).toBeGreaterThan(0);
-      if (entry.status === 'contextual') expect(entry.provenance[0]).toMatch(/Kitāb maʿrifat ʿalāmat al-insān/);
+      const ownerConfirmed = entry.figure === 'yunus' || entry.figure === 'sulemana';
+      if (ownerConfirmed) expect(entry.provenance[0]).toMatch(/project owner/);
+      else if (entry.status === 'contextual') expect(entry.provenance[0]).toMatch(/Kitāb maʿrifat ʿalāmat al-insān/);
       expect(entry.provenance.join(' ')).not.toMatch(/^Kanzul Mikban$/);
     }
     expect(KANZUL_FIGURE_QUALITY.yussif.provenance.join(' ')).toMatch(/recorded explanation/);
@@ -57,27 +72,30 @@ describe('kanzulFigureQuality — the contextual classification', () => {
 
   it('does not touch the global classical table', () => {
     expect(CLASSICAL_ATTRIBUTES.yussif.fortune).toBe('bad');
-    expect(CLASSICAL_ATTRIBUTES.yunus.fortune).toBe('good');
+    expect(CLASSICAL_ATTRIBUTES.yunus.fortune).toBe('neutral'); // source-confirmed middle-good
     expect(CLASSICAL_ATTRIBUTES.sulemana.fortune).toBe('bad');
     expect(CLASSICAL_ATTRIBUTES.adam.fortune).toBe('good');
     expect(CLASSICAL_ATTRIBUTES.iddris.fortune).toBe('good');
     expect(CLASSICAL_ATTRIBUTES['kalla-allahu'].fortune).toBe('good');
   });
 
-  it('UI text never invents a quality for an unresolved figure', () => {
+  it('UI text states each quality, and never invents one for an unknown figure', () => {
     expect(figureQualityText(figureQualityContext('adam'))).toBe('Figure quality: Good');
     expect(figureQualityText(figureQualityContext('yussif'))).toBe('Figure quality: Middle-good');
     expect(figureQualityText(figureQualityContext('umar'))).toBe('Figure quality: Bad');
-    expect(figureQualityText(figureQualityContext('yunus'))).toBe('Figure quality: Not classified');
-    expect(figureQualityText(figureQualityContext('sulemana'))).toBe('Figure quality: Not classified');
+    expect(figureQualityText(figureQualityContext('yunus'))).toBe('Figure quality: Middle-good');
+    expect(figureQualityText(figureQualityContext('sulemana'))).toBe('Figure quality: Bad');
+    expect(figureQualityText(figureQualityContext(UNKNOWN_FIGURE))).toBe('Figure quality: Not classified');
   });
 
   it('records the quality the engine actually used, separately from the contextual one', () => {
     expect(figureQualityContext('adam', 'good')).toEqual({ quality: 'good', engineQuality: 'good', engineAgrees: true });
     expect(figureQualityContext('ibrahim', 'middleGood')).toMatchObject({ quality: 'middle-good', engineQuality: 'middle-good', engineAgrees: true });
     expect(figureQualityContext('yussif', 'bad')).toEqual({ quality: 'middle-good', engineQuality: 'bad', engineAgrees: false });
-    expect(figureQualityContext('yunus', 'good')).toEqual({ quality: 'unresolved', engineQuality: 'good', engineAgrees: false });
-    expect(figureQualityContext('sulemana', 'bad')).toEqual({ quality: 'unresolved', engineQuality: 'bad', engineAgrees: false });
+    // Yunus and Sulemana now agree with the engine's own table.
+    expect(figureQualityContext('yunus', 'middleGood')).toEqual({ quality: 'middle-good', engineQuality: 'middle-good', engineAgrees: true });
+    expect(figureQualityContext('sulemana', 'bad')).toEqual({ quality: 'bad', engineQuality: 'bad', engineAgrees: true });
+    expect(figureQualityContext(UNKNOWN_FIGURE, 'good')).toEqual({ quality: 'unresolved', engineQuality: 'good', engineAgrees: false });
   });
 });
 
@@ -90,20 +108,23 @@ describe('figureQualityNotes — what the UI says under "Figure quality"', () =>
     expect(figureQualityNotes(ctx)).toEqual([`${USED} Bad.`]);
   });
 
-  it('Yunus: unresolved, engine Good — says the engine used Good, unconfirmed, and never "uncertain"', () => {
-    const ctx = figureQualityContext('yunus', 'good');
+  it('Yunus: Kanzul middle-good and engine middle-good — a plain match, no extra note', () => {
+    const ctx = figureQualityContext('yunus', 'middleGood');
+    expect(figureQualityText(ctx)).toBe('Figure quality: Middle-good');
+    expect(figureQualityNotes(ctx)).toEqual([]);
+  });
+
+  it('Sulemana: Kanzul bad and engine bad — a plain match, no extra note', () => {
+    const ctx = figureQualityContext('sulemana', 'bad');
+    expect(figureQualityText(ctx)).toBe('Figure quality: Bad');
+    expect(figureQualityNotes(ctx)).toEqual([]);
+  });
+
+  it('an unknown figure the engine still classified: says the engine used Good, unconfirmed, never "uncertain"', () => {
+    const ctx = figureQualityContext(UNKNOWN_FIGURE, 'good');
     expect(figureQualityText(ctx)).toBe('Figure quality: Not classified');
     const notes = figureQualityNotes(ctx).join(' ');
     expect(notes).toContain(`${USED} Good.`);
-    expect(notes).toContain('not confirmed by the available sources');
-    expect(notes).not.toMatch(/stays uncertain|rather than guessing/);
-  });
-
-  it('Sulemana: unresolved, engine Bad — says the engine used Bad and that it is unconfirmed', () => {
-    const ctx = figureQualityContext('sulemana', 'bad');
-    expect(figureQualityText(ctx)).toBe('Figure quality: Not classified');
-    const notes = figureQualityNotes(ctx).join(' ');
-    expect(notes).toContain(`${USED} Bad.`);
     expect(notes).toContain('not confirmed by the available sources');
     expect(notes).not.toMatch(/stays uncertain|rather than guessing/);
   });
@@ -115,12 +136,9 @@ describe('figureQualityNotes — what the UI says under "Figure quality"', () =>
   });
 
   it('text-parsed unresolved: the contextual layer decided, so the method really is uncertain', () => {
-    for (const id of ['yunus', 'sulemana']) {
-      const notes = figureQualityNotes(contextualOnlyQuality('unresolved'));
-      expect(notes).toEqual([KANZUL_QUALITY_UNRESOLVED_NOTE]);
-      expect(notes.join(' ')).not.toContain('existing figure table');
-      expect(id).toBeTruthy();
-    }
+    const notes = figureQualityNotes(contextualOnlyQuality('unresolved'));
+    expect(notes).toEqual([KANZUL_QUALITY_UNRESOLVED_NOTE]);
+    expect(notes.join(' ')).not.toContain('existing figure table');
     expect(figureQualityNotes(contextualOnlyQuality('middle-good'))).toEqual([]);
   });
 });
@@ -166,14 +184,13 @@ describe('Kanzul text-parsed methods use the contextual layer', () => {
     }
   });
 
-  it('Yunus and Sulemana stay uncertain — no good/bad guess', () => {
-    for (const id of UNRESOLVED) {
-      const v = getMethodVerdicts(BUSINESS, charts[id])![0]!;
-      expect(v.figureQuality, id).toBe('unresolved');
-      expect(v.ambiguous, id).toBe(true);
-      expect(v.interpretation).toMatch(/not settled by the available sources/);
-      expect(v.interpretation).not.toMatch(/lot of profit|won't get any profit/);
-    }
+  it('Yunus is middle-good (no good/bad outcome); Sulemana is bad (the bad outcome)', () => {
+    const yunus = getMethodVerdicts(BUSINESS, charts.yunus)![0]!;
+    expect(yunus).toMatchObject({ figureQuality: 'middle-good', ambiguous: true });
+    expect(yunus.interpretation).not.toMatch(/lot of profit|won't get any profit/);
+    const sulemana = getMethodVerdicts(BUSINESS, charts.sulemana)![0]!;
+    expect(sulemana).toMatchObject({ figureQuality: 'bad', ambiguous: false });
+    expect(sulemana.interpretation).toMatch(/won't get any profit/);
   });
 
   it('fortuneFoundInChart keeps its source_specific basis but carries the figure quality', () => {
@@ -181,11 +198,8 @@ describe('Kanzul text-parsed methods use the contextual layer', () => {
     const m2 = (chart: Chart) => getMethodVerdicts(BUSINESS, chart)![1]!;
     const found = chartsByResult((c) => m2(c).result.starId, ['yunus', 'sulemana', 'yussif', 'adam', 'umar']);
     expect(Object.keys(found).sort()).toEqual(['adam', 'sulemana', 'umar', 'yunus', 'yussif']);
-    for (const id of ['yunus', 'sulemana']) {
-      const v = m2(found[id]);
-      expect(v).toMatchObject({ interpretationBasis: 'source_specific', figureQuality: 'unresolved', ambiguous: true });
-      expect(v.interpretation).toMatch(/not settled by the available sources/);
-    }
+    expect(m2(found.yunus)).toMatchObject({ interpretationBasis: 'source_specific', figureQuality: 'middle-good', ambiguous: true });
+    expect(m2(found.sulemana)).toMatchObject({ interpretationBasis: 'source_specific', figureQuality: 'bad', ambiguous: true });
     expect(m2(found.yussif)).toMatchObject({ interpretationBasis: 'source_specific', figureQuality: 'middle-good', ambiguous: true });
     expect(m2(found.adam)).toMatchObject({ interpretationBasis: 'source_specific', figureQuality: 'good' });
     // The parsed rule only defines the two good branches; a bad figure stays ambiguous exactly as before.
@@ -200,10 +214,8 @@ describe('Kanzul text-parsed methods use the contextual layer', () => {
   it('the hand-authored stay chapter Method 2 follows the same rules', () => {
     const stay2 = (chart: Chart) => getMethodVerdicts('if-she-s-going-to-stay-in-the', chart)![1]!;
     const found = chartsByResult((c) => stay2(c).result.starId, ['yunus', 'sulemana', 'yussif', 'adam']);
-    for (const id of ['yunus', 'sulemana']) {
-      if (!found[id]) continue;
-      expect(stay2(found[id])).toMatchObject({ ambiguous: true, figureQuality: 'unresolved' });
-    }
+    if (found.yunus) expect(stay2(found.yunus)).toMatchObject({ ambiguous: true, figureQuality: 'middle-good' });
+    if (found.sulemana) expect(stay2(found.sulemana)).toMatchObject({ figureQuality: 'bad' });
     if (found.yussif) expect(stay2(found.yussif)).toMatchObject({ ambiguous: true, figureQuality: 'middle-good' });
     expect(Object.keys(found).length).toBeGreaterThan(0);
   });

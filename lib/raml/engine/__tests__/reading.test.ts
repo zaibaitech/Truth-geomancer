@@ -665,8 +665,8 @@ describe('runReading — end to end on real questions', () => {
     expect(result!.sourceStatus).toBe('partially_verified');
   });
 
-  it('honestly reports a genuine conflict for the court case question on this chart, without averaging it away', () => {
-    const result = runReading(fixtureChart(), 'if-you-will-win-a-case-in-court');
+  it('honestly reports a genuine conflict for the marriage-blessings question on this chart, without averaging it away', () => {
+    const result = runReading(fixtureChart(), 'marriage-and-its-blessings');
     expect(result).not.toBeNull();
     expect(result!.conflictingIndicators).toBe(true);
     expect(result!.overallOutcome).toBe('mixed');
@@ -682,11 +682,11 @@ describe('runReading — end to end on real questions', () => {
     expect(result!.primaryFigure!.methodOutcome).toBe('favourable');
   });
 
-  it('reports the overcome-enemy question as "mixed" overall, consistent with its own "mixed" consensus level', () => {
+  it('reports the overcome-enemy question as "mixed" overall, consistent with its own consensus level (Yunus is middle-good, so only Method 1 speaks)', () => {
     const result = runReading(fixtureChart(), 'if-you-will-overcome-your-enemy-or-not');
     expect(result).not.toBeNull();
     expect(result!.overallOutcome).toBe('mixed');
-    expect(result!.shortSummary).toBe('Mixed — the verified methods give materially different indications.');
+    expect(result!.shortSummary).toBe('Mixed — the verified methods agree.');
   });
 
   it('the terrain-type question (ch.23) resolves as a real descriptive result, not insufficient_data or a fabricated favourable/unfavourable badge', () => {

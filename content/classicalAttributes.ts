@@ -54,7 +54,9 @@ export const CLASSICAL_ATTRIBUTES: Record<string, ClassicalAttribute> = {
   ali: { starId: 'ali', classicalName: 'Coniunctio', pattern: [2, 1, 1, 2], fortune: 'neutral', upDown: 'level' },
   nuhu: { starId: 'nuhu', classicalName: 'Fortuna Major', pattern: [2, 2, 1, 1], fortune: 'good', upDown: 'downward' },
   'hassan-hussein': { starId: 'hassan-hussein', classicalName: 'Cauda Draconis', pattern: [1, 1, 1, 2], fortune: 'bad', upDown: 'upward' },
-  yunus: { starId: 'yunus', classicalName: 'Puella', pattern: [1, 2, 1, 1], fortune: 'good', upDown: 'level' },
+  // Yunus: middle-good ('neutral'). A source-confirmed clarification, replacing
+  // the classical Puella value ('good') this table would otherwise carry.
+  yunus: { starId: 'yunus', classicalName: 'Puella', pattern: [1, 2, 1, 1], fortune: 'neutral', upDown: 'level' },
   usman: { starId: 'usman', classicalName: 'Acquisitio', pattern: [2, 1, 2, 1], fortune: 'good', upDown: 'downward' },
   musah: { starId: 'musah', classicalName: 'Populus', pattern: [2, 2, 2, 2], fortune: 'neutral', upDown: 'level' },
 };

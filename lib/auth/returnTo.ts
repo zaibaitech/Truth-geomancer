@@ -6,7 +6,10 @@
 // backslash variant browsers normalise into one ("/\evil.example"), never an
 // API route, and never the sign-in/auth pages themselves (no loops).
 // Anything else falls back to DEFAULT_RETURN_TO. This closes open redirects.
-export const DEFAULT_RETURN_TO = '/settings';
+// After signing in with no specific destination the person lands on the main
+// dashboard. A destination that was asked for (e.g. the book they were trying
+// to open) is still honoured — see safeReturnTo below.
+export const DEFAULT_RETURN_TO = '/';
 
 export function safeReturnTo(raw: string | null | undefined): string {
   if (typeof raw !== 'string') return DEFAULT_RETURN_TO;

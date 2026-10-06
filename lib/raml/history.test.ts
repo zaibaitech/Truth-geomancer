@@ -146,7 +146,7 @@ function record(over: Partial<ReadingRecord> = {}): ReadingRecord {
 const STATE_FIXTURES = {
   favourable: 'if-you-want-to-know-if-you-will',
   unfavourable: 'business-profit-and-loss',
-  mixed: 'if-you-will-win-a-case-in-court',
+  mixed: 'marriage-and-its-blessings',
   descriptive: 'is-there-much-trees-water-sand-or-stones',
   insufficient: 'if-a-pregnancy-is-going-to-be-stable',
   'source-detail-missing': 'if-it-s-day-or-night-that-she',
@@ -537,7 +537,7 @@ describe('search and filters', () => {
   });
 
   it('finds a reading by its chapter', () => {
-    expect(searchHistory(entries, 'chapter 19').map((e) => e.record.id)).toEqual(['3']);
+    expect(searchHistory(entries, 'chapter 7').map((e) => e.record.id)).toEqual(['3']);
   });
 
   it('finds nothing rather than guessing', () => {

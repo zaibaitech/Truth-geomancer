@@ -250,14 +250,14 @@ describe('Overcome enemy (ch.16)', () => {
     expect(m1.verdict!.outcome).toBe('mixed');
   });
 
-  it('Method 2: H1+H12+H13+H14 = Yunus, good -> favourable', () => {
+  it('Method 2: H1+H12+H13+H14 = Yunus, middle-good -> uncertain (the method only addresses good or bad)', () => {
     const m2 = result.methods.find((m) => m.method.id === 'overcome-enemy-method-2')!;
     expect(m2.calculation!.resultFigure.figureId).toBe('yunus');
-    expect(m2.verdict!.outcome).toBe('favourable');
+    expect(m2.verdict!.outcome).toBe('uncertain');
   });
 
-  it('reports "mixed" consensus (one favourable, one mixed — not a hard conflict)', () => {
-    expect(result.calculationDetails.consensus.level).toBe('mixed');
+  it('reports "agree" consensus (only Method 1 gives a verdict, and it is mixed)', () => {
+    expect(result.calculationDetails.consensus.level).toBe('agree');
   });
 
   it('reports overallResult as "mixed" too, matching the consensus level (Prompt 3.5 fix: a tied favourable/mixed count must not silently pick a side)', () => {

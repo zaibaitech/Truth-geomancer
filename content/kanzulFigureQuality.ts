@@ -17,12 +17,17 @@
 //     supplied by the project owner).
 //   - The author's recorded explanation agrees with it for Yussif (middle-good).
 //
-// Unresolved on purpose (no quality is assigned):
-//   - Yunus: the author's recording is conflicting (some say middle-good, some
-//     bad) while the Arabic source says middle.
-//   - Sulemana: the author's recording says it is NOT middle, while the Arabic
-//     source puts it in middle.
-// For these the app must keep the method uncertain rather than guess.
+// Source-confirmed clarification (project owner) for two figures:
+//   - Yunus    = middle-good
+//   - Sulemana = bad
+// This is an explicit source-backed classification, not an inference. The
+// passage itself is not cited in this repository, so it is recorded as an
+// owner-supplied clarification and never as a Kanzul Mikban quotation.
+// Sulemana therefore differs from the Arabic source's grouping (middle) on
+// purpose.
+//
+// A figure id that is not in this table has no quality ('unresolved'): methods
+// then stay uncertain instead of guessing. No known figure is unresolved today.
 //
 // Pure and client-safe: no server imports.
 
@@ -43,6 +48,8 @@ export interface KanzulFigureQualityEntry {
 
 const ARABIC_SOURCE = 'Kitāb maʿrifat ʿalāmat al-insān (contextual source; not Kanzul Mikban)';
 const AUTHOR_RECORDING = "Author's recorded explanation";
+const OWNER_CLARIFICATION =
+  'Source-confirmed clarification supplied by the project owner (passage not cited in this repository); not a Kanzul Mikban quotation';
 
 const contextual = (figure: string, quality: KanzulQuality, extra: string[] = [], confidence: KanzulQualityConfidence = 'medium'): KanzulFigureQualityEntry => ({
   figure,
@@ -52,7 +59,17 @@ const contextual = (figure: string, quality: KanzulQuality, extra: string[] = []
   provenance: [ARABIC_SOURCE, ...extra],
 });
 
-const unresolved = (figure: string, why: string): KanzulFigureQualityEntry => ({
+/** An explicit, source-confirmed classification (owner clarification). */
+const confirmed = (figure: string, quality: KanzulQuality): KanzulFigureQualityEntry => ({
+  figure,
+  quality,
+  status: 'contextual',
+  confidence: 'high',
+  provenance: [OWNER_CLARIFICATION],
+});
+
+/** For a figure without a settled quality; none are unresolved today. */
+export const unresolved = (figure: string, why: string): KanzulFigureQualityEntry => ({
   figure,
   quality: null,
   status: 'unresolved',
@@ -75,8 +92,8 @@ export const KANZUL_FIGURE_QUALITY: Readonly<Record<string, KanzulFigureQualityE
   umar: contextual('umar', 'bad'),
   ayuba: contextual('ayuba', 'bad'),
   issah: contextual('issah', 'bad'),
-  yunus: unresolved('yunus', "Sources conflict: the Arabic source says middle; the author's recording says some call it middle-good and some bad."),
-  sulemana: unresolved('sulemana', "Sources conflict: the Arabic source says middle; the author's recording says it is not middle."),
+  yunus: confirmed('yunus', 'middle-good'),
+  sulemana: confirmed('sulemana', 'bad'),
 };
 
 export const KANZUL_QUALITY_LABEL: Record<KanzulQuality, string> = {

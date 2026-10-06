@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useAuthStatus } from './useAuthStatus';
 
@@ -23,7 +23,7 @@ import { useAuthStatus } from './useAuthStatus';
  * on the client. An expired code shows "Code expired" with a button to ask for
  * a new one.
  */
-type Step = 'email' | 'code' | 'link-sent';
+type Step = 'email' | 'code' | 'link-sent' | 'signed-in';
 
 /** What the server tells us about a pending code (never the code itself). */
 export interface PendingChallengeView {
@@ -58,6 +58,25 @@ export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: st
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  // Where to go once signed in (set only after the server confirms the code).
+  const [destination, setDestination] = useState(returnTo);
+  const navigated = useRef(false);
+
+  function goTo(target: string) {
+    if (navigated.current) return;
+    navigated.current = true;
+    // A full navigation, not a client-side route change: every server-rendered
+    // page is then fetched fresh with the new session cookie.
+    window.location.replace(target);
+  }
+
+  // Signed in from elsewhere (another tab, or the session appeared while this
+  // page was open): leave the sign-in page instead of stranding the person here.
+  // The target is a sanitised path that is never /signin, so this cannot loop.
+  useEffect(() => {
+    if (status?.authenticated && step !== 'signed-in') goTo(returnTo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status?.authenticated]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -158,9 +177,13 @@ export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: st
         setBusy(false);
         return;
       }
-      // A full navigation, not a client-side route change: every server-
-      // rendered page is then fetched fresh with the new session cookie.
-      window.location.replace(typeof res.data.redirectTo === 'string' ? res.data.redirectTo : returnTo);
+      // Confirmed by the server: show the success state (a visible way forward if
+      // the navigation is slow or blocked) and go to the destination.
+      const target = typeof res.data.redirectTo === 'string' ? res.data.redirectTo : returnTo;
+      setDestination(target);
+      setStep('signed-in');
+      setBusy(false);
+      goTo(target);
     } catch {
       setError('Could not reach the server. Check your connection and try again.');
       setBusy(false);
@@ -185,16 +208,21 @@ export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: st
     }
   }
 
-  if (status?.authenticated) {
+  if (step === 'signed-in' || status?.authenticated) {
+    const target = step === 'signed-in' ? destination : returnTo;
     return (
       <Card>
-        <p className="type-body font-semibold text-sand-light">You’re signed in</p>
-        <p className="mt-1 type-body text-sand/70">as {status.email}</p>
+        <p role="status" className="type-body font-semibold text-sand-light">
+          {step === 'signed-in' ? 'Signed in successfully' : 'You’re signed in'}
+        </p>
+        <p className="mt-1 type-body text-sand/70">
+          {step === 'signed-in' ? 'Taking you to your dashboard…' : `as ${status?.email ?? 'your account'}`}
+        </p>
         <Link
-          href={returnTo}
+          href={target}
           className="mt-4 flex min-h-[48px] items-center justify-center rounded-xl bg-clay px-4 py-2.5 type-body font-semibold text-ink"
         >
-          Continue
+          {target === '/' ? 'Continue to dashboard' : 'Continue'}
         </Link>
       </Card>
     );

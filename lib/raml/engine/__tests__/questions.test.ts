@@ -86,10 +86,11 @@ describe('Business question (Kanzul Mikban ch.3)', () => {
 describe('Court case / fight / war question (Kanzul Mikban ch.19)', () => {
   const result = runEngine(chart, 'if-you-will-win-a-case-in-court')!;
 
-  it('computes Method 1 correctly: H1+H5+H9+H14 = Yunus, good -> favourable', () => {
+  it('computes Method 1 correctly: H1+H5+H9+H14 = Yunus, middle-good -> mixed', () => {
+    // Yunus is middle-good (source-confirmed), so the book's middle-good branch applies.
     const m1 = result.methods.find((m) => m.method.id === 'court-method-1')!;
     expect(m1.calculation!.resultFigure.figureId).toBe('yunus');
-    expect(m1.verdict!.outcome).toBe('favourable');
+    expect(m1.verdict!.outcome).toBe('mixed');
   });
 
   it('computes Method 2 correctly: (H8+H11+H7+H16)+H1 = Musah, middle-good -> mixed', () => {
@@ -111,12 +112,12 @@ describe('Court case / fight / war question (Kanzul Mikban ch.19)', () => {
     expect(m4.verdict!.outcome).toBe('unfavourable');
   });
 
-  it('correctly reports a genuine conflict — one favourable, one mixed, one unfavourable', () => {
+  it('reports the consensus honestly — two mixed, one unfavourable (Yunus is middle-good), no favourable', () => {
     const c = result.calculationDetails.consensus;
-    expect(c.favourableCount).toBe(1);
-    expect(c.mixedCount).toBe(1);
+    expect(c.favourableCount).toBe(0);
+    expect(c.mixedCount).toBe(2);
     expect(c.unfavourableCount).toBe(1);
-    expect(c.level).toBe('conflict');
+    expect(c.level).toBe('mostly_agree');
     expect(result.overallResult).toBe('mixed');
   });
 });

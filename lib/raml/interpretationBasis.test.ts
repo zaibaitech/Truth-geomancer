@@ -227,7 +227,7 @@ describe('describeFigureAttributes — what the UI may present as deciding', () 
 });
 
 describe('star classifications are unchanged by this phase', () => {
-  it('pins the full classical table, including Yunus (not disputed) and the six figures the auditor discussed', () => {
+  it('pins the full classical table; Yunus is neutral (source-confirmed middle-good), every other figure is unchanged', () => {
     const table = Object.fromEntries(Object.entries(CLASSICAL_ATTRIBUTES).map(([id, a]) => [id, `${a.fortune}/${a.upDown}`]));
     expect(table).toEqual({
       yussif: 'bad/level',
@@ -243,7 +243,7 @@ describe('star classifications are unchanged by this phase', () => {
       ali: 'neutral/level',
       nuhu: 'good/downward',
       'hassan-hussein': 'bad/upward',
-      yunus: 'good/level',
+      yunus: 'neutral/level', // source-confirmed middle-good
       usman: 'good/downward',
       musah: 'neutral/level',
     });

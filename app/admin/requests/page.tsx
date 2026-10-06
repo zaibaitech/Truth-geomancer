@@ -5,7 +5,8 @@ import { RequestCard } from '@/components/admin/RequestCard';
 import { ActivityItem } from '@/components/admin/ActivityItem';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
-import { isCurrentUserAdmin } from '@/lib/server/adminSession';
+import { AdminPlatformOnly } from '@/components/admin/AdminPlatformOnly';
+import { getAdminActor, isPlatformAdminActor } from '@/lib/server/adminActor';
 import { getDb } from '@/lib/server/db';
 import { listPaymentRequestsForAdmin } from '@/lib/server/paymentRequests';
 
@@ -19,15 +20,17 @@ function bookTitleForProduct(productId: string): string {
 // reviewed" is preserved unchanged (see listPaymentRequestsForAdmin's own
 // ordering — newest first).
 export default async function AdminRequestsPage() {
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) return <AdminSignInRequired />;
+  // Server-side authorization (lib/server/adminActor.ts): platform admins only.
+  const actor = await getAdminActor();
+  if (!actor) return <AdminSignInRequired />;
+  if (!isPlatformAdminActor(actor)) return <AdminPlatformOnly />;
 
   const db = getDb();
   const pending = await listPaymentRequestsForAdmin(db, 'pending');
   const reviewed = (await listPaymentRequestsForAdmin(db)).filter((r) => r.status !== 'pending').slice(0, 25);
 
   return (
-    <AdminShell>
+    <AdminShell variant="platform">
       <div className="space-y-6 px-4 py-4">
         <div>
           <p className="mb-2 type-label uppercase tracking-widest text-sand/65">Needs Your Attention ({pending.length})</p>

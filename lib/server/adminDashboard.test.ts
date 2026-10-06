@@ -27,21 +27,28 @@ const ADMIN_PAGES = {
   'app/admin/books/page.tsx': BOOKS_PAGE,
   'app/admin/readers/page.tsx': READERS_PAGE,
   'app/admin/settings/page.tsx': SETTINGS_PAGE,
+  'app/admin/staff/page.tsx': readFileSync('app/admin/staff/page.tsx', 'utf-8'),
 };
+// Pages with platform-wide data: an author (a non-platform actor) is turned
+// away before anything is loaded, not merely shown fewer buttons.
+const PLATFORM_ONLY_PAGES = ['app/admin/requests/page.tsx', 'app/admin/readers/page.tsx', 'app/admin/settings/page.tsx', 'app/admin/staff/page.tsx'];
 
 describe('every /admin/* page gates on the server-authoritative admin check', () => {
   for (const [name, source] of Object.entries(ADMIN_PAGES)) {
-    it(`${name} calls isCurrentUserAdmin() and returns before touching any data if it is false`, () => {
-      expect(source).toMatch(/isCurrentUserAdmin\(\)/);
-      expect(source).toMatch(/if \(!isAdmin\) return <AdminSignInRequired \/>/);
+    it(`${name} resolves the actor server-side (getAdminActor) and returns before touching any data if there is none`, () => {
+      expect(source).toMatch(/const actor = await getAdminActor\(\);/);
+      expect(source).toMatch(/if \(!actor\) return <AdminSignInRequired \/>/);
+      if (PLATFORM_ONLY_PAGES.includes(name)) {
+        expect(source).toMatch(/if \(!isPlatformAdminActor\(actor\)\) return <AdminPlatformOnly \/>/);
+      }
       // The auth check's CALL, and its early-return, must come before any
       // data-fetching CALL in the function body — comparing against the
       // import lines (which always come first, regardless of ordering
       // elsewhere) would trivially pass, so this strips the import block
       // first and only looks at the body.
       const body = source.slice(source.lastIndexOf('\nimport '));
-      const authIdx = body.indexOf('isCurrentUserAdmin()');
-      const dataIdx = body.search(/const db = getDb\(\)/);
+      const authIdx = body.indexOf('getAdminActor()');
+      const dataIdx = body.search(/getDb\(\)/);
       if (dataIdx !== -1) expect(authIdx).toBeLessThan(dataIdx);
     });
   }
@@ -66,7 +73,9 @@ describe('Dashboard home (Phase 4)', () => {
 describe('My Books (Phase 7)', () => {
   it('renders from the existing BOOKS catalogue, never a hardcoded book list', () => {
     expect(BOOKS_PAGE).toMatch(/import \{ BOOKS \} from '@\/content\/books'/);
-    expect(BOOKS_PAGE).toMatch(/BOOKS\.map/);
+    // Scoped by the server-resolved actor: platform admins get every book,
+    // an author only their assigned ones.
+    expect(BOOKS_PAGE).toMatch(/BOOKS\.filter\(\(book\) => actor\.bookIds\.includes\(book\.id\)\)/);
     // No literal book title string anywhere outside the import/comment —
     // titles must flow through {book.title}, never be typed out here.
     expect(BOOKS_PAGE).not.toMatch(/The Master of Geomancy|Kanzul Mikban/);

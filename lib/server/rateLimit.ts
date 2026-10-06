@@ -75,6 +75,10 @@ export const CODE_REQUEST_IP_LIMIT = { maxAttempts: 20, windowMs: 60 * 60 * 1000
 export const CODE_VERIFY_IP_LIMIT = { maxAttempts: 30, windowMs: 60 * 60 * 1000 } as const;
 export const CODE_VERIFY_EMAIL_LIMIT = { maxAttempts: 15, windowMs: 60 * 60 * 1000 } as const;
 
+// Break-glass admin login (shared secret): per IP, database-backed, so the
+// secret can't be brute-forced quickly. Generous enough for a mistyped secret.
+export const ADMIN_LOGIN_IP_LIMIT = { maxAttempts: 10, windowMs: 15 * 60 * 1000 } as const;
+
 /** Best-effort client IP extraction, shared by every rate-limited route.
  * Vercel's edge network sets x-forwarded-for to the real client IP; this
  * is only ever used as a rate-limit bucketing key, never as an identity

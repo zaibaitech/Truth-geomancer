@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { loginAdmin } from '@/lib/server/adminSession';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
+import { getDb } from '@/lib/server/db';
+import { ADMIN_LOGIN_IP_LIMIT, PostgresRateLimiter, extractClientIp } from '@/lib/server/rateLimit';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -9,6 +12,18 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // secret gets an identical 401 either way (see adminAuth.ts's own comment
 // on verifyAdminSecret's fail-closed behavior).
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 403, headers: NO_STORE_HEADERS });
+  }
+  // Rate-limited per IP before the secret is even compared.
+  const limiter = new PostgresRateLimiter(getDb(), 'admin-login:ip', ADMIN_LOGIN_IP_LIMIT.maxAttempts, ADMIN_LOGIN_IP_LIMIT.windowMs);
+  if (!(await limiter.check(extractClientIp(request)))) {
+    return NextResponse.json(
+      { error: 'Too many sign-in attempts. Please wait and try again.' },
+      { status: 429, headers: NO_STORE_HEADERS },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

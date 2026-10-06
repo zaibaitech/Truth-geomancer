@@ -57,7 +57,14 @@ function grantCovers(grant: EntitlementGrant, resource: AccessResource): boolean
  * (Prompt 25, section 3: "Do NOT automatically assume 'all methods in
  * book' unless explicitly represented"). */
 export function canAccess(ctx: AccessContext, resource: AccessResource): boolean {
-  const grants = activeGrants(ctx);
+  return grantsCoverResource(activeGrants(ctx), resource);
+}
+
+/** Whether any of `grants` covers `resource` — the same coverage rule
+ * canAccess() applies to a customer's entitled products. Exposed so staff
+ * access (lib/server/staff.ts) answers "which book/method/feature does this
+ * cover?" with exactly this rule, never a second, separately-written one. */
+export function grantsCoverResource(grants: readonly EntitlementGrant[], resource: AccessResource): boolean {
   return grants.some((grant) => grantCovers(grant, resource));
 }
 

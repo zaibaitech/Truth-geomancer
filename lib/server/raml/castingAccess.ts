@@ -19,6 +19,7 @@ import {
 } from '@/lib/access/castingAuthorization';
 import { QUESTION_CATALOG } from '@/lib/raml/questionCatalog';
 import { getAccessContextForUser } from '../accessService';
+import { getStaffAccess, staffGrants } from '../staff';
 import { getPaymentRequestsForUser } from '../paymentRequests';
 import type { Db } from '../db';
 
@@ -77,14 +78,34 @@ export async function pendingBookIdsForUser(db: Db, userId: string, entitled: Re
   return pending;
 }
 
+/**
+ * Books this user may read through STAFF authority (author assignment or
+ * platform admin) — a separate path from entitlements, derived from the same
+ * product grants (lib/server/staff.ts). Empty for customers.
+ */
+export async function staffBookIdsForUser(db: Db, userId: string): Promise<Set<string>> {
+  const ids = new Set<string>();
+  for (const grant of staffGrants(await getStaffAccess(db, userId))) {
+    if (grant.kind === 'book') ids.add(grant.bookId);
+  }
+  return ids;
+}
+
+/** Entitled books plus staff-readable books: what casting is unlocked for. */
+async function castableBookIdsForUser(db: Db, userId: string): Promise<Set<string>> {
+  const ids = await entitledBookIdsForUser(db, userId);
+  (await staffBookIdsForUser(db, userId)).forEach((id) => ids.add(id));
+  return ids;
+}
+
 export async function authorizeCastingForUser(db: Db, userId: string | null, intentionId: string): Promise<CastingAuthorization> {
-  const entitledBookIds = userId ? await entitledBookIdsForUser(db, userId) : new Set<string>();
+  const entitledBookIds = userId ? await castableBookIdsForUser(db, userId) : new Set<string>();
   const pendingBookIds = userId ? await pendingBookIdsForUser(db, userId, entitledBookIds) : new Set<string>();
   return authorizeCastingIntention(intentionId, { entitledBookIds, pendingBookIds });
 }
 
 export async function getCastingAccessSnapshot(db: Db, userId: string | null): Promise<CastingAccessSnapshot> {
-  const entitledBookIds = userId ? await entitledBookIdsForUser(db, userId) : new Set<string>();
+  const entitledBookIds = userId ? await castableBookIdsForUser(db, userId) : new Set<string>();
   const pendingBookIds = userId ? await pendingBookIdsForUser(db, userId, entitledBookIds) : new Set<string>();
   const opts = { entitledBookIds, pendingBookIds };
   const sample = getFreeCastingSample();

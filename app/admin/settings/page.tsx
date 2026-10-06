@@ -3,7 +3,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminSignInRequired } from '@/components/admin/AdminSignInRequired';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { Card } from '@/components/ui/Card';
-import { isCurrentUserAdmin } from '@/lib/server/adminSession';
+import { AdminPlatformOnly } from '@/components/admin/AdminPlatformOnly';
+import { getAdminActor, isPlatformAdminActor } from '@/lib/server/adminActor';
 
 // Prompt 65: an administrator-facing settings page, distinct from the
 // customer-facing /settings (app/settings/page.tsx, untouched by this
@@ -12,23 +13,33 @@ import { isCurrentUserAdmin } from '@/lib/server/adminSession';
 // per Phase 17's explicit "do not duplicate or alter the existing WhatsApp
 // implementation ... in this prompt".
 export default async function AdminSettingsPage() {
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) return <AdminSignInRequired />;
+  // Server-side authorization (lib/server/adminActor.ts): platform admins only.
+  const actor = await getAdminActor();
+  if (!actor) return <AdminSignInRequired />;
+  if (!isPlatformAdminActor(actor)) return <AdminPlatformOnly />;
 
   return (
-    <AdminShell>
+    <AdminShell variant="platform">
       <div className="space-y-4 px-4 py-4">
         <Card>
           <div className="flex items-center gap-2.5">
             <ShieldCheck size={16} className="text-clay-light" />
             <div>
-              <p className="type-body font-semibold text-sand-light">Signed in as Administrator</p>
-              <p className="type-meta text-sand/65">Your session stays signed in for up to 12 hours.</p>
+              <p className="type-body font-semibold text-sand-light">
+                {actor.kind === 'break-glass' ? 'Signed in with emergency access' : 'Signed in as Platform Administrator'}
+              </p>
+              <p className="type-meta text-sand/65">
+                {actor.kind === 'break-glass'
+                  ? 'Emergency access stays signed in for up to 12 hours.'
+                  : 'You are using your own account. Sign out from Settings in the app.'}
+              </p>
             </div>
           </div>
-          <div className="mt-4">
-            <AdminSignOutButton />
-          </div>
+          {actor.kind === 'break-glass' ? (
+            <div className="mt-4">
+              <AdminSignOutButton />
+            </div>
+          ) : null}
         </Card>
 
         <Card>

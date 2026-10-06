@@ -40,9 +40,10 @@ export function generateAdminToken(): string {
 export function verifyAdminSecret(secret: string): boolean {
   const configured = process.env.TG_ADMIN_SECRET;
   if (!configured) return false;
-  const a = Buffer.from(configured);
-  const b = Buffer.from(secret);
-  if (a.length !== b.length) return false;
+  // Compare fixed-length digests so neither the result nor the timing
+  // depends on (or reveals) the configured secret's length.
+  const a = createHash('sha256').update(configured).digest();
+  const b = createHash('sha256').update(secret).digest();
   return timingSafeEqual(a, b);
 }
 
@@ -60,10 +61,19 @@ export async function createAdminSession(db: Db, token: string): Promise<void> {
  * client's own cookie-expiry handling is bypassed. */
 export async function isAdminToken(db: Db, token: string | null): Promise<boolean> {
   if (!token) return false;
-  const row = await db.queryOne<{ created_at: string }>('SELECT created_at FROM admin_sessions WHERE token_hash = ?', [
-    hashAdminToken(token),
-  ]);
+  const tokenHash = hashAdminToken(token);
+  const row = await db.queryOne<{ created_at: string }>('SELECT created_at FROM admin_sessions WHERE token_hash = ?', [tokenHash]);
   if (!row) return false;
   const age = Date.now() - new Date(row.created_at).getTime();
-  return age >= 0 && age <= ADMIN_SESSION_MAX_AGE_MS;
+  if (age >= 0 && age <= ADMIN_SESSION_MAX_AGE_MS) return true;
+  // Expired: never usable again, and not left behind in the table.
+  await db.execute('DELETE FROM admin_sessions WHERE token_hash = ?', [tokenHash]);
+  return false;
+}
+
+/** Server-side logout for a break-glass admin session: the row is deleted, so
+ * a copied cookie stops working immediately (not merely when it expires). */
+export async function revokeAdminSession(db: Db, token: string | null): Promise<void> {
+  if (!token) return;
+  await db.execute('DELETE FROM admin_sessions WHERE token_hash = ?', [hashAdminToken(token)]);
 }

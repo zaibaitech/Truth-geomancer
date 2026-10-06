@@ -34,22 +34,24 @@ describe('user isolation at the route level', () => {
 });
 
 describe('13-16: admin routes are all gated by the server-authoritative admin check', () => {
-  it('the admin listing route checks isCurrentUserAdmin() before returning any data', () => {
-    expect(ADMIN_LIST_ROUTE).toMatch(/isCurrentUserAdmin\(\)/);
-    expect(ADMIN_LIST_ROUTE.indexOf('isCurrentUserAdmin')).toBeLessThan(ADMIN_LIST_ROUTE.indexOf('listPaymentRequestsForAdmin'));
+  it('the admin listing route checks requirePlatformAdmin() before returning any data', () => {
+    expect(ADMIN_LIST_ROUTE).toMatch(/requirePlatformAdmin\(\)/);
+    expect(ADMIN_LIST_ROUTE.indexOf('requirePlatformAdmin()')).toBeLessThan(ADMIN_LIST_ROUTE.indexOf('listPaymentRequestsForAdmin(db'));
   });
 
-  it('the approve route checks currentAdminReviewerId() before touching the database', () => {
-    expect(APPROVE_ROUTE).toMatch(/currentAdminReviewerId\(\)/);
-    expect(APPROVE_ROUTE.indexOf('currentAdminReviewerId')).toBeLessThan(APPROVE_ROUTE.indexOf('approvePaymentRequest'));
+  it('the approve route checks requirePlatformAdmin() before touching the database, and the reviewer is the authenticated actor', () => {
+    expect(APPROVE_ROUTE).toMatch(/requirePlatformAdmin\(\)/);
+    expect(APPROVE_ROUTE.indexOf('requirePlatformAdmin()')).toBeLessThan(APPROVE_ROUTE.indexOf('approvePaymentRequest(db'));
+    expect(APPROVE_ROUTE).toMatch(/const reviewerId = actor\.reviewerId;/);
   });
 
-  it('the reject route checks currentAdminReviewerId() before touching the database', () => {
-    expect(REJECT_ROUTE).toMatch(/currentAdminReviewerId\(\)/);
-    expect(REJECT_ROUTE.indexOf('currentAdminReviewerId')).toBeLessThan(REJECT_ROUTE.indexOf('rejectPaymentRequest'));
+  it('the reject route checks requirePlatformAdmin() before touching the database, and the reviewer is the authenticated actor', () => {
+    expect(REJECT_ROUTE).toMatch(/requirePlatformAdmin\(\)/);
+    expect(REJECT_ROUTE.indexOf('requirePlatformAdmin()')).toBeLessThan(REJECT_ROUTE.indexOf('rejectPaymentRequest(db'));
+    expect(REJECT_ROUTE).toMatch(/const reviewerId = actor\.reviewerId;/);
   });
 
-  it('none of the admin routes ever infer admin status from the request body, a query parameter, or a header other than the session cookie read inside isCurrentUserAdmin/currentAdminReviewerId', () => {
+  it('none of the admin routes ever infer admin status from the request body, a query parameter, or a header — only from the session resolved inside requirePlatformAdmin', () => {
     for (const source of [ADMIN_LIST_ROUTE, APPROVE_ROUTE, REJECT_ROUTE]) {
       expect(source).not.toMatch(/isAdmin\s*[:=]\s*(true|body\.|request\.headers\.get)/);
     }

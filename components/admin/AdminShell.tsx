@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { AdminNav } from './AdminNav';
+import { AdminNav, type AdminNavVariant } from './AdminNav';
 
 // Prompt 65: the chrome every authenticated /admin/* page shares — header
 // + tab nav. Only ever rendered AFTER a page's own isCurrentUserAdmin()
@@ -8,7 +8,7 @@ import { AdminNav } from './AdminNav';
 // performs no auth check and renders no data, so it carries no security
 // weight of its own; it exists purely to avoid five copies of the same
 // header/nav markup.
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, variant }: { children: ReactNode; variant: AdminNavVariant }) {
   return (
     <div>
       <header className="border-b border-sand/10 px-4 pb-3 pt-4">
@@ -18,11 +18,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="font-logo text-lg text-sand-light">Truth Geomancer</p>
-            <p className="type-label text-sand/65">Author Dashboard</p>
+            <p className="type-label text-sand/65">{variant === 'author' ? 'Author Dashboard' : 'Admin Dashboard'}</p>
           </div>
         </div>
       </header>
-      <AdminNav />
+      <AdminNav variant={variant} />
       {children}
     </div>
   );

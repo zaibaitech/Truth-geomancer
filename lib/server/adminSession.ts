@@ -1,55 +1,56 @@
-// Thin cookie-I/O wrapper around adminAuth.ts's pure token logic (Prompt
-// 28, Phase 7) — mirrors session.ts's own split between pure logic and
-// cookie I/O. `cookies().set()` may only be called from a Route
-// Handler/Server Action, so loginAdmin() must only be called from one (the
-// admin login route is the one caller). requireAdmin() is read-only and
-// safe to call from any server context, including admin Server Component
-// pages.
+// LEGACY BREAK-GLASS ADMIN ACCESS (shared secret).
+//
+// Day-to-day administration now goes through a normal signed-in user with a
+// staff role (lib/server/staff.ts, resolved by lib/server/adminActor.ts). This
+// module keeps the original TG_ADMIN_SECRET login working as an emergency
+// path during the transition, until a platform admin account exists and has
+// been verified. It is isolated here and grants platform-admin authority only
+// via adminActor.ts's resolveAdminActor().
+//
+// Hardening (auth/staff redesign): the cookie is `__Host-tg_admin` in
+// production (Secure, Path=/, no Domain); the old `tg_admin` name is still
+// read so sessions issued before this change keep working until they expire.
+// Logout deletes the server-side row, and the login route is rate-limited.
 import { cookies } from 'next/headers';
 import { getDb } from './db';
-import { createAdminSession, generateAdminToken, isAdminToken, verifyAdminSecret } from './adminAuth';
+import { createAdminSession, generateAdminToken, isAdminToken, revokeAdminSession, verifyAdminSecret } from './adminAuth';
 
-const ADMIN_COOKIE = 'tg_admin';
-const ADMIN_SESSION_SECONDS = 12 * 60 * 60; // 12 hours — shorter-lived than the anonymous user session cookie
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const ADMIN_COOKIE = IS_PRODUCTION ? '__Host-tg_admin' : 'tg_admin';
+const LEGACY_ADMIN_COOKIE = 'tg_admin';
+const ADMIN_SESSION_SECONDS = 12 * 60 * 60; // 12 hours — shorter-lived than the user session cookie
+
+function adminCookieOptions(maxAge: number) {
+  return { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax' as const, path: '/', maxAge };
+}
+
+function readAdminToken(): string | null {
+  const store = cookies();
+  return store.get(ADMIN_COOKIE)?.value ?? store.get(LEGACY_ADMIN_COOKIE)?.value ?? null;
+}
 
 /** Verifies `secret` against TG_ADMIN_SECRET and, on success, creates a
- * fresh admin session and sets its cookie. Returns whether login succeeded.
- * Never distinguishes "wrong secret" from "no secret configured" in its
- * return value or any observable timing beyond verifyAdminSecret's own
- * constant-time comparison — both simply fail. */
+ * fresh break-glass session and sets its cookie. Returns whether login
+ * succeeded; "wrong secret" and "no secret configured" both simply fail. */
 export async function loginAdmin(secret: string): Promise<boolean> {
   if (!verifyAdminSecret(secret)) return false;
   const token = generateAdminToken();
   await createAdminSession(getDb(), token);
-  cookies().set(ADMIN_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: ADMIN_SESSION_SECONDS,
-  });
+  cookies().set(ADMIN_COOKIE, token, adminCookieOptions(ADMIN_SESSION_SECONDS));
   return true;
 }
 
-/** The one function an admin route/page should call to decide "is this
- * request admin-authorized". Never inferred from email, localStorage, a
- * query parameter, or any client-supplied value — only from a cookie whose
- * value hashes to a real, fresh row in admin_sessions. */
-export async function isCurrentUserAdmin(): Promise<boolean> {
-  const token = cookies().get(ADMIN_COOKIE)?.value ?? null;
-  return isAdminToken(getDb(), token);
+/** Whether this request carries a valid, unexpired break-glass session. Never
+ * inferred from email, a query parameter, a header or any client value — only
+ * from a cookie whose token hashes to a fresh admin_sessions row. */
+export async function isBreakGlassAdminSession(): Promise<boolean> {
+  return isAdminToken(getDb(), readAdminToken());
 }
 
-/** The reviewer identity recorded on an approved/rejected PaymentRequest.
- * This architecture supports exactly ONE administrator identity (a single
- * configured secret) — there is no admin roster, no name, no email, so a
- * fixed literal is the honest value rather than inventing per-session
- * "admin #2"-style identifiers that would imply a multi-admin system that
- * does not exist. Returns null when the caller is not admin-authorized. */
-export async function currentAdminReviewerId(): Promise<string | null> {
-  return (await isCurrentUserAdmin()) ? 'admin' : null;
-}
-
-export function logoutAdmin(): void {
-  cookies().delete(ADMIN_COOKIE);
+/** Ends the break-glass session server-side and clears its cookie(s). */
+export async function logoutAdmin(): Promise<void> {
+  await revokeAdminSession(getDb(), readAdminToken());
+  const store = cookies();
+  store.set(ADMIN_COOKIE, '', adminCookieOptions(0));
+  if (LEGACY_ADMIN_COOKIE !== ADMIN_COOKIE) store.set(LEGACY_ADMIN_COOKIE, '', adminCookieOptions(0));
 }

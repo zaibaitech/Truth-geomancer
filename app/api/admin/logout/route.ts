@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logoutAdmin } from '@/lib/server/adminSession';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -9,7 +10,11 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // its own — there is nothing sensitive to guard here, and an already-signed-
 // out caller hitting this is a harmless no-op (cookies().delete() on a
 // cookie that isn't set does nothing).
-export async function POST() {
-  logoutAdmin();
+export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false }, { status: 403, headers: NO_STORE_HEADERS });
+  }
+  // Deletes the server-side admin session row, then clears the cookie.
+  await logoutAdmin();
   return NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS });
 }

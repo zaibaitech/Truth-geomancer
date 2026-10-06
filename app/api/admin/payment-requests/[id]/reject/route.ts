@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { currentAdminReviewerId } from '@/lib/server/adminSession';
+import { requirePlatformAdmin } from '@/lib/server/adminActor';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 import { getDb } from '@/lib/server/db';
 import { rejectPaymentRequest } from '@/lib/server/paymentRequests';
 
@@ -9,10 +10,16 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // any other access-granting function — a rejected request provides no
 // access, by construction (see paymentRequests.ts's rejectPaymentRequest).
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const reviewerId = await currentAdminReviewerId();
-  if (!reviewerId) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
+  // Platform admins (or the break-glass session) only. The reviewer is the
+  // authenticated actor; the user and product come from the stored request.
+  const actor = await requirePlatformAdmin();
+  if (!actor) {
+    return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
+  }
+  const reviewerId = actor.reviewerId;
 
   let adminNote: string | undefined;
   try {

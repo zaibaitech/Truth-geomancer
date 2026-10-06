@@ -1,9 +1,9 @@
 // Server-only composition of "what should the UI show this user for this
 // product" (Prompt 28, Phase 13). Adds no access rule of its own — reads
-// the SAME canAccessForUser() every protected route already uses, plus the
-// user's own payment-request history, and never the reverse (a payment
-// request is never treated as access — see paymentRequests.ts).
-import { canAccessForUser } from './accessService';
+// the customer entitlement check (hasEntitlementAccess, the same rule protected
+// routes apply to customers), plus the user's own payment-request history, and
+// never the reverse (a payment request is never treated as access).
+import { hasEntitlementAccess } from './accessService';
 import { getPaymentRequestsForUser } from './paymentRequests';
 import type { Db } from './db';
 
@@ -19,7 +19,9 @@ export type ProductAccessStatus = 'active' | 'pending' | 'rejected' | 'none';
  * `none`     — no entitlement and no request has ever been submitted.
  */
 export async function getProductAccessStatus(db: Db, userId: string, productId: string): Promise<ProductAccessStatus> {
-  if (await canAccessForUser(db, userId, { kind: 'book', bookId: productId })) return 'active';
+  // Customer ownership only (entitlement). Staff reading authority is NOT
+  // ownership: it must never mark a product as bought or block checkout.
+  if (await hasEntitlementAccess(db, userId, { kind: 'book', bookId: productId })) return 'active';
 
   const allRequests = await getPaymentRequestsForUser(db, userId);
   const requests = allRequests.filter((r) => r.productId === productId);

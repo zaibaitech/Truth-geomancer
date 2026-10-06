@@ -3,7 +3,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminSignInRequired } from '@/components/admin/AdminSignInRequired';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { BOOKS } from '@/content/books';
-import { isCurrentUserAdmin } from '@/lib/server/adminSession';
+import { AdminPlatformOnly } from '@/components/admin/AdminPlatformOnly';
+import { getAdminActor, isPlatformAdminActor } from '@/lib/server/adminActor';
 import { getDb } from '@/lib/server/db';
 import { getReaderCountsByBook } from '@/lib/server/adminStats';
 
@@ -15,15 +16,17 @@ import { getReaderCountsByBook } from '@/lib/server/adminStats';
 // is the one thing getReaderCountsByBook() can compute honestly from the
 // existing entitlements table without inventing or exposing anything new.
 export default async function AdminReadersPage() {
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) return <AdminSignInRequired />;
+  // Server-side authorization (lib/server/adminActor.ts): platform admins only.
+  const actor = await getAdminActor();
+  if (!actor) return <AdminSignInRequired />;
+  if (!isPlatformAdminActor(actor)) return <AdminPlatformOnly />;
 
   const db = getDb();
   const readerCounts = await getReaderCountsByBook(db);
   const total = Object.values(readerCounts).reduce((sum, n) => sum + n, 0);
 
   return (
-    <AdminShell>
+    <AdminShell variant="platform">
       <div className="px-4 py-4">
         <p className="mb-3 type-label uppercase tracking-widest text-sand/65">Readers</p>
         {total === 0 ? (

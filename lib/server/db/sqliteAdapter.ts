@@ -188,6 +188,25 @@ CREATE TABLE IF NOT EXISTS identity_claims (
 );
 CREATE INDEX IF NOT EXISTS idx_identity_claims_account ON identity_claims(account_user_id);
 CREATE INDEX IF NOT EXISTS idx_identity_claims_anonymous ON identity_claims(anonymous_user_id);
+
+-- Same additive tables as lib/server/db/migrations/0007_staff_roles.sql.
+CREATE TABLE IF NOT EXISTS staff_roles (
+  user_id TEXT PRIMARY KEY REFERENCES users(id),
+  role TEXT NOT NULL CHECK (role IN ('platform_admin', 'author')),
+  granted_at TEXT NOT NULL,
+  granted_by TEXT NOT NULL,
+  revoked_at TEXT
+);
+CREATE TABLE IF NOT EXISTS book_staff (
+  book_id TEXT NOT NULL,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  role TEXT NOT NULL CHECK (role IN ('author')),
+  granted_at TEXT NOT NULL,
+  granted_by TEXT NOT NULL,
+  revoked_at TEXT,
+  PRIMARY KEY (book_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_book_staff_user ON book_staff(user_id);
 `;
 
 class SqliteDb implements Db {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isCurrentUserAdmin } from '@/lib/server/adminSession';
+import { requirePlatformAdmin } from '@/lib/server/adminActor';
 import { getDb } from '@/lib/server/db';
 import { listPaymentRequestsForAdmin } from '@/lib/server/paymentRequests';
 import type { PaymentRequestStatus } from '@/lib/access/types';
@@ -12,7 +12,9 @@ const VALID_STATUSES: PaymentRequestStatus[] = ['pending', 'approved', 'rejected
 // supplied value. Returns ALL users' requests, which is exactly what an
 // admin (and only an admin) is authorized to see.
 export async function GET(request: Request) {
-  if (!(await isCurrentUserAdmin())) {
+  // Platform admins (or the break-glass session) only — authors have no
+  // payment-request authority. Decided server-side from the session.
+  if (!(await requirePlatformAdmin())) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
 

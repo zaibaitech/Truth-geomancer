@@ -8,7 +8,8 @@ import { ActivityItem } from '@/components/admin/ActivityItem';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { BOOKS } from '@/content/books';
 import { PRODUCT_CATALOGUE } from '@/lib/access/products';
-import { isCurrentUserAdmin } from '@/lib/server/adminSession';
+import { AuthorDashboard } from '@/components/admin/AuthorDashboard';
+import { getAdminActor, isPlatformAdminActor } from '@/lib/server/adminActor';
 import { getDb } from '@/lib/server/db';
 import { listPaymentRequestsForAdmin } from '@/lib/server/paymentRequests';
 import { getTotalActiveAccessGrants, getTotalUniqueReaders } from '@/lib/server/adminStats';
@@ -26,8 +27,11 @@ function bookTitleForProduct(productId: string): string {
 // derivable, never invented. Auth check is identical to the original page
 // (Prompt 28, Phase 8) — server-authoritative, never a client flag.
 export default async function AdminDashboardPage() {
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) return <AdminSignInRequired />;
+  // Server-side authorization (lib/server/adminActor.ts): platform admins get
+  // the full dashboard; an author gets a view scoped to their assigned books.
+  const actor = await getAdminActor();
+  if (!actor) return <AdminSignInRequired />;
+  if (!isPlatformAdminActor(actor)) return <AuthorDashboard bookIds={actor.bookIds} />;
 
   const db = getDb();
   const pending = await listPaymentRequestsForAdmin(db, 'pending');
@@ -39,7 +43,7 @@ export default async function AdminDashboardPage() {
   const reviewedPreview = reviewed.slice(0, 3);
 
   return (
-    <AdminShell>
+    <AdminShell variant="platform">
       <div className="space-y-6 px-4 py-4">
         <div>
           <p className="type-body text-sand/70">Manage your books, access requests, and readers.</p>

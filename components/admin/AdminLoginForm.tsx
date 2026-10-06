@@ -27,7 +27,7 @@ export function AdminLoginForm() {
         body: JSON.stringify({ secret }),
       });
       if (!res.ok) {
-        setError('Invalid administrator secret.');
+        setError(res.status === 429 ? 'Too many sign-in attempts. Please wait and try again.' : 'Invalid administrator secret.');
         setSubmitting(false);
         return;
       }

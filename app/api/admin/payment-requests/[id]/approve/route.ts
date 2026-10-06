@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { currentAdminReviewerId } from '@/lib/server/adminSession';
+import { requirePlatformAdmin } from '@/lib/server/adminActor';
+import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 import { getDb } from '@/lib/server/db';
 import { approvePaymentRequest } from '@/lib/server/paymentRequests';
 
@@ -12,11 +13,17 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // differently-verified path). Admin-gated; never accepts a userId/productId
 // from the request body (the request id in the URL already pins both, via
 // the existing payment_requests row).
-export async function POST(_request: Request, { params }: { params: { id: string } }) {
-  const reviewerId = await currentAdminReviewerId();
-  if (!reviewerId) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
   }
+  // Platform admins (or the break-glass session) only. The reviewer is the
+  // authenticated actor; the user and product come from the stored request.
+  const actor = await requirePlatformAdmin();
+  if (!actor) {
+    return NextResponse.json({ error: 'Not authorized.' }, { status: 403, headers: NO_STORE_HEADERS });
+  }
+  const reviewerId = actor.reviewerId;
 
   const db = getDb();
   const result = await approvePaymentRequest(db, params.id, reviewerId);

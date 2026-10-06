@@ -114,6 +114,13 @@ describe('client cannot grant or revoke entitlements', () => {
       'auth/emailCodes',
       'auth/signIn',
       'auth/requestGuards',
+      // Staff authorization. 'adminActor' only RESOLVES who is acting (session
+      // + staff_roles) — the admin pages' and APIs' server-side guard.
+      // 'staffAdmin' writes only staff_roles/book_staff, and only from the
+      // platform-admin-guarded staff page/API; it never touches entitlements,
+      // payment_requests or paystack_payments (lib/server/staffAuthorization.test.ts).
+      'adminActor',
+      'staffAdmin',
     ];
     const appFiles = listFilesRecursive('app');
     const offenders: string[] = [];

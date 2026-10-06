@@ -2,15 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Inbox, BookOpen, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, Inbox, BookOpen, Users, Settings, UserCog } from 'lucide-react';
 
-const TABS = [
+// Navigation only — every page and API enforces its own authorization
+// server-side (see adminActor on the server). Hiding a tab grants nothing.
+const PLATFORM_TABS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/requests', label: 'Requests', icon: Inbox },
   { href: '/admin/books', label: 'Books', icon: BookOpen },
   { href: '/admin/readers', label: 'Readers', icon: Users },
+  { href: '/admin/staff', label: 'Staff', icon: UserCog },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ] as const;
+
+const AUTHOR_TABS = [
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/books', label: 'My Books', icon: BookOpen },
+] as const;
+
+export type AdminNavVariant = 'platform' | 'author';
 
 // Prompt 65: a horizontal, scrollable tab strip — deliberately NOT the
 // customer-facing BottomNav's shape (which stays mounted globally, see
@@ -21,8 +31,9 @@ const TABS = [
 // 5 labeled tabs at a real touch-target size don't fit 360px, and shrinking
 // them below readable/44px would violate the mobile requirements more than
 // a swipe does.
-export function AdminNav() {
+export function AdminNav({ variant }: { variant: AdminNavVariant }) {
   const pathname = usePathname();
+  const TABS = variant === 'author' ? AUTHOR_TABS : PLATFORM_TABS;
 
   return (
     <nav className="scrollbar-none flex gap-1.5 overflow-x-auto border-b border-sand/10 px-4 py-2.5">

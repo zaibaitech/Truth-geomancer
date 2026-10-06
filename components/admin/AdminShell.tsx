@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { Settings, ShieldCheck } from 'lucide-react';
 import { AdminNav, type AdminNavVariant } from './AdminNav';
 
 // Prompt 65: the chrome every authenticated /admin/* page shares — header
@@ -20,6 +21,18 @@ export function AdminShell({ children, variant }: { children: ReactNode; variant
             <p className="font-logo text-lg text-sand-light">Truth Geomancer</p>
             <p className="type-label text-sand/65">{variant === 'author' ? 'Author Dashboard' : 'Admin Dashboard'}</p>
           </div>
+          {/* Admin settings (break-glass sign-out, payment note) is secondary,
+              so it sits here rather than as a primary section tab. The page
+              itself still enforces platform-admin access server-side. */}
+          {variant === 'platform' ? (
+            <Link
+              href="/admin/settings"
+              aria-label="Admin settings"
+              className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sand/15 text-sand/70"
+            >
+              <Settings size={16} />
+            </Link>
+          ) : null}
         </div>
       </header>
       <AdminNav variant={variant} />

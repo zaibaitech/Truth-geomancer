@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
     <AdminShell variant="platform">
       <div className="space-y-6 px-4 py-4">
         <div>
-          <p className="type-body text-sand/70">Manage your books, access requests, and readers.</p>
+          <p className="type-body text-sand/70">Manage books, customer access, payment requests, and staff.</p>
           <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
             <StatTile icon={BookOpen} label="Books" value={BOOKS.length} />
             <StatTile icon={Inbox} label="Pending" value={pending.length} />

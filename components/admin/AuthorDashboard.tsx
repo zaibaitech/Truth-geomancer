@@ -20,7 +20,7 @@ export async function AuthorDashboard({ bookIds }: { bookIds: string[] }) {
     <AdminShell variant="author">
       <div className="space-y-4 px-4 py-4">
         <p className="type-body text-sand/70">
-          Your books. You can open and read them in the app at any time — no purchase needed.
+          Manage your assigned books and content. You can open and read them in the app at any time — no purchase needed.
         </p>
         {books.length === 0 ? (
           <EmptyState

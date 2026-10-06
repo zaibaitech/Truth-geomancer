@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Inbox, BookOpen, Users, Settings, UserCog } from 'lucide-react';
+import { LayoutDashboard, Inbox, BookOpen, Users, UserCog } from 'lucide-react';
 
 // Navigation only — every page and API enforces its own authorization
 // server-side (see adminActor on the server). Hiding a tab grants nothing.
@@ -12,7 +12,6 @@ const PLATFORM_TABS = [
   { href: '/admin/books', label: 'Books', icon: BookOpen },
   { href: '/admin/readers', label: 'Readers', icon: Users },
   { href: '/admin/staff', label: 'Staff', icon: UserCog },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ] as const;
 
 const AUTHOR_TABS = [
@@ -22,21 +21,16 @@ const AUTHOR_TABS = [
 
 export type AdminNavVariant = 'platform' | 'author';
 
-// Prompt 65: a horizontal, scrollable tab strip — deliberately NOT the
-// customer-facing BottomNav's shape (which stays mounted globally, see
-// app/layout.tsx, and is untouched by this prompt) so an author navigating
-// /admin/* never mistakes it for the customer app's own navigation (Phase 9's
-// explicit "do not accidentally make /admin look like the customer Home
-// page"). Scrolls horizontally rather than wrapping or shrinking to fit —
-// 5 labeled tabs at a real touch-target size don't fit 360px, and shrinking
-// them below readable/44px would violate the mobile requirements more than
-// a swipe does.
+// Mobile: a 2-column grid of full-width, 44px-tall tabs, so every section is
+// visible without horizontal scrolling and nothing shrinks below a readable
+// size. From `sm` up the same tabs sit in one wrapping row. Deliberately not
+// the customer BottomNav's shape (that stays mounted globally, untouched).
 export function AdminNav({ variant }: { variant: AdminNavVariant }) {
   const pathname = usePathname();
   const TABS = variant === 'author' ? AUTHOR_TABS : PLATFORM_TABS;
 
   return (
-    <nav className="scrollbar-none flex gap-1.5 overflow-x-auto border-b border-sand/10 px-4 py-2.5">
+    <nav aria-label="Admin sections" className="grid grid-cols-2 gap-2 border-b border-sand/10 px-4 py-2.5 sm:flex sm:flex-wrap sm:gap-1.5">
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
         return (
@@ -44,7 +38,7 @@ export function AdminNav({ variant }: { variant: AdminNavVariant }) {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={`flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 type-label font-medium transition-colors ${
+            className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-full border px-3.5 type-label font-medium transition-colors sm:shrink-0 sm:justify-start ${
               active ? 'border-clay/40 bg-clay/15 text-clay-light' : 'border-sand/12 text-sand/65'
             }`}
           >

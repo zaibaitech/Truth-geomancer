@@ -158,3 +158,27 @@ describe('no admin file added in this prompt weakens the entitlement-mutation bo
     }
   });
 });
+
+describe('admin navigation fits a phone without horizontal scrolling', () => {
+  const NAV = readFileSync('components/admin/AdminNav.tsx', 'utf-8');
+  const SHELL = readFileSync('components/admin/AdminShell.tsx', 'utf-8');
+  const tabs = (name: string) => NAV.slice(NAV.indexOf(`const ${name} = [`), NAV.indexOf('] as const;', NAV.indexOf(`const ${name} = [`)));
+
+  it('uses a 2-column grid on mobile (one row from sm up), never a horizontal scroller', () => {
+    expect(NAV).toMatch(/className="grid grid-cols-2 gap-2 [^"]*sm:flex sm:flex-wrap/);
+    expect(NAV).not.toMatch(/overflow-x-auto/);
+    expect(NAV).toMatch(/min-h-\[44px\]/);
+  });
+
+  it('platform tabs are Dashboard, Requests, Books, Readers, Staff — Settings is secondary (header link)', () => {
+    for (const href of ["'/admin'", "'/admin/requests'", "'/admin/books'", "'/admin/readers'", "'/admin/staff'"]) expect(tabs('PLATFORM_TABS')).toContain(href);
+    expect(tabs('PLATFORM_TABS')).not.toContain('/admin/settings');
+    expect(SHELL).toMatch(/variant === 'platform' \? \(\s*<Link\s+href="\/admin\/settings"/);
+  });
+
+  it('authors only get Dashboard and My Books', () => {
+    expect(tabs('AUTHOR_TABS')).toContain("'/admin'");
+    expect(tabs('AUTHOR_TABS')).toContain("'/admin/books'");
+    expect(tabs('AUTHOR_TABS')).not.toMatch(/requests|readers|staff|settings/);
+  });
+});

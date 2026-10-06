@@ -78,7 +78,8 @@ describe('code sign-in uses the database-backed limiter and generic responses', 
   });
 
   it('start: rate-limited and success return the same GENERIC_RESPONSE (no enumeration)', () => {
-    expect((START.match(/NextResponse\.json\(GENERIC_RESPONSE/g) ?? []).length).toBe(2);
+    // Both paths return the generic body (plus only an expiry time, which a decoy also carries).
+    expect((START.match(/NextResponse\.json\(\{ \.\.\.GENERIC_RESPONSE, expiresAt/g) ?? []).length).toBe(2);
     expect(START).not.toMatch(/findUsersByEmail/);
   });
 

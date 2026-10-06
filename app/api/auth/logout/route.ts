@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revokeCurrentSession } from '@/lib/server/emailSession';
 import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
+import { clearPendingChallengeCookie } from '@/lib/server/auth/pendingChallenge';
 
 // Auth/session redesign: logout is a SERVER-SIDE revocation of this browser's
 // session (a copied cookie stops working too), then the cookie is cleared.
@@ -17,6 +18,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 403, headers: { 'Cache-Control': 'private, no-store' } });
   }
   await revokeCurrentSession();
+  // Shared device: also forget any half-finished code sign-in, so the next person
+  // doesn't see the previous email on the code screen.
+  clearPendingChallengeCookie();
   return NextResponse.json(
     { ok: true },
     { headers: { 'Cache-Control': 'private, no-store', 'Clear-Site-Data': '"cache"' } },

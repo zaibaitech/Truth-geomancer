@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/server/db';
 import { normalizeEmail } from '@/lib/server/emailAuth';
-import { createSignInCode } from '@/lib/server/auth/emailCodes';
+import { createSignInChallenge } from '@/lib/server/auth/emailCodes';
+import { decoyChallenge, setPendingChallengeCookie } from '@/lib/server/auth/pendingChallenge';
 import { isSameOriginRequest } from '@/lib/server/auth/requestGuards';
 import { EmailDeliveryError, EmailProviderNotConfiguredError, getEmailProvider } from '@/lib/server/emailProvider';
 import {
@@ -49,8 +50,11 @@ export async function POST(request: Request) {
   const ipLimiter = new PostgresRateLimiter(db, 'auth-code:request:ip', CODE_REQUEST_IP_LIMIT.maxAttempts, CODE_REQUEST_IP_LIMIT.windowMs);
   const [emailAllowed, ipAllowed] = await Promise.all([emailLimiter.check(normalized), ipLimiter.check(extractClientIp(request))]);
   if (!emailAllowed || !ipAllowed) {
-    // Identical to a real send — never a signal about the address.
-    return NextResponse.json(GENERIC_RESPONSE, { headers: NO_STORE_HEADERS });
+    // Identical to a real send — never a signal about the address. The pending-
+    // screen cookie is set here too (with a decoy id), so even Set-Cookie matches.
+    const decoy = decoyChallenge(normalized);
+    setPendingChallengeCookie(decoy);
+    return NextResponse.json({ ...GENERIC_RESPONSE, expiresAt: decoy.expiresAt }, { headers: NO_STORE_HEADERS });
   }
 
   // The requesting browser's current identity (read-only — never creates one).
@@ -58,7 +62,7 @@ export async function POST(request: Request) {
   // browser completes the sign-in (see lib/server/auth/signIn.ts).
   const browser = await getCurrentUserIfPresent();
   const claimUserId = browser && browser.email === null ? browser.id : null;
-  const code = await createSignInCode(db, normalized, claimUserId);
+  const { code, challengeId, expiresAt } = await createSignInChallenge(db, normalized, claimUserId);
 
   try {
     await getEmailProvider().sendSignInCodeEmail({ email: normalized, code });
@@ -69,5 +73,8 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  return NextResponse.json(GENERIC_RESPONSE, { headers: NO_STORE_HEADERS });
+  // Remember WHICH challenge this browser is waiting on (never the code) so a
+  // refresh or a return from the email app can resume the code screen.
+  setPendingChallengeCookie({ challengeId, expiresAt, email: normalized });
+  return NextResponse.json({ ...GENERIC_RESPONSE, expiresAt }, { headers: NO_STORE_HEADERS });
 }

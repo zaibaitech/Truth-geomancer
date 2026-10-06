@@ -15,8 +15,22 @@ import { useAuthStatus } from './useAuthStatus';
  * opening in the right browser or installed app. A magic link stays
  * available as a fallback. Every message is generic: nothing here ever says
  * whether an email address has an account.
+ *
+ * RESUMABLE: the server remembers (in an HttpOnly cookie) which code this
+ * browser is waiting on, so a refresh or a return from the email app shows the
+ * code screen again — no re-typing the email, and nothing is re-sent. Only the
+ * email and an expiry time come back; the code itself is never stored anywhere
+ * on the client. An expired code shows "Code expired" with a button to ask for
+ * a new one.
  */
 type Step = 'email' | 'code' | 'link-sent';
+
+/** What the server tells us about a pending code (never the code itself). */
+export interface PendingChallengeView {
+  state: 'pending' | 'expired';
+  email: string;
+  expiresAt: number;
+}
 const RESEND_COOLDOWN_SECONDS = 30;
 
 async function postJson(url: string, body: unknown): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
@@ -31,10 +45,14 @@ async function postJson(url: string, body: unknown): Promise<{ ok: boolean; stat
   return { ok: res.ok, status: res.status, data };
 }
 
-export function SignInFlow({ returnTo }: { returnTo: string }) {
+export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: string; initialChallenge?: PendingChallengeView | null }) {
   const status = useAuthStatus();
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<Step>(initialChallenge ? 'code' : 'email');
+  const [email, setEmail] = useState(initialChallenge?.email ?? '');
+  // When the current code stops working (ms since epoch); null = unknown.
+  const [expiresAt, setExpiresAt] = useState<number | null>(initialChallenge?.expiresAt ?? null);
+  const [serverExpired, setServerExpired] = useState(initialChallenge?.state === 'expired');
+  const [now, setNow] = useState(() => Date.now());
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -46,6 +64,62 @@ export function SignInFlow({ returnTo }: { returnTo: string }) {
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
+
+  // Re-sync with the server on mount (a cached page, or a tab restored from the
+  // background) and whenever the tab becomes visible again. READ-ONLY: this never
+  // sends a code. A user who is already typing is never yanked away.
+  useEffect(() => {
+    let cancelled = false;
+    const sync = () => {
+      setNow(Date.now());
+      fetch('/api/auth/challenge', { cache: 'no-store', credentials: 'same-origin' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: ({ pending: boolean } & Partial<PendingChallengeView>) | null) => {
+          if (cancelled || !data) return;
+          if (data.pending && typeof data.email === 'string' && typeof data.expiresAt === 'number') {
+            setStep((current) => (current === 'email' ? 'code' : current));
+            setEmail((current) => (current.trim().length === 0 ? (data.email as string) : current));
+            setExpiresAt(data.expiresAt);
+            setServerExpired(data.state === 'expired');
+          }
+        })
+        .catch(() => undefined);
+    };
+    sync();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') sync();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', sync);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', sync);
+    };
+  }, []);
+
+  // Flip to "Code expired" the moment the code's lifetime ends, even if the tab
+  // was in the background (timers there are throttled, so also see `now` above).
+  useEffect(() => {
+    if (expiresAt === null) return;
+    const remaining = expiresAt - Date.now();
+    if (remaining <= 0) {
+      setNow(Date.now());
+      return;
+    }
+    const t = setTimeout(() => setNow(Date.now()), Math.min(remaining + 50, 2_147_000_000));
+    return () => clearTimeout(t);
+  }, [expiresAt]);
+
+  async function cancelChallenge() {
+    // Best effort: forget the pending code on the server, then return to the form.
+    await fetch('/api/auth/challenge', { method: 'DELETE', credentials: 'same-origin', cache: 'no-store' }).catch(() => undefined);
+    setStep('email');
+    setExpiresAt(null);
+    setServerExpired(false);
+    setError(null);
+    setNotice(null);
+  }
 
   async function sendCode(e?: React.FormEvent) {
     e?.preventDefault();
@@ -60,6 +134,9 @@ export function SignInFlow({ returnTo }: { returnTo: string }) {
       }
       setStep('code');
       setCode('');
+      setExpiresAt(typeof res.data.expiresAt === 'number' ? res.data.expiresAt : Date.now() + 10 * 60 * 1000);
+      setServerExpired(false);
+      setNow(Date.now());
       setCooldown(RESEND_COOLDOWN_SECONDS);
       if (e === undefined) setNotice('A new code is on its way. Only the newest code works.');
     } catch {
@@ -123,6 +200,8 @@ export function SignInFlow({ returnTo }: { returnTo: string }) {
     );
   }
 
+  const codeExpired = step === 'code' && (serverExpired || (expiresAt !== null && expiresAt <= now));
+
   return (
     <Card>
       {step === 'email' ? (
@@ -157,7 +236,39 @@ export function SignInFlow({ returnTo }: { returnTo: string }) {
         </form>
       ) : null}
 
-      {step === 'code' ? (
+      {step === 'code' && codeExpired ? (
+        <div>
+          <h2 className="type-section font-semibold text-sand-light">Code expired</h2>
+          <p className="mt-1.5 type-body text-sand/70">
+            The code sent to <span className="break-all font-semibold text-sand-light">{email}</span> is no longer valid. Request a new one to
+            continue.
+          </p>
+          {error ? (
+            <p role="alert" className="mt-2 type-body text-red-400">
+              {error}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => sendCode()}
+            disabled={busy}
+            className="mt-4 min-h-[48px] w-full rounded-xl bg-clay px-4 py-2.5 type-body font-semibold text-ink disabled:opacity-50"
+          >
+            {busy ? 'Sending…' : 'Send a new code'}
+          </button>
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={cancelChallenge}
+              className="min-h-[44px] type-meta text-sand/65 underline underline-offset-2"
+            >
+              Use a different email
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {step === 'code' && !codeExpired ? (
         <form onSubmit={verify}>
           <h2 className="type-section font-semibold text-sand-light">Check your email</h2>
           <p className="mt-1.5 type-body text-sand/70">
@@ -218,11 +329,7 @@ export function SignInFlow({ returnTo }: { returnTo: string }) {
             <div>
               <button
                 type="button"
-                onClick={() => {
-                  setStep('email');
-                  setError(null);
-                  setNotice(null);
-                }}
+                onClick={cancelChallenge}
                 className="min-h-[44px] type-meta text-sand/65 underline underline-offset-2"
               >
                 Use a different email

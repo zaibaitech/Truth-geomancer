@@ -8,6 +8,7 @@ import { switchBrowserToSession } from '@/lib/server/emailSession';
 import { CODE_VERIFY_EMAIL_LIMIT, CODE_VERIFY_IP_LIMIT, PostgresRateLimiter, extractClientIp } from '@/lib/server/rateLimit';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { safeReturnTo } from '@/lib/auth/returnTo';
+import { clearPendingChallengeCookie } from '@/lib/server/auth/pendingChallenge';
 
 // Auth/session redesign, Phase 3: step 2 of email sign-in — check the 6-digit
 // code and, if it is right, switch THIS browser to the verified account.
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
   }
 
   await switchBrowserToSession(outcome.sessionToken);
+  clearPendingChallengeCookie();
   return NextResponse.json(
     { ok: true, redirectTo: safeReturnTo(typeof body.returnTo === 'string' ? body.returnTo : null) },
     { headers: NO_STORE_HEADERS },

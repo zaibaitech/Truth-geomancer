@@ -114,6 +114,10 @@ describe('client cannot grant or revoke entitlements', () => {
       'auth/emailCodes',
       'auth/signIn',
       'auth/requestGuards',
+      // Resumable code screen: an HttpOnly cookie naming the pending challenge (never
+      // the code) plus a READ-ONLY status lookup of email_verification_codes. Grants
+      // nothing; signing in still goes through verify-code (lib/server/signInResume.test.ts).
+      'auth/pendingChallenge',
       // Staff authorization. 'adminActor' only RESOLVES who is acting (session
       // + staff_roles) — the admin pages' and APIs' server-side guard.
       // 'staffAdmin' writes only staff_roles/book_staff, and only from the

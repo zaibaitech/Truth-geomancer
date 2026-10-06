@@ -38,19 +38,32 @@ async function hashCode(code: string, salt: Buffer): Promise<string> {
   return (await scrypt(code, salt, KEY_LENGTH, SCRYPT_OPTIONS)).toString('hex');
 }
 
+/** A freshly issued code plus the OPAQUE id of its challenge row. The id is a
+ * random UUID that identifies "this pending sign-in" so a page can resume it
+ * after a refresh; it is not derived from, and reveals nothing about, the code. */
+export interface SignInChallenge {
+  /** The RAW code — for the email body only. Never store or return it. */
+  code: string;
+  challengeId: string;
+  expiresAt: number;
+}
+
 /** Issues a fresh code for `normalizedEmail`, superseding any earlier unused
- * one, and returns the RAW code (for the email body only). `claimUserId` is
- * the requesting browser's anonymous users.id, if any — used later to decide
- * whether that browser's anonymous records may be claimed. */
-export async function createSignInCode(
+ * one, and returns the RAW code (for the email body only) with its challenge
+ * id and expiry. `claimUserId` is the requesting browser's anonymous
+ * users.id, if any — used later to decide whether that browser's anonymous
+ * records may be claimed. */
+export async function createSignInChallenge(
   db: Db,
   normalizedEmail: string,
   claimUserId: string | null,
   now: number = Date.now(),
-): Promise<string> {
+): Promise<SignInChallenge> {
   const code = generateSignInCode();
   const salt = randomBytes(16);
   const codeHash = await hashCode(code, salt);
+  const challengeId = randomUUID();
+  const expiresAt = now + CODE_TTL_MS;
   await db.transaction(async (tx) => {
     await tx.execute(
       'UPDATE email_verification_codes SET superseded_at = ? WHERE email = ? AND used_at IS NULL AND superseded_at IS NULL',
@@ -59,18 +72,40 @@ export async function createSignInCode(
     await tx.execute(
       `INSERT INTO email_verification_codes (id, email, code_hash, code_salt, claim_user_id, created_at, expires_at, used_at, superseded_at, attempts)
        VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, 0)`,
-      [
-        randomUUID(),
-        normalizedEmail,
-        codeHash,
-        salt.toString('hex'),
-        claimUserId,
-        new Date(now).toISOString(),
-        new Date(now + CODE_TTL_MS).toISOString(),
-      ],
+      [challengeId, normalizedEmail, codeHash, salt.toString('hex'), claimUserId, new Date(now).toISOString(), new Date(expiresAt).toISOString()],
     );
   });
-  return code;
+  return { code, challengeId, expiresAt };
+}
+
+/** Same as createSignInChallenge, returning only the raw code. */
+export async function createSignInCode(
+  db: Db,
+  normalizedEmail: string,
+  claimUserId: string | null,
+  now: number = Date.now(),
+): Promise<string> {
+  return (await createSignInChallenge(db, normalizedEmail, claimUserId, now)).code;
+}
+
+/** Whether a challenge is still usable. Read-only; never touches `attempts`.
+ *   'pending'  — live: unused, not superseded, not expired, attempts left
+ *   'expired'  — expired, spent, superseded (e.g. by a newer code) or locked
+ *   'unknown'  — no such row */
+export async function getChallengeState(
+  db: Db,
+  challengeId: string,
+  normalizedEmail: string,
+  now: number = Date.now(),
+): Promise<{ state: 'pending' | 'expired'; expiresAt: number } | { state: 'unknown' }> {
+  const row = await db.queryOne<{ expires_at: string; used_at: string | null; superseded_at: string | null; attempts: number }>(
+    'SELECT expires_at, used_at, superseded_at, attempts FROM email_verification_codes WHERE id = ? AND email = ?',
+    [challengeId, normalizedEmail],
+  );
+  if (!row) return { state: 'unknown' };
+  const expiresAt = Date.parse(row.expires_at);
+  const live = row.used_at === null && row.superseded_at === null && expiresAt > now && Number(row.attempts) < MAX_ATTEMPTS_PER_CODE;
+  return { state: live ? 'pending' : 'expired', expiresAt };
 }
 
 interface CodeRow {

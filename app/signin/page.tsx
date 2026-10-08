@@ -11,7 +11,7 @@ import { getCurrentChallengeView } from '@/lib/server/auth/pendingChallenge';
 // the header on every screen, from access gates and purchase pages, and from
 // Settings. `returnTo` is validated server-side (same-origin path only) so it
 // can never become an open redirect.
-export const metadata: Metadata = { title: 'Sign in — Truth Geomancer', referrer: 'no-referrer' };
+export const metadata: Metadata = { title: 'Sign in', referrer: 'no-referrer', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function SignInPage({ searchParams }: { searchParams: { returnTo?: string } }) {

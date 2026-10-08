@@ -2,6 +2,15 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { Sparkles, History } from 'lucide-react';
 import Link from 'next/link';
+import { publicPageMetadata } from '@/lib/seo';
+
+export const metadata = publicPageMetadata({
+  title: 'My Star (Buruji) in Geomancy',
+  description:
+    'Find your Buruji, your star in Ilm al-Raml geomancy: cast a chart about your general life to see your star, ' +
+    'your spiritual strength, and the root of anything that feels stuck.',
+  path: '/star',
+});
 
 export default function StarPage() {
   return (

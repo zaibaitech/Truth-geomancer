@@ -33,9 +33,11 @@ export function DashboardHeader({ initialAuth = null }: { initialAuth?: AuthStat
         <div className="flex min-w-0 items-center gap-2">
           <Emblem size={30} />
           <div className="min-w-0">
-            <h1 className="truncate font-logo text-lg leading-tight text-sand-light">
+            {/* Not an h1: the Hero heading is the page's single h1 (SEO). Same
+                classes, so it renders identically (preflight resets both). */}
+            <p className="truncate font-logo text-lg leading-tight text-sand-light">
               Truth Geomancer
-            </h1>
+            </p>
             <p className="type-label font-medium uppercase tracking-[0.16em] text-sand/65">
               Discover &middot; Learn &middot; Align
             </p>

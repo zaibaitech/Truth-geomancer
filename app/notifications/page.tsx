@@ -1,6 +1,9 @@
 import { BellOff } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
+import { privatePageMetadata } from '@/lib/seo';
+
+export const metadata = privatePageMetadata('Notifications');
 
 export default function NotificationsPage() {
   return (

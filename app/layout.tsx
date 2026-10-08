@@ -5,11 +5,34 @@ import { READER_SIZE_BOOTSTRAP } from '@/lib/raml/readerSize';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
+import { DEFAULT_OG_IMAGE, HOME_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 import './globals.css';
 
+// SEO defaults for every page. Pages set their own title (through the
+// template), description and canonical URL; see lib/seo.ts. No canonical is
+// set here on purpose, so a page without its own never inherits the homepage's.
 export const metadata: Metadata = {
-  title: 'Truth Geomancer',
-  description: "Ilm al-Raml — cast the sand, read the figures, study the manuscripts.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: HOME_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'en_US',
+    title: SITE_NAME,
+    description: HOME_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_NAME,
+    description: HOME_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE.url],
+  },
 };
 
 export const viewport: Viewport = {

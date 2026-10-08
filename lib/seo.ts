@@ -14,6 +14,9 @@ export const HOME_DESCRIPTION =
   'Learn classical geomancy (Ilm al-Raml) from the manuscripts of Sheikh Abdul Basit Bayan, ' +
   'and cast and read a full 16-house geomantic chart online.';
 
+/** Official social profiles, linked from the Organization JSON-LD (`sameAs`). */
+export const SOCIAL_PROFILES = ['https://www.facebook.com/p/The-Truth-Geomancer-61551983767801/'];
+
 /** Site-wide social preview (1200×630), built from the app's own emblem, palette and book covers. */
 export const DEFAULT_OG_IMAGE = {
   url: '/og-image.jpg',
@@ -104,6 +107,7 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: absoluteUrl('/apple-icon.png'),
     image: absoluteUrl(DEFAULT_OG_IMAGE.url),
+    sameAs: SOCIAL_PROFILES,
   };
 }
 

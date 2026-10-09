@@ -54,6 +54,12 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
   '/learn/glossary': { file: 'app/learn/glossary/page.tsx', load: () => import('../../app/learn/glossary/page') },
   '/figures': { file: 'app/figures/page.tsx', load: () => import('../../app/figures/page') },
   '/houses': { file: 'app/houses/page.tsx', load: () => import('../../app/houses/page') },
+  ...Object.fromEntries(
+    ['ibrahim', 'musah', 'nuhu', 'usman'].map((slug) => [
+      `/figures/${slug}`,
+      { file: 'app/figures/[slug]/page.tsx', load: () => import('../../app/figures/[slug]/page'), props: { params: { slug } } },
+    ]),
+  ),
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
@@ -121,6 +127,10 @@ describe('SEO learning pages: registry', () => {
     expect(Object.keys(PAGE_MODULES).sort()).toEqual([...PATHS].sort());
     for (const path of PATHS) {
       const { file } = PAGE_MODULES[path];
+      if (file.includes('[')) {
+        expect(ROUTE_CLASSIFICATION[file], file).toBe('public');
+        continue;
+      }
       expect(existsSync(join(REPO_ROOT, file)), file).toBe(true);
       expect(ROUTE_CLASSIFICATION[file], file).toBe('public');
     }
@@ -260,5 +270,68 @@ describe('public figure and house data (content/public)', () => {
     const { html } = await load('/houses');
     const text = visibleText(html);
     for (const h of PUBLIC_HOUSES) expect(text).toContain(h.name);
+  });
+});
+
+describe('figure pages (Stage 1d)', () => {
+  // Exactly as written in the approved drafts (/workspace/tg-free-resources/figures/*.md).
+  const DRAFTS: Record<string, { title: string; placement: string; pattern: string; element: string }> = {
+    ibrahim: {
+      title: 'Ibrahim: Geomancy Figure 5 (Water)',
+      placement: 'It comes after Iddris and before Issah.',
+      pattern: 'one dot; one dot; one dot; one dot',
+      element: 'Water. It shares this element with Iddris, Issah, and Hassan & Hussein.',
+    },
+    musah: {
+      title: 'Musah: Geomancy Figure 16 (Fire)',
+      placement: 'It is the last figure, coming after Usman.',
+      pattern: 'two dots; two dots; two dots; two dots',
+      element: 'Fire. It shares this element with Yussif, Adam, and Kalla Allahu.',
+    },
+    nuhu: {
+      title: 'Nuhu: Geomancy Figure 12 (Air)',
+      placement: 'It comes after Ali and before Hassan & Hussein.',
+      pattern: 'two dots; two dots; one dot; one dot',
+      element: 'Air. It shares this element with Mahadi, Umar, and Ali.',
+    },
+    usman: {
+      title: 'Usman: Geomancy Figure 15 (Sand)',
+      placement: 'It comes after Yunus and before Musah.',
+      pattern: 'two dots; one dot; two dots; one dot',
+      element: 'Sand / Earth. It shares this element with Ayuba, Sulemana, and Yunus.',
+    },
+  };
+
+  it('only the four approved slugs are generated, and dynamic params are off (others 404)', async () => {
+    const mod = await import('../../app/figures/[slug]/page');
+    expect(mod.generateStaticParams()).toEqual(Object.keys(DRAFTS).map((slug) => ({ slug })));
+    expect(mod.dynamicParams).toBe(false);
+    expect(() => mod.default({ params: { slug: 'yussif' } })).toThrow('notFound()');
+    expect(() => mod.default({ params: { slug: 'not-a-figure' } })).toThrow('notFound()');
+    expect(mod.generateMetadata({ params: { slug: 'yussif' } })).toEqual({});
+  });
+
+  it('the sitemap lists exactly the four figure pages under /figures/', () => {
+    const figureUrls = sitemap().map((e) => e.url).filter((u) => u.startsWith(absoluteUrl('/figures/')));
+    expect(figureUrls.sort()).toEqual(Object.keys(DRAFTS).map((s) => absoluteUrl(`/figures/${s}`)).sort());
+  });
+
+  it.each(Object.keys(DRAFTS))('%s matches the approved draft (title, placement, pattern, element)', async (slug) => {
+    const d = DRAFTS[slug];
+    const { metadata, html } = await load(`/figures/${slug}`);
+    expect(fullTitle(metadata)).toBe(`${d.title} | ${SITE_NAME}`);
+    // visibleText() turns every tag into a space; inline links leave " ," behind, so close those gaps.
+    const text = visibleText(html).replace(/\s+([,.])/g, '$1');
+    expect(text).toContain(d.placement);
+    expect(text).toContain(`Pattern (top to bottom): ${d.pattern}.`);
+    expect(text).toContain(`Element: ${d.element}`);
+    const f = PUBLIC_FIGURES.find((x) => x.id === slug)!;
+    expect(html).toContain(`aria-label="Figure pattern ${f.pattern.join('-')}"`);
+  });
+
+  it('/figures links every published figure page, and only those', async () => {
+    const { html } = await load('/figures');
+    const figureLinks = Array.from(new Set(hrefs(html).filter((h) => h.startsWith('/figures/'))));
+    expect(figureLinks.sort()).toEqual(Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort());
   });
 });

@@ -36,6 +36,7 @@ export const ROUTE_CLASSIFICATION: Record<string, RouteClass> = {
   'app/learn/ilm-al-raml/page.tsx': 'public',
   'app/learn/glossary/page.tsx': 'public',
   'app/figures/page.tsx': 'public',
+  'app/figures/[slug]/page.tsx': 'public',
   'app/houses/page.tsx': 'public',
   // Gated (entitlement-checked server-side)
   'app/books/[id]/read/page.tsx': 'gated',

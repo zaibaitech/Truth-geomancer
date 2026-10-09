@@ -164,7 +164,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
     id: 'figure-basics',
     title: 'The 16 stars: name, number (Bazdaaho order), dot pattern, element',
     access: 'public',
-    routes: ['/search', '/raml', '/figures'],
+    routes: ['/search', '/raml', '/figures', '/figures/[slug]'],
     sources: [{ file: 'content/stars.ts', exports: ['STARS[].id', 'STARS[].name', 'STARS[].number', 'STARS[].pattern', 'STARS[].element', 'ELEMENT_LABEL'] }],
     notes:
       'Rendered publicly in /search (star name + element + glyph) and on every cast chart. ONLY these fields are free. ' +
@@ -213,6 +213,7 @@ export const FREE_ROUTES: { path: string; what: string; source: string }[] = [
   { path: '/learn/ilm-al-raml', what: 'What is Ilm al-Raml? Short introduction (general history + how a chart is built)', source: 'app/learn/ilm-al-raml/page.tsx' },
   { path: '/learn/glossary', what: 'Glossary of key terms (figure, house, Mothers, Judge, querent)', source: 'app/learn/glossary/page.tsx' },
   { path: '/figures', what: 'The 16 figures: name, number, dot pattern, book element only (content/public/figures.ts)', source: 'app/figures/page.tsx' },
+  { path: '/figures/[slug]', what: 'Figure pages (ibrahim, musah, nuhu, usman only): name, number, pattern, book element, short approved copy', source: 'app/figures/[slug]/page.tsx' },
   { path: '/houses', what: 'The 16 houses: name and a short neutral topic line (content/public/houses.ts)', source: 'app/houses/page.tsx' },
 ];
 

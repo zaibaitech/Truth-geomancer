@@ -12,6 +12,7 @@ import type { Chart } from '@/lib/raml/casting';
 import { houseInfo } from '@/lib/raml/houses';
 import { getIntentionById } from '@/content/intentions';
 import { getQuestionAvailability, resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
+import { getFreeCastingSample, isFreeCastingIntention } from '@/lib/access/castingAuthorization';
 // PROMPT 27C (server-side reading execution migration): this component used
 // to call runReading() directly, which pulled the ENTIRE engine — every
 // question's protected source text, not just the one being answered — into
@@ -146,6 +147,11 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
                   userQuestion={userQuestion}
                   working={dreamPairing ? <DreamWorkingPanel chart={chart} /> : undefined}
                   chart={chart}
+                  isFreeSample={
+                    !!intentionId &&
+                    isFreeCastingIntention(intentionId) &&
+                    engineResult.questionId === getFreeCastingSample()?.questionId
+                  }
                 />
               </>
             ) : engineDenied ? (

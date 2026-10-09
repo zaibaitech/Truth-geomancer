@@ -65,11 +65,12 @@ function StepBody({ step }: { step: ReasoningStep }) {
  * pattern, the engine's own working line and the result figure. It shows
  * only what the ReadingResult and chart contain. With several methods the
  * first is open and the rest are collapsed. */
-export function ReasoningSteps({ steps }: { steps: ReasoningStep[] }) {
+export function ReasoningSteps({ steps, intro }: { steps: ReasoningStep[]; intro?: string }) {
   if (steps.length === 0) return null;
   return (
     <Card>
       <p className="type-section font-semibold text-sand-light">How the method reached this</p>
+      {intro ? <p className="mt-1 type-body text-sand/70">{intro}</p> : null}
       <div className="mt-3 space-y-3">
         {steps.length === 1 ? (
           <StepBody step={steps[0]} />

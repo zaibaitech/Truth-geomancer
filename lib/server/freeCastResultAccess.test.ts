@@ -9,6 +9,9 @@ import { buildChart } from '@/lib/raml/casting';
 import { KANZUL_PRODUCT } from '@/lib/access/products';
 import { ownHouseInLifeQuestion } from '@/lib/raml/engine/questions/ownHouseInLife';
 import { buildAnswerView } from '@/lib/raml/readingExplanation';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { LEARN_COPY } from '@/content/public/freeCastLearning';
 
 let db: Db;
 let userId: string;
@@ -65,5 +68,28 @@ describe('free-cast result access is unchanged', () => {
     expect(res.status).toBe(200);
     const { result } = await res.json();
     expect(buildAnswerView(result).kind).not.toBe('legacy');
+  });
+});
+
+describe('Phase B practice adds no access path', () => {
+  it('a locked user\'s 403 body carries none of the practice copy or any answer', async () => {
+    const text = await (await post(PAID_QUESTION)).text();
+    for (const v of Object.values(LEARN_COPY)) if (typeof v === 'string') expect(text).not.toContain(v);
+    expect(text).not.toMatch(/Try it yourself|answerKey|workingLine/);
+  });
+  it('the practice is mounted only from the result branch, and derives the free-sample flag from the existing helpers', () => {
+    const src = readFileSync(path.resolve(__dirname, '../../components/raml/ResultTabs.tsx'), 'utf8');
+    expect(src.match(/<EngineReadingView/g)).toHaveLength(1);
+    // the only EngineReadingView sits under `engineResult ?`, before the denied/failed branches
+    expect(src.indexOf('engineResult ? (')).toBeLessThan(src.indexOf('<EngineReadingView'));
+    expect(src.indexOf('<EngineReadingView')).toBeLessThan(src.indexOf('engineDenied ? ('));
+    expect(src).toMatch(/isFreeCastingIntention\(intentionId\)/);
+    expect(src).toMatch(/getFreeCastingSample\(\)\?\.questionId/);
+  });
+  it('the practice modules import nothing from the server, auth, entitlement or payment code', () => {
+    for (const f of ['lib/raml/readingPractice.ts', 'components/raml/reading/PracticeActivity.tsx', 'components/raml/reading/LearnLinks.tsx', 'content/public/freeCastLearning.ts']) {
+      const src = readFileSync(path.resolve(__dirname, '../../', f), 'utf8');
+      expect(src, f).not.toMatch(/from '@\/lib\/(server|access)|entitle|paystack|session|fetch\(/);
+    }
   });
 });

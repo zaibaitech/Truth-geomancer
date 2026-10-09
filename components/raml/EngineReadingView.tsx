@@ -15,6 +15,10 @@ import { AnswerCard } from './reading/AnswerCard';
 import { ReasoningSteps } from './reading/ReasoningSteps';
 import type { Chart } from '@/lib/raml/casting';
 import { buildAnswerView, buildReasoningSteps } from '@/lib/raml/readingExplanation';
+import { buildPractice } from '@/lib/raml/readingPractice';
+import { PracticeActivity } from './reading/PracticeActivity';
+import { LearnLinks } from './reading/LearnLinks';
+import { LEARN_COPY } from '@/content/public/freeCastLearning';
 
 // Prompt 19 — simplify, clarify, be transparent. The primary screen now
 // shows only what section 12 calls priorities 1-4: the question, the
@@ -34,18 +38,23 @@ export function EngineReadingView({
   userQuestion,
   working,
   chart,
+  isFreeSample = false,
 }: {
   result: ReadingResult;
   userQuestion?: string;
   working?: ReactNode;
   /** The user's own chart, used only to show which figure sat in each house the method used. */
   chart?: Chart;
+  /** True only for the free sample question, as decided by the existing casting-authorization helpers. Gates the optional addition practice; it grants no access. */
+  isFreeSample?: boolean;
 }) {
   const [showCalculation, setShowCalculation] = useState(false);
   // Free-cast Phase A: outcome-style readings with counted methods lead with each
   // method's own attributed conclusion; every other reading keeps OutcomeCard.
   const answer = buildAnswerView(result);
   const steps = buildReasoningSteps(result, chart);
+  // Free-cast Phase B: optional addition practice, offered only when the gate in readingPractice.ts is satisfied.
+  const practice = buildPractice(result, steps, chart, { isFreeSample });
 
   return (
     <div className="space-y-4">
@@ -71,7 +80,10 @@ export function EngineReadingView({
             <VerificationNotice text={result.verificationNotice} onExpand={() => setShowCalculation(true)} />
           ) : null}
 
-          <ReasoningSteps steps={steps} />
+          {/* The intro says the houses "combine", which is true only for the addition methods practice is offered for. */}
+          <ReasoningSteps steps={steps} intro={practice ? LEARN_COPY.stepsIntro : undefined} />
+
+          {practice ? <PracticeActivity plan={practice} /> : null}
         </>
       )}
 
@@ -125,6 +137,8 @@ export function EngineReadingView({
       ) : null}
 
       <ResultSummaryCard result={result} userQuestion={userQuestion} />
+
+      {practice ? <LearnLinks /> : null}
     </div>
   );
 }

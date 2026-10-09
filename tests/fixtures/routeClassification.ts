@@ -30,6 +30,11 @@ export const ROUTE_CLASSIFICATION: Record<string, RouteClass> = {
   'app/notifications/page.tsx': 'public',
   'app/preview/kanzul-mikban/page.tsx': 'public',
   'app/preview/master-of-geomancy-vol-1/page.tsx': 'public',
+  // Public SEO learning pages (Phase 1). Held to the reserved-directory and
+  // zero-tolerance rules, and checked by tests/guards/seoPages.test.tsx.
+  'app/learn/page.tsx': 'public',
+  'app/learn/ilm-al-raml/page.tsx': 'public',
+  'app/learn/glossary/page.tsx': 'public',
   // Gated (entitlement-checked server-side)
   'app/books/[id]/read/page.tsx': 'gated',
   'app/books/master-of-geomancy-vol-1/practice/cancelling-method/page.tsx': 'gated',

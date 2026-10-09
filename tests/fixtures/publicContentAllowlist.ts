@@ -209,6 +209,9 @@ export const FREE_ROUTES: { path: string; what: string; source: string }[] = [
   { path: '/more', what: 'Menu', source: 'app/more/page.tsx' },
   { path: '/preview/kanzul-mikban', what: 'One free Kanzul preview (Ch. 146), one use per identity (robots-disallowed)', source: 'app/preview/kanzul-mikban/page.tsx' },
   { path: '/preview/master-of-geomancy-vol-1', what: 'One free Master preview (Counting Method), one use per identity (robots-disallowed)', source: 'app/preview/master-of-geomancy-vol-1/page.tsx' },
+  { path: '/learn', what: 'Learning hub (SEO Phase 1): links to the free basics, the free cast and the books', source: 'app/learn/page.tsx' },
+  { path: '/learn/ilm-al-raml', what: 'What is Ilm al-Raml? Short introduction (general history + how a chart is built)', source: 'app/learn/ilm-al-raml/page.tsx' },
+  { path: '/learn/glossary', what: 'Glossary of key terms (figure, house, Mothers, Judge, querent)', source: 'app/learn/glossary/page.tsx' },
 ];
 
 /**

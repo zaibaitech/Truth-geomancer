@@ -145,6 +145,7 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
                   result={engineResult}
                   userQuestion={userQuestion}
                   working={dreamPairing ? <DreamWorkingPanel chart={chart} /> : undefined}
+                  chart={chart}
                 />
               </>
             ) : engineDenied ? (

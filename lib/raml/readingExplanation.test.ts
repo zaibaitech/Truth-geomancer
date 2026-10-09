@@ -18,6 +18,11 @@ import { houseInfo } from '@/lib/raml/houses';
 import { isSourceSilentReading } from '@/lib/raml/resultPresentation';
 import { EngineReadingView } from '@/components/raml/EngineReadingView';
 import { STANDING_NOTE, buildAnswerView, buildReasoningSteps, attributionLine } from './readingExplanation';
+import { readingToText, summariseForCard, summariseReading } from './readingSummary';
+import { ResultSummaryCard } from '@/components/raml/reading/ResultSummaryCard';
+import { CalculationDetails } from '@/components/raml/reading/CalculationDetails';
+import { FigureAttributes } from '@/components/raml/reading/FigureAttributes';
+import { KANZUL_QUALITY_PROVENANCE_NOTE } from '@/content/kanzulFigureQuality';
 
 const P: Pattern[] = [
   [1, 1, 1, 1], [2, 2, 2, 2], [1, 2, 1, 2], [2, 1, 2, 1], [1, 1, 2, 2], [2, 2, 1, 1], [1, 2, 2, 1], [2, 1, 1, 2],
@@ -252,5 +257,111 @@ describe('8. nothing protected or new is reachable from the new code, and no new
     const start = out.indexOf('The answer');
     const end = out.indexOf('How this was determined');
     expect(out.slice(start, end)).not.toContain('href=');
+  });
+});
+
+describe('9. the summary card and copied text say the same thing as the primary answer', () => {
+  const nonLegacy = RUNS.filter((r) => buildAnswerView(r.result).kind !== 'legacy');
+  const card = (r: ReadingResult) => decode(renderToStaticMarkup(createElement(ResultSummaryCard, { result: r })));
+
+  it.each([
+    ['mixed', 'You will own a house with prayers and sacrifices.'],
+    ['unfavourable', 'You will never own a house.'],
+    ['favourable', 'You will own a house in your life.'],
+  ])('Chapter 146 (%s): the summary leads with the same attributed method sentence', (outcome, sentence) => {
+    const { result } = sampleFor(outcome);
+    const s = summariseForCard(result);
+    expect(s.status).toBe(sentence);
+    expect(s.interpretation).toBe('According to Kanzul Mikban, Chapter 146, Method 1.');
+    expect(s.source).toBe('Kanzul Mikban, Chapter 146');
+    const out = card(result);
+    expect(out).toContain(sentence);
+    expect(out).toContain('According to Kanzul Mikban, Chapter 146, Method 1.');
+    const text = readingToText(result, 'Will it happen?');
+    expect(text).toContain(sentence);
+    expect(text).toContain('Source: Kanzul Mikban, Chapter 146');
+    expect(text).toContain(STANDING_NOTE);
+  });
+
+  it('a conditional conclusion stays conditional in the summary and the copied text', () => {
+    const { result } = sampleFor('mixed');
+    expect(card(result)).not.toContain('You will own a house in your life.');
+    expect(readingToText(result)).not.toContain('You will own a house in your life.');
+  });
+
+  it('for EVERY question and chart, the summary shows exactly the sentences the primary answer shows', () => {
+    for (const { result } of nonLegacy) {
+      const view = buildAnswerView(result);
+      const s = summariseForCard(result);
+      const answerSentences = view.groups.map((g) => g.sentence).sort();
+      const summarySentences = (s.items ? s.items.map((i) => i.sentence) : [s.status]).sort();
+      if (view.kind === 'differ' || view.groups.length > 1) {
+        expect(summarySentences).toEqual(answerSentences);
+        expect(s.status).toBe(view.statusLine);
+      } else {
+        expect(s.status).toBe(view.groups[0].sentence);
+      }
+      expect(s.source).toBe(result.sourceReferences.map((r) => r.label).join(' · '));
+      expect(s.conflict).toBe(result.conflictingIndicators);
+    }
+  });
+
+  it('agreeing methods are described accurately in the summary', () => {
+    const run = RUNS.find((r) => buildAnswerView(r.result).kind === 'agree' && buildAnswerView(r.result).groups.length === 1)!;
+    const counted = run.result.methodResults.filter((m) => m.counted);
+    const s = summariseForCard(run.result);
+    expect(s.status).toBe(counted[0].interpretation!.trim());
+    expect(s.interpretation.startsWith(`${counted.length} verified methods reach the same indication.`)).toBe(true);
+    expect(s.interpretation).toContain('According to');
+  });
+
+  it.each(['Methods conflict', 'Mixed indications', 'Methods mostly agree'])('%s: every method\'s sentence is in the summary, with no arbitrary winner', (label) => {
+    const run = RUNS.find((r) => r.result.consensusLabel === label && buildAnswerView(r.result).kind === 'differ')!;
+    const counted = run.result.methodResults.filter((m) => m.counted);
+    const s = summariseForCard(run.result);
+    expect(s.status).toBe(`${counted.length} verified methods give different indications.`);
+    expect(s.items!.length).toBeGreaterThan(1);
+    for (const m of counted) expect(s.items!.map((i) => i.sentence)).toContain(m.interpretation!.trim());
+    // the headline is the disagreement itself, never one method's sentence or an outcome word
+    expect(counted.map((m) => m.interpretation!.trim())).not.toContain(s.status);
+    expect(s.status).not.toBe(run.result.outcomeLabel);
+    if (label === 'Methods conflict') expect(s.conflict).toBe(true);
+    const out = card(run.result);
+    for (const m of counted) expect(out).toContain(decode(m.interpretation!.trim()));
+    expect(readingToText(run.result)).toContain(counted[0].interpretation!.trim());
+  });
+
+  it('descriptive, insufficient and source-silent readings get exactly the original summary and copy text', () => {
+    const legacy = RUNS.filter((r) => buildAnswerView(r.result).kind === 'legacy');
+    expect(legacy.length).toBeGreaterThan(500);
+    for (const { result } of legacy) {
+      expect(summariseForCard(result)).toEqual(summariseReading(result));
+      expect(readingToText(result)).not.toContain(STANDING_NOTE);
+    }
+  });
+});
+
+describe('10. provenance: quality stays visible in the steps, the long explanation lives in "How this was determined"', () => {
+  it('the steps show "Figure quality: …" but not the long provenance sentence; the expanded section still carries it', () => {
+    const { chart, result } = sampleFor('mixed');
+    const steps = decode(html(result, chart));
+    const stepsPart = steps.slice(steps.indexOf('How the method reached this'), steps.indexOf('How this was determined'));
+    expect(stepsPart).toContain('Figure quality: Middle-good');
+    expect(stepsPart).not.toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
+    const details = decode(renderToStaticMarkup(createElement(CalculationDetails, { methods: result.methodResults })));
+    expect(details).toContain('Figure quality: Middle-good');
+    expect(details).toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
+  });
+
+  it('where the engine used a different quality, the steps point to the full note and the expanded view keeps it verbatim', () => {
+    const quality = { quality: 'good' as const, engineQuality: 'bad' as const, engineAgrees: false };
+    const facts = { fortune: null, direction: null, element: 'Air' };
+    const short = decode(renderToStaticMarkup(createElement(FigureAttributes, { basis: 'star_quality', quality, facts, compact: true })));
+    const full = decode(renderToStaticMarkup(createElement(FigureAttributes, { basis: 'star_quality', quality, facts })));
+    expect(short).toContain('Figure quality: Good');
+    expect(short).toContain('see “How this was determined”');
+    expect(short).not.toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
+    expect(full).toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
+    expect(full).toContain('existing figure table, which classifies this figure as Bad');
   });
 });

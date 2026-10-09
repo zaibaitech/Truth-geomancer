@@ -52,6 +52,7 @@ function StepBody({ step }: { step: ReasoningStep }) {
             quality={row.figureQuality}
             facts={{ fortune: row.resultFortune, direction: row.resultDirection, element: row.resultElement }}
             className="mt-2 type-evidence text-sand/65"
+            compact
           />
         </div>
       ) : null}

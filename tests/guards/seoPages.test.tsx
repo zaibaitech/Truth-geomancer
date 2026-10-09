@@ -22,6 +22,11 @@ import { ROUTE_CLASSIFICATION } from '../fixtures/routeClassification';
 import { SEO_PAGES, isLivePath } from '@/content/public/seoPages';
 import { SITE_NAME, SITE_URL, absoluteUrl } from '@/lib/seo';
 import sitemap from '../../app/sitemap';
+import { ELEMENT_LABEL, STARS } from '@/content/stars';
+import { CLASSICAL_ATTRIBUTES } from '@/content/classicalAttributes';
+import { PUBLIC_FIGURES, FIGURE_ELEMENT_LABEL } from '@/content/public/figures';
+import { PUBLIC_HOUSES } from '@/content/public/houses';
+import { HOUSES } from '@/lib/raml/houses';
 import robots from '../../app/robots';
 
 vi.mock('next/navigation', () => ({
@@ -47,6 +52,8 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
   '/learn': { file: 'app/learn/page.tsx', load: () => import('../../app/learn/page') },
   '/learn/ilm-al-raml': { file: 'app/learn/ilm-al-raml/page.tsx', load: () => import('../../app/learn/ilm-al-raml/page') },
   '/learn/glossary': { file: 'app/learn/glossary/page.tsx', load: () => import('../../app/learn/glossary/page') },
+  '/figures': { file: 'app/figures/page.tsx', load: () => import('../../app/figures/page') },
+  '/houses': { file: 'app/houses/page.tsx', load: () => import('../../app/houses/page') },
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
@@ -223,5 +230,35 @@ describe('home and /more link to the learning hub', () => {
     expect(hrefs(html)).toEqual(['/learn']);
     const home = await import('node:fs').then((fs) => fs.readFileSync(join(REPO_ROOT, 'app/page.tsx'), 'utf8'));
     expect(home).toMatch(/<LearnRow \/>/);
+  });
+});
+
+describe('public figure and house data (content/public)', () => {
+  it('PUBLIC_FIGURES is an exact copy of the free fields of content/stars.ts (id, number, name, pattern, element)', () => {
+    expect(PUBLIC_FIGURES).toEqual(STARS.map(({ id, number, name, pattern, element }) => ({ id, number, name, pattern, element })));
+    expect(FIGURE_ELEMENT_LABEL).toEqual(ELEMENT_LABEL);
+  });
+
+  it('PUBLIC_FIGURES carries no other field (no meanings, remedies or sadaqah)', () => {
+    for (const f of PUBLIC_FIGURES) expect(Object.keys(f).sort()).toEqual(['element', 'id', 'name', 'number', 'pattern']);
+  });
+
+  it('/figures shows all 16 figures with the right glyphs, and no unapproved other-language names', async () => {
+    const { html } = await load('/figures');
+    const text = visibleText(html);
+    for (const f of PUBLIC_FIGURES) {
+      expect(html).toContain(`aria-label="Figure pattern ${f.pattern.join('-')}"`);
+      expect(text).toContain(`No. ${f.number} ${f.name} ${FIGURE_ELEMENT_LABEL[f.element]}`);
+    }
+    const latin = Object.values(CLASSICAL_ATTRIBUTES).map((a) => a.classicalName);
+    expect(latin.filter((n) => text.includes(n))).toEqual([]);
+    expect(/[\u0600-\u06FF]/.test(html)).toBe(false); // no Arabic script
+  });
+
+  it('PUBLIC_HOUSES has houses 1-16 in order, matching the app\'s house framework', async () => {
+    expect(PUBLIC_HOUSES.map((h) => h.number)).toEqual(HOUSES.map((h) => h.n));
+    const { html } = await load('/houses');
+    const text = visibleText(html);
+    for (const h of PUBLIC_HOUSES) expect(text).toContain(h.name);
   });
 });

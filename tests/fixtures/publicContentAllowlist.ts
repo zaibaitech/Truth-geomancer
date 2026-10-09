@@ -164,7 +164,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
     id: 'figure-basics',
     title: 'The 16 stars: name, number (Bazdaaho order), dot pattern, element',
     access: 'public',
-    routes: ['/search', '/raml'],
+    routes: ['/search', '/raml', '/figures'],
     sources: [{ file: 'content/stars.ts', exports: ['STARS[].id', 'STARS[].name', 'STARS[].number', 'STARS[].pattern', 'STARS[].element', 'ELEMENT_LABEL'] }],
     notes:
       'Rendered publicly in /search (star name + element + glyph) and on every cast chart. ONLY these fields are free. ' +
@@ -177,7 +177,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
     id: 'houses-framework',
     title: 'The 16 chart positions: role, title, one-line meaning',
     access: 'public',
-    routes: ['/raml'],
+    routes: ['/raml', '/houses'],
     sources: [{ file: 'lib/raml/houses.ts', exports: ['HOUSES'] }],
     notes: 'Generic classical house framework, client-reachable and shown in the cast result chart.',
     needsAuthorConfirmation: 'Confirm the wording may be reused on public /houses pages (Phase 2).',
@@ -212,6 +212,8 @@ export const FREE_ROUTES: { path: string; what: string; source: string }[] = [
   { path: '/learn', what: 'Learning hub (SEO Phase 1): links to the free basics, the free cast and the books', source: 'app/learn/page.tsx' },
   { path: '/learn/ilm-al-raml', what: 'What is Ilm al-Raml? Short introduction (general history + how a chart is built)', source: 'app/learn/ilm-al-raml/page.tsx' },
   { path: '/learn/glossary', what: 'Glossary of key terms (figure, house, Mothers, Judge, querent)', source: 'app/learn/glossary/page.tsx' },
+  { path: '/figures', what: 'The 16 figures: name, number, dot pattern, book element only (content/public/figures.ts)', source: 'app/figures/page.tsx' },
+  { path: '/houses', what: 'The 16 houses: name and a short neutral topic line (content/public/houses.ts)', source: 'app/houses/page.tsx' },
 ];
 
 /**

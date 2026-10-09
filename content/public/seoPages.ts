@@ -19,6 +19,8 @@ export const SEO_PAGES: SeoPage[] = [
   { path: '/learn', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/learn/ilm-al-raml', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/learn/glossary', changeFrequency: 'monthly', priority: 0.5 },
+  { path: '/figures', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/houses', changeFrequency: 'monthly', priority: 0.6 },
 ];
 
 /** Existing public app pages the learning pages may link to. */

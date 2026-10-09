@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     description: HOME_DESCRIPTION,
     images: [DEFAULT_OG_IMAGE.url],
   },
+  verification: {
+    google: 'NxNZ8kX8q6Q8gG7TQBrv_xWvQKsaMI8NQc7kjgiuYOg',
+  },
 };
 
 export const viewport: Viewport = {

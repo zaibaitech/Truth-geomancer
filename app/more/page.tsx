@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { Search, Bell, Settings, History, BookOpen, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
+import type { Metadata } from 'next';
+
+// A navigation menu, not content: kept out of search results, links still followed.
+export const metadata: Metadata = { title: 'More', robots: { index: false, follow: true } };
 
 const ITEMS = [
   { href: '/search', icon: Search, title: 'Search', description: 'Books, chapters and stars' },

@@ -4,6 +4,15 @@ import { BOOKS } from '@/content/books';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { canAccessForUser } from '@/lib/server/accessService';
+import { publicPageMetadata } from '@/lib/seo';
+
+export const metadata = publicPageMetadata({
+  title: 'Geomancy Books & Manuscripts',
+  description: `The Truth Geomancer library: ${BOOKS.map((b) => b.title).join(' and ')} by ${
+    BOOKS[0]?.author ?? 'the author'
+  }, classical Ilm al-Raml manuscripts to own and read in the app.`,
+  path: '/books',
+});
 
 // Prompt 78: entitlement checked per book with the same canAccessForUser()
 // the book detail page and casting authorization already use, so the

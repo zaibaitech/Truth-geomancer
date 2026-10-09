@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
@@ -12,6 +13,23 @@ import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { canAccessForUser } from '@/lib/server/accessService';
 import { buildBookContactMessage } from '@/lib/whatsapp';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { bookJsonLd, bookPageTitle, publicPageMetadata, snippet } from '@/lib/seo';
+
+export function generateMetadata({ params }: { params: { id: string } }): Metadata {
+  const book = getBookById(params.id);
+  if (!book) return {};
+  const title = bookPageTitle(book);
+  const base = publicPageMetadata({
+    title,
+    description: snippet(`${title} by ${book.author}. ${book.description}`),
+    path: `/books/${book.id}`,
+    ...(book.coverImage
+      ? { image: { url: book.coverImage, width: 640, height: 922, alt: `${book.title} cover` }, twitterCard: 'summary' as const }
+      : {}),
+  });
+  return { ...base, openGraph: { ...base.openGraph, type: 'book', authors: [book.author] } };
+}
 
 // Prompt 30: this page is no longer statically generated — whether the
 // offline-download control renders at all now depends on the requester's
@@ -31,6 +49,7 @@ export default async function BookDetailPage({ params }: { params: { id: string 
 
   return (
     <div>
+      <JsonLd data={bookJsonLd(book)} />
       <Header />
       <div className="px-4 py-4">
         <div className="flex gap-4">

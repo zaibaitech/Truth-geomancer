@@ -4,6 +4,10 @@ import { ExploreBooks } from '@/components/dashboard/ExploreBooks';
 import { TalkToAuthor } from '@/components/dashboard/TalkToAuthor';
 import { ExploreApp } from '@/components/dashboard/ExploreApp';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { HOME_DESCRIPTION, HOME_TITLE, organizationJsonLd, publicPageMetadata, websiteJsonLd } from '@/lib/seo';
+
+export const metadata = publicPageMetadata({ absoluteTitle: HOME_TITLE, description: HOME_DESCRIPTION, path: '/' });
 
 // Prompt 61/63: the dashboard doubles as the app's home AND its primary
 // discovery/storefront entry point — a visitor sees the books and the path
@@ -20,13 +24,17 @@ export default async function DashboardPage() {
   const user = await getCurrentUserIfPresent();
   const initialAuth = { authenticated: Boolean(user?.email), email: null };
 
+  // JSON-LD sits outside the space-y-5 wrapper so it can't add a sibling margin.
   return (
-    <div className="space-y-5 pb-2">
-      <DashboardHeader initialAuth={initialAuth} />
-      <Hero />
-      <ExploreBooks />
-      <TalkToAuthor />
-      <ExploreApp />
-    </div>
+    <>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
+      <div className="space-y-5 pb-2">
+        <DashboardHeader initialAuth={initialAuth} />
+        <Hero />
+        <ExploreBooks />
+        <TalkToAuthor />
+        <ExploreApp />
+      </div>
+    </>
   );
 }

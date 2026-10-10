@@ -6,7 +6,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkBuildRatchet, scanBuild } from './lib/buildScan';
+import { checkBuildRatchet, scanBuild, scanStarContent } from './lib/buildScan';
 import { KNOWN_BUILD_LEAK_IDS } from '../fixtures/knownLeaks';
 
 const nextDir = process.env.LEAK_SCAN_NEXT_DIR ? resolve(process.env.LEAK_SCAN_NEXT_DIR) : '';
@@ -25,5 +25,13 @@ describe.skipIf(!nextDir)('build output leak scan (set LEAK_SCAN_NEXT_DIR to ena
       fixed: {},
       zeroTolerance: 0,
     });
+  });
+
+  it('NO paid per-star content (remedies, offerings, house-6 / house-2 text, occupations) in any public file, and no remedy:/offering: field markers', () => {
+    const star = scanStarContent(nextDir);
+    // every generated client JS file is in scope, not a single known chunk
+    expect(star.scope.staticJs).toBeGreaterThan(0);
+    expect(star.protectedStrings).toBeGreaterThanOrEqual(50);
+    expect(star.hits).toEqual([]);
   });
 });

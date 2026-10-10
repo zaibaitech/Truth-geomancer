@@ -70,6 +70,12 @@ describe('client cannot grant or revoke entitlements', () => {
       'raml/practiceService',
       'raml/chartValidation',
       'raml/castingAccess',
+      // Paid per-star notes (the L1 fix): 'raml/chartNotes' builds the four per-chart notes and is imported only by
+      // app/api/raml/chart-notes/route.ts, AFTER authorizeCastingForUser() allows the General Reading; 'content/starNotes' is
+      // the server-only store, also read by the book reader (a Server Component behind canAccessForUser). Both are
+      // read-only lookups over static data; neither can grant or revoke anything.
+      'raml/chartNotes',
+      'content/starNotes',
       'paymentRequests',
       'adminSession',
       'purchaseStatus',

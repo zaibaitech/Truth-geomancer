@@ -23,12 +23,9 @@ import { DEDICATION_TITLE, INTRODUCTION_TITLE } from "@/content/manuscripts/mast
 import { getStarUseByStarId } from "@/content/manuscripts/starUses";
 import { getHatimByStarId } from "@/content/manuscripts/hatim";
 import { divineNameSourceLine } from "@/content/manuscripts/divineNameDisplay";
-import {
-  STARS,
-  ELEMENT_LABEL,
-  ELEMENT_OCCUPATIONS,
-  type Element,
-} from "@/content/stars";
+import { STARS, ELEMENT_LABEL, type Element } from "@/content/stars";
+// Paid per-star content: server-only, read here only after the book access check above the render.
+import { ELEMENT_OCCUPATIONS, STAR_NOTES } from "@/lib/server/content/starNotes";
 // PROMPT 27 (protected-content migration): the actual chapter/Dedication/
 // Introduction TEXT now comes from the server-only content service —
 // never from a statically imported module — and is resolved per request,
@@ -509,7 +506,7 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                                         House 6 · Illness
                                       </Badge>
                                       <p className="mt-1.5 type-body leading-relaxed text-sand/70">
-                                        {star.house6.meaning}
+                                        {STAR_NOTES[star.id].house6.meaning}
                                       </p>
                                     </div>
                                     <div className="mt-2">
@@ -517,7 +514,7 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                                         House 2 · Wealth
                                       </Badge>
                                       <p className="mt-1.5 type-body leading-relaxed text-sand/70">
-                                        {star.house2.meaning}
+                                        {STAR_NOTES[star.id].house2.meaning}
                                       </p>
                                     </div>
                                   </div>
@@ -621,10 +618,10 @@ export default async function BookReaderPage({ params }: { params: { id: string 
                                   {star.name}
                                 </p>
                                 <p className="type-body text-sand/70">
-                                  {star.sadaqah.offering}
+                                  {STAR_NOTES[star.id].sadaqah.offering}
                                 </p>
                                 <p className="type-label text-sand/65">
-                                  {star.sadaqah.day}
+                                  {STAR_NOTES[star.id].sadaqah.day}
                                 </p>
                               </div>
                             </Card>

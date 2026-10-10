@@ -20,7 +20,6 @@ import { PUBLIC_ROUTE_FILES, ROUTE_CLASSIFICATION } from '../fixtures/routeClass
 const PROTECTED_MODULE_PATTERNS: RegExp[] = [
   /^lib\/server\//, //                       all server code, incl. lib/server/content (full book text)
   /^lib\/raml\/engine\//, //                 engine: method quotes, rule logic, verdicts
-  /^content\/stars\.ts$/, //                 house-6/house-2 meanings, remedies, sadaqah (L1)
   /^content\/kanzulFigureQuality\.ts$/, //   owner-supplied quality grouping (L3)
   /^content\/classicalAttributes\.ts$/, //   classical attributes table (L3)
   /^content\/manuscripts\/(starUses|hatim|hatimPattern|dreamInterpretations|giftVisitorFigures|abjad|valueReconciliation)\.ts$/,
@@ -106,7 +105,7 @@ describe('public routes', () => {
 });
 
 describe('graph walker sanity (so a broken walker cannot pass silently)', () => {
-  it('finds the documented L1 chain: app/search/page.tsx (client) -> content/stars.ts', () => {
+  it('finds a real client chain: app/search/page.tsx (client) -> content/stars.ts (now the PUBLIC figure basics only)', () => {
     const reach = reachFrom(join(REPO_ROOT, 'app/search/page.tsx'));
     expect(Array.from(reach.client.keys()).map(rel)).toContain('content/stars.ts');
   });
@@ -114,6 +113,14 @@ describe('graph walker sanity (so a broken walker cannot pass silently)', () => 
   it('skips `import type` (FigureGlyph only type-imports content/stars.ts)', () => {
     const reach = reachFrom(join(REPO_ROOT, 'components/raml/FigureGlyph.tsx'));
     expect(Array.from(reach.all.keys()).map(rel)).not.toContain('content/stars.ts');
+  });
+
+  it('the paid per-star notes are server-only: the reader (a Server Component) reaches them on the server and no client bundle anywhere does', () => {
+    const reader = reachFrom(join(REPO_ROOT, 'app/books/[id]/read/page.tsx'));
+    expect(Array.from(reader.all.keys()).map(rel)).toContain('lib/server/content/starNotes.ts');
+    expect(Array.from(reader.client.keys()).map(rel)).not.toContain('lib/server/content/starNotes.ts');
+    const appWide = Array.from(appWideClientReach().keys()).map(rel);
+    for (const f of ['lib/server/content/starNotes.ts', 'lib/server/raml/chartNotes.ts']) expect(appWide, f).not.toContain(f);
   });
 
   it('treats a server page as server until a client boundary (the reader imports book text server-side only)', () => {

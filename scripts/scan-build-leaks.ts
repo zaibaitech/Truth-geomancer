@@ -15,7 +15,7 @@
  */
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { checkBuildRatchet, scanBuild } from '../tests/guards/lib/buildScan';
+import { checkBuildRatchet, scanBuild, scanStarContent } from '../tests/guards/lib/buildScan';
 import { KNOWN_BUILD_LEAK_IDS } from '../tests/fixtures/knownLeaks';
 
 const args = process.argv.slice(2);
@@ -55,5 +55,13 @@ for (const [g, ids] of Object.entries(report.fixed))
   console.error(`FIXED in ${g}, so remove from tests/fixtures/knownLeaks.ts KNOWN_BUILD_LEAK_IDS: ${ids.join(', ')}`);
 for (const h of report.zeroToleranceHits) console.error(`ZERO-TOLERANCE route hit: ${h.routes.join(', ')} [${h.group}] ${h.id} in ${h.file}`);
 
-if (!report.ok) process.exit(1);
+// Paid per-star content (remedies, offerings, house-6 / house-2 text): zero tolerance in every public file.
+const star = scanStarContent(nextDir);
+console.log(
+  `  paid star content scan: ${star.scope.total} public files (${star.scope.staticJs} client JS, ${star.scope.staticFiles - star.scope.staticJs} other static, ` +
+    `${star.scope.prerendered} prerendered, ${star.scope.publicFiles} public/), ${star.protectedStrings} protected strings + field markers: ${star.hits.length} hits`,
+);
+for (const h of star.hits) console.error(`PAID STAR CONTENT in public file: ${h.file} [${h.kind}] ${h.detail}`);
+
+if (!report.ok || star.hits.length > 0) process.exit(1);
 console.log('OK: build output matches the known-leak baseline (which may only shrink).');

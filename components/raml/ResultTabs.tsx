@@ -34,6 +34,27 @@ import {
 } from '@/lib/raml/interpret';
 
 const BASE_TABS = ['Overview', 'Full Chart', 'My Star', 'Sadaqah'] as const;
+
+/** What /api/raml/chart-notes returns to an entitled reader (a type only; the data and the code that builds it stay on the server). */
+interface ChartNotesPayload {
+  judgeHouse6: string;
+  wealthHouse2: string;
+  illnessHouse6: string;
+  sadaqah: { figureName: string; houses: number[]; offering: string; day: string };
+}
+
+function NotesLine({ state, text }: { state: 'loading' | 'ok' | 'denied' | 'failed'; text?: string }) {
+  if (state === 'ok' && text) return <p className="type-body text-sand/70">{text}</p>;
+  return (
+    <p className="type-label text-sand/65">
+      {state === 'loading'
+        ? 'Loading…'
+        : state === 'denied'
+          ? 'This part of the reading is included with The Master of Geomancy. Request access to see it.'
+          : 'This part could not be loaded — check your connection and try again.'}
+    </p>
+  );
+}
 type Tab = (typeof BASE_TABS)[number] | 'Your Reading';
 
 export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart; intentionId?: string; userQuestion?: string }) {
@@ -93,6 +114,40 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedEngineId, engineCovers, chart]);
+
+  // The paid per-chart star notes (house-6 / house-2 meanings, sadaqah offering) are NOT in this bundle:
+  // they come from the server after an entitlement check (app/api/raml/chart-notes). A visitor without
+  // access gets a 403 and sees the locked card; nothing protected reaches the browser.
+  const [notes, setNotes] = useState<ChartNotesPayload | null>(null);
+  const [notesState, setNotesState] = useState<'loading' | 'ok' | 'denied' | 'failed'>('loading');
+  useEffect(() => {
+    let cancelled = false;
+    setNotes(null);
+    setNotesState('loading');
+    fetch('/api/raml/chart-notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chart }),
+    })
+      .then(async (res) => {
+        if (res.status === 403) {
+          if (!cancelled) setNotesState('denied');
+          return;
+        }
+        if (!res.ok) throw new Error('request failed');
+        const data = (await res.json()) as { notes: ChartNotesPayload };
+        if (!cancelled) {
+          setNotes(data.notes);
+          setNotesState('ok');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setNotesState('failed');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [chart]);
 
   const judge = chart.houses[14];
   const self = chart.houses[0];
@@ -185,14 +240,14 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
         {!dreamPairing && tab === 'Overview' ? (
           <>
             <StarCard star={judge.star} eyebrow="The Judge — the chart’s verdict">
-              <p className="type-body text-sand/70">{judge.star.house6.meaning}</p>
+              <NotesLine state={notesState} text={notes?.judgeHouse6} />
             </StarCard>
             <StarCard star={self.star} eyebrow="House 1 — Self / the Querent" />
             <StarCard star={wealth.star} eyebrow="House 2 — Wealth">
-              <p className="type-body text-sand/70">{wealth.star.house2.meaning}</p>
+              <NotesLine state={notesState} text={notes?.wealthHouse2} />
             </StarCard>
             <StarCard star={illness.star} eyebrow="House 6 — Illness & Enemies">
-              <p className="type-body text-sand/70">{illness.star.house6.meaning}</p>
+              <NotesLine state={notesState} text={notes?.illnessHouse6} />
             </StarCard>
           </>
         ) : null}
@@ -252,12 +307,18 @@ export function ResultTabs({ chart, intentionId, userQuestion }: { chart: Chart;
             <p className="mb-3 type-label text-sand/65">
               From {sadaqah.houses.map((n) => `${houseInfo(n).title} (H${n})`).join(' + ')}
             </p>
-            <p className="type-body text-sand/70">
-              <span className="text-sand-light">Offering:</span> {sadaqah.star.sadaqah.offering}
-            </p>
-            <p className="mt-1 type-body text-sand/70">
-              <span className="text-sand-light">When:</span> {sadaqah.star.sadaqah.day}
-            </p>
+            {notesState === 'ok' && notes ? (
+              <>
+                <p className="type-body text-sand/70">
+                  <span className="text-sand-light">Offering:</span> {notes.sadaqah.offering}
+                </p>
+                <p className="mt-1 type-body text-sand/70">
+                  <span className="text-sand-light">When:</span> {notes.sadaqah.day}
+                </p>
+              </>
+            ) : (
+              <NotesLine state={notesState} />
+            )}
           </Card>
         ) : null}
       </div>

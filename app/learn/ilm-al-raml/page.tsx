@@ -43,12 +43,17 @@ export default function IlmAlRamlIntroPage() {
 
         <H2>Where it comes from</H2>
         <P>
-          Ilm al-Raml was well established in North Africa, Egypt and Syria by the twelfth century, and it spread widely
-          from there: to Persian and Ottoman lands, across Africa, and into Europe. There, the Latin translation{' '}
-          <em>geomantia</em> gave us the word “geomancy”. Its earliest beginnings are uncertain and surrounded by
-          tradition. Scholars still study the old manuscripts, and a brass geomancy instrument from 1241 survives in the
-          British Museum. It is unrelated to Chinese feng shui, which simply shares the English name.
+          Historians describe Ilm al-Raml as already well established in North Africa, Egypt and Syria by the twelfth
+          century. Where it began is still debated. In twelfth-century Spain, translators rendered its Arabic name into
+          Latin as <em>geomantia</em>, which gave us the word “geomancy”. The art is still practised today in many
+          regions, from Iran and Yemen to West Africa. A brass geomancy instrument made in Syria in 1241–42 is kept in the
+          British Museum. Ilm al-Raml is unrelated to Chinese feng shui, which simply shares the English name.
         </P>
+        <p className="type-label leading-[1.6] text-sand/65">
+          Sources: E. Savage-Smith, “Geomancy in the Islamic World”, <em>Encyclopaedia of the History of Science,
+          Technology, and Medicine in Non-Western Cultures</em>; E. Savage-Smith and M. B. Smith, <em>Islamic Geomancy and
+          a Thirteenth-Century Divinatory Device</em> (1980); British Museum, geomantic instrument, museum no. 1888,0526.1.
+        </p>
 
         <H2>The sixteen figures</H2>
         <P>

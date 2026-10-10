@@ -13,6 +13,7 @@ import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { canAccessForUser } from '@/lib/server/accessService';
 import { buildBookContactMessage } from '@/lib/whatsapp';
+import { TrackBookPageView } from '@/components/analytics/TrackEvent';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { bookJsonLd, bookPageTitle, publicPageMetadata, snippet } from '@/lib/seo';
 
@@ -50,6 +51,7 @@ export default async function BookDetailPage({ params }: { params: { id: string 
   return (
     <div>
       <JsonLd data={bookJsonLd(book)} />
+      <TrackBookPageView bookSlug={book.id} />
       <Header />
       <div className="px-4 py-4">
         <div className="flex gap-4">

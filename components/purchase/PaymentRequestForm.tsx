@@ -46,7 +46,7 @@ export function PaymentRequestForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+    <form data-clarity-mask="true" onSubmit={handleSubmit} className="mt-4 space-y-3">
       <div className="rounded-xl border border-sand/10 bg-ink px-3.5 py-3">
         <p className="type-label uppercase tracking-widest text-sand/65">{instructions.title}</p>
         <p className="mt-1.5 type-body text-sand/70">{instructions.instructions}</p>

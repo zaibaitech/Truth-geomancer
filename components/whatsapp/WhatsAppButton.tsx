@@ -1,6 +1,7 @@
 'use client';
 
 import { MessageCircle } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
 import { buildWhatsAppAndroidIntentUrl, buildWhatsAppUrl } from '@/lib/whatsapp';
 
 // Prompt 59/61: the href is always the plain wa.me URL — a fully working
@@ -53,6 +54,7 @@ export function WhatsAppButton({
   const iconClass = variant === 'whatsapp' ? 'text-ink' : 'text-clay-light';
 
   function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    trackEvent('whatsapp_click');
     if (typeof navigator === 'undefined' || !/Android/i.test(navigator.userAgent)) return;
     const intentUrl = buildWhatsAppAndroidIntentUrl(message);
     if (!intentUrl) return;

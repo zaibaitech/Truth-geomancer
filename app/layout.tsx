@@ -4,6 +4,7 @@ import { cinzel, inter } from '@/lib/fonts';
 import { READER_SIZE_BOOTSTRAP } from '@/lib/raml/readerSize';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { DEFAULT_OG_IMAGE, HOME_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 import './globals.css';
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
           <BottomNav />
         </div>
+        <GoogleAnalytics />
       </body>
     </html>
   );

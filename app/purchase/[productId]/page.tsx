@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { PaymentRequestForm } from '@/components/purchase/PaymentRequestForm';
 import { PaystackCheckoutForm } from '@/components/purchase/PaystackCheckoutForm';
 import { PaymentVerifying } from '@/components/purchase/PaymentVerifying';
+import { TrackPurchase } from '@/components/analytics/TrackEvent';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { PURCHASABLE_PRODUCTS } from '@/lib/access/products';
 import { getPaymentInstructions } from '@/lib/access/paymentInstructions';
@@ -85,6 +86,11 @@ export default async function ProductPurchasePage({
             </div>
             {paymentHint === 'success' ? (
               <>
+                <TrackPurchase
+                  bookSlug={bookId ?? product.id}
+                  currency={paystackPrice?.currency}
+                  value={paystackPrice ? paystackPrice.minor / 100 : undefined}
+                />
                 <p className="mt-3 type-label uppercase tracking-widest text-clay-light">Payment successful</p>
                 <p className="mt-1.5 type-body font-semibold text-sand-light">{product.name} access has been activated.</p>
               </>

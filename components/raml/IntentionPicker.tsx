@@ -102,7 +102,7 @@ export function IntentionPicker({
           view rather than hiding inside an "All questions" tab. */}
       <div className="mb-3 flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2">
         <Search size={14} className="shrink-0 text-sand/65" />
-        <input
+        <input data-clarity-mask="true"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search questions"

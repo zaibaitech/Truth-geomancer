@@ -54,9 +54,19 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
   '/learn/glossary': { file: 'app/learn/glossary/page.tsx', load: () => import('../../app/learn/glossary/page') },
   '/figures': { file: 'app/figures/page.tsx', load: () => import('../../app/figures/page') },
   '/houses': { file: 'app/houses/page.tsx', load: () => import('../../app/houses/page') },
+  ...Object.fromEntries(
+    ['ibrahim', 'musah', 'nuhu', 'usman'].map((slug) => [
+      `/figures/${slug}`,
+      { file: 'app/figures/[slug]/page.tsx', load: () => import('../../app/figures/[slug]/page'), props: { params: { slug } } },
+    ]),
+  ),
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
+/** The four templated figure pages are published and linked but noindex and out of the sitemap until the
+ * author supplies approved per-figure copy. Listed explicitly so a change is a deliberate, reviewed edit. */
+const NOINDEX_PATHS = ['/figures/ibrahim', '/figures/musah', '/figures/nuhu', '/figures/usman'];
+const INDEXED_PATHS = PATHS.filter((p) => !NOINDEX_PATHS.includes(p));
 
 async function load(path: string) {
   const entry = PAGE_MODULES[path];
@@ -121,6 +131,10 @@ describe('SEO learning pages: registry', () => {
     expect(Object.keys(PAGE_MODULES).sort()).toEqual([...PATHS].sort());
     for (const path of PATHS) {
       const { file } = PAGE_MODULES[path];
+      if (file.includes('[')) {
+        expect(ROUTE_CLASSIFICATION[file], file).toBe('public');
+        continue;
+      }
       expect(existsSync(join(REPO_ROOT, file)), file).toBe(true);
       expect(ROUTE_CLASSIFICATION[file], file).toBe('public');
     }
@@ -129,8 +143,15 @@ describe('SEO learning pages: registry', () => {
   it('the sitemap lists every SEO page once, on the canonical host', () => {
     const urls = sitemap().map((e) => e.url);
     expect(new Set(urls).size).toBe(urls.length);
-    for (const path of PATHS) expect(urls).toContain(absoluteUrl(path));
+    for (const path of INDEXED_PATHS) expect(urls.filter((u) => u === absoluteUrl(path)), path).toHaveLength(1);
+    for (const path of NOINDEX_PATHS) expect(urls, path).not.toContain(absoluteUrl(path));
     for (const u of urls) expect(u.startsWith(SITE_URL)).toBe(true);
+  });
+
+  it('the noindex list, the registry\'s indexable flags and the sitemap agree', () => {
+    expect(SEO_PAGES.filter((p) => p.indexable === false).map((p) => p.path).sort()).toEqual([...NOINDEX_PATHS].sort());
+    const urls = new Set(sitemap().map((e) => e.url));
+    for (const p of SEO_PAGES) expect(urls.has(absoluteUrl(p.path)), p.path).toBe(p.indexable !== false);
   });
 
   it('robots.txt does not disallow any SEO page, and still disallows the private areas', () => {
@@ -166,7 +187,7 @@ describe('SEO learning pages: metadata', () => {
     expect(new Set(descriptions).size).toBe(descriptions.length);
   });
 
-  it.each(PATHS)('%s: title <= 60, description 50-160, canonical and og:url are the page path, indexable', async (path) => {
+  it.each(PATHS)('%s: title <= 60, description 50-160, canonical and og:url are the page path; indexable except the noindex figure pages', async (path) => {
     const { metadata } = await load(path);
     expect(fullTitle(metadata).length).toBeLessThanOrEqual(60);
     const d = String(metadata.description);
@@ -174,7 +195,8 @@ describe('SEO learning pages: metadata', () => {
     expect(d.length).toBeLessThanOrEqual(160);
     expect(metadata.alternates?.canonical).toBe(path);
     expect((metadata.openGraph as { url?: string }).url).toBe(path);
-    expect(metadata.robots).toBeUndefined();
+    if (NOINDEX_PATHS.includes(path)) expect(metadata.robots).toEqual({ index: false, follow: true });
+    else expect(metadata.robots).toBeUndefined();
   });
 });
 
@@ -292,5 +314,73 @@ describe('public figure and house data (content/public)', () => {
     const { html } = await load('/houses');
     const text = visibleText(html);
     for (const h of PUBLIC_HOUSES) expect(text).toContain(h.name);
+  });
+});
+
+describe('figure pages (Stage 1d)', () => {
+  // Exactly as written in the approved drafts (/workspace/tg-free-resources/figures/*.md).
+  const DRAFTS: Record<string, { title: string; placement: string; pattern: string; element: string }> = {
+    ibrahim: {
+      title: 'Ibrahim: Geomancy Figure 5 (Water)',
+      placement: 'It comes after Iddris and before Issah.',
+      pattern: 'one dot; one dot; one dot; one dot',
+      element: 'Water. It shares this element with Iddris, Issah, and Hassan & Hussein.',
+    },
+    musah: {
+      title: 'Musah: Geomancy Figure 16 (Fire)',
+      placement: 'It is the last figure, coming after Usman.',
+      pattern: 'two dots; two dots; two dots; two dots',
+      element: 'Fire. It shares this element with Yussif, Adam, and Kalla Allahu.',
+    },
+    nuhu: {
+      title: 'Nuhu: Geomancy Figure 12 (Air)',
+      placement: 'It comes after Ali and before Hassan & Hussein.',
+      pattern: 'two dots; two dots; one dot; one dot',
+      element: 'Air. It shares this element with Mahadi, Umar, and Ali.',
+    },
+    usman: {
+      title: 'Usman: Geomancy Figure 15 (Sand)',
+      placement: 'It comes after Yunus and before Musah.',
+      pattern: 'two dots; one dot; two dots; one dot',
+      element: 'Sand / Earth. It shares this element with Ayuba, Sulemana, and Yunus.',
+    },
+  };
+
+  it('only the four approved slugs are generated, and dynamic params are off (others 404)', async () => {
+    const mod = await import('../../app/figures/[slug]/page');
+    expect(mod.generateStaticParams()).toEqual(Object.keys(DRAFTS).map((slug) => ({ slug })));
+    expect(mod.dynamicParams).toBe(false);
+    expect(() => mod.default({ params: { slug: 'yussif' } })).toThrow('notFound()');
+    expect(() => mod.default({ params: { slug: 'not-a-figure' } })).toThrow('notFound()');
+    expect(mod.generateMetadata({ params: { slug: 'yussif' } })).toEqual({});
+  });
+
+  it('the four figure pages are published (in the registry and linked) but left out of the sitemap, and stay crawlable', () => {
+    expect(NOINDEX_PATHS.sort()).toEqual(Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort());
+    const figureUrls = sitemap().map((e) => e.url).filter((u) => u.startsWith(absoluteUrl('/figures/')));
+    expect(figureUrls).toEqual([]);
+    for (const path of NOINDEX_PATHS) expect(SEO_PAGES.some((p) => p.path === path), path).toBe(true);
+    // noindex needs crawling to be seen, so robots.txt must not disallow them
+    const rules = robots().rules as { disallow: string[] };
+    for (const path of NOINDEX_PATHS) for (const d of rules.disallow) expect(path.startsWith(d.replace(/\*.*$/, '')) && d !== '/', `${path} vs ${d}`).toBe(false);
+  });
+
+  it.each(Object.keys(DRAFTS))('%s matches the approved draft (title, placement, pattern, element)', async (slug) => {
+    const d = DRAFTS[slug];
+    const { metadata, html } = await load(`/figures/${slug}`);
+    expect(fullTitle(metadata)).toBe(`${d.title} | ${SITE_NAME}`);
+    // visibleText() turns every tag into a space; inline links leave " ," behind, so close those gaps.
+    const text = visibleText(html).replace(/\s+([,.])/g, '$1');
+    expect(text).toContain(d.placement);
+    expect(text).toContain(`Pattern (top to bottom): ${d.pattern}.`);
+    expect(text).toContain(`Element: ${d.element}`);
+    const f = PUBLIC_FIGURES.find((x) => x.id === slug)!;
+    expect(html).toContain(`aria-label="Figure pattern ${f.pattern.join('-')}"`);
+  });
+
+  it('/figures links every published figure page, and only those', async () => {
+    const { html } = await load('/figures');
+    const figureLinks = Array.from(new Set(hrefs(html).filter((h) => h.startsWith('/figures/'))));
+    expect(figureLinks.sort()).toEqual(Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort());
   });
 });

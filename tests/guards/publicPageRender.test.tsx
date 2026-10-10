@@ -91,6 +91,9 @@ const PAGES: [string, () => Promise<PageModule>, unknown?][] = [
   ['/learn/glossary', () => import('../../app/learn/glossary/page')],
   ['/figures', () => import('../../app/figures/page')],
   ['/houses', () => import('../../app/houses/page')],
+  ...(['ibrahim', 'musah', 'nuhu', 'usman'] as const).map(
+    (slug) => [`/figures/${slug}`, () => import('../../app/figures/[slug]/page'), { params: { slug } }] as [string, () => Promise<PageModule>, unknown],
+  ),
 ];
 
 describe('signed-out server HTML of public pages', () => {

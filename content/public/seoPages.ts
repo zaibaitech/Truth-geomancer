@@ -1,4 +1,6 @@
 import { BOOKS } from '@/content/books';
+import { FIGURE_PAGE_SLUGS } from '@/content/public/figurePages';
+import { figurePath } from '@/content/public/figures';
 
 // SEO Phase 1: the public learning pages published in this build.
 //
@@ -13,6 +15,8 @@ export interface SeoPage {
   path: string;
   changeFrequency: 'weekly' | 'monthly';
   priority: number;
+  /** false: the page is published and linked, but noindex and left out of the sitemap. */
+  indexable?: boolean;
 }
 
 export const SEO_PAGES: SeoPage[] = [
@@ -21,6 +25,9 @@ export const SEO_PAGES: SeoPage[] = [
   { path: '/learn/glossary', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/figures', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/houses', changeFrequency: 'monthly', priority: 0.6 },
+  // Thin, templated pages: reachable and linked, but noindex and not in the sitemap
+  // until the author supplies approved per-figure copy.
+  ...FIGURE_PAGE_SLUGS.map((slug) => ({ path: figurePath(slug), changeFrequency: 'monthly' as const, priority: 0.6, indexable: false })),
 ];
 
 /** Existing public app pages the learning pages may link to. */

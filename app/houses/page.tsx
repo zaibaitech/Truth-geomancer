@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BooksLine, Breadcrumbs, H2, LearnCta, MoreLink, P } from '@/components/seo/LearnUi';
 import { HOUSES_HUB, LEARN_HUB } from '@/content/public/learnPages';
-import { PUBLIC_HOUSES } from '@/content/public/houses';
+import { HOUSE_GROUPS, PUBLIC_HOUSES } from '@/content/public/houses';
 import { breadcrumbJsonLd, definedTermSetJsonLd, publicPageMetadata } from '@/lib/seo';
 
 export const metadata = publicPageMetadata({
@@ -57,6 +57,19 @@ export default function HousesHubPage() {
             ))}
           </ol>
         </Card>
+
+        <H2>How the sixteen houses are grouped</H2>
+        <P>The traditional grouping of the houses gives each part of the chart a name:</P>
+        <ul className="space-y-2">
+          {HOUSE_GROUPS.map((g) => (
+            <li key={g.name} className="type-body leading-[1.7] text-sand/80">
+              <strong className="text-sand-light">
+                {g.range}: {g.name}.
+              </strong>{' '}
+              {g.note}
+            </li>
+          ))}
+        </ul>
 
         <H2>What does a figure say in each house?</H2>
         <P>

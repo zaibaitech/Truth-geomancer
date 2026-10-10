@@ -346,7 +346,9 @@ describe('result summary', () => {
     const reading = readings.find((r) => r.questionId === 'if-you-want-to-know-if-you-will')!;
     const text = readingToText(reading, 'Will the payment land today?');
     expect(text).toContain(reading.question);
-    expect(text).toContain(reading.shortSummary);
+    // Free-cast Phase A: the copied text leads with the same attributed method sentence(s) as the primary
+    // answer (readingExplanation.buildAnswerView) instead of the generic shortSummary.
+    for (const m of reading.methodResults.filter((r) => r.counted)) expect(text).toContain(m.interpretation!.trim());
     expect(text).toContain('Asked: Will the payment land today?');
     expect(text).toContain('Source:');
     expect(text).not.toContain('undefined');

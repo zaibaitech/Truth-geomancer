@@ -33,11 +33,15 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: Props): Metadata {
   const figure = getFigurePage(params.slug);
   if (!figure) return {};
-  return publicPageMetadata({
-    title: figurePageTitle(figure),
-    description: figurePageDescription(figure),
-    path: figurePath(figure.id),
-  });
+  // noindex until approved per-figure copy exists (see content/public/seoPages.ts).
+  return {
+    ...publicPageMetadata({
+      title: figurePageTitle(figure),
+      description: figurePageDescription(figure),
+      path: figurePath(figure.id),
+    }),
+    robots: { index: false, follow: true },
+  };
 }
 
 /** "A, B, and C" with links to any of them that have a published page. */

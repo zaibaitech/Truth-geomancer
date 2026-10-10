@@ -63,6 +63,10 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
+/** The four templated figure pages are published and linked but noindex and out of the sitemap until the
+ * author supplies approved per-figure copy. Listed explicitly so a change is a deliberate, reviewed edit. */
+const NOINDEX_PATHS = ['/figures/ibrahim', '/figures/musah', '/figures/nuhu', '/figures/usman'];
+const INDEXED_PATHS = PATHS.filter((p) => !NOINDEX_PATHS.includes(p));
 
 async function load(path: string) {
   const entry = PAGE_MODULES[path];
@@ -139,8 +143,15 @@ describe('SEO learning pages: registry', () => {
   it('the sitemap lists every SEO page once, on the canonical host', () => {
     const urls = sitemap().map((e) => e.url);
     expect(new Set(urls).size).toBe(urls.length);
-    for (const path of PATHS) expect(urls).toContain(absoluteUrl(path));
+    for (const path of INDEXED_PATHS) expect(urls.filter((u) => u === absoluteUrl(path)), path).toHaveLength(1);
+    for (const path of NOINDEX_PATHS) expect(urls, path).not.toContain(absoluteUrl(path));
     for (const u of urls) expect(u.startsWith(SITE_URL)).toBe(true);
+  });
+
+  it('the noindex list, the registry\'s indexable flags and the sitemap agree', () => {
+    expect(SEO_PAGES.filter((p) => p.indexable === false).map((p) => p.path).sort()).toEqual([...NOINDEX_PATHS].sort());
+    const urls = new Set(sitemap().map((e) => e.url));
+    for (const p of SEO_PAGES) expect(urls.has(absoluteUrl(p.path)), p.path).toBe(p.indexable !== false);
   });
 
   it('robots.txt does not disallow any SEO page, and still disallows the private areas', () => {
@@ -176,7 +187,7 @@ describe('SEO learning pages: metadata', () => {
     expect(new Set(descriptions).size).toBe(descriptions.length);
   });
 
-  it.each(PATHS)('%s: title <= 60, description 50-160, canonical and og:url are the page path, indexable', async (path) => {
+  it.each(PATHS)('%s: title <= 60, description 50-160, canonical and og:url are the page path; indexable except the noindex figure pages', async (path) => {
     const { metadata } = await load(path);
     expect(fullTitle(metadata).length).toBeLessThanOrEqual(60);
     const d = String(metadata.description);
@@ -184,7 +195,8 @@ describe('SEO learning pages: metadata', () => {
     expect(d.length).toBeLessThanOrEqual(160);
     expect(metadata.alternates?.canonical).toBe(path);
     expect((metadata.openGraph as { url?: string }).url).toBe(path);
-    expect(metadata.robots).toBeUndefined();
+    if (NOINDEX_PATHS.includes(path)) expect(metadata.robots).toEqual({ index: false, follow: true });
+    else expect(metadata.robots).toBeUndefined();
   });
 });
 
@@ -343,9 +355,14 @@ describe('figure pages (Stage 1d)', () => {
     expect(mod.generateMetadata({ params: { slug: 'yussif' } })).toEqual({});
   });
 
-  it('the sitemap lists exactly the four figure pages under /figures/', () => {
+  it('the four figure pages are published (in the registry and linked) but left out of the sitemap, and stay crawlable', () => {
+    expect(NOINDEX_PATHS.sort()).toEqual(Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort());
     const figureUrls = sitemap().map((e) => e.url).filter((u) => u.startsWith(absoluteUrl('/figures/')));
-    expect(figureUrls.sort()).toEqual(Object.keys(DRAFTS).map((s) => absoluteUrl(`/figures/${s}`)).sort());
+    expect(figureUrls).toEqual([]);
+    for (const path of NOINDEX_PATHS) expect(SEO_PAGES.some((p) => p.path === path), path).toBe(true);
+    // noindex needs crawling to be seen, so robots.txt must not disallow them
+    const rules = robots().rules as { disallow: string[] };
+    for (const path of NOINDEX_PATHS) for (const d of rules.disallow) expect(path.startsWith(d.replace(/\*.*$/, '')) && d !== '/', `${path} vs ${d}`).toBe(false);
   });
 
   it.each(Object.keys(DRAFTS))('%s matches the approved draft (title, placement, pattern, element)', async (slug) => {

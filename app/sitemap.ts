@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     { url: absoluteUrl('/raml'), changeFrequency: 'monthly', priority: 0.8 },
     { url: absoluteUrl('/star'), changeFrequency: 'monthly', priority: 0.5 },
-    ...SEO_PAGES.map((page) => ({
+    ...SEO_PAGES.filter((page) => page.indexable !== false).map((page) => ({
       url: absoluteUrl(page.path),
       changeFrequency: page.changeFrequency,
       priority: page.priority,

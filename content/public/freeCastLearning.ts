@@ -55,7 +55,7 @@ export interface LearnLink {
  * exists (enforced by lib/raml/freeCastLearning.test.ts). */
 export const LEARN_LINKS: readonly LearnLink[] = [
   { label: 'How geomancy works', href: '/learn/ilm-al-raml', pageFile: 'app/learn/ilm-al-raml/page.tsx', enabled: true },
-  { label: 'The sixteen figures', href: '/figures', pageFile: 'app/figures/page.tsx', enabled: false },
-  { label: 'The twelve houses', href: '/houses', pageFile: 'app/houses/page.tsx', enabled: false },
+  { label: 'The sixteen figures', href: '/figures', pageFile: 'app/figures/page.tsx', enabled: true },
+  { label: 'The sixteen houses', href: '/houses', pageFile: 'app/houses/page.tsx', enabled: true },
   { label: 'Glossary', href: '/learn/glossary', pageFile: 'app/learn/glossary/page.tsx', enabled: true },
 ];

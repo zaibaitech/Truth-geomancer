@@ -17,10 +17,22 @@
 // never lib/server, the engine's questions, or any manuscript text.
 import type { Chart } from '@/lib/raml/casting';
 import type { Pattern } from '@/content/stars';
-import { OUTCOME_ROW_LABEL, type ReadingMethodRow, type ReadingResult } from '@/lib/raml/engine/reading';
+import type { ReadingMethodRow, ReadingResult } from '@/lib/raml/engine/reading';
 import type { MethodOutcome } from '@/lib/raml/engine/types';
 import { houseInfo } from '@/lib/raml/houses';
 import { isSourceSilentReading } from '@/lib/raml/resultPresentation';
+
+/** The outcome chip wording. Kept here, not imported from lib/raml/engine/reading.ts, so that
+ * this module (reached by the public book pages through reading history) never pulls the engine's
+ * reading module and its source tables into a public route's client bundle. A test pins it to
+ * the engine's own OUTCOME_ROW_LABEL. */
+const OUTCOME_ROW_LABEL: Record<MethodOutcome, string> = {
+  favourable: 'Favourable',
+  unfavourable: 'Unfavourable',
+  mixed: 'Conditional / Mixed',
+  uncertain: 'Uncertain',
+  descriptive: 'Descriptive',
+};
 
 /** Shown under every answer. An interpretation, never a promise. */
 export const STANDING_NOTE = 'A traditional reading is an interpretation to reflect on, not a guarantee of a future event.';

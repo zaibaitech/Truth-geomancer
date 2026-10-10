@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
-import { readingToText, summariseReading } from '@/lib/raml/readingSummary';
+import { readingToText, summariseForCard } from '@/lib/raml/readingSummary';
 
 /** The take-away card (Prompt 15, sections 11-12): the four things worth
  * keeping — question, state, the engine's own one-line answer, and the
  * chapter it came from — small enough to screenshot on a phone, and
  * copyable as plain text. It restates the reading; it never re-judges it. */
 export function ResultSummaryCard({ result, userQuestion }: { result: ReadingResult; userQuestion?: string }) {
-  const summary = summariseReading(result);
+  const summary = summariseForCard(result);
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -48,7 +48,17 @@ export function ResultSummaryCard({ result, userQuestion }: { result: ReadingRes
       <p className={`mt-1.5 type-verdict font-semibold ${summary.conflict ? 'text-clay-light' : 'text-sand-light'}`}>
         {summary.status}
       </p>
-      <p className="mt-1.5 type-body text-sand/70">{summary.interpretation}</p>
+      {summary.items ? (
+        <ul className="mt-2 space-y-2">
+          {summary.items.map((item) => (
+            <li key={`${item.attribution}:${item.sentence}`}>
+              <p className="type-meta text-sand/65">{item.attribution}</p>
+              <p className="type-body font-medium text-sand-light break-words">{item.sentence}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {summary.interpretation ? <p className="mt-1.5 type-body text-sand/70">{summary.interpretation}</p> : null}
       {summary.source ? <p className="mt-2 type-meta uppercase tracking-widest text-sand/65">{summary.source}</p> : null}
       <p aria-live="polite" className="sr-only">
         {copied ? 'Reading copied to the clipboard' : ''}

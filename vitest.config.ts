@@ -12,7 +12,8 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   test: {
     environment: 'node',
-    include: ['lib/**/*.test.ts', 'content/**/*.test.ts'],
+    // tests/** holds the SEO Stage 1a leak guards (test-only; see tests/README.md).
+    include: ['lib/**/*.test.ts', 'content/**/*.test.ts', 'tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     // Vite's own built-in-module externalization list is generated from
     // Node's `module.builtinModules`, which does not yet include
     // `node:sqlite` (still experimental as of Node 22 — see

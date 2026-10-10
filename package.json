@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx lib/server/db/migrate.ts",
-    "staff:bootstrap-admin": "tsx lib/server/db/bootstrapPlatformAdmin.ts"
+    "staff:bootstrap-admin": "tsx lib/server/db/bootstrapPlatformAdmin.ts",
+    "test:leaks": "tsx scripts/scan-build-leaks.ts",
+    "test:leaks:build": "next build && tsx scripts/scan-build-leaks.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

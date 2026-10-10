@@ -56,3 +56,20 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
   { term: 'Judge', definition: 'The fifteenth house, which gives the chart’s overall answer.' },
   { term: 'Querent', definition: 'The person asking the question.' },
 ];
+
+export const FIGURES_HUB = {
+  path: '/figures',
+  title: 'The 16 Geomancy Figures of Ilm al-Raml',
+  description:
+    'The 16 figures of Ilm al-Raml: each figure\'s name, number, dot pattern and element, as taught in The Master of Geomancy.',
+  h1: 'The 16 figures of Ilm al-Raml',
+  crumb: 'The 16 figures',
+} as const;
+
+export const HOUSES_HUB = {
+  path: '/houses',
+  title: 'The 16 Houses of a Geomancy Chart',
+  description: 'The 16 houses of an Ilm al-Raml chart and what area of life each one covers, from the Self to the Judge.',
+  h1: 'The 16 houses of a geomancy chart',
+  crumb: 'The 16 houses',
+} as const;

@@ -89,6 +89,8 @@ const PAGES: [string, () => Promise<PageModule>, unknown?][] = [
   ['/learn', () => import('../../app/learn/page')],
   ['/learn/ilm-al-raml', () => import('../../app/learn/ilm-al-raml/page')],
   ['/learn/glossary', () => import('../../app/learn/glossary/page')],
+  ['/figures', () => import('../../app/figures/page')],
+  ['/houses', () => import('../../app/houses/page')],
 ];
 
 describe('signed-out server HTML of public pages', () => {

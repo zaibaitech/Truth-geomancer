@@ -22,6 +22,11 @@ import { ROUTE_CLASSIFICATION } from '../fixtures/routeClassification';
 import { SEO_PAGES, isLivePath } from '@/content/public/seoPages';
 import { SITE_NAME, SITE_URL, absoluteUrl } from '@/lib/seo';
 import sitemap from '../../app/sitemap';
+import { ELEMENT_LABEL, STARS } from '@/content/stars';
+import { CLASSICAL_ATTRIBUTES } from '@/content/classicalAttributes';
+import { PUBLIC_FIGURES, FIGURE_ELEMENT_LABEL } from '@/content/public/figures';
+import { HOUSE_GROUPS, PUBLIC_HOUSES } from '@/content/public/houses';
+import { HOUSES } from '@/lib/raml/houses';
 import robots from '../../app/robots';
 
 vi.mock('next/navigation', () => ({
@@ -47,6 +52,8 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
   '/learn': { file: 'app/learn/page.tsx', load: () => import('../../app/learn/page') },
   '/learn/ilm-al-raml': { file: 'app/learn/ilm-al-raml/page.tsx', load: () => import('../../app/learn/ilm-al-raml/page') },
   '/learn/glossary': { file: 'app/learn/glossary/page.tsx', load: () => import('../../app/learn/glossary/page') },
+  '/figures': { file: 'app/figures/page.tsx', load: () => import('../../app/figures/page') },
+  '/houses': { file: 'app/houses/page.tsx', load: () => import('../../app/houses/page') },
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
@@ -223,5 +230,67 @@ describe('home and /more link to the learning hub', () => {
     expect(hrefs(html)).toEqual(['/learn']);
     const home = await import('node:fs').then((fs) => fs.readFileSync(join(REPO_ROOT, 'app/page.tsx'), 'utf8'));
     expect(home).toMatch(/<LearnRow \/>/);
+  });
+});
+
+describe('public figure and house data (content/public)', () => {
+  it('PUBLIC_FIGURES is an exact copy of the free fields of content/stars.ts (id, number, name, pattern, element)', () => {
+    expect(PUBLIC_FIGURES).toEqual(STARS.map(({ id, number, name, pattern, element }) => ({ id, number, name, pattern, element })));
+    expect(FIGURE_ELEMENT_LABEL).toEqual(ELEMENT_LABEL);
+  });
+
+  it('PUBLIC_FIGURES carries no other field (no meanings, remedies or sadaqah)', () => {
+    for (const f of PUBLIC_FIGURES) expect(Object.keys(f).sort()).toEqual(['element', 'id', 'name', 'number', 'pattern']);
+  });
+
+  it('/figures shows all 16 figures with the right glyphs, and no unapproved other-language names', async () => {
+    const { html } = await load('/figures');
+    const text = visibleText(html);
+    for (const f of PUBLIC_FIGURES) {
+      expect(html).toContain(`aria-label="Figure pattern ${f.pattern.join('-')}"`);
+      expect(text).toContain(`No. ${f.number} ${f.name} ${FIGURE_ELEMENT_LABEL[f.element]}`);
+    }
+    const latin = Object.values(CLASSICAL_ATTRIBUTES).map((a) => a.classicalName);
+    expect(latin.filter((n) => text.includes(n))).toEqual([]);
+    expect(/[\u0600-\u06FF]/.test(html)).toBe(false); // no Arabic script
+  });
+
+  it('/houses explains the six house groups, and each group matches the app\'s own house roles', async () => {
+    const roleToGroup: Record<string, string> = {
+      mother: 'The Mothers',
+      daughter: 'The Daughters',
+      niece: 'The Nieces',
+      witness: 'The Witnesses',
+      judge: 'The Judge',
+      reconciler: 'The Reconciler',
+    };
+    expect(HOUSE_GROUPS.map((g) => g.name)).toEqual(Object.values(roleToGroup));
+    for (const g of HOUSE_GROUPS) {
+      const nums = HOUSES.filter((h) => roleToGroup[h.role] === g.name).map((h) => h.n);
+      expect([Math.min(...nums), Math.max(...nums)], g.name).toEqual([g.from, g.to]);
+      expect(nums.length, g.name).toBe(g.to - g.from + 1);
+    }
+    const { html } = await load('/houses');
+    const text = visibleText(html);
+    for (const g of HOUSE_GROUPS) {
+      expect(text).toContain(g.name);
+      expect(text).toContain(g.range);
+    }
+    expect(text).toContain('How the sixteen houses are grouped');
+  });
+
+  it('the approved house wording is in place (houses 5, 6 and 15), and house 12 keeps its neutral wording', () => {
+    const h = (n: number) => PUBLIC_HOUSES.find((x) => x.number === n)!;
+    expect(h(5).about).toBe('Children, pleasure, creative undertakings');
+    expect([h(6).name, h(6).about]).toEqual(['Health & Opposition', 'Wellbeing, hidden opposition, daily work']);
+    expect(h(15).about).toBe('The chart’s final answer');
+    expect([h(12).name, h(12).about]).toEqual(['Hidden Matters', 'Constraints, private sorrows']);
+  });
+
+  it('PUBLIC_HOUSES has houses 1-16 in order, matching the app\'s house framework', async () => {
+    expect(PUBLIC_HOUSES.map((h) => h.number)).toEqual(HOUSES.map((h) => h.n));
+    const { html } = await load('/houses');
+    const text = visibleText(html);
+    for (const h of PUBLIC_HOUSES) expect(text).toContain(h.name);
   });
 });

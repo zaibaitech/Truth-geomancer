@@ -35,6 +35,8 @@ export const ROUTE_CLASSIFICATION: Record<string, RouteClass> = {
   'app/learn/page.tsx': 'public',
   'app/learn/ilm-al-raml/page.tsx': 'public',
   'app/learn/glossary/page.tsx': 'public',
+  'app/figures/page.tsx': 'public',
+  'app/houses/page.tsx': 'public',
   // Gated (entitlement-checked server-side)
   'app/books/[id]/read/page.tsx': 'gated',
   'app/books/master-of-geomancy-vol-1/practice/cancelling-method/page.tsx': 'gated',

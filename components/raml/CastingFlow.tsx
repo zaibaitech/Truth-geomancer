@@ -20,6 +20,7 @@ import {
 import { resolveQuestionCasting } from '@/lib/raml/engine/castingRequirement';
 import { QUESTION_REGISTRY_META } from '@/lib/raml/questionRegistryMeta';
 import { resolveEngineQuestionId } from '@/lib/raml/questionAvailability';
+import { trackEvent } from '@/lib/analytics';
 
 type Step = 'ask' | 'confirm' | 'casting' | 'result';
 
@@ -206,7 +207,10 @@ export function CastingFlow({ access }: { access: CastingAccessSnapshot }) {
         </Card>
 
         <button
-          onClick={() => setStep('casting')}
+          onClick={() => {
+            trackEvent('free_cast_start');
+            setStep('casting');
+          }}
           className="mt-4 w-full rounded-xl bg-clay py-3 type-body font-semibold text-ink"
         >
           Start Reading

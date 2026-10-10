@@ -24,12 +24,17 @@ export function FigureAttributes({
   facts,
   quality,
   className = 'type-meta text-sand/65',
+  compact = false,
 }: {
   basis: InterpretationBasis | null | undefined;
   facts: FigureFacts;
   /** Contextual Kanzul quality for a star-quality method. */
   quality?: FigureQualityContext | null;
   className?: string;
+  /** Show the quality classification itself but keep the longer provenance explanation for
+   * "How this was determined" (free-cast reasoning steps). A short pointer appears only when
+   * that explanation carries something specific to this figure. */
+  compact?: boolean;
 }) {
   const starQuality = basis === 'star_quality';
   // The Western good/bad word never appears for a star-quality method: the
@@ -41,10 +46,18 @@ export function FigureAttributes({
       {starQuality && quality ? (
         <>
           <p className="font-medium text-sand-light">{figureQualityText(quality)}</p>
-          <p>{KANZUL_QUALITY_PROVENANCE_NOTE}</p>
-          {figureQualityNotes(quality).map((note) => (
-            <p key={note}>{note}</p>
-          ))}
+          {compact ? (
+            figureQualityNotes(quality).length > 0 ? (
+              <p>How this was classified: see “How this was determined”.</p>
+            ) : null
+          ) : (
+            <>
+              <p>{KANZUL_QUALITY_PROVENANCE_NOTE}</p>
+              {figureQualityNotes(quality).map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+            </>
+          )}
         </>
       ) : basisLabel ? (
         <p>

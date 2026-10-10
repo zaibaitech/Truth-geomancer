@@ -15,6 +15,9 @@
 // restricted star fields and the Hatim values out of client-reachable modules,
 // emptying L1 and L2 below.
 
+// L1 (the per-star house-6 / house-2 meanings, remedies and sadaqah in client JS) was fixed: that content now
+// lives in lib/server/content/starNotes.ts and is delivered only after an entitlement check. It must stay at
+// zero: there is no baseline entry for it, so any reappearance fails the guards.
 export type LeakId = 'L1' | 'L2' | 'L3';
 
 export interface KnownClientModuleLeak {
@@ -29,15 +32,6 @@ export interface KnownClientModuleLeak {
  * whole contents ship in public JS chunks. (Conservative static analysis.)
  */
 export const KNOWN_CLIENT_REACHABLE_PROTECTED: KnownClientModuleLeak[] = [
-  {
-    module: 'content/stars.ts',
-    leak: 'L1',
-    severity: 'high',
-    why:
-      'All 16 stars\' house-6/house-2 meanings, remedies and sadaqah. Imported by client components StarCard, ResultTabs, CastingResultView, ' +
-      'app/search/page.tsx, BazdaahoArrangementDiagram, StarProseParagraph, BodyPartTable, KanzulFrontMatter, DreamInterpretationsBody, ' +
-      'GiftVisitorFiguresBody, lib/raml/dreamPairingPresentation.ts. Loaded on /raml, /books/[id], /preview/*, /search, /settings and more.',
-  },
   {
     module: 'content/manuscripts/hatim.ts',
     leak: 'L2',
@@ -79,24 +73,20 @@ export const KNOWN_CLIENT_REACHABLE_PROTECTED: KnownClientModuleLeak[] = [
 /** Per public route: protected modules its client bundle reaches today. New
  * public routes (e.g. Stage 1b /learn) are NOT listed, so they must reach none. */
 export const KNOWN_PUBLIC_ROUTE_CLIENT_LEAKS: Record<string, string[]> = {
-  'app/books/[id]/page.tsx': ['content/stars.ts', 'lib/raml/engine/castingRequirement.ts'],
+  'app/books/[id]/page.tsx': ['lib/raml/engine/castingRequirement.ts'],
   'app/raml/page.tsx': [
     'content/classicalAttributes.ts',
     'content/kanzulFigureQuality.ts',
-    'content/stars.ts',
     'lib/raml/engine/castingRequirement.ts',
     'lib/raml/engine/methodBasisTable.ts',
     'lib/raml/engine/reading.ts',
   ],
-  'app/search/page.tsx': ['content/stars.ts'],
   'app/preview/kanzul-mikban/page.tsx': [
     'content/kanzulFigureQuality.ts',
-    'content/stars.ts',
     'lib/raml/engine/castingRequirement.ts',
     'lib/raml/engine/methodBasisTable.ts',
     'lib/raml/engine/reading.ts',
   ],
-  'app/preview/master-of-geomancy-vol-1/page.tsx': ['content/stars.ts'],
 };
 
 /**
@@ -121,19 +111,6 @@ export const ACCEPTED_SERVER_SIDE_IMPORTS: Record<string, { modules: string[]; w
  * the import-graph ratchet above only.
  */
 export const KNOWN_BUILD_LEAK_IDS: Record<string, { leak: LeakId; ids: string[] }> = {
-  'stars-restricted': {
-    leak: 'L1',
-    ids: [
-      '043c24450cf64819', '0609d0ac6ca3b3c6', '072071465a094cc3', '098731634250a28c', '17e8554ca5cf04fa',
-      '196159da48f7e774', '19b5b5c13e0ca268', '200326be9484085d', '2554e60f2354c853', '28c993112295296d',
-      '362b5ded3a894cef', '40400465d1227087', '4d8ee5b6a29c0249', '539ed56f232b4494', '622cf75231113985',
-      '651ee1b7279980f3', '655ee42cc00cd20c', '65c668d73e4921f8', '6858512542d82493', '6fb2c856ba490a14',
-      '761b2b99af298494', '7ed114344eeac67e', '877a20e808f4912c', '9750c92585df388a', '9a37f803214dba9b',
-      'a566045078ccebe5', 'a8a6cdab996faced', 'abfb854e488d55d8', 'ae5fda4d79fe67f3', 'baf9ee505577beb8',
-      'bd2d1646764f178b', 'c35e93c9b3f5b96f', 'c8058cc63a92c893', 'ddacda711edbf1f1', 'e0355f8c1a253bbe',
-      'e0bba4d0fe07539e', 'eb173868abd78add', 'eebd11edb584448e', 'efaeb1205e8cad4a', 'fec03730a200ac73',
-    ],
-  },
   'hatim-values': {
     leak: 'L2',
     ids: [

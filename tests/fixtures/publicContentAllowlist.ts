@@ -233,10 +233,11 @@ export const NOT_FREE_NOTES = [
   {
     id: 'result-tabs-on-free-sample',
     what:
-      'UNCERTAIN: after a FREE sample cast, ResultTabs still shows the Overview / My Star / Sadaqah tabs. These are computed client-side ' +
-      'from content/stars.ts (the judge and illness figures\' house-6 meaning, Buruji, and a sadaqah). That makes some house-6 and sadaqah text ' +
-      'visible to non-buyers. Needs author/product confirmation whether that is intended. Until confirmed it stays PROTECTED here.',
-    source: 'components/raml/ResultTabs.tsx (BASE_TABS, generalSadaqah, judge.star.house6), lib/raml/interpret.ts',
+      'RESOLVED: the Overview / My Star / Sadaqah tabs of a cast chart no longer carry the per-star house-6 / house-2 text or the sadaqah ' +
+      'offering in the client bundle. Those notes (never the remedies) are returned only by POST /api/raml/chart-notes after the General ' +
+      'Reading entitlement check (owned by The Master of Geomancy); a visitor without it sees a locked line. The figure names, elements and ' +
+      'the Buruji / spiritual-strength / root-cause readings (from public figure data) are unchanged.',
+    source: 'components/raml/ResultTabs.tsx, app/api/raml/chart-notes/route.ts, lib/server/raml/chartNotes.ts, lib/server/content/starNotes.ts',
   },
 ];
 

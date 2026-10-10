@@ -12,12 +12,12 @@
 //   engine-methods     engine method quotes + verdict interpretations (all paid questions)
 //   verdict-logic      server verdict/parser wording (methodVerdicts, methodParser)
 //   reader-manuscripts dream / gift-visitor / abjad / reconciliation data (reader only)
-//   stars-restricted   per-star house-6 / house-2 meanings, remedies, sadaqah  (L1)
-//   stars-occupations  ELEMENT_OCCUPATIONS (author decision pending; part of L1)
+//   stars-restricted   per-star house-6 / house-2 meanings, remedies, sadaqah  (server-only since the L1 fix)
+//   stars-occupations  ELEMENT_OCCUPATIONS (server-only since the L1 fix)
 //   hatim-values       Hatim diagram border values for all 16 stars          (L2)
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { ELEMENT_OCCUPATIONS, STARS } from '@/content/stars';
+import { ELEMENT_OCCUPATIONS, STAR_NOTES } from '@/lib/server/content/starNotes';
 import * as Kanzul from '@/lib/server/content/kanzulMikban';
 import * as Master from '@/lib/server/content/masterOfGeomancy';
 import { STAR_USE_ENTRIES } from '@/content/manuscripts/starUses';
@@ -86,10 +86,10 @@ export function protectedStrings(): ProtectedString[] {
     ...fromValues('reader-manuscripts', 'content/manuscripts/valueReconciliation.ts', ValueReconciliation),
     ...fromValues(
       'stars-restricted',
-      'content/stars.ts',
-      STARS.map((s) => [s.house6, s.house2, s.sadaqah]),
+      'lib/server/content/starNotes.ts',
+      Object.values(STAR_NOTES).map((n) => [n.house6, n.house2, n.sadaqah]),
     ),
-    ...fromValues('stars-occupations', 'content/stars.ts', ELEMENT_OCCUPATIONS),
+    ...fromValues('stars-occupations', 'lib/server/content/starNotes.ts', ELEMENT_OCCUPATIONS),
     ...hatimTriplets(),
   ];
 }

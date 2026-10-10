@@ -63,6 +63,7 @@ export const ROUTE_CLASSIFICATION: Record<string, RouteClass> = {
   'app/api/books/[bookId]/chapters/[chapterId]/route.ts': 'api-paid-content',
   'app/api/books/[bookId]/offline/route.ts': 'api-paid-content',
   'app/api/raml/reading/route.ts': 'api-paid-content',
+  'app/api/raml/chart-notes/route.ts': 'api-paid-content',
   'app/api/raml/reading-verdicts/route.ts': 'api-paid-content',
   'app/api/raml/practice/route.ts': 'api-paid-content',
   'app/api/preview/[bookId]/route.ts': 'api-paid-content',

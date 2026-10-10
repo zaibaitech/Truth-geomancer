@@ -25,7 +25,7 @@ import sitemap from '../../app/sitemap';
 import { ELEMENT_LABEL, STARS } from '@/content/stars';
 import { CLASSICAL_ATTRIBUTES } from '@/content/classicalAttributes';
 import { PUBLIC_FIGURES, FIGURE_ELEMENT_LABEL } from '@/content/public/figures';
-import { PUBLIC_HOUSES } from '@/content/public/houses';
+import { HOUSE_GROUPS, PUBLIC_HOUSES } from '@/content/public/houses';
 import { HOUSES } from '@/lib/raml/houses';
 import robots from '../../app/robots';
 
@@ -253,6 +253,38 @@ describe('public figure and house data (content/public)', () => {
     const latin = Object.values(CLASSICAL_ATTRIBUTES).map((a) => a.classicalName);
     expect(latin.filter((n) => text.includes(n))).toEqual([]);
     expect(/[\u0600-\u06FF]/.test(html)).toBe(false); // no Arabic script
+  });
+
+  it('/houses explains the six house groups, and each group matches the app\'s own house roles', async () => {
+    const roleToGroup: Record<string, string> = {
+      mother: 'The Mothers',
+      daughter: 'The Daughters',
+      niece: 'The Nieces',
+      witness: 'The Witnesses',
+      judge: 'The Judge',
+      reconciler: 'The Reconciler',
+    };
+    expect(HOUSE_GROUPS.map((g) => g.name)).toEqual(Object.values(roleToGroup));
+    for (const g of HOUSE_GROUPS) {
+      const nums = HOUSES.filter((h) => roleToGroup[h.role] === g.name).map((h) => h.n);
+      expect([Math.min(...nums), Math.max(...nums)], g.name).toEqual([g.from, g.to]);
+      expect(nums.length, g.name).toBe(g.to - g.from + 1);
+    }
+    const { html } = await load('/houses');
+    const text = visibleText(html);
+    for (const g of HOUSE_GROUPS) {
+      expect(text).toContain(g.name);
+      expect(text).toContain(g.range);
+    }
+    expect(text).toContain('How the sixteen houses are grouped');
+  });
+
+  it('the approved house wording is in place (houses 5, 6 and 15), and house 12 keeps its neutral wording', () => {
+    const h = (n: number) => PUBLIC_HOUSES.find((x) => x.number === n)!;
+    expect(h(5).about).toBe('Children, pleasure, creative undertakings');
+    expect([h(6).name, h(6).about]).toEqual(['Health & Opposition', 'Wellbeing, hidden opposition, daily work']);
+    expect(h(15).about).toBe('The chart’s final answer');
+    expect([h(12).name, h(12).about]).toEqual(['Hidden Matters', 'Constraints, private sorrows']);
   });
 
   it('PUBLIC_HOUSES has houses 1-16 in order, matching the app\'s house framework', async () => {

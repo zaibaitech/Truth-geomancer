@@ -74,9 +74,12 @@ describe('Keep learning links', () => {
       expect(l.enabled, `${l.label} -> ${l.pageFile}`).toBe(existsSync(path.join(ROOT, l.pageFile)));
     }
   });
-  it('at the current base none of the destination pages exist, so nothing renders', () => {
-    expect(LEARN_LINKS.every((l) => !existsSync(path.join(ROOT, l.pageFile)))).toBe(true);
-    expect(renderToStaticMarkup(createElement(LearnLinks))).toBe('');
+  it('LearnLinks renders exactly the enabled links (those whose pages exist) and no disabled one', () => {
+    const html = renderToStaticMarkup(createElement(LearnLinks));
+    for (const l of LEARN_LINKS) {
+      expect(html.includes(`href="${l.href}"`), l.href).toBe(existsSync(path.join(ROOT, l.pageFile)));
+    }
+    if (LEARN_LINKS.every((l) => !l.enabled)) expect(html).toBe('');
   });
   it('only ever links to internal paths', () => {
     for (const l of LEARN_LINKS) expect(l.href).toMatch(/^\/[a-z-/]+$/);

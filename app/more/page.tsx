@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, Bell, Settings, History, BookOpen, ChevronRight } from 'lucide-react';
+import { Search, Bell, Settings, History, BookOpen, ChevronRight, GraduationCap } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import type { Metadata } from 'next';
@@ -13,6 +13,7 @@ const ITEMS = [
   { href: '/notifications', icon: Bell, title: 'Notifications', description: 'Updates and announcements' },
   { href: '/settings', icon: Settings, title: 'Settings', description: 'Text size, your data and app info' },
   { href: '/books', icon: BookOpen, title: 'Library', description: 'The full manuscript catalog' },
+  { href: '/learn', icon: GraduationCap, title: 'Learn', description: 'Free basics of Ilm al-Raml' },
 ];
 
 export default function MorePage() {

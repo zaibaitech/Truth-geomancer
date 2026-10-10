@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
 import { BOOKS } from '@/content/books';
+import { SEO_PAGES } from '@/content/public/seoPages';
 import { SITE_URL, absoluteUrl } from '@/lib/seo';
 
 // Indexable public pages only, on the canonical non-www host. Book pages
-// come straight from content/books.ts, so a new book is listed automatically.
+// come straight from content/books.ts, so a new book is listed automatically;
+// the free learning pages come from content/public/seoPages.ts.
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
@@ -15,5 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     { url: absoluteUrl('/raml'), changeFrequency: 'monthly', priority: 0.8 },
     { url: absoluteUrl('/star'), changeFrequency: 'monthly', priority: 0.5 },
+    ...SEO_PAGES.map((page) => ({
+      url: absoluteUrl(page.path),
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    })),
   ];
 }

@@ -11,6 +11,7 @@ behaviour. They exist so Phase 1 public SEO pages can be added safely.
 | `guards/paidApiUnauthenticated.test.ts` | Paid APIs (reading, reading-verdicts, practice, chapter text, offline bundle) answer 403 with no content to a visitor without an entitlement. Preview status leaks nothing. The one free sample still works. |
 | `guards/publicPageRender.test.tsx` | Signed-out server HTML of every public page contains zero protected fingerprints. |
 | `guards/publicContentAllowlist.test.ts` | The free-materials allowlist cites real code and agrees with the access policy (free sample, previews; General Reading is paid). |
+| `guards/seoPages.test.tsx` | Every public learning page in `content/public/seoPages.ts` (Phase 1: `/learn`, …) is classified, in the sitemap, not robots-disallowed, has unique metadata (title ≤ 60, description ≤ 160, canonical = its path), renders one `<h1>` and valid JSON-LD with a breadcrumb, links only to published pages (always to `/raml` and both books), carries no rulings / health claims / guarantees / paid-content vocabulary, and reaches no protected module even server-side. |
 | `guards/buildOutputScan.test.ts` | Opt-in vitest wrapper around the build scan (`LEAK_SCAN_NEXT_DIR=.next`). |
 | `../scripts/scan-build-leaks.ts` | Scans a real `next build` (public JS chunks plus prerendered HTML/RSC) for fingerprints and applies the ratchet. |
 

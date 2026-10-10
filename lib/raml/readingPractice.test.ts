@@ -16,7 +16,7 @@ import type { ReadingResult } from '@/lib/raml/engine/reading';
 import { EngineReadingView } from '@/components/raml/EngineReadingView';
 import { PracticeActivity } from '@/components/raml/reading/PracticeActivity';
 import { ReasoningSteps } from '@/components/raml/reading/ReasoningSteps';
-import { LEARN_COPY } from '@/content/public/freeCastLearning';
+import { LEARN_COPY, LEARN_LINKS } from '@/content/public/freeCastLearning';
 import { buildReasoningSteps } from './readingExplanation';
 import { buildPractice, checkAttempt, type PracticePlan } from './readingPractice';
 
@@ -237,7 +237,9 @@ describe('inside the reading view', () => {
     expect(card(view(SAMPLES[0], true))).toBe(card(view(SAMPLES[0], false)));
     expect(card(view(SAMPLES[0], true)).length).toBeGreaterThan(50);
   });
-  it('shows the learn links section only when a destination page exists (none at this base)', () => {
-    expect(view(SAMPLES[0], true)).not.toContain(LEARN_COPY.linksHeading);
+  it('shows the learn links section only when at least one destination page exists, and never without practice', () => {
+    const anyEnabled = LEARN_LINKS.some((l) => l.enabled);
+    expect(view(SAMPLES[0], true).includes(LEARN_COPY.linksHeading)).toBe(anyEnabled);
+    expect(view(SAMPLES[0], false)).not.toContain(LEARN_COPY.linksHeading);
   });
 });

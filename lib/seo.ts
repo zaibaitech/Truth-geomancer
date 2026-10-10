@@ -157,3 +157,86 @@ export function castingToolJsonLd(description: string) {
     publisher: { '@id': ORGANIZATION_ID, '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
   };
 }
+
+// ---- Learning pages (SEO Phase 1) ------------------------------------------
+
+export interface Crumb {
+  name: string;
+  path: string;
+}
+
+/** BreadcrumbList for a public page; the last crumb is the page itself. */
+export function breadcrumbJsonLd(crumbs: Crumb[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: crumbs.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: absoluteUrl(c.path),
+    })),
+  };
+}
+
+/** Article for an explanatory learning page. */
+export function articleJsonLd({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified = datePublished,
+}: {
+  headline: string;
+  description: string;
+  path: string;
+  datePublished: string;
+  dateModified?: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline,
+    description,
+    url: absoluteUrl(path),
+    mainEntityOfPage: absoluteUrl(path),
+    image: absoluteUrl(DEFAULT_OG_IMAGE.url),
+    inLanguage: 'en',
+    datePublished,
+    dateModified,
+    author: { '@id': ORGANIZATION_ID, '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+    publisher: { '@id': ORGANIZATION_ID, '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+  };
+}
+
+/** DefinedTermSet for a page that lists terms (glossary, figures, houses). */
+export function definedTermSetJsonLd({
+  name,
+  description,
+  path,
+  terms,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  terms: { name: string; description: string; path?: string; termCode?: string }[];
+}) {
+  const setId = `${absoluteUrl(path)}#terms`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    '@id': setId,
+    name,
+    description,
+    url: absoluteUrl(path),
+    inLanguage: 'en',
+    hasDefinedTerm: terms.map((t) => ({
+      '@type': 'DefinedTerm',
+      name: t.name,
+      description: t.description,
+      ...(t.termCode ? { termCode: t.termCode } : {}),
+      ...(t.path ? { url: absoluteUrl(t.path) } : {}),
+      inDefinedTermSet: setId,
+    })),
+  };
+}

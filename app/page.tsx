@@ -3,6 +3,7 @@ import { Hero } from '@/components/dashboard/Hero';
 import { ExploreBooks } from '@/components/dashboard/ExploreBooks';
 import { TalkToAuthor } from '@/components/dashboard/TalkToAuthor';
 import { ExploreApp } from '@/components/dashboard/ExploreApp';
+import { LearnRow } from '@/components/dashboard/LearnRow';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { HOME_DESCRIPTION, HOME_TITLE, organizationJsonLd, publicPageMetadata, websiteJsonLd } from '@/lib/seo';
@@ -34,6 +35,7 @@ export default async function DashboardPage() {
         <ExploreBooks />
         <TalkToAuthor />
         <ExploreApp />
+        <LearnRow />
       </div>
     </>
   );

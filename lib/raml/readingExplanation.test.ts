@@ -15,6 +15,7 @@ import { QUESTION_REGISTRY } from '@/lib/raml/engine/questions';
 import { ownHouseInLifeQuestion } from '@/lib/raml/engine/questions/ownHouseInLife';
 import type { ReadingResult } from '@/lib/raml/engine/reading';
 import { houseInfo } from '@/lib/raml/houses';
+import { OUTCOME_ROW_LABEL } from '@/lib/raml/engine/reading';
 import { isSourceSilentReading } from '@/lib/raml/resultPresentation';
 import { EngineReadingView } from '@/components/raml/EngineReadingView';
 import { STANDING_NOTE, buildAnswerView, buildReasoningSteps, attributionLine } from './readingExplanation';
@@ -363,5 +364,23 @@ describe('10. provenance: quality stays visible in the steps, the long explanati
     expect(short).not.toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
     expect(full).toContain(KANZUL_QUALITY_PROVENANCE_NOTE);
     expect(full).toContain('existing figure table, which classifies this figure as Bad');
+  });
+});
+
+describe('outcome chip wording', () => {
+  it('equals the engine\'s own OUTCOME_ROW_LABEL for every outcome (the copy here avoids importing the engine reading module)', () => {
+    const labelled = new Set<string>();
+    for (const { result } of RUNS.concat(SAMPLE_RUNS)) {
+      const view = buildAnswerView(result);
+      for (const g of view.groups) {
+        expect(g.outcomeLabel).toBe(OUTCOME_ROW_LABEL[g.outcome]);
+        labelled.add(g.outcome);
+      }
+    }
+    expect(labelled.size).toBeGreaterThanOrEqual(3);
+  });
+  it('readingExplanation.ts imports no value from the engine reading module', () => {
+    const src = readFileSync(path.resolve(__dirname, 'readingExplanation.ts'), 'utf8');
+    expect(src).not.toMatch(/^import\s+(?!type\b)[^\n]*engine\/reading'/m);
   });
 });

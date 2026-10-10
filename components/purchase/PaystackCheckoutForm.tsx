@@ -78,7 +78,7 @@ export function PaystackCheckoutForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-3">
+    <form data-clarity-mask="true" onSubmit={handleSubmit} noValidate className="space-y-3">
       <div className="rounded-xl border border-sand/10 bg-ink px-3.5 py-3">
         <p className="type-label uppercase tracking-widest text-sand/65">Your details</p>
         <div className="mt-2 space-y-3">

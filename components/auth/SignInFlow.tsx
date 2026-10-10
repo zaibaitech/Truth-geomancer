@@ -233,7 +233,7 @@ export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: st
   return (
     <Card>
       {step === 'email' ? (
-        <form onSubmit={sendCode} noValidate={false}>
+        <form data-clarity-mask="true" onSubmit={sendCode} noValidate={false}>
           <h2 className="type-section font-semibold text-sand-light">Sign in to Truth Geomancer</h2>
           <label htmlFor="signin-email" className="mt-4 block type-label text-sand/65">
             Email address
@@ -297,7 +297,7 @@ export function SignInFlow({ returnTo, initialChallenge = null }: { returnTo: st
       ) : null}
 
       {step === 'code' && !codeExpired ? (
-        <form onSubmit={verify}>
+        <form data-clarity-mask="true" onSubmit={verify}>
           <h2 className="type-section font-semibold text-sand-light">Check your email</h2>
           <p className="mt-1.5 type-body text-sand/70">
             Enter the 6-digit code sent to <span className="break-all font-semibold text-sand-light">{email}</span>

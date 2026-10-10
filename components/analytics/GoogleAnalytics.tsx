@@ -3,7 +3,7 @@
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { GA_MEASUREMENT_ID, isAnalyticsExcludedPath, trackPageView } from '@/lib/analytics';
+import { CLARITY_PROJECT_ID, GA_MEASUREMENT_ID, isAnalyticsExcludedPath, trackPageView } from '@/lib/analytics';
 
 // Loads GA4 after hydration. Automatic page views are off; we send our own
 // with origin + pathname only, and the referrer is reduced to origin + path.
@@ -22,7 +22,7 @@ export function GoogleAnalytics() {
     if (pathname && !excluded) trackPageView(pathname);
   }, [pathname, excluded]);
 
-  if (!GA_MEASUREMENT_ID || excluded) return null;
+  if (excluded) return null;
 
   const config = {
     send_page_view: false,
@@ -33,6 +33,13 @@ export function GoogleAnalytics() {
 
   return (
     <>
+      {CLARITY_PROJECT_ID && (
+        <Script id="ms-clarity" strategy="afterInteractive">
+          {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script",${JSON.stringify(CLARITY_PROJECT_ID)});`}
+        </Script>
+      )}
+      {GA_MEASUREMENT_ID && (
+      <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
       <Script id="ga4-init" strategy="afterInteractive">
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());` +
@@ -40,6 +47,8 @@ export function GoogleAnalytics() {
           `gtag('config',${JSON.stringify(GA_MEASUREMENT_ID)},${JSON.stringify(config)});` +
           `gtag('event','page_view',{page_location:location.origin+location.pathname,page_path:location.pathname,page_title:document.title});`}
       </Script>
+      </>
+      )}
     </>
   );
 }

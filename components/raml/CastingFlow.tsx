@@ -195,7 +195,7 @@ export function CastingFlow({ access }: { access: CastingAccessSnapshot }) {
             Hold it in mind as you cast. This does not change the geomancy calculation — it is saved with
             the casting on this device so you can remember what you asked.
           </p>
-          <textarea
+          <textarea data-clarity-mask="true"
             id="intention-text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}

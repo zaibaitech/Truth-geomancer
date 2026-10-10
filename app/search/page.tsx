@@ -56,7 +56,7 @@ export default function SearchPage() {
       <div className="px-4 py-4">
         <div className="flex items-center gap-2 rounded-xl border border-sand/15 bg-ink-card px-3 py-2.5">
           <SearchIcon size={16} className="text-sand/65" />
-          <input
+          <input data-clarity-mask="true"
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}

@@ -3,6 +3,8 @@
 // questions, form inputs, emails, names, payment references or IDs here.
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-MTFBV3L25B';
 
+export const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_ID || 'yvh3dblhjj';
+
 // Paths where GA never sends anything.
 const EXCLUDED_PREFIXES = ['/admin', '/api', '/auth'];
 

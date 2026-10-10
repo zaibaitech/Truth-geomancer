@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { GA_MEASUREMENT_ID, isAnalyticsExcludedPath, sanitizeUrl } from './analytics';
+import { CLARITY_PROJECT_ID, GA_MEASUREMENT_ID, isAnalyticsExcludedPath, sanitizeUrl } from './analytics';
 
 describe('analytics privacy helpers', () => {
   it('uses the GA4 measurement id fallback', () => {
     expect(GA_MEASUREMENT_ID).toMatch(/^G-/);
+    expect(CLARITY_PROJECT_ID).toBeTruthy();
   });
   it('strips query strings and hashes', () => {
     expect(sanitizeUrl('https://truthgeomancer.com/purchase/x?payment=success&reference=abc#q')).toBe(

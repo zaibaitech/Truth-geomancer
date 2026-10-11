@@ -41,6 +41,23 @@ export function elementLabel(f: PublicFigure): string {
   return FIGURE_ELEMENT_LABEL[f.element];
 }
 
+/**
+ * Short per-figure overview (SEO Stage 1e). Written only from the free basics
+ * above (number, pattern, element) and the addition rule the free cast already
+ * teaches (content/public/freeCastLearning.ts). Structure only: no meanings,
+ * fortunes, remedies, rulings or other-language names.
+ */
+export const FIGURE_PAGE_OVERVIEW: Record<(typeof FIGURE_PAGE_SLUGS)[number], string> = {
+  ibrahim:
+    'Ibrahim is the only figure made entirely of single dots, so it is the lightest of the sixteen to draw and one of the easiest to spot in a chart. Because every row holds one dot, adding Ibrahim to another figure turns each of that figure\u2019s rows into its opposite: one dot becomes two, and two becomes one. Its exact opposite is Musah, the all-double figure that closes the sequence.',
+  musah:
+    'Musah is the only figure with two dots in every row, the heaviest of the sixteen and the one that closes the sequence. Under the addition rule it is the figure that changes nothing: add Musah to any figure and you get that same figure back. Its exact opposite is Ibrahim, figure 5, which has a single dot in every row.',
+  nuhu:
+    'Nuhu is weighted at the top: two rows of two dots sit above two rows of one. Read its rows from the bottom up and you get Kalla Allahu, figure 9, a Fire figure, so the two make a matching pair across elements. Nuhu is the last of the four Air figures in book order.',
+  usman:
+    'Usman alternates all the way down: two dots, one dot, two dots, one dot. Turn it upside down and you get Issah, figure 6, a Water figure with the same rhythm starting from a single dot. Usman is the last of the four Sand / Earth figures and the second-to-last figure of the sixteen.',
+};
+
 export function getFigurePage(slug: string): PublicFigure | undefined {
   return (FIGURE_PAGE_SLUGS as readonly string[]).includes(slug) ? getPublicFigure(slug) : undefined;
 }

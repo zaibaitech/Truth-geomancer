@@ -63,9 +63,8 @@ const PAGE_MODULES: Record<string, { file: string; load: () => Promise<PageModul
 };
 
 const PATHS = SEO_PAGES.map((p) => p.path);
-/** The four templated figure pages are published and linked but noindex and out of the sitemap until the
- * author supplies approved per-figure copy. Listed explicitly so a change is a deliberate, reviewed edit. */
-const NOINDEX_PATHS = ['/figures/ibrahim', '/figures/musah', '/figures/nuhu', '/figures/usman'];
+/** Learning pages kept noindex. Empty since the four figure pages got their own overview copy. Listed explicitly so a change is a deliberate, reviewed edit. */
+const NOINDEX_PATHS: string[] = [];
 const INDEXED_PATHS = PATHS.filter((p) => !NOINDEX_PATHS.includes(p));
 
 async function load(path: string) {
@@ -355,14 +354,14 @@ describe('figure pages (Stage 1d)', () => {
     expect(mod.generateMetadata({ params: { slug: 'yussif' } })).toEqual({});
   });
 
-  it('the four figure pages are published (in the registry and linked) but left out of the sitemap, and stay crawlable', () => {
-    expect(NOINDEX_PATHS.sort()).toEqual(Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort());
+  it('the four figure pages are published, indexable, in the sitemap, and crawlable', () => {
+    const figurePaths = Object.keys(DRAFTS).map((s) => `/figures/${s}`).sort();
+    expect(NOINDEX_PATHS).toEqual([]);
     const figureUrls = sitemap().map((e) => e.url).filter((u) => u.startsWith(absoluteUrl('/figures/')));
-    expect(figureUrls).toEqual([]);
-    for (const path of NOINDEX_PATHS) expect(SEO_PAGES.some((p) => p.path === path), path).toBe(true);
-    // noindex needs crawling to be seen, so robots.txt must not disallow them
+    expect(figureUrls.sort()).toEqual(figurePaths.map((p) => absoluteUrl(p)).sort());
+    for (const path of figurePaths) expect(SEO_PAGES.some((p) => p.path === path && p.indexable !== false), path).toBe(true);
     const rules = robots().rules as { disallow: string[] };
-    for (const path of NOINDEX_PATHS) for (const d of rules.disallow) expect(path.startsWith(d.replace(/\*.*$/, '')) && d !== '/', `${path} vs ${d}`).toBe(false);
+    for (const path of figurePaths) for (const d of rules.disallow) expect(path.startsWith(d.replace(/\*.*$/, '')) && d !== '/', `${path} vs ${d}`).toBe(false);
   });
 
   it.each(Object.keys(DRAFTS))('%s matches the approved draft (title, placement, pattern, element)', async (slug) => {

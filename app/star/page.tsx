@@ -2,19 +2,23 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { Sparkles, History } from 'lucide-react';
 import Link from 'next/link';
-import { publicPageMetadata } from '@/lib/seo';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { publicPageMetadata, starPageJsonLd } from '@/lib/seo';
+
+const STAR_DESCRIPTION =
+  'Find your Buruji, your star in Ilm al-Raml geomancy: cast a chart about your general life to see your star, ' +
+  'your spiritual strength, and the root of anything that feels stuck.';
 
 export const metadata = publicPageMetadata({
   title: 'My Star (Buruji) in Geomancy',
-  description:
-    'Find your Buruji, your star in Ilm al-Raml geomancy: cast a chart about your general life to see your star, ' +
-    'your spiritual strength, and the root of anything that feels stuck.',
+  description: STAR_DESCRIPTION,
   path: '/star',
 });
 
 export default function StarPage() {
   return (
     <div>
+      <JsonLd data={starPageJsonLd(STAR_DESCRIPTION)} />
       <Header title="My Star" subtitle="Your Buruji, once you cast" />
       <div className="space-y-3 px-4">
         <Card className="flex flex-col items-center gap-3 py-8 text-center">

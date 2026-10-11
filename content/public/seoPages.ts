@@ -25,9 +25,8 @@ export const SEO_PAGES: SeoPage[] = [
   { path: '/learn/glossary', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/figures', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/houses', changeFrequency: 'monthly', priority: 0.6 },
-  // Thin, templated pages: reachable and linked, but noindex and not in the sitemap
-  // until the author supplies approved per-figure copy.
-  ...FIGURE_PAGE_SLUGS.map((slug) => ({ path: figurePath(slug), changeFrequency: 'monthly' as const, priority: 0.6, indexable: false })),
+  // Figure pages: indexable now that each has its own short overview (FIGURE_PAGE_OVERVIEW).
+  ...FIGURE_PAGE_SLUGS.map((slug) => ({ path: figurePath(slug), changeFrequency: 'monthly' as const, priority: 0.6 })),
 ];
 
 /** Existing public app pages the learning pages may link to. */

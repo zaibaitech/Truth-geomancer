@@ -4,7 +4,8 @@ import { BOOKS } from '@/content/books';
 import { getCurrentUserIfPresent } from '@/lib/server/session';
 import { getDb } from '@/lib/server/db';
 import { canAccessForUser } from '@/lib/server/accessService';
-import { publicPageMetadata } from '@/lib/seo';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { booksCollectionJsonLd, publicPageMetadata } from '@/lib/seo';
 
 export const metadata = publicPageMetadata({
   title: 'Geomancy Books & Manuscripts',
@@ -27,6 +28,7 @@ export default async function BooksPage() {
 
   return (
     <div>
+      <JsonLd data={booksCollectionJsonLd(BOOKS)} />
       <Header title="Library" subtitle="Manuscripts to own and read" />
       <div className="grid grid-cols-2 gap-4 px-4 py-4">
         {BOOKS.map((book, i) => (

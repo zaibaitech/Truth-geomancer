@@ -158,6 +158,43 @@ export function castingToolJsonLd(description: string) {
   };
 }
 
+/** /books: the library as a CollectionPage holding an ItemList of the Book entities. */
+export function booksCollectionJsonLd(books: Book[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Geomancy Books & Manuscripts',
+    url: absoluteUrl('/books'),
+    inLanguage: 'en',
+    isPartOf: { '@id': WEBSITE_ID },
+    publisher: { '@id': ORGANIZATION_ID, '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: books.length,
+      itemListElement: books.map((book, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: absoluteUrl(`/books/${book.id}`),
+        item: { '@type': 'Book', '@id': `${absoluteUrl(`/books/${book.id}`)}#book`, name: book.title },
+      })),
+    },
+  };
+}
+
+/** /star: a WebPage whose main entity is the casting tool that reveals the star. */
+export function starPageJsonLd(description: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'My Star (Buruji) in Geomancy',
+    url: absoluteUrl('/star'),
+    description,
+    inLanguage: 'en',
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: castingToolJsonLd(description),
+  };
+}
+
 // ---- Learning pages (SEO Phase 1) ------------------------------------------
 
 export interface Crumb {

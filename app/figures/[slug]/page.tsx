@@ -10,6 +10,7 @@ import { BooksLine, Breadcrumbs, H2, LearnCta, MoreLink, P, SeoLink } from '@/co
 import { FIGURES_HUB, LEARN_HUB } from '@/content/public/learnPages';
 import { figurePath, getPublicFigure } from '@/content/public/figures';
 import {
+  FIGURE_PAGE_OVERVIEW,
   FIGURE_PAGE_SLUGS,
   elementLabel,
   figurePageDescription,
@@ -19,7 +20,7 @@ import {
   figuresSharingElement,
   getFigurePage,
 } from '@/content/public/figurePages';
-import { absoluteUrl, breadcrumbJsonLd, publicPageMetadata } from '@/lib/seo';
+import { absoluteUrl, articleJsonLd, breadcrumbJsonLd, publicPageMetadata } from '@/lib/seo';
 
 type Props = { params: { slug: string } };
 
@@ -33,15 +34,11 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: Props): Metadata {
   const figure = getFigurePage(params.slug);
   if (!figure) return {};
-  // noindex until approved per-figure copy exists (see content/public/seoPages.ts).
-  return {
-    ...publicPageMetadata({
-      title: figurePageTitle(figure),
-      description: figurePageDescription(figure),
-      path: figurePath(figure.id),
-    }),
-    robots: { index: false, follow: true },
-  };
+  return publicPageMetadata({
+    title: figurePageTitle(figure),
+    description: figurePageDescription(figure),
+    path: figurePath(figure.id),
+  });
 }
 
 /** "A, B, and C" with links to any of them that have a published page. */
@@ -89,6 +86,12 @@ export default function FigurePage({ params }: Props) {
             url: absoluteUrl(path),
             inDefinedTermSet: `${absoluteUrl(FIGURES_HUB.path)}#terms`,
           },
+          articleJsonLd({
+            headline: figurePageTitle(figure),
+            description: figurePageDescription(figure),
+            path,
+            datePublished: '2026-10-11',
+          }),
         ]}
       />
       <Header title={figure.name} subtitle={`Figure ${figure.number} of 16 · ${elementLabel(figure)}`} />
@@ -112,6 +115,9 @@ export default function FigurePage({ params }: Props) {
           <strong className="text-sand-light">Element:</strong> {elementLabel(figure)}. It shares this element with{' '}
           <NameList ids={figuresSharingElement(figure).map((f) => f.id)} />.
         </P>
+
+        <H2>{figure.name} at a glance</H2>
+        <P>{FIGURE_PAGE_OVERVIEW[figure.id as keyof typeof FIGURE_PAGE_OVERVIEW]}</P>
 
         <H2>What does {figure.name} mean?</H2>
         <P>

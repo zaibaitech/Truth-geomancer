@@ -7,7 +7,7 @@ import { publicPageMetadata, starPageJsonLd } from '@/lib/seo';
 
 const STAR_DESCRIPTION =
   'Find your Buruji, your star in Ilm al-Raml geomancy: cast a chart about your general life to see your star, ' +
-  'your spiritual strength, and the root of anything that feels stuck.';
+  'your spiritual strength, and a starting point for reflection.';
 
 export const metadata = publicPageMetadata({
   title: 'My Star (Buruji) in Geomancy',

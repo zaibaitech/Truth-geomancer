@@ -16,7 +16,7 @@ export interface ExploreAppItem {
 
 export const EXPLORE_APP_ITEMS: ExploreAppItem[] = [
   { href: '/raml', iconName: 'cast', title: 'Cast', description: 'Get answers' },
-  { href: `${MASTER_READ_PATH}#stars-and-symbols`, iconName: 'stars', title: 'The 16 Stars', description: 'Learn their meanings' },
+  { href: '/figures', iconName: 'stars', title: 'The 16 Stars', description: 'Learn their meanings' },
   { href: `${MASTER_READ_PATH}#star-sadaqah`, iconName: 'sadaqah', title: 'Sadaqah Guide', description: 'Spiritual support' },
   { href: `${MASTER_READ_PATH}#knowing-your-buruji`, iconName: 'buruj', title: 'Your Buruj', description: 'Know your sign' },
 ];

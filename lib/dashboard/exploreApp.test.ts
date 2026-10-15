@@ -12,8 +12,12 @@ describe('EXPLORE_APP_ITEMS', () => {
     expect(EXPLORE_APP_ITEMS.find((i) => i.title === 'Cast')?.href).toBe('/raml');
   });
 
-  it('C: every other item routes into the existing Master of Geomancy reader (no invented route)', () => {
-    for (const item of EXPLORE_APP_ITEMS.filter((i) => i.title !== 'Cast')) {
+  it('C2: "The 16 Stars" routes to the public /figures reference page', () => {
+    expect(EXPLORE_APP_ITEMS.find((i) => i.title === 'The 16 Stars')?.href).toBe('/figures');
+  });
+
+  it('C: Sadaqah Guide and Your Buruj route into the existing Master of Geomancy reader (no invented route)', () => {
+    for (const item of EXPLORE_APP_ITEMS.filter((i) => i.title !== 'Cast' && i.title !== 'The 16 Stars')) {
       expect(item.href.startsWith('/books/master-of-geomancy-vol-1/read#')).toBe(true);
     }
   });

@@ -26,6 +26,10 @@ export default async function RamlPage() {
     <div>
       <JsonLd data={castingToolJsonLd(RAML_DESCRIPTION)} />
       <Header title="Cast a Chart" subtitle="Ilm al-Raml" />
+      <p className="mx-4 mt-3 rounded-xl border border-sand/15 px-4 py-3 type-meta leading-relaxed text-sand/65">
+        Ilm al-Raml is a traditional practice for study and reflection. Readings do not establish facts or guarantee
+        outcomes, and are not medical, legal or financial advice.
+      </p>
       <div className="py-4">
         <CastingFlow access={access} />
       </div>

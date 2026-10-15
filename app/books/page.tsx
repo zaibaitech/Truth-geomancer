@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { BookCard } from '@/components/books/BookCard';
 import { BOOKS } from '@/content/books';
@@ -35,6 +36,33 @@ export default async function BooksPage() {
           <BookCard key={book.id} book={book} entitled={entitlements[i]} />
         ))}
       </div>
+      <section className="space-y-3 px-4 pb-6">
+        <h2 className="font-logo text-lg text-sand-light">Which book should I start with?</h2>
+        <p className="type-body leading-relaxed text-sand/70">
+          Both books are by {BOOKS[0]?.author ?? 'the author'} and are read inside the Truth Geomancer app.
+        </p>
+        <p className="type-body leading-relaxed text-sand/70">
+          <Link href="/books/master-of-geomancy-vol-1" className="text-clay-light underline underline-offset-2">
+            The Master of Geomancy, Volume 1
+          </Link>{' '}
+          is the place to begin. It is the foundation text: the history of Ilm al-Raml, how to cast a chart by hand,
+          and the sixteen figures with their elements.
+        </p>
+        <p className="type-body leading-relaxed text-sand/70">
+          <Link href="/books/kanzul-mikban" className="text-clay-light underline underline-offset-2">
+            Kanzul Mikban
+          </Link>{' '}
+          is the advanced companion. It assumes you already know how to cast a chart, and collects question-specific
+          reading methods from the manuscript notebook.
+        </p>
+        <p className="type-body leading-relaxed text-sand/70">
+          New to the subject? Read the free{' '}
+          <Link href="/learn" className="text-clay-light underline underline-offset-2">
+            Ilm al-Raml basics
+          </Link>{' '}
+          first. For the current price and how to get access, ask the author on WhatsApp from either book page.
+        </p>
+      </section>
     </div>
   );
 }

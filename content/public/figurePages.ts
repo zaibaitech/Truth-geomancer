@@ -15,7 +15,7 @@ export function figurePageTitle(f: PublicFigure): string {
 }
 
 export function figurePageDescription(f: PublicFigure): string {
-  return `${f.name} is figure ${f.number} of the 16 in Ilm al-Raml. See its dot pattern and element, and discover what it means in your chart.`;
+  return `${f.name} is figure ${f.number} of the 16 in Ilm al-Raml. See its dot pattern, element and relationships with the other figures.`;
 }
 
 /** "It comes after Iddris and before Issah." / "It is the last figure, coming after Usman." */

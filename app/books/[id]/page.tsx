@@ -72,6 +72,29 @@ export default async function BookDetailPage({ params }: { params: { id: string 
         </div>
         <p className="mt-4 type-body leading-relaxed text-sand/70">{book.description}</p>
 
+        {book.id === 'master-of-geomancy-vol-1' ? (
+          <div className="mt-4 space-y-2">
+            <h2 className="type-label uppercase tracking-widest text-sand/65">Who it’s for</h2>
+            <p className="type-body leading-relaxed text-sand/70">
+              Beginners and anyone who wants a grounded start in Ilm al-Raml. It needs no prior knowledge and prepares
+              you for the advanced companion,{' '}
+              <Link href="/books/kanzul-mikban" className="text-clay-light underline underline-offset-2">
+                Kanzul Mikban
+              </Link>
+              .
+            </p>
+            <h2 className="type-label uppercase tracking-widest text-sand/65">Format</h2>
+            <p className="type-body leading-relaxed text-sand/70">
+              A digital book in {book.chapterCount} chapters, written in English and read inside the Truth Geomancer
+              app. Owners can also download it for offline reading.
+            </p>
+            <h2 className="type-label uppercase tracking-widest text-sand/65">Price</h2>
+            <p className="type-body leading-relaxed text-sand/70">
+              Ask the author for the current price and payment details on WhatsApp.
+            </p>
+          </div>
+        ) : null}
+
         <div className="mt-4">
           <WhatsAppButton message={buildBookContactMessage(book)} label="Ask about this book" variant="subtle" />
         </div>
